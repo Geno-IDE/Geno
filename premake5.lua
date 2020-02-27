@@ -1,6 +1,6 @@
 OUTDIR    = 'build/%{_ACTION}/%{cfg.platform}/%{cfg.buildcfg}/'
-BUNDLE    = 'com.gaztin.foundation'
-WORKSPACE = 'Workspace'
+BUNDLE    = 'com.gaztin.alv'
+WORKSPACE = 'Alv'
 
 local modules = { }
 local samples = { }
@@ -74,8 +74,8 @@ local function base_config()
 		debugenvs { 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../%{OUTDIR}' }
 
 	filter { 'system:android' }
-		androidabis { 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64' }
 		buildoptions { '-Wfatal-errors' }
+		--androidabis { 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64' }
 
 	filter { }
 end
@@ -95,18 +95,18 @@ local function decl_module( name )
 	project( name )
 	kind( 'StaticLib' )
 	links( modules )
-	appid( '%{BUNDLE}.libs.' .. name:lower() )
+	--appid( '%{BUNDLE}.libs.' .. name:lower() )
 	base_config()
 	files {
-		--'src/*.cpp',
-		--'src/*.h',
+		'src/' .. name .. '/**.cpp',
+		'src/' .. name .. '/**.h',
 	}
 
 	filter { 'toolset:msc' }
 		defines { '_CRT_SECURE_NO_WARNINGS' }
 
 	filter { 'system:macosx or ios' }
-		--files { 'src/**.mm' }
+		files { 'src/' .. name .. '/**.mm' }
 
 	filter { 'system:macosx or ios', 'files:**.cpp' }
 		language( 'ObjCpp' )
@@ -119,20 +119,20 @@ local function decl_module( name )
 	table.insert( modules, name )
 end
 
-local function decl_sample( name )
+local function decl_editor( name )
 	local id       = string.format( '%02d', 1 + #samples )
 	local fullname = id .. '-' .. name
 
-	group( 'Samples' )
+	group( 'Editor' )
 	project( fullname )
 	kind( 'WindowedApp' )
 	links( modules )
 	xcodebuildresources( 'assets' )
-	appid( '%{BUNDLE}.samples.' .. name:lower() )
+	--appid( '%{BUNDLE}.editor' )
 	base_config()
 	files {
-		--'src/*.cpp',
-		--'src/*.h',
+		'src/Editor/**.cpp',
+		'src/Editor/**.h',
 	}
 
 	filter { 'system:linux' }
@@ -157,6 +157,7 @@ local function decl_sample( name )
 end
 
 workspace( WORKSPACE )
+	startproject 'Editor'
 	platforms( get_platforms() )
 	configurations { 'Debug', 'Release' }
 	--gradleversion( '3.1.4' )
@@ -164,9 +165,5 @@ workspace( WORKSPACE )
 -- Declare modules
 decl_module( 'Core' )
 
--- Declare samples
-decl_sample( 'Tests' )
-
--- Set last sample to startup
-workspace( WORKSPACE )
-	startproject( samples[ #samples ] )
+-- Declare editor
+decl_editor( 'Editor' )
