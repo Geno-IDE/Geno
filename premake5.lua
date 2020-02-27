@@ -74,8 +74,8 @@ local function base_config()
 		debugenvs { 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../%{OUTDIR}' }
 
 	filter { 'system:android' }
-		androidabis { 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64' }
 		buildoptions { '-Wfatal-errors' }
+		--androidabis { 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64' }
 
 	filter { }
 end
@@ -95,7 +95,7 @@ local function decl_module( name )
 	project( name )
 	kind( 'StaticLib' )
 	links( modules )
-	appid( '%{BUNDLE}.libs.' .. name:lower() )
+	--appid( '%{BUNDLE}.libs.' .. name:lower() )
 	base_config()
 	files {
 		--'src/*.cpp',
@@ -128,7 +128,7 @@ local function decl_sample( name )
 	kind( 'WindowedApp' )
 	links( modules )
 	xcodebuildresources( 'assets' )
-	appid( '%{BUNDLE}.samples.' .. name:lower() )
+	--appid( '%{BUNDLE}.samples.' .. name:lower() )
 	base_config()
 	files {
 		--'src/*.cpp',
