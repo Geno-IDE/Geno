@@ -16,20 +16,6 @@
  */
 
 #pragma once
-#include "Core/Core.h"
-
-ALV_NAMESPACE_BEGIN
-
-class Dummy
-{
-public:
-
-	Dummy( void );
-
-//////////////////////////////////////////////////////////////////////////
-
-	int Foo( void );
-
-};
-
-ALV_NAMESPACE_END
+#define ALV_NAMESPACE       ::Alv::
+#define ALV_NAMESPACE_BEGIN namespace Alv {
+#define ALV_NAMESPACE_END   }
