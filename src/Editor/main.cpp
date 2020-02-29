@@ -15,13 +15,15 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Core/Dummy.h"
+#include "Core/Compiler.h"
+
+#include <cstdlib>
 
 #include <Windows.h>
 
 int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /*cmd_line*/, int /*show_cmd*/ )
 {
-	Alv::Dummy dummy;
+	Alv::Compiler compiler( CFG_LLVM_LOCATION );
 
-	return dummy.Foo();
+	return compiler.Compile( L"test.cpp" );
 }

@@ -8,6 +8,12 @@ local samples = { }
 -- Allow Objective C++ files on macOS and iOS
 premake.api.addAllowed( 'language', 'ObjCpp' )
 
+newoption {
+	trigger     = 'llvm-location',
+	description = 'Installation location of LLVM',
+	type        = 'directory'
+}
+
 -- Set system to android
 if( _ACTION == 'android-studio' ) then
 	_TARGET_OS = 'android'
@@ -91,7 +97,7 @@ end
 local function decl_module( name )
 	local up = name:upper()
 
-	group( 'Engine' )
+	group( 'Modules' )
 	project( name )
 	kind( 'StaticLib' )
 	links( modules )
@@ -130,6 +136,10 @@ local function decl_editor( name )
 	xcodebuildresources( 'assets' )
 	--appid( '%{BUNDLE}.editor' )
 	base_config()
+
+	defines {
+		'CFG_LLVM_LOCATION=L"%{_OPTIONS["llvm-location"]}"',
+	}
 	files {
 		'src/Editor/**.cpp',
 		'src/Editor/**.h',
