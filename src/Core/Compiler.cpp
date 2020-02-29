@@ -67,8 +67,13 @@ int Compiler::Compile( std::wstring_view cpp )
 std::wstring Compiler::MakeArgsString( const Args& args ) const
 {
 	std::wstring string;
-	string += L" -c \"" + args.input.wstring()  + L"\"";
-	string += L" -o \"" + args.output.wstring() + L"\"";
+	string.reserve( 64 );
+
+	// Input file
+	string += L" -c \"" + args.input.native() +  L"\"";
+
+	// Output file
+	string += L" -o \"" + args.output.native() + L"\"";
 
 	return string;
 }
