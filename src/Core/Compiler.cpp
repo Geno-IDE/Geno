@@ -17,32 +17,13 @@
 
 #include "Compiler.h"
 
-#include <iostream>
-
 #include <Windows.h>
 
 ALV_NAMESPACE_BEGIN
 
-static void Print( std::wstring_view str )
-{
-	HANDLE h = GetStdHandle( STD_OUTPUT_HANDLE );
-	WriteConsoleW( h, str.data(), str.size(), nullptr, nullptr );
-	WriteConsoleW( h, L"\n", 1, nullptr, nullptr );
-}
-
 Compiler::Compiler( std::wstring_view path )
 	: path_( path )
 {
-	AllocConsole();
-
-	freopen( "CONIN$",  "r", stdin );
-	freopen( "CONOUT$", "w", stderr );
-	freopen( "CONOUT$", "w", stdout );
-}
-
-Compiler::~Compiler( void )
-{
-	FreeConsole();
 }
 
 int Compiler::Compile( std::wstring_view cpp )

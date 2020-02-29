@@ -16,6 +16,7 @@
  */
 
 #include "Core/Compiler.h"
+#include "Core/Console.h"
 
 #include <cstdlib>
 
@@ -23,6 +24,7 @@
 
 int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /*cmd_line*/, int /*show_cmd*/ )
 {
+	Alv::Console  console;
 	Alv::Compiler compiler( CFG_LLVM_LOCATION );
 
 	return compiler.Compile( L"test.cpp" );

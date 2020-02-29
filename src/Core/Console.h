@@ -18,39 +18,14 @@
 #pragma once
 #include "Core/Core.h"
 
-#include <filesystem>
-#include <string_view>
-#include <string>
-
 ALV_NAMESPACE_BEGIN
 
-class Compiler
+class Console
 {
 public:
 
-	Compiler( std::wstring_view path );
-
-//////////////////////////////////////////////////////////////////////////
-
-	int Compile( std::wstring_view cpp );
-
-//////////////////////////////////////////////////////////////////////////
-
-private:
-
-	struct Args
-	{
-		std::filesystem::path input;
-		std::filesystem::path output;
-	};
-
-//////////////////////////////////////////////////////////////////////////
-
-	std::wstring MakeArgsString( const Args& args ) const;
-
-//////////////////////////////////////////////////////////////////////////
-
-	std::filesystem::path path_;
+	 Console( void );
+	~Console( void );
 
 };
 

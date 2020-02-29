@@ -15,43 +15,26 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include "Core/Core.h"
+#include "Console.h"
 
-#include <filesystem>
-#include <string_view>
-#include <string>
+#include <cstdio>
+
+#include <Windows.h>
 
 ALV_NAMESPACE_BEGIN
 
-class Compiler
+Console::Console( void )
 {
-public:
+	AllocConsole();
 
-	Compiler( std::wstring_view path );
+	freopen( "CONIN$",  "r", stdin );
+	freopen( "CONOUT$", "w", stderr );
+	freopen( "CONOUT$", "w", stdout );
+}
 
-//////////////////////////////////////////////////////////////////////////
-
-	int Compile( std::wstring_view cpp );
-
-//////////////////////////////////////////////////////////////////////////
-
-private:
-
-	struct Args
-	{
-		std::filesystem::path input;
-		std::filesystem::path output;
-	};
-
-//////////////////////////////////////////////////////////////////////////
-
-	std::wstring MakeArgsString( const Args& args ) const;
-
-//////////////////////////////////////////////////////////////////////////
-
-	std::filesystem::path path_;
-
-};
+Console::~Console( void )
+{
+	FreeConsole();
+}
 
 ALV_NAMESPACE_END
