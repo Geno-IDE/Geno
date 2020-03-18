@@ -3,7 +3,6 @@ BUNDLE    = 'com.gaztin.alv'
 WORKSPACE = 'Alv'
 
 local modules = { }
-local samples = { }
 
 -- Allow Objective C++ files on macOS and iOS
 premake.api.addAllowed( 'language', 'ObjCpp' )
@@ -126,11 +125,8 @@ local function decl_module( name )
 end
 
 local function decl_editor( name )
-	local id       = string.format( '%02d', 1 + #samples )
-	local fullname = id .. '-' .. name
-
 	group( 'Editor' )
-	project( fullname )
+	project( name )
 	kind( 'WindowedApp' )
 	links( modules )
 	xcodebuildresources( 'assets' )
@@ -162,8 +158,6 @@ local function decl_editor( name )
 
 	project()
 	group()
-
-	table.insert( samples, fullname )
 end
 
 workspace( WORKSPACE )
