@@ -26,15 +26,23 @@
 
 int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /*cmd_line*/, int /*show_cmd*/ )
 {
-	Alv::Console  console;
-	Alv::Compiler compiler( CFG_LLVM_LOCATION );
-	Alv::Window   window;
+	Alv::Console               console;
+	Alv::Compiler              compiler( CFG_LLVM_LOCATION );
+	std::vector< Alv::Window > windows;
+	windows.resize( 3 );
 
-	window.Show();
+	for( auto& window : windows )
+		window.Show();
 
-	while( window.IsOpen() )
+	while( !windows.empty() )
 	{
-		window.PollEvents();
+		for( auto it = windows.begin(); it != windows.end(); )
+		{
+			it->PollEvents();
+
+			if( it->IsOpen() ) ++it;
+			else               it = windows.erase( it );
+		}
 	}
 
 	return 0;
