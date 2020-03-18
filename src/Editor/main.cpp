@@ -19,6 +19,7 @@
 #include "Core/Console.h"
 
 #include <cstdlib>
+#include <thread>
 
 #include <Windows.h>
 
@@ -27,5 +28,10 @@ int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /
 	Alv::Console  console;
 	Alv::Compiler compiler( CFG_LLVM_LOCATION );
 
-	return compiler.Compile( L"test.cpp" );
+	while( !compiler.Compile( L"test.cpp" ) )
+	{
+		std::this_thread::sleep_for( std::chrono::seconds( 5 ) );
+	}
+
+	return 0;
 }
