@@ -16,21 +16,32 @@
  */
 
 #pragma once
+#include "Alv.h"
 
-// Namespace macros
-#define ALV_NAMESPACE       ::Alv::
-#define ALV_NAMESPACE_BEGIN namespace Alv {
-#define ALV_NAMESPACE_END   }
+#include <Windows.h>
 
-// Constructor macros
-#define ALV_DISABLE_COPY( CLASS )              \
-    CLASS( const CLASS& )            = delete; \
-    CLASS& operator=( const CLASS& ) = delete;
-#define ALV_DISABLE_MOVE( CLASS )         \
-    CLASS( CLASS&& )            = delete; \
-    CLASS& operator=( CLASS&& ) = delete;
-#define ALV_DISABLE_COPY_AND_MOVE( CLASS )     \
-    CLASS( const CLASS& )            = delete; \
-    CLASS( CLASS&& )                 = delete; \
-    CLASS& operator=( const CLASS& ) = delete; \
-    CLASS& operator=( CLASS&& )      = delete;
+ALV_NAMESPACE_BEGIN
+
+namespace Platform
+{
+	class WindowClass
+	{
+	public:
+
+		explicit WindowClass( WNDPROC wndproc );
+		        ~WindowClass( void );
+
+//////////////////////////////////////////////////////////////////////////
+
+		LPCWSTR GetName( void ) const;
+
+//////////////////////////////////////////////////////////////////////////
+
+	private:
+
+		ATOM atom_;
+
+	};
+}
+
+ALV_NAMESPACE_END

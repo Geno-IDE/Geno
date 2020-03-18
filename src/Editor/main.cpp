@@ -17,6 +17,7 @@
 
 #include "Core/Compiler.h"
 #include "Core/Console.h"
+#include "Editor/Widgets/Window.h"
 
 #include <cstdlib>
 #include <thread>
@@ -27,10 +28,13 @@ int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /
 {
 	Alv::Console  console;
 	Alv::Compiler compiler( CFG_LLVM_LOCATION );
+	Alv::Window   window;
 
-	while( !compiler.Compile( L"test.cpp" ) )
+	window.Show();
+
+	while( window.IsOpen() )
 	{
-		std::this_thread::sleep_for( std::chrono::seconds( 5 ) );
+		window.PollEvents();
 	}
 
 	return 0;

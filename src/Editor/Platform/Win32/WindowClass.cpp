@@ -15,22 +15,39 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
+#include "WindowClass.h"
 
-// Namespace macros
-#define ALV_NAMESPACE       ::Alv::
-#define ALV_NAMESPACE_BEGIN namespace Alv {
-#define ALV_NAMESPACE_END   }
+ALV_NAMESPACE_BEGIN
 
-// Constructor macros
-#define ALV_DISABLE_COPY( CLASS )              \
-    CLASS( const CLASS& )            = delete; \
-    CLASS& operator=( const CLASS& ) = delete;
-#define ALV_DISABLE_MOVE( CLASS )         \
-    CLASS( CLASS&& )            = delete; \
-    CLASS& operator=( CLASS&& ) = delete;
-#define ALV_DISABLE_COPY_AND_MOVE( CLASS )     \
-    CLASS( const CLASS& )            = delete; \
-    CLASS( CLASS&& )                 = delete; \
-    CLASS& operator=( const CLASS& ) = delete; \
-    CLASS& operator=( CLASS&& )      = delete;
+namespace Platform
+{
+	constexpr LPCWSTR class_name = L"AlvWC";
+
+	WindowClass::WindowClass( WNDPROC wndproc )
+		: atom_( NULL )
+	{
+		WNDCLASSEXW info{ };
+		info.cbSize        = sizeof( WNDCLASSEXW );
+		info.style         = CS_VREDRAW | CS_HREDRAW | CS_OWNDC;
+		info.lpfnWndProc   = wndproc;
+		info.hInstance     = GetModuleHandleW( NULL );
+		info.hbrBackground = reinterpret_cast< HBRUSH >( COLOR_WINDOW );
+		info.lpszClassName = class_name;
+
+		atom_ = RegisterClassExW( &info );
+	}
+
+	WindowClass::~WindowClass( void )
+	{
+		HINSTANCE module = GetModuleHandleW( NULL );
+
+		UnregisterClassW( class_name, module );
+	}
+
+	LPCWSTR WindowClass::GetName( void ) const
+	{
+		return class_name;
+	}
+}
+
+ALV_NAMESPACE_END

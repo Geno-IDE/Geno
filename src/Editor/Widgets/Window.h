@@ -16,21 +16,46 @@
  */
 
 #pragma once
+#include "Alv.h"
 
-// Namespace macros
-#define ALV_NAMESPACE       ::Alv::
-#define ALV_NAMESPACE_BEGIN namespace Alv {
-#define ALV_NAMESPACE_END   }
+#include <Windows.h>
 
-// Constructor macros
-#define ALV_DISABLE_COPY( CLASS )              \
-    CLASS( const CLASS& )            = delete; \
-    CLASS& operator=( const CLASS& ) = delete;
-#define ALV_DISABLE_MOVE( CLASS )         \
-    CLASS( CLASS&& )            = delete; \
-    CLASS& operator=( CLASS&& ) = delete;
-#define ALV_DISABLE_COPY_AND_MOVE( CLASS )     \
-    CLASS( const CLASS& )            = delete; \
-    CLASS( CLASS&& )                 = delete; \
-    CLASS& operator=( const CLASS& ) = delete; \
-    CLASS& operator=( CLASS&& )      = delete;
+ALV_NAMESPACE_BEGIN
+
+class Window
+{
+	ALV_DISABLE_COPY( Window );
+
+public:
+
+	 Window( void );
+	 Window( Window&& other );
+	~Window( void );
+
+//////////////////////////////////////////////////////////////////////////
+
+	Window& operator=( Window&& other );
+
+//////////////////////////////////////////////////////////////////////////
+
+	void Show      ( void );
+	void Hide      ( void );
+	void PollEvents( void );
+
+//////////////////////////////////////////////////////////////////////////
+
+	bool IsOpen( void ) const;
+
+//////////////////////////////////////////////////////////////////////////
+
+private:
+
+	static LRESULT CALLBACK WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam );
+
+//////////////////////////////////////////////////////////////////////////
+
+	HWND hwnd_;
+
+};
+
+ALV_NAMESPACE_END
