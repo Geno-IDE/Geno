@@ -1,6 +1,10 @@
 # 🪁 Project
 Lorem ipsum dolor sit amet.
 
+# Prerequisites
+
+* [LLVM](https://releases.llvm.org/download.html)
+
 # 🔧 Building
 This project uses [Premake](https://premake.github.io/). It's a project generator configured with Lua scripts.
 

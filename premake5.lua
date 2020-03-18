@@ -3,10 +3,15 @@ BUNDLE    = 'com.gaztin.alv'
 WORKSPACE = 'Alv'
 
 local modules = { }
-local samples = { }
 
 -- Allow Objective C++ files on macOS and iOS
 premake.api.addAllowed( 'language', 'ObjCpp' )
+
+newoption {
+	trigger     = 'llvm-location',
+	description = 'Installation location of LLVM',
+	type        = 'directory'
+}
 
 -- Set system to android
 if( _ACTION == 'android-studio' ) then
@@ -91,7 +96,7 @@ end
 local function decl_module( name )
 	local up = name:upper()
 
-	group( 'Engine' )
+	group( 'Modules' )
 	project( name )
 	kind( 'StaticLib' )
 	links( modules )
@@ -120,16 +125,17 @@ local function decl_module( name )
 end
 
 local function decl_editor( name )
-	local id       = string.format( '%02d', 1 + #samples )
-	local fullname = id .. '-' .. name
-
 	group( 'Editor' )
-	project( fullname )
+	project( name )
 	kind( 'WindowedApp' )
 	links( modules )
 	xcodebuildresources( 'assets' )
 	--appid( '%{BUNDLE}.editor' )
 	base_config()
+
+	defines {
+		'CFG_LLVM_LOCATION=L"%{_OPTIONS["llvm-location"]}"',
+	}
 	files {
 		'src/Editor/**.cpp',
 		'src/Editor/**.h',
@@ -152,8 +158,6 @@ local function decl_editor( name )
 
 	project()
 	group()
-
-	table.insert( samples, fullname )
 end
 
 workspace( WORKSPACE )

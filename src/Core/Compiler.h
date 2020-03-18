@@ -15,17 +15,43 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Dummy.h"
+#pragma once
+#include "Core/Core.h"
+
+#include <filesystem>
+#include <string_view>
+#include <string>
 
 ALV_NAMESPACE_BEGIN
 
-Dummy::Dummy( void )
+class Compiler
 {
-}
+public:
 
-int Dummy::Foo( void )
-{
-	return 0;
-}
+	Compiler( std::wstring_view path );
+
+//////////////////////////////////////////////////////////////////////////
+
+	bool Compile( std::wstring_view cpp );
+
+//////////////////////////////////////////////////////////////////////////
+
+private:
+
+	struct Args
+	{
+		std::filesystem::path input;
+		std::filesystem::path output;
+	};
+
+//////////////////////////////////////////////////////////////////////////
+
+	std::wstring MakeArgsString( const Args& args ) const;
+
+//////////////////////////////////////////////////////////////////////////
+
+	std::filesystem::path path_;
+
+};
 
 ALV_NAMESPACE_END

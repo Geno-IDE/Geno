@@ -15,23 +15,26 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Core/Compiler.h"
-#include "Core/Console.h"
+#include "Console.h"
 
-#include <cstdlib>
-#include <thread>
+#include <cstdio>
 
 #include <Windows.h>
 
-int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /*cmd_line*/, int /*show_cmd*/ )
+ALV_NAMESPACE_BEGIN
+
+Console::Console( void )
 {
-	Alv::Console  console;
-	Alv::Compiler compiler( CFG_LLVM_LOCATION );
+	AllocConsole();
 
-	while( !compiler.Compile( L"test.cpp" ) )
-	{
-		std::this_thread::sleep_for( std::chrono::seconds( 5 ) );
-	}
-
-	return 0;
+	freopen( "CONIN$",  "r", stdin );
+	freopen( "CONOUT$", "w", stderr );
+	freopen( "CONOUT$", "w", stdout );
 }
+
+Console::~Console( void )
+{
+	FreeConsole();
+}
+
+ALV_NAMESPACE_END

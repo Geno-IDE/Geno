@@ -20,15 +20,12 @@
 
 ALV_NAMESPACE_BEGIN
 
-class Dummy
+class Console
 {
 public:
 
-	Dummy( void );
-
-//////////////////////////////////////////////////////////////////////////
-
-	int Foo( void );
+	 Console( void );
+	~Console( void );
 
 };
 
