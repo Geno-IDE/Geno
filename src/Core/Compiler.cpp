@@ -51,17 +51,18 @@ bool Compiler::Compile( std::wstring_view cpp )
 
 //////////////////////////////////////////////////////////////////////////
 
-	for( DWORD exit_code = STILL_ACTIVE; ( exit_code == STILL_ACTIVE ); )
+	DWORD exit_code;
+
+	do
 	{
 		if( !GetExitCodeProcess( process_info.hProcess, &exit_code ) )
 			return false;
 
 		Sleep( 1 );
-	}
 
-//////////////////////////////////////////////////////////////////////////
+	} while( exit_code == STILL_ACTIVE );
 
-	return true;
+	return ( exit_code == 0 );
 }
 
 std::wstring Compiler::MakeArgsString( const Args& args ) const
