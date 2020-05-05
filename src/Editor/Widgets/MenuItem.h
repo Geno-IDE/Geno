@@ -20,12 +20,18 @@
 
 #include <string_view>
 #include <string>
+#include <vector>
 
 ALV_NAMESPACE_BEGIN
 
 class MenuItem
 {
 	ALV_DISABLE_COPY( MenuItem );
+
+public:
+
+	using ClickCallback       = void( * )( void );
+	using ClickCallbackVector = std::vector< ClickCallback >;
 
 public:
 
@@ -36,11 +42,17 @@ public:
 
 public:
 
+	void operator<<=( ClickCallback callback );
+
+public:
+
 	std::wstring_view GetName( void ) const { return name_; }
 
 private:
 
-	std::wstring name_;
+	std::wstring        name_;
+
+	ClickCallbackVector click_callbacks_;
 
 };
 

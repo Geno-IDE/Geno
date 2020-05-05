@@ -24,4 +24,9 @@ MenuItem::MenuItem( std::wstring_view name )
 {
 }
 
+void MenuItem::operator<<=( ClickCallback callback )
+{
+	click_callbacks_.emplace_back( std::move( callback ) );
+}
+
 ALV_NAMESPACE_END
