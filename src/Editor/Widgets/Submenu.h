@@ -15,49 +15,43 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "SubMenu.h"
+#pragma once
+#include "Editor/Widgets/MenuItem.h"
+
+#include <Windows.h>
+
+#include <vector>
 
 ALV_NAMESPACE_BEGIN
 
-SubMenu::SubMenu( void )
-	: hmenu_       ( CreatePopupMenu() )
-	, menu_items_  { }
-	, next_item_id_( 0 )
+class Submenu
 {
-}
+	ALV_DISABLE_COPY( Submenu );
 
-SubMenu::SubMenu( SubMenu&& other )
-	: hmenu_       ( other.hmenu_ )
-	, menu_items_  ( std::move( other.menu_items_ ) )
-	, next_item_id_( other.next_item_id_ )
-{
-	other.hmenu_        = NULL;
-	other.next_item_id_ = 0;
-}
+public:
 
-SubMenu::~SubMenu( void )
-{
-	if( hmenu_ )
-		DestroyMenu( hmenu_ );
-}
+	using MenuItemVector = std::vector< MenuItem >;
 
-SubMenu& SubMenu::operator=( SubMenu&& other )
-{
-	hmenu_        = other.hmenu_;
-	menu_items_   = std::move( other.menu_items_ );
-	next_item_id_ = other.next_item_id_;
+public:
 
-	other.hmenu_        = NULL;
-	other.next_item_id_ = 0;
+	 Submenu( void );
+	 Submenu( Submenu&& other );
+	~Submenu( void );
 
-	return *this;
-}
+	Submenu& operator=( Submenu&& other );
 
-void SubMenu::AddItem( MenuItem item )
-{
-	AppendMenuW( hmenu_, MF_STRING, next_item_id_++, item.GetName().data() );
+public:
 
-	menu_items_.emplace_back( std::move( item ) );
-}
+	void AddItem( MenuItem item );
+
+private:
+
+	HMENU          hmenu_;
+
+	MenuItemVector menu_items_;
+
+	UINT_PTR       next_item_id_;
+
+};
 
 ALV_NAMESPACE_END

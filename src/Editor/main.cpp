@@ -17,7 +17,7 @@
 
 #include "Core/Compiler.h"
 #include "Core/Console.h"
-#include "Editor/Widgets/SubMenu.h"
+#include "Editor/Widgets/Submenu.h"
 #include "Editor/Widgets/Window.h"
 
 #include <cstdlib>
@@ -29,7 +29,7 @@ static Alv::Menu SetupRootMenu( void )
 {
 	Alv::Menu menu;
 
-	Alv::SubMenu file_menu;
+	Alv::Submenu file_menu;
 	file_menu.AddItem( Alv::MenuItem( L"Open" ) );
 	file_menu.AddItem( Alv::MenuItem( L"Save" ) );
 
