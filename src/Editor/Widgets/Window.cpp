@@ -76,6 +76,11 @@ void Window::PollEvents( void )
 	}
 }
 
+void Window::SetMenu( const Menu& menu )
+{
+	::SetMenu( hwnd_, menu.GetNativeHandle() );
+}
+
 bool Window::IsOpen( void ) const
 {
 	return IsWindow( hwnd_ );

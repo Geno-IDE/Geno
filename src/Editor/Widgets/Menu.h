@@ -16,47 +16,49 @@
  */
 
 #pragma once
-#include "Editor/Widgets/Menu.h"
+#include "Editor/Widgets/MenuItem.h"
 
 #include <string_view>
+#include <vector>
 
 #include <Windows.h>
 
 ALV_NAMESPACE_BEGIN
 
-class Window
+class Menu
 {
-	ALV_DISABLE_COPY( Window );
+	ALV_DISABLE_COPY( Menu );
 
 public:
 
-	 Window( void );
-	 Window( Window&& other );
-	~Window( void );
+	using MenuItemVector = std::vector< MenuItem >;
 
 public:
 
-	Window& operator=( Window&& other );
+	 Menu( void );
+	 Menu( Menu&& other );
+	~Menu( void );
+
+	Menu& operator=( Menu&& other );
 
 public:
 
-	void Show      ( void );
-	void Hide      ( void );
-	void PollEvents( void );
-	void SetMenu   ( const Menu& menu );
+	void AddItem( MenuItem item );
 
 public:
 
-	bool IsOpen         ( void ) const;
-	HWND GetNativeHandle( void ) const { return hwnd_; }
+	HMENU           GetNativeHandle( void )         const { return hmenu_; }
+	size_t          GetItemCount   ( void )         const { return menu_items_.size(); }
+	MenuItem&       GetItem        ( size_t index )       { return menu_items_[ index ]; }
+	const MenuItem& GetItem        ( size_t index ) const { return menu_items_[ index ]; }
 
 private:
 
-	static LRESULT CALLBACK WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam );
+	HMENU          hmenu_;
 
-private:
+	MenuItemVector menu_items_;
 
-	HWND hwnd_;
+	UINT_PTR       next_item_id_;
 
 };
 

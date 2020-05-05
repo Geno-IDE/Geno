@@ -16,47 +16,31 @@
  */
 
 #pragma once
-#include "Editor/Widgets/Menu.h"
+#include "Alv.h"
 
 #include <string_view>
-
-#include <Windows.h>
+#include <string>
 
 ALV_NAMESPACE_BEGIN
 
-class Window
+class MenuItem
 {
-	ALV_DISABLE_COPY( Window );
+	ALV_DISABLE_COPY( MenuItem );
 
 public:
 
-	 Window( void );
-	 Window( Window&& other );
-	~Window( void );
+	explicit MenuItem( std::wstring_view name );
+	         MenuItem( MenuItem&& ) = default;
+
+	MenuItem& operator=( MenuItem&& other ) = default;
 
 public:
 
-	Window& operator=( Window&& other );
-
-public:
-
-	void Show      ( void );
-	void Hide      ( void );
-	void PollEvents( void );
-	void SetMenu   ( const Menu& menu );
-
-public:
-
-	bool IsOpen         ( void ) const;
-	HWND GetNativeHandle( void ) const { return hwnd_; }
+	std::wstring_view GetName( void ) const { return name_; }
 
 private:
 
-	static LRESULT CALLBACK WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam );
-
-private:
-
-	HWND hwnd_;
+	std::wstring name_;
 
 };
 

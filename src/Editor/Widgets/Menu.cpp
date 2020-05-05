@@ -15,49 +15,40 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include "Editor/Widgets/Menu.h"
-
-#include <string_view>
-
-#include <Windows.h>
+#include "Menu.h"
 
 ALV_NAMESPACE_BEGIN
 
-class Window
+Menu::Menu( void )
+	: hmenu_( CreateMenu() )
 {
-	ALV_DISABLE_COPY( Window );
+}
 
-public:
+Menu::Menu( Menu&& other )
+	: hmenu_( other.hmenu_ )
+{
+	other.hmenu_ = NULL;
+}
 
-	 Window( void );
-	 Window( Window&& other );
-	~Window( void );
+Menu::~Menu( void )
+{
+	DestroyMenu( hmenu_ );
+}
 
-public:
+Menu& Menu::operator=( Menu&& other )
+{
+	hmenu_ = other.hmenu_;
 
-	Window& operator=( Window&& other );
+	other.hmenu_ = NULL;
 
-public:
+	return *this;
+}
 
-	void Show      ( void );
-	void Hide      ( void );
-	void PollEvents( void );
-	void SetMenu   ( const Menu& menu );
+void Menu::AddItem( MenuItem item )
+{
+	AppendMenuW( hmenu_, MF_STRING, next_item_id_++, item.GetName().data() );
 
-public:
-
-	bool IsOpen         ( void ) const;
-	HWND GetNativeHandle( void ) const { return hwnd_; }
-
-private:
-
-	static LRESULT CALLBACK WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam );
-
-private:
-
-	HWND hwnd_;
-
-};
+	menu_items_.emplace_back( std::move( item ) );
+}
 
 ALV_NAMESPACE_END

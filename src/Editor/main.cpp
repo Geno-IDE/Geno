@@ -24,12 +24,37 @@
 
 #include <Windows.h>
 
+static Alv::Menu SetupRootMenu( void )
+{
+	Alv::Menu menu;
+
+	Alv::Menu file_menu;
+	file_menu.AddItem( Alv::MenuItem( L"Open" ) );
+	file_menu.AddItem( Alv::MenuItem( L"Save" ) );
+
+	Alv::MenuItem file_item( L"File" );
+	menu.AddItem( std::move( file_item ) );
+
+	Alv::Menu build_menu;
+	build_menu.AddItem( Alv::MenuItem( L"Build" ) );
+	build_menu.AddItem( Alv::MenuItem( L"Rebuild" ) );
+	build_menu.AddItem( Alv::MenuItem( L"Clean" ) );
+
+	Alv::MenuItem build_item( L"Build" );
+	menu.AddItem( std::move( build_item ) );
+
+	return menu;
+}
+
 int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /*cmd_line*/, int /*show_cmd*/ )
 {
 	Alv::Console               console;
 	Alv::Compiler              compiler( CFG_LLVM_LOCATION );
 	std::vector< Alv::Window > windows;
 	windows.resize( 3 );
+
+	Alv::Menu menu = SetupRootMenu();
+	windows[ 0 ].SetMenu( menu );
 
 	for( auto& window : windows )
 		window.Show();
