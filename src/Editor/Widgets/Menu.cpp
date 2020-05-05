@@ -32,7 +32,8 @@ Menu::Menu( Menu&& other )
 
 Menu::~Menu( void )
 {
-	DestroyMenu( hmenu_ );
+	if( hmenu_ )
+		DestroyMenu( hmenu_ );
 }
 
 Menu& Menu::operator=( Menu&& other )
