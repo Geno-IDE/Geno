@@ -16,21 +16,47 @@
  */
 
 #pragma once
+#include "Editor/Widgets/SubmenuItem.h"
 
-// Namespace macros
-#define ALV_NAMESPACE       ::Alv::
-#define ALV_NAMESPACE_BEGIN namespace Alv {
-#define ALV_NAMESPACE_END   }
+#include <Windows.h>
 
-// Constructor macros
-#define ALV_DISABLE_COPY( CLASS )              \
-    CLASS( const CLASS& )            = delete; \
-    CLASS& operator=( const CLASS& ) = delete;
-#define ALV_DISABLE_MOVE( CLASS )         \
-    CLASS( CLASS&& )            = delete; \
-    CLASS& operator=( CLASS&& ) = delete;
-#define ALV_DISABLE_COPY_AND_MOVE( CLASS )     \
-    CLASS( const CLASS& )            = delete; \
-    CLASS( CLASS&& )                 = delete; \
-    CLASS& operator=( const CLASS& ) = delete; \
-    CLASS& operator=( CLASS&& )      = delete;
+#include <vector>
+
+ALV_NAMESPACE_BEGIN
+
+class Submenu
+{
+	ALV_DISABLE_COPY( Submenu );
+
+public:
+
+	using ItemVector = std::vector< SubmenuItem >;
+
+public:
+
+	 Submenu( void );
+	 Submenu( Submenu&& other );
+	~Submenu( void );
+
+	Submenu& operator=( Submenu&& other );
+
+public:
+
+	void AddItem     ( SubmenuItem item );
+	void AddSeparator( void );
+
+public:
+
+	HMENU GetNativeHandle( void ) const { return hmenu_; }
+
+private:
+
+	HMENU      hmenu_;
+
+	ItemVector items_;
+
+	UINT_PTR   next_item_id_;
+
+};
+
+ALV_NAMESPACE_END

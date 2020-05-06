@@ -16,21 +16,41 @@
  */
 
 #pragma once
+#include "Editor/Widgets/Submenu.h"
 
-// Namespace macros
-#define ALV_NAMESPACE       ::Alv::
-#define ALV_NAMESPACE_BEGIN namespace Alv {
-#define ALV_NAMESPACE_END   }
+#include <optional>
+#include <string_view>
+#include <string>
 
-// Constructor macros
-#define ALV_DISABLE_COPY( CLASS )              \
-    CLASS( const CLASS& )            = delete; \
-    CLASS& operator=( const CLASS& ) = delete;
-#define ALV_DISABLE_MOVE( CLASS )         \
-    CLASS( CLASS&& )            = delete; \
-    CLASS& operator=( CLASS&& ) = delete;
-#define ALV_DISABLE_COPY_AND_MOVE( CLASS )     \
-    CLASS( const CLASS& )            = delete; \
-    CLASS( CLASS&& )                 = delete; \
-    CLASS& operator=( const CLASS& ) = delete; \
-    CLASS& operator=( CLASS&& )      = delete;
+ALV_NAMESPACE_BEGIN
+
+class MenuItem
+{
+	ALV_DISABLE_COPY( MenuItem );
+
+public:
+
+	explicit MenuItem( std::wstring_view name );
+	         MenuItem( MenuItem&& ) = default;
+
+	MenuItem& operator=( MenuItem&& other ) = default;
+
+public:
+
+	void SetSubmenu( Submenu submenu );
+
+public:
+
+	std::wstring_view GetName   ( void ) const { return name_; }
+	bool              HasSubmenu( void ) const { return !!submenu_; }
+	const Submenu&    GetSubmenu( void ) const { return *submenu_; }
+
+private:
+
+	std::wstring             name_;
+
+	std::optional< Submenu > submenu_;
+
+};
+
+ALV_NAMESPACE_END

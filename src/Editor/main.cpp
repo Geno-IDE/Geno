@@ -17,20 +17,53 @@
 
 #include "Core/Compiler.h"
 #include "Core/Console.h"
+#include "Editor/Widgets/Submenu.h"
+#include "Editor/Widgets/Window.h"
 
 #include <cstdlib>
 #include <thread>
 
 #include <Windows.h>
 
+static Alv::Menu SetupRootMenu( void )
+{
+	Alv::Menu menu;
+
+	Alv::Submenu submenu_file;
+	submenu_file.AddItem( Alv::SubmenuItem( L"Open" ) );
+	submenu_file.AddItem( Alv::SubmenuItem( L"Save" ) );
+	submenu_file.AddSeparator();
+	submenu_file.AddItem( Alv::SubmenuItem( L"Settings" ) );
+
+	Alv::MenuItem item_file( L"File" );
+	item_file.SetSubmenu( std::move( submenu_file ) );
+	menu.AddItem( std::move( item_file ) );
+
+	Alv::Submenu submenu_build;
+	submenu_build.AddItem( Alv::SubmenuItem( L"Build" ) );
+	submenu_build.AddItem( Alv::SubmenuItem( L"Rebuild" ) );
+	submenu_build.AddItem( Alv::SubmenuItem( L"Clean" ) );
+
+	Alv::MenuItem item_build( L"Build" );
+	item_build.SetSubmenu( std::move( submenu_build ) );
+	menu.AddItem( std::move( item_build ) );
+
+	return menu;
+}
+
 int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /*cmd_line*/, int /*show_cmd*/ )
 {
 	Alv::Console  console;
 	Alv::Compiler compiler( CFG_LLVM_LOCATION );
+	Alv::Window   window;
+	Alv::Menu     menu = SetupRootMenu();
 
-	while( !compiler.Compile( L"test.cpp" ) )
+	window.SetMenu( std::move( menu ) );
+	window.Show();
+
+	while( window.IsOpen() )
 	{
-		std::this_thread::sleep_for( std::chrono::seconds( 5 ) );
+		window.PollEvents();
 	}
 
 	return 0;

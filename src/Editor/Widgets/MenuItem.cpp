@@ -15,22 +15,20 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
+#include "MenuItem.h"
 
-// Namespace macros
-#define ALV_NAMESPACE       ::Alv::
-#define ALV_NAMESPACE_BEGIN namespace Alv {
-#define ALV_NAMESPACE_END   }
+ALV_NAMESPACE_BEGIN
 
-// Constructor macros
-#define ALV_DISABLE_COPY( CLASS )              \
-    CLASS( const CLASS& )            = delete; \
-    CLASS& operator=( const CLASS& ) = delete;
-#define ALV_DISABLE_MOVE( CLASS )         \
-    CLASS( CLASS&& )            = delete; \
-    CLASS& operator=( CLASS&& ) = delete;
-#define ALV_DISABLE_COPY_AND_MOVE( CLASS )     \
-    CLASS( const CLASS& )            = delete; \
-    CLASS( CLASS&& )                 = delete; \
-    CLASS& operator=( const CLASS& ) = delete; \
-    CLASS& operator=( CLASS&& )      = delete;
+MenuItem::MenuItem( std::wstring_view name )
+	: name_   ( name )
+	, submenu_( std::nullopt )
+{
+}
+
+void MenuItem::SetSubmenu( Submenu submenu )
+{
+	submenu_.emplace( std::move( submenu ) );
+}
+
+ALV_NAMESPACE_END
+

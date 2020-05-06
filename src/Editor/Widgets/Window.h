@@ -16,21 +16,49 @@
  */
 
 #pragma once
+#include "Editor/Widgets/Menu.h"
 
-// Namespace macros
-#define ALV_NAMESPACE       ::Alv::
-#define ALV_NAMESPACE_BEGIN namespace Alv {
-#define ALV_NAMESPACE_END   }
+#include <optional>
+#include <string_view>
 
-// Constructor macros
-#define ALV_DISABLE_COPY( CLASS )              \
-    CLASS( const CLASS& )            = delete; \
-    CLASS& operator=( const CLASS& ) = delete;
-#define ALV_DISABLE_MOVE( CLASS )         \
-    CLASS( CLASS&& )            = delete; \
-    CLASS& operator=( CLASS&& ) = delete;
-#define ALV_DISABLE_COPY_AND_MOVE( CLASS )     \
-    CLASS( const CLASS& )            = delete; \
-    CLASS( CLASS&& )                 = delete; \
-    CLASS& operator=( const CLASS& ) = delete; \
-    CLASS& operator=( CLASS&& )      = delete;
+#include <Windows.h>
+
+ALV_NAMESPACE_BEGIN
+
+class Window
+{
+	ALV_DISABLE_COPY( Window );
+
+public:
+
+	 Window( void );
+	 Window( Window&& other );
+	~Window( void );
+
+	Window& operator=( Window&& other );
+
+public:
+
+	void Show      ( void );
+	void Hide      ( void );
+	void PollEvents( void );
+	void SetMenu   ( Menu menu );
+
+public:
+
+	bool IsOpen         ( void ) const;
+	HWND GetNativeHandle( void ) const { return hwnd_; }
+
+private:
+
+	static LRESULT CALLBACK WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam );
+
+private:
+
+	HWND                  hwnd_;
+
+	std::optional< Menu > menu_;
+
+};
+
+ALV_NAMESPACE_END

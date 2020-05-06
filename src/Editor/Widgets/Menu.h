@@ -16,21 +16,50 @@
  */
 
 #pragma once
+#include "Editor/Widgets/MenuItem.h"
 
-// Namespace macros
-#define ALV_NAMESPACE       ::Alv::
-#define ALV_NAMESPACE_BEGIN namespace Alv {
-#define ALV_NAMESPACE_END   }
+#include <string_view>
+#include <vector>
 
-// Constructor macros
-#define ALV_DISABLE_COPY( CLASS )              \
-    CLASS( const CLASS& )            = delete; \
-    CLASS& operator=( const CLASS& ) = delete;
-#define ALV_DISABLE_MOVE( CLASS )         \
-    CLASS( CLASS&& )            = delete; \
-    CLASS& operator=( CLASS&& ) = delete;
-#define ALV_DISABLE_COPY_AND_MOVE( CLASS )     \
-    CLASS( const CLASS& )            = delete; \
-    CLASS( CLASS&& )                 = delete; \
-    CLASS& operator=( const CLASS& ) = delete; \
-    CLASS& operator=( CLASS&& )      = delete;
+#include <Windows.h>
+
+ALV_NAMESPACE_BEGIN
+
+class Menu
+{
+	ALV_DISABLE_COPY( Menu );
+
+public:
+
+	using ItemVector = std::vector< MenuItem >;
+
+public:
+
+	 Menu( void );
+	 Menu( Menu&& other );
+	~Menu( void );
+
+	Menu& operator=( Menu&& other );
+
+public:
+
+	void AddItem( MenuItem item );
+
+public:
+
+	HMENU           GetNativeHandle( void )         const { return hmenu_; }
+	size_t          GetItemCount   ( void )         const { return items_.size(); }
+	MenuItem&       GetItem        ( size_t index )       { return items_[ index ]; }
+	const MenuItem& GetItem        ( size_t index ) const { return items_[ index ]; }
+
+private:
+
+	HMENU      hmenu_;
+
+	ItemVector items_;
+
+	UINT_PTR   next_item_id_;
+
+};
+
+ALV_NAMESPACE_END

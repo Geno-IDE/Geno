@@ -15,22 +15,42 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
+#include "Menu.h"
 
-// Namespace macros
-#define ALV_NAMESPACE       ::Alv::
-#define ALV_NAMESPACE_BEGIN namespace Alv {
-#define ALV_NAMESPACE_END   }
+ALV_NAMESPACE_BEGIN
 
-// Constructor macros
-#define ALV_DISABLE_COPY( CLASS )              \
-    CLASS( const CLASS& )            = delete; \
-    CLASS& operator=( const CLASS& ) = delete;
-#define ALV_DISABLE_MOVE( CLASS )         \
-    CLASS( CLASS&& )            = delete; \
-    CLASS& operator=( CLASS&& ) = delete;
-#define ALV_DISABLE_COPY_AND_MOVE( CLASS )     \
-    CLASS( const CLASS& )            = delete; \
-    CLASS( CLASS&& )                 = delete; \
-    CLASS& operator=( const CLASS& ) = delete; \
-    CLASS& operator=( CLASS&& )      = delete;
+Menu::Menu( void )
+	: hmenu_( CreateMenu() )
+{
+}
+
+Menu::Menu( Menu&& other )
+	: hmenu_( other.hmenu_ )
+{
+	other.hmenu_ = NULL;
+}
+
+Menu::~Menu( void )
+{
+	if( hmenu_ )
+		DestroyMenu( hmenu_ );
+}
+
+Menu& Menu::operator=( Menu&& other )
+{
+	hmenu_ = other.hmenu_;
+
+	other.hmenu_ = NULL;
+
+	return *this;
+}
+
+void Menu::AddItem( MenuItem item )
+{
+	if( item.HasSubmenu() ) AppendMenuW( hmenu_, MF_STRING | MF_POPUP, ( UINT_PTR )item.GetSubmenu().GetNativeHandle(), item.GetName().data() );
+	else                    AppendMenuW( hmenu_, MF_STRING,            next_item_id_++,                                 item.GetName().data() );
+
+	items_.emplace_back( std::move( item ) );
+}
+
+ALV_NAMESPACE_END

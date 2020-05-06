@@ -16,21 +16,32 @@
  */
 
 #pragma once
+#include "Alv.h"
 
-// Namespace macros
-#define ALV_NAMESPACE       ::Alv::
-#define ALV_NAMESPACE_BEGIN namespace Alv {
-#define ALV_NAMESPACE_END   }
+#include <string_view>
+#include <string>
 
-// Constructor macros
-#define ALV_DISABLE_COPY( CLASS )              \
-    CLASS( const CLASS& )            = delete; \
-    CLASS& operator=( const CLASS& ) = delete;
-#define ALV_DISABLE_MOVE( CLASS )         \
-    CLASS( CLASS&& )            = delete; \
-    CLASS& operator=( CLASS&& ) = delete;
-#define ALV_DISABLE_COPY_AND_MOVE( CLASS )     \
-    CLASS( const CLASS& )            = delete; \
-    CLASS( CLASS&& )                 = delete; \
-    CLASS& operator=( const CLASS& ) = delete; \
-    CLASS& operator=( CLASS&& )      = delete;
+ALV_NAMESPACE_BEGIN
+
+class SubmenuItem
+{
+	ALV_DISABLE_COPY( SubmenuItem );
+
+public:
+
+	explicit SubmenuItem( std::wstring_view name );
+	         SubmenuItem( SubmenuItem&& ) = default;
+
+	SubmenuItem& operator=( SubmenuItem&& other ) = default;
+
+public:
+
+	std::wstring_view GetName( void ) const { return name_; }
+
+private:
+
+	std::wstring name_;
+
+};
+
+ALV_NAMESPACE_END
