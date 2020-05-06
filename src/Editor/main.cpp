@@ -29,49 +29,41 @@ static Alv::Menu SetupRootMenu( void )
 {
 	Alv::Menu menu;
 
-	Alv::Submenu file_submenu;
-	file_submenu.AddItem( Alv::SubmenuItem( L"Open" ) );
-	file_submenu.AddItem( Alv::SubmenuItem( L"Save" ) );
-	file_submenu.AddSeparator();
-	file_submenu.AddItem( Alv::SubmenuItem( L"Settings" ) );
+	Alv::Submenu submenu_file;
+	submenu_file.AddItem( Alv::SubmenuItem( L"Open" ) );
+	submenu_file.AddItem( Alv::SubmenuItem( L"Save" ) );
+	submenu_file.AddSeparator();
+	submenu_file.AddItem( Alv::SubmenuItem( L"Settings" ) );
 
-	Alv::MenuItem file_item( L"File" );
-	file_item.SetSubmenu( std::move( file_submenu ) );
-	menu.AddItem( std::move( file_item ) );
+	Alv::MenuItem item_file( L"File" );
+	item_file.SetSubmenu( std::move( submenu_file ) );
+	menu.AddItem( std::move( item_file ) );
 
-	Alv::Menu build_menu;
-	build_menu.AddItem( Alv::MenuItem( L"Build" ) );
-	build_menu.AddItem( Alv::MenuItem( L"Rebuild" ) );
-	build_menu.AddItem( Alv::MenuItem( L"Clean" ) );
+	Alv::Submenu submenu_build;
+	submenu_build.AddItem( Alv::SubmenuItem( L"Build" ) );
+	submenu_build.AddItem( Alv::SubmenuItem( L"Rebuild" ) );
+	submenu_build.AddItem( Alv::SubmenuItem( L"Clean" ) );
 
-	Alv::MenuItem build_item( L"Build" );
-	menu.AddItem( std::move( build_item ) );
+	Alv::MenuItem item_build( L"Build" );
+	item_build.SetSubmenu( std::move( submenu_build ) );
+	menu.AddItem( std::move( item_build ) );
 
 	return menu;
 }
 
 int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /*cmd_line*/, int /*show_cmd*/ )
 {
-	Alv::Console               console;
-	Alv::Compiler              compiler( CFG_LLVM_LOCATION );
-	std::vector< Alv::Window > windows;
-	windows.resize( 3 );
+	Alv::Console  console;
+	Alv::Compiler compiler( CFG_LLVM_LOCATION );
+	Alv::Window   window;
+	Alv::Menu     menu = SetupRootMenu();
 
-	Alv::Menu menu = SetupRootMenu();
-	windows[ 0 ].SetMenu( menu );
+	window.SetMenu( menu );
+	window.Show();
 
-	for( auto& window : windows )
-		window.Show();
-
-	while( !windows.empty() )
+	while( window.IsOpen() )
 	{
-		for( auto it = windows.begin(); it != windows.end(); )
-		{
-			it->PollEvents();
-
-			if( it->IsOpen() ) ++it;
-			else               it = windows.erase( it );
-		}
+		window.PollEvents();
 	}
 
 	return 0;
