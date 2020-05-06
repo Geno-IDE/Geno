@@ -58,7 +58,7 @@ int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /
 	Alv::Window   window;
 	Alv::Menu     menu = SetupRootMenu();
 
-	window.SetMenu( menu );
+	window.SetMenu( std::move( menu ) );
 	window.Show();
 
 	while( window.IsOpen() )

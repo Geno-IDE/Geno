@@ -18,6 +18,7 @@
 #pragma once
 #include "Editor/Widgets/Menu.h"
 
+#include <optional>
 #include <string_view>
 
 #include <Windows.h>
@@ -34,8 +35,6 @@ public:
 	 Window( Window&& other );
 	~Window( void );
 
-public:
-
 	Window& operator=( Window&& other );
 
 public:
@@ -43,7 +42,7 @@ public:
 	void Show      ( void );
 	void Hide      ( void );
 	void PollEvents( void );
-	void SetMenu   ( const Menu& menu );
+	void SetMenu   ( Menu menu );
 
 public:
 
@@ -56,7 +55,9 @@ private:
 
 private:
 
-	HWND hwnd_;
+	HWND                  hwnd_;
+
+	std::optional< Menu > menu_;
 
 };
 

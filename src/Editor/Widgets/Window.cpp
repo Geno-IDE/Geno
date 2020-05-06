@@ -76,9 +76,11 @@ void Window::PollEvents( void )
 	}
 }
 
-void Window::SetMenu( const Menu& menu )
+void Window::SetMenu( Menu menu )
 {
 	::SetMenu( hwnd_, menu.GetNativeHandle() );
+
+	menu_.emplace( std::move( menu ) );
 }
 
 bool Window::IsOpen( void ) const
