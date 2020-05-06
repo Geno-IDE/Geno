@@ -42,7 +42,8 @@ public:
 
 public:
 
-	void AddItem( SubmenuItem item );
+	void AddItem     ( SubmenuItem item );
+	void AddSeparator( void );
 
 public:
 

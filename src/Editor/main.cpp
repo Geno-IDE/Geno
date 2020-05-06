@@ -32,6 +32,8 @@ static Alv::Menu SetupRootMenu( void )
 	Alv::Submenu file_submenu;
 	file_submenu.AddItem( Alv::SubmenuItem( L"Open" ) );
 	file_submenu.AddItem( Alv::SubmenuItem( L"Save" ) );
+	file_submenu.AddSeparator();
+	file_submenu.AddItem( Alv::SubmenuItem( L"Settings" ) );
 
 	Alv::MenuItem file_item( L"File" );
 	file_item.SetSubmenu( std::move( file_submenu ) );

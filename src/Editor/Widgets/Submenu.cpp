@@ -60,4 +60,9 @@ void Submenu::AddItem( SubmenuItem item )
 	items_.emplace_back( std::move( item ) );
 }
 
+void Submenu::AddSeparator( void )
+{
+	AppendMenuW( hmenu_, MF_SEPARATOR, next_item_id_++, NULL );
+}
+
 ALV_NAMESPACE_END
