@@ -15,19 +15,13 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "MenuItem.h"
+#include "SubmenuItem.h"
 
 ALV_NAMESPACE_BEGIN
 
-MenuItem::MenuItem( std::wstring_view name )
-	: name_   ( name )
-	, submenu_( std::nullopt )
+SubmenuItem::SubmenuItem( std::wstring_view name )
+	: name_( name )
 {
-}
-
-void MenuItem::SetSubmenu( Submenu submenu )
-{
-	submenu_.emplace( std::move( submenu ) );
 }
 
 ALV_NAMESPACE_END

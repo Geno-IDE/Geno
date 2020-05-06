@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include "Editor/Widgets/MenuItem.h"
+#include "Editor/Widgets/SubmenuItem.h"
 
 #include <Windows.h>
 
@@ -30,7 +30,7 @@ class Submenu
 
 public:
 
-	using MenuItemVector = std::vector< MenuItem >;
+	using ItemVector = std::vector< SubmenuItem >;
 
 public:
 
@@ -42,15 +42,19 @@ public:
 
 public:
 
-	void AddItem( MenuItem item );
+	void AddItem( SubmenuItem item );
+
+public:
+
+	HMENU GetNativeHandle( void ) const { return hmenu_; }
 
 private:
 
-	HMENU          hmenu_;
+	HMENU      hmenu_;
 
-	MenuItemVector menu_items_;
+	ItemVector items_;
 
-	UINT_PTR       next_item_id_;
+	UINT_PTR   next_item_id_;
 
 };
 

@@ -47,9 +47,10 @@ Menu& Menu::operator=( Menu&& other )
 
 void Menu::AddItem( MenuItem item )
 {
-	AppendMenuW( hmenu_, MF_STRING, next_item_id_++, item.GetName().data() );
+	if( item.HasSubmenu() ) AppendMenuW( hmenu_, MF_STRING | MF_POPUP, ( UINT_PTR )item.GetSubmenu().GetNativeHandle(), item.GetName().data() );
+	else                    AppendMenuW( hmenu_, MF_STRING,            next_item_id_++,                                 item.GetName().data() );
 
-	menu_items_.emplace_back( std::move( item ) );
+	items_.emplace_back( std::move( item ) );
 }
 
 ALV_NAMESPACE_END

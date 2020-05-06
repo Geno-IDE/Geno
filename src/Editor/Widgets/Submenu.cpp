@@ -21,14 +21,14 @@ ALV_NAMESPACE_BEGIN
 
 Submenu::Submenu( void )
 	: hmenu_       ( CreatePopupMenu() )
-	, menu_items_  { }
+	, items_       { }
 	, next_item_id_( 0 )
 {
 }
 
 Submenu::Submenu( Submenu&& other )
 	: hmenu_       ( other.hmenu_ )
-	, menu_items_  ( std::move( other.menu_items_ ) )
+	, items_       ( std::move( other.items_ ) )
 	, next_item_id_( other.next_item_id_ )
 {
 	other.hmenu_        = NULL;
@@ -44,7 +44,7 @@ Submenu::~Submenu( void )
 Submenu& Submenu::operator=( Submenu&& other )
 {
 	hmenu_        = other.hmenu_;
-	menu_items_   = std::move( other.menu_items_ );
+	items_        = std::move( other.items_ );
 	next_item_id_ = other.next_item_id_;
 
 	other.hmenu_        = NULL;
@@ -53,11 +53,11 @@ Submenu& Submenu::operator=( Submenu&& other )
 	return *this;
 }
 
-void Submenu::AddItem( MenuItem item )
+void Submenu::AddItem( SubmenuItem item )
 {
 	AppendMenuW( hmenu_, MF_STRING, next_item_id_++, item.GetName().data() );
 
-	menu_items_.emplace_back( std::move( item ) );
+	items_.emplace_back( std::move( item ) );
 }
 
 ALV_NAMESPACE_END

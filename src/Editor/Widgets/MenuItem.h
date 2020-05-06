@@ -16,22 +16,17 @@
  */
 
 #pragma once
-#include "Alv.h"
+#include "Editor/Widgets/Submenu.h"
 
+#include <optional>
 #include <string_view>
 #include <string>
-#include <vector>
 
 ALV_NAMESPACE_BEGIN
 
 class MenuItem
 {
 	ALV_DISABLE_COPY( MenuItem );
-
-public:
-
-	using ClickCallback       = void( * )( void );
-	using ClickCallbackVector = std::vector< ClickCallback >;
 
 public:
 
@@ -42,17 +37,19 @@ public:
 
 public:
 
-	void operator<<=( ClickCallback callback );
+	void SetSubmenu( Submenu submenu );
 
 public:
 
-	std::wstring_view GetName( void ) const { return name_; }
+	std::wstring_view GetName   ( void ) const { return name_; }
+	bool              HasSubmenu( void ) const { return !!submenu_; }
+	const Submenu&    GetSubmenu( void ) const { return *submenu_; }
 
 private:
 
-	std::wstring        name_;
+	std::wstring             name_;
 
-	ClickCallbackVector click_callbacks_;
+	std::optional< Submenu > submenu_;
 
 };
 

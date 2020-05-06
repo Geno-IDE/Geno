@@ -29,11 +29,12 @@ static Alv::Menu SetupRootMenu( void )
 {
 	Alv::Menu menu;
 
-	Alv::Submenu file_menu;
-	file_menu.AddItem( Alv::MenuItem( L"Open" ) );
-	file_menu.AddItem( Alv::MenuItem( L"Save" ) );
+	Alv::Submenu file_submenu;
+	file_submenu.AddItem( Alv::SubmenuItem( L"Open" ) );
+	file_submenu.AddItem( Alv::SubmenuItem( L"Save" ) );
 
 	Alv::MenuItem file_item( L"File" );
+	file_item.SetSubmenu( std::move( file_submenu ) );
 	menu.AddItem( std::move( file_item ) );
 
 	Alv::Menu build_menu;

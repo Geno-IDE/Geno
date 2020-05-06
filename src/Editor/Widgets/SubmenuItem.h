@@ -15,20 +15,33 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "MenuItem.h"
+#pragma once
+#include "Alv.h"
+
+#include <string_view>
+#include <string>
 
 ALV_NAMESPACE_BEGIN
 
-MenuItem::MenuItem( std::wstring_view name )
-	: name_   ( name )
-	, submenu_( std::nullopt )
+class SubmenuItem
 {
-}
+	ALV_DISABLE_COPY( SubmenuItem );
 
-void MenuItem::SetSubmenu( Submenu submenu )
-{
-	submenu_.emplace( std::move( submenu ) );
-}
+public:
+
+	explicit SubmenuItem( std::wstring_view name );
+	         SubmenuItem( SubmenuItem&& ) = default;
+
+	SubmenuItem& operator=( SubmenuItem&& other ) = default;
+
+public:
+
+	std::wstring_view GetName( void ) const { return name_; }
+
+private:
+
+	std::wstring name_;
+
+};
 
 ALV_NAMESPACE_END
-

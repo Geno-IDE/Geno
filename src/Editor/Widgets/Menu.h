@@ -31,7 +31,7 @@ class Menu
 
 public:
 
-	using MenuItemVector = std::vector< MenuItem >;
+	using ItemVector = std::vector< MenuItem >;
 
 public:
 
@@ -48,17 +48,17 @@ public:
 public:
 
 	HMENU           GetNativeHandle( void )         const { return hmenu_; }
-	size_t          GetItemCount   ( void )         const { return menu_items_.size(); }
-	MenuItem&       GetItem        ( size_t index )       { return menu_items_[ index ]; }
-	const MenuItem& GetItem        ( size_t index ) const { return menu_items_[ index ]; }
+	size_t          GetItemCount   ( void )         const { return items_.size(); }
+	MenuItem&       GetItem        ( size_t index )       { return items_[ index ]; }
+	const MenuItem& GetItem        ( size_t index ) const { return items_[ index ]; }
 
 private:
 
-	HMENU          hmenu_;
+	HMENU      hmenu_;
 
-	MenuItemVector menu_items_;
+	ItemVector items_;
 
-	UINT_PTR       next_item_id_;
+	UINT_PTR   next_item_id_;
 
 };
 
