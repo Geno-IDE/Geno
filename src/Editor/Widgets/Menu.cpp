@@ -17,6 +17,8 @@
 
 #include "Menu.h"
 
+#include "Editor/Widgets/MenuItem.h"
+
 ALV_NAMESPACE_BEGIN
 
 Menu::Menu( void )
@@ -47,10 +49,15 @@ Menu& Menu::operator=( Menu&& other )
 
 void Menu::AddItem( MenuItem item )
 {
-	if( item.HasSubmenu() ) AppendMenuW( hmenu_, MF_STRING | MF_POPUP, ( UINT_PTR )item.GetSubmenu().GetNativeHandle(), item.GetName().data() );
-	else                    AppendMenuW( hmenu_, MF_STRING,            next_item_id_++,                                 item.GetName().data() );
+	if( item.HasDropdownMenu() ) AppendMenuW( hmenu_, MF_STRING | MF_POPUP, ( UINT_PTR )item.GetDropdownMenu().GetNativeHandle(), item.GetName().data() );
+	else                         AppendMenuW( hmenu_, MF_STRING,            next_item_id_++,                                      item.GetName().data() );
 
 	items_.emplace_back( std::move( item ) );
+}
+
+void Menu::AddSeparator( void )
+{
+	AppendMenuW( hmenu_, MF_SEPARATOR, next_item_id_++, NULL );
 }
 
 ALV_NAMESPACE_END

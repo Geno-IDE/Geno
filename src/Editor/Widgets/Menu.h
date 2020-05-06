@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include "Editor/Widgets/MenuItem.h"
+#include "Alv.h"
 
 #include <string_view>
 #include <vector>
@@ -24,6 +24,8 @@
 #include <Windows.h>
 
 ALV_NAMESPACE_BEGIN
+
+class MenuItem;
 
 class Menu
 {
@@ -43,7 +45,8 @@ public:
 
 public:
 
-	void AddItem( MenuItem item );
+	void AddItem     ( MenuItem item );
+	void AddSeparator( void );
 
 public:
 

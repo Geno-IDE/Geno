@@ -20,14 +20,14 @@
 ALV_NAMESPACE_BEGIN
 
 MenuItem::MenuItem( std::wstring_view name )
-	: name_   ( name )
-	, submenu_( std::nullopt )
+	: name_         ( name )
+	, dropdown_menu_( std::nullopt )
 {
 }
 
-void MenuItem::SetSubmenu( Submenu submenu )
+void MenuItem::SetDropdownMenu( Menu menu )
 {
-	submenu_.emplace( std::move( submenu ) );
+	dropdown_menu_.emplace( std::move( menu ) );
 }
 
 ALV_NAMESPACE_END

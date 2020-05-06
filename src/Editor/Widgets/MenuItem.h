@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include "Editor/Widgets/Submenu.h"
+#include "Editor/Widgets/Menu.h"
 
 #include <optional>
 #include <string_view>
@@ -37,19 +37,19 @@ public:
 
 public:
 
-	void SetSubmenu( Submenu submenu );
+	void SetDropdownMenu( Menu menu );
 
 public:
 
-	std::wstring_view GetName   ( void ) const { return name_; }
-	bool              HasSubmenu( void ) const { return !!submenu_; }
-	const Submenu&    GetSubmenu( void ) const { return *submenu_; }
+	std::wstring_view GetName        ( void ) const { return name_; }
+	bool              HasDropdownMenu( void ) const { return !!dropdown_menu_; }
+	const Menu&       GetDropdownMenu( void ) const { return *dropdown_menu_; }
 
 private:
 
-	std::wstring             name_;
+	std::wstring          name_;
 
-	std::optional< Submenu > submenu_;
+	std::optional< Menu > dropdown_menu_;
 
 };
 

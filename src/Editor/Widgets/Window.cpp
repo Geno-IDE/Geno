@@ -18,6 +18,7 @@
 #include "Window.h"
 
 #include "Editor/Platform/Win32/WindowClass.h"
+#include "Editor/Widgets/MenuItem.h"
 
 ALV_NAMESPACE_BEGIN
 

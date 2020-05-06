@@ -17,7 +17,7 @@
 
 #include "Core/Compiler.h"
 #include "Core/Console.h"
-#include "Editor/Widgets/Submenu.h"
+#include "Editor/Widgets/MenuItem.h"
 #include "Editor/Widgets/Window.h"
 
 #include <cstdlib>
@@ -29,23 +29,23 @@ static Alv::Menu SetupRootMenu( void )
 {
 	Alv::Menu menu;
 
-	Alv::Submenu submenu_file;
-	submenu_file.AddItem( Alv::SubmenuItem( L"Open" ) );
-	submenu_file.AddItem( Alv::SubmenuItem( L"Save" ) );
-	submenu_file.AddSeparator();
-	submenu_file.AddItem( Alv::SubmenuItem( L"Settings" ) );
+	Alv::Menu menu_file;
+	menu_file.AddItem( Alv::MenuItem( L"Open" ) );
+	menu_file.AddItem( Alv::MenuItem( L"Save" ) );
+	menu_file.AddSeparator();
+	menu_file.AddItem( Alv::MenuItem( L"Settings" ) );
 
 	Alv::MenuItem item_file( L"File" );
-	item_file.SetSubmenu( std::move( submenu_file ) );
+	item_file.SetDropdownMenu( std::move( menu_file ) );
 	menu.AddItem( std::move( item_file ) );
 
-	Alv::Submenu submenu_build;
-	submenu_build.AddItem( Alv::SubmenuItem( L"Build" ) );
-	submenu_build.AddItem( Alv::SubmenuItem( L"Rebuild" ) );
-	submenu_build.AddItem( Alv::SubmenuItem( L"Clean" ) );
+	Alv::Menu menu_build;
+	menu_build.AddItem( Alv::MenuItem( L"Build" ) );
+	menu_build.AddItem( Alv::MenuItem( L"Rebuild" ) );
+	menu_build.AddItem( Alv::MenuItem( L"Clean" ) );
 
 	Alv::MenuItem item_build( L"Build" );
-	item_build.SetSubmenu( std::move( submenu_build ) );
+	item_build.SetDropdownMenu( std::move( menu_build ) );
 	menu.AddItem( std::move( item_build ) );
 
 	return menu;
