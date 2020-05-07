@@ -30,5 +30,10 @@ void MenuItem::SetDropdownMenu( Menu menu )
 	dropdown_menu_.emplace( std::move( menu ) );
 }
 
+void MenuItem::OnAdded( void )
+{
+	Send( MenuItemAdded{ 0 } );
+}
+
 ALV_NAMESPACE_END
 

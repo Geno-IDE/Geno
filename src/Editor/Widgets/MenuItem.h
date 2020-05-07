@@ -16,6 +16,7 @@
  */
 
 #pragma once
+#include "Core/EventDispatcher.h"
 #include "Editor/Widgets/Menu.h"
 
 #include <optional>
@@ -24,7 +25,12 @@
 
 ALV_NAMESPACE_BEGIN
 
-class MenuItem
+struct MenuItemAdded
+{
+	int dummy;
+};
+
+class MenuItem : public EventDispatcher< MenuItem, MenuItemAdded >
 {
 	ALV_DISABLE_COPY( MenuItem );
 
@@ -38,6 +44,7 @@ public:
 public:
 
 	void SetDropdownMenu( Menu menu );
+	void OnAdded        ( void );
 
 public:
 

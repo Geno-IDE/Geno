@@ -53,6 +53,7 @@ void Menu::AddItem( MenuItem item )
 	else                         AppendMenuW( hmenu_, MF_STRING,            next_item_id_++,                                      item.GetName().data() );
 
 	items_.emplace_back( std::move( item ) );
+	items_.back().OnAdded();
 }
 
 void Menu::AddSeparator( void )
