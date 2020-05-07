@@ -17,7 +17,7 @@
 
 #include "Core/Compiler.h"
 #include "Core/Console.h"
-#include "Editor/Widgets/MenuItem.h"
+#include "Editor/Widgets/Menu.h"
 #include "Editor/Widgets/Window.h"
 
 #include <cstdlib>

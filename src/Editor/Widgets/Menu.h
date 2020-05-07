@@ -66,3 +66,6 @@ private:
 };
 
 ALV_NAMESPACE_END
+
+// Fixes circular dependency
+#include "Editor/Widgets/MenuItem.h"
