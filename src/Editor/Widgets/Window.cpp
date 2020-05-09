@@ -51,8 +51,6 @@ Window& Window::operator=( Window&& other )
 
 	other.hwnd_ = NULL;
 
-	SetWindowLongPtrW( hwnd_, GWL_USERDATA, reinterpret_cast< LONG >( this ) );
-
 	return *this;
 }
 
