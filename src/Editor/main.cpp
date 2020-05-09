@@ -25,13 +25,18 @@
 
 #include <Windows.h>
 
+static void ActionSave( const Alv::MenuItemClicked& )
+{
+	printf( "Saving...\n" );
+}
+
 static Alv::Menu SetupRootMenu( void )
 {
 	Alv::Menu menu;
 
 	Alv::Menu menu_file;
 	menu_file.AddItem( Alv::MenuItem( L"Open" ) );
-	menu_file.AddItem( Alv::MenuItem( L"Save" ) );
+	menu_file.AddItem( Alv::MenuItem( L"Save" ) <<= ActionSave );
 	menu_file.AddSeparator();
 	menu_file.AddItem( Alv::MenuItem( L"Settings" ) );
 

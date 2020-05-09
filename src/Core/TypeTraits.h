@@ -15,27 +15,28 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "MenuItem.h"
+#pragma once
+#include "Alv.h"
+
+#include <type_traits>
 
 ALV_NAMESPACE_BEGIN
 
-MenuItem::MenuItem( std::wstring_view name )
-	: name_         ( name )
-	, dropdown_menu_( std::nullopt )
-{
-}
+/* Function argument type deduction by courtesy of https://stackoverflow.com/a/35348334 */
 
-void MenuItem::SetDropdownMenu( Menu menu )
-{
-	dropdown_menu_.emplace( std::move( menu ) );
-}
+template< typename Ret, typename Arg, typename... Rest >
+constexpr Arg first_argument_helper( Ret( * )( Arg, Rest... ) );
 
-void MenuItem::OnClicked( void ) const
-{
-	MenuItemClicked e = { *this };
+template< typename Ret, typename F, typename Arg, typename... Rest >
+constexpr Arg first_argument_helper( Ret( F::* )( Arg, Rest... ) );
 
-	Send( e );
-}
+template< typename Ret, typename F, typename Arg, typename... Rest >
+constexpr Arg first_argument_helper( Ret( F::* )( Arg, Rest... ) const );
+
+template< typename F >
+constexpr decltype( first_argument_helper( &F::operator() ) ) first_argument_helper( F );
+
+template< typename T >
+using FirstArgumentType = decltype( first_argument_helper( std::declval< T >() ) );
 
 ALV_NAMESPACE_END
-

@@ -33,6 +33,7 @@ Window::Window( void )
 
 Window::Window( Window&& other )
 	: hwnd_( other.hwnd_ )
+	, menu_( std::move( other.menu_ ) )
 {
 	other.hwnd_ = NULL;
 
@@ -47,11 +48,10 @@ Window::~Window( void )
 
 Window& Window::operator=( Window&& other )
 {
-	hwnd_ = other.hwnd_;
+	hwnd_       = other.hwnd_;
+	menu_       = std::move( other.menu_ );
 
 	other.hwnd_ = NULL;
-
-	SetWindowLongPtrW( hwnd_, GWL_USERDATA, reinterpret_cast< LONG >( this ) );
 
 	return *this;
 }
@@ -91,7 +91,46 @@ bool Window::IsOpen( void ) const
 
 LRESULT CALLBACK Window::WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam )
 {
+	Window* self = ( Window* )GetWindowLongPtrW( hwnd, GWL_USERDATA );
+
+	self->HandleMessage( msg, wparam, lparam );
+
 	return DefWindowProcW( hwnd, msg, wparam, lparam );
+}
+
+void Window::HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam )
+{
+	switch( msg )
+	{
+		case WM_MENUCOMMAND:
+		{
+			if( !menu_ ) break;
+
+			size_t      item_index  = ( size_t )wparam;
+			HMENU       menu_handle = ( HMENU )lparam;
+			const Menu* menu        = FindMenuByHandle( *menu_, menu_handle );
+
+			if( menu )
+				menu->GetItem( item_index ).OnClicked();
+
+		} break;
+	}
+}
+
+const Menu* Window::FindMenuByHandle( Menu& which, HMENU hmenu ) const
+{
+	if( which.GetNativeHandle() == hmenu )
+		return &which;
+
+	for( size_t i = 0; i < which.GetItemCount(); ++i )
+	{
+		const MenuItem& item = which.GetItem( i );
+
+		if( item.HasDropdownMenu() && item.GetDropdownMenu().GetNativeHandle() == hmenu )
+			return &item.GetDropdownMenu();
+	}
+
+	return nullptr;
 }
 
 ALV_NAMESPACE_END
