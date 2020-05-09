@@ -18,18 +18,18 @@
 #pragma once
 
 // Namespace macros
-#define ALV_NAMESPACE       ::Alv::
-#define ALV_NAMESPACE_BEGIN namespace Alv {
-#define ALV_NAMESPACE_END   }
+#define GENO_NAMESPACE       ::Geno::
+#define GENO_NAMESPACE_BEGIN namespace Geno {
+#define GENO_NAMESPACE_END   }
 
 // Constructor macros
-#define ALV_DISABLE_COPY( CLASS )              \
+#define GENO_DISABLE_COPY( CLASS )              \
     CLASS( const CLASS& )            = delete; \
     CLASS& operator=( const CLASS& ) = delete;
-#define ALV_DISABLE_MOVE( CLASS )         \
+#define GENO_DISABLE_MOVE( CLASS )         \
     CLASS( CLASS&& )            = delete; \
     CLASS& operator=( CLASS&& ) = delete;
-#define ALV_DISABLE_COPY_AND_MOVE( CLASS )     \
+#define GENO_DISABLE_COPY_AND_MOVE( CLASS )     \
     CLASS( const CLASS& )            = delete; \
     CLASS( CLASS&& )                 = delete; \
     CLASS& operator=( const CLASS& ) = delete; \

@@ -1,6 +1,6 @@
 OUTDIR    = 'build/%{_ACTION}/%{cfg.platform}/%{cfg.buildcfg}/'
-BUNDLE    = 'com.gaztin.alv'
-WORKSPACE = 'Alv'
+BUNDLE    = 'com.gaztin.geno'
+WORKSPACE = 'Geno'
 
 local modules = { }
 

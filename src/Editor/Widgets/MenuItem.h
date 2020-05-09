@@ -23,7 +23,7 @@
 #include <string_view>
 #include <string>
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 struct MenuItemClicked
 {
@@ -32,7 +32,7 @@ struct MenuItemClicked
 
 class MenuItem : public EventDispatcher< MenuItem, MenuItemClicked >
 {
-	ALV_DISABLE_COPY( MenuItem );
+	GENO_DISABLE_COPY( MenuItem );
 
 public:
 
@@ -63,4 +63,4 @@ private:
 
 };
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END

@@ -19,7 +19,7 @@
 
 #include <Windows.h>
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 Compiler::Compiler( std::wstring_view path )
 	: path_( path )
@@ -79,4 +79,4 @@ std::wstring Compiler::MakeArgsString( const Args& args ) const
 	return string;
 }
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END

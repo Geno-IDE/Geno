@@ -21,7 +21,7 @@
 
 #include <Windows.h>
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 Console::Console( void )
 {
@@ -37,4 +37,4 @@ Console::~Console( void )
 	FreeConsole();
 }
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END

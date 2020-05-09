@@ -17,7 +17,7 @@
 
 #include "MenuItem.h"
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 MenuItem::MenuItem( std::wstring_view name )
 	: name_         ( name )
@@ -37,5 +37,5 @@ void MenuItem::OnClicked( void ) const
 	Send( e );
 }
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END
 

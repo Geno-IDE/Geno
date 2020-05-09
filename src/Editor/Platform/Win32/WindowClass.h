@@ -16,11 +16,11 @@
  */
 
 #pragma once
-#include "Alv.h"
+#include "Geno.h"
 
 #include <Windows.h>
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 namespace Platform
 {
@@ -42,4 +42,4 @@ namespace Platform
 	};
 }
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END

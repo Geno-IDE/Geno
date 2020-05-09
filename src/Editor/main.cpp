@@ -25,31 +25,31 @@
 
 #include <Windows.h>
 
-static void ActionSave( const Alv::MenuItemClicked& )
+static void ActionSave( const Geno::MenuItemClicked& )
 {
 	printf( "Saving...\n" );
 }
 
-static Alv::Menu SetupRootMenu( void )
+static Geno::Menu SetupRootMenu( void )
 {
-	Alv::Menu menu;
+	Geno::Menu menu;
 
-	Alv::Menu menu_file;
-	menu_file.AddItem( Alv::MenuItem( L"Open" ) );
-	menu_file.AddItem( Alv::MenuItem( L"Save" ) <<= ActionSave );
+	Geno::Menu menu_file;
+	menu_file.AddItem( Geno::MenuItem( L"Open" ) );
+	menu_file.AddItem( Geno::MenuItem( L"Save" ) <<= ActionSave );
 	menu_file.AddSeparator();
-	menu_file.AddItem( Alv::MenuItem( L"Settings" ) );
+	menu_file.AddItem( Geno::MenuItem( L"Settings" ) );
 
-	Alv::MenuItem item_file( L"File" );
+	Geno::MenuItem item_file( L"File" );
 	item_file.SetDropdownMenu( std::move( menu_file ) );
 	menu.AddItem( std::move( item_file ) );
 
-	Alv::Menu menu_build;
-	menu_build.AddItem( Alv::MenuItem( L"Build" ) );
-	menu_build.AddItem( Alv::MenuItem( L"Rebuild" ) );
-	menu_build.AddItem( Alv::MenuItem( L"Clean" ) );
+	Geno::Menu menu_build;
+	menu_build.AddItem( Geno::MenuItem( L"Build" ) );
+	menu_build.AddItem( Geno::MenuItem( L"Rebuild" ) );
+	menu_build.AddItem( Geno::MenuItem( L"Clean" ) );
 
-	Alv::MenuItem item_build( L"Build" );
+	Geno::MenuItem item_build( L"Build" );
 	item_build.SetDropdownMenu( std::move( menu_build ) );
 	menu.AddItem( std::move( item_build ) );
 
@@ -58,10 +58,10 @@ static Alv::Menu SetupRootMenu( void )
 
 int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /*cmd_line*/, int /*show_cmd*/ )
 {
-	Alv::Console  console;
-	Alv::Compiler compiler( CFG_LLVM_LOCATION );
-	Alv::Window   window;
-	Alv::Menu     menu = SetupRootMenu();
+	Geno::Console  console;
+	Geno::Compiler compiler( CFG_LLVM_LOCATION );
+	Geno::Window   window;
+	Geno::Menu     menu = SetupRootMenu();
 
 	window.SetMenu( std::move( menu ) );
 	window.Show();

@@ -16,11 +16,11 @@
  */
 
 #pragma once
-#include "Alv.h"
+#include "Geno.h"
 
 #include <type_traits>
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 /* Function argument type deduction by courtesy of https://stackoverflow.com/a/35348334 */
 
@@ -39,4 +39,4 @@ constexpr decltype( first_argument_helper( &F::operator() ) ) first_argument_hel
 template< typename T >
 using FirstArgumentType = decltype( first_argument_helper( std::declval< T >() ) );
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END

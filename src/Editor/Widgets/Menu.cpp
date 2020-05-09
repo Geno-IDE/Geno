@@ -19,7 +19,7 @@
 
 #include "Editor/Widgets/MenuItem.h"
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 Menu::Menu( void )
 	: hmenu_       ( CreateMenu() )
@@ -80,4 +80,4 @@ void Menu::AddSeparator( void )
 	AppendMenuW( hmenu_, MF_SEPARATOR, next_item_id_++, NULL );
 }
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END

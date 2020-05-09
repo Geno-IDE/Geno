@@ -20,7 +20,7 @@
 #include "Editor/Platform/Win32/WindowClass.h"
 #include "Editor/Widgets/MenuItem.h"
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 Window::Window( void )
 {
@@ -133,4 +133,4 @@ const Menu* Window::FindMenuByHandle( Menu& which, HMENU hmenu ) const
 	return nullptr;
 }
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END

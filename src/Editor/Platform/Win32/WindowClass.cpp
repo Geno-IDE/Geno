@@ -17,11 +17,11 @@
 
 #include "WindowClass.h"
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 namespace Platform
 {
-	constexpr LPCWSTR class_name = L"AlvWC";
+	constexpr LPCWSTR class_name = L"GenoWC";
 
 	WindowClass::WindowClass( WNDPROC wndproc )
 		: atom_( NULL )
@@ -50,4 +50,4 @@ namespace Platform
 	}
 }
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END

@@ -16,20 +16,20 @@
  */
 
 #pragma once
-#include "Alv.h"
+#include "Geno.h"
 
 #include <string_view>
 #include <vector>
 
 #include <Windows.h>
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 class MenuItem;
 
 class Menu
 {
-	ALV_DISABLE_COPY( Menu );
+	GENO_DISABLE_COPY( Menu );
 
 public:
 
@@ -65,7 +65,7 @@ private:
 
 };
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END
 
 // Fixes circular dependency
 #include "Editor/Widgets/MenuItem.h"

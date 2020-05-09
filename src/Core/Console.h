@@ -18,7 +18,7 @@
 #pragma once
 #include "Core/Core.h"
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 class Console
 {
@@ -29,4 +29,4 @@ public:
 
 };
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END

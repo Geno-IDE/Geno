@@ -22,7 +22,7 @@
 #include <string_view>
 #include <string>
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 class Compiler
 {
@@ -54,4 +54,4 @@ private:
 
 };
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END

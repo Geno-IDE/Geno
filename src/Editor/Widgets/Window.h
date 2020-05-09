@@ -23,11 +23,11 @@
 
 #include <Windows.h>
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 class Window
 {
-	ALV_DISABLE_COPY( Window );
+	GENO_DISABLE_COPY( Window );
 
 public:
 
@@ -69,4 +69,4 @@ private:
 
 };
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END

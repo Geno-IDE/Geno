@@ -21,12 +21,12 @@
 #include <functional>
 #include <tuple>
 
-ALV_NAMESPACE_BEGIN
+GENO_NAMESPACE_BEGIN
 
 template< typename Derived, typename... Types >
 class EventDispatcher
 {
-	ALV_DISABLE_COPY( EventDispatcher );
+	GENO_DISABLE_COPY( EventDispatcher );
 
 public:
 
@@ -82,4 +82,4 @@ private:
 
 };
 
-ALV_NAMESPACE_END
+GENO_NAMESPACE_END
