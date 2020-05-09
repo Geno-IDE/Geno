@@ -1,8 +1,7 @@
-# 🪁 Alv
-Alv is a WIP lightweight cross-platform IDE for native (C/C++) development.
+# 🧬 Geno
+Geno is a WIP lightweight cross-platform IDE for native (C/C++) development.
 
 # 🍴 Prerequisites
-
 * [LLVM](https://releases.llvm.org/download.html)
 
 # 🔧 Building
