@@ -33,6 +33,7 @@ Window::Window( void )
 
 Window::Window( Window&& other )
 	: hwnd_( other.hwnd_ )
+	, menu_( std::move( other.menu_ ) )
 {
 	other.hwnd_ = NULL;
 
@@ -47,7 +48,8 @@ Window::~Window( void )
 
 Window& Window::operator=( Window&& other )
 {
-	hwnd_ = other.hwnd_;
+	hwnd_       = other.hwnd_;
+	menu_       = std::move( other.menu_ );
 
 	other.hwnd_ = NULL;
 

@@ -22,14 +22,19 @@
 ALV_NAMESPACE_BEGIN
 
 Menu::Menu( void )
-	: hmenu_( CreateMenu() )
+	: hmenu_       ( CreateMenu() )
+	, items_       { }
+	, next_item_id_( 0 )
 {
 }
 
 Menu::Menu( Menu&& other )
-	: hmenu_( other.hmenu_ )
+	: hmenu_       ( other.hmenu_ )
+	, items_       ( std::move( other.items_ ) )
+	, next_item_id_( other.next_item_id_ )
 {
-	other.hmenu_ = NULL;
+	other.hmenu_        = NULL;
+	other.next_item_id_ = 0;
 }
 
 Menu::~Menu( void )
@@ -40,9 +45,12 @@ Menu::~Menu( void )
 
 Menu& Menu::operator=( Menu&& other )
 {
-	hmenu_ = other.hmenu_;
+	hmenu_              = other.hmenu_;
+	items_              = std::move( other.items_ );
+	next_item_id_       = other.next_item_id_;
 
-	other.hmenu_ = NULL;
+	other.hmenu_        = NULL;
+	other.next_item_id_ = 0;
 
 	return *this;
 }
