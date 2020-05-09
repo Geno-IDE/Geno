@@ -55,6 +55,14 @@ private:
 
 private:
 
+	void HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam );
+
+private:
+
+	const Menu* FindMenuByHandle( Menu& where, HMENU hmenu ) const;
+
+private:
+
 	HWND                  hwnd_;
 
 	std::optional< Menu > menu_;

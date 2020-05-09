@@ -91,7 +91,46 @@ bool Window::IsOpen( void ) const
 
 LRESULT CALLBACK Window::WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam )
 {
+	Window* self = ( Window* )GetWindowLongPtrW( hwnd, GWL_USERDATA );
+
+	self->HandleMessage( msg, wparam, lparam );
+
 	return DefWindowProcW( hwnd, msg, wparam, lparam );
+}
+
+void Window::HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam )
+{
+	switch( msg )
+	{
+		case WM_MENUCOMMAND:
+		{
+			if( !menu_ ) break;
+
+			size_t      item_index  = ( size_t )wparam;
+			HMENU       menu_handle = ( HMENU )lparam;
+			const Menu* menu        = FindMenuByHandle( *menu_, menu_handle );
+
+			if( menu && ( menu->GetItemCount() > item_index ) )
+				menu->GetItem( item_index ).OnClicked();
+
+		} break;
+	}
+}
+
+const Menu* Window::FindMenuByHandle( Menu& where, HMENU hmenu ) const
+{
+	if( where.GetNativeHandle() == hmenu )
+		return &where;
+
+	for( size_t i = 0; i < where.GetItemCount(); ++i )
+	{
+		const MenuItem& item = where.GetItem( i );
+
+		if( item.HasDropdownMenu() && item.GetDropdownMenu().GetNativeHandle() == hmenu )
+			return &item.GetDropdownMenu();
+	}
+
+	return nullptr;
 }
 
 ALV_NAMESPACE_END

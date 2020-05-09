@@ -26,6 +26,12 @@ Menu::Menu( void )
 	, items_       { }
 	, next_item_id_( 0 )
 {
+	MENUINFO info;
+	info.cbSize     = sizeof( MENUINFO );
+	info.fMask      = MIM_MENUDATA | MIM_STYLE;
+	info.dwStyle    = MNS_NOTIFYBYPOS;
+	info.dwMenuData = ( ULONG_PTR )this;
+	SetMenuInfo( hmenu_, &info );
 }
 
 Menu::Menu( Menu&& other )
@@ -35,6 +41,12 @@ Menu::Menu( Menu&& other )
 {
 	other.hmenu_        = NULL;
 	other.next_item_id_ = 0;
+
+	MENUINFO info;
+	info.cbSize     = sizeof( MENUINFO );
+	info.fMask      = MIM_MENUDATA;
+	info.dwMenuData = ( ULONG_PTR )this;
+	SetMenuInfo( hmenu_, &info );
 }
 
 Menu::~Menu( void )
@@ -61,7 +73,6 @@ void Menu::AddItem( MenuItem item )
 	else                         AppendMenuW( hmenu_, MF_STRING,            next_item_id_++,                                      item.GetName().data() );
 
 	items_.emplace_back( std::move( item ) );
-	items_.back().OnAdded();
 }
 
 void Menu::AddSeparator( void )

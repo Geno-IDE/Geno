@@ -25,12 +25,12 @@
 
 ALV_NAMESPACE_BEGIN
 
-struct MenuItemAdded
+struct MenuItemClicked
 {
-	int dummy;
+	const MenuItem& item;
 };
 
-class MenuItem : public EventDispatcher< MenuItem, MenuItemAdded >
+class MenuItem : public EventDispatcher< MenuItem, MenuItemClicked >
 {
 	ALV_DISABLE_COPY( MenuItem );
 
@@ -44,7 +44,10 @@ public:
 public:
 
 	void SetDropdownMenu( Menu menu );
-	void OnAdded        ( void );
+
+public:
+
+	void OnClicked( void ) const;
 
 public:
 
