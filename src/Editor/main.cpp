@@ -18,6 +18,7 @@
 #include "Core/Compiler.h"
 #include "Core/Console.h"
 #include "Editor/Widgets/Menu.h"
+#include "Editor/Widgets/TextBox.h"
 #include "Editor/Widgets/Window.h"
 
 #include <cstdlib>
@@ -62,6 +63,7 @@ int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /
 	Geno::Compiler compiler( CFG_LLVM_LOCATION );
 	Geno::Window   window;
 	Geno::Menu     menu = SetupRootMenu();
+	Geno::TextBox  text_box( window );
 
 	window.SetMenu( std::move( menu ) );
 	window.Show();
