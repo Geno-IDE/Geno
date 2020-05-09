@@ -110,21 +110,21 @@ void Window::HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam )
 			HMENU       menu_handle = ( HMENU )lparam;
 			const Menu* menu        = FindMenuByHandle( *menu_, menu_handle );
 
-			if( menu && ( menu->GetItemCount() > item_index ) )
+			if( menu )
 				menu->GetItem( item_index ).OnClicked();
 
 		} break;
 	}
 }
 
-const Menu* Window::FindMenuByHandle( Menu& where, HMENU hmenu ) const
+const Menu* Window::FindMenuByHandle( Menu& which, HMENU hmenu ) const
 {
-	if( where.GetNativeHandle() == hmenu )
-		return &where;
+	if( which.GetNativeHandle() == hmenu )
+		return &which;
 
-	for( size_t i = 0; i < where.GetItemCount(); ++i )
+	for( size_t i = 0; i < which.GetItemCount(); ++i )
 	{
-		const MenuItem& item = where.GetItem( i );
+		const MenuItem& item = which.GetItem( i );
 
 		if( item.HasDropdownMenu() && item.GetDropdownMenu().GetNativeHandle() == hmenu )
 			return &item.GetDropdownMenu();

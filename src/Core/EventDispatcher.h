@@ -55,7 +55,7 @@ public:
 protected:
 
 	template< typename T >
-	void Send( T e ) const
+	void Send( const T& e ) const
 	{
 		const SubscriberVector< T >& vec = std::get< SubscriberVector< T > >( subscribers_ );
 

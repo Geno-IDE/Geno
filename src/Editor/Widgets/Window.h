@@ -59,7 +59,7 @@ private:
 
 private:
 
-	const Menu* FindMenuByHandle( Menu& where, HMENU hmenu ) const;
+	const Menu* FindMenuByHandle( Menu& which, HMENU hmenu ) const;
 
 private:
 

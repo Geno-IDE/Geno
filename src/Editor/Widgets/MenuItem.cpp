@@ -34,7 +34,7 @@ void MenuItem::OnClicked( void ) const
 {
 	MenuItemClicked e = { *this };
 
-	Send( std::move( e ) );
+	Send( e );
 }
 
 ALV_NAMESPACE_END

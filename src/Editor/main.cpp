@@ -25,7 +25,7 @@
 
 #include <Windows.h>
 
-static void ActionSave( Alv::MenuItemClicked )
+static void ActionSave( const Alv::MenuItemClicked& )
 {
 	printf( "Saving...\n" );
 }
