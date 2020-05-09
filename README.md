@@ -1,7 +1,7 @@
-# 🪁 Project
-Lorem ipsum dolor sit amet.
+# 🪁 Alv
+Alv is a WIP lightweight cross-platform IDE for native (C/C++) development.
 
-# Prerequisites
+# 🍴 Prerequisites
 
 * [LLVM](https://releases.llvm.org/download.html)
 
@@ -15,11 +15,3 @@ To generate files for your favorite IDE or build system, simply run the premake 
 `./premake5 codelite` (Unix)
 
 [Click here for a list of generators.](https://github.com/premake/premake-core/wiki/Using-Premake)
-
-# 💉 Samples
-
-**Sample #1**</br>
-Lorem ipsum dolor sit amet.
-
-**Sample #2**</br>
-Lorem ipsum dolor sit amet.
