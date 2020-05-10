@@ -67,6 +67,38 @@ void Window::HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam )
 {
 	switch( msg )
 	{
+		case WM_SIZE:
+		{
+			WORD              width  = LOWORD( lparam );
+			WORD              height = HIWORD( lparam );
+			RECT              window_rect;
+			WidgetRectChanged e;
+
+			// Get window position before sending event
+			if( GetWindowRect( hwnd_, &window_rect ) ) e.new_rect = Rect( Point( window_rect.left, window_rect.top ), Point( window_rect.right, window_rect.bottom ) );
+			else                                       e.new_rect = Rect( width, height );
+
+			Send( e );
+
+			if( !children_.empty() )
+			{
+				double child_width = ( double )width / children_.size();
+
+				for( size_t i = 0; i < children_.size(); ++i )
+				{
+					Rect rect;
+					rect.min.x = ( int32_t )( child_width * i );
+					rect.min.y = 0;
+					rect.max.x = ( int32_t )( rect.min.x + child_width );
+					rect.max.y = height;
+
+					// Update children sizes
+					children_[ i ].SetRect( rect );
+				}
+			}
+
+		} break;
+
 		case WM_MENUCOMMAND:
 		{
 			if( !menu_ ) break;
