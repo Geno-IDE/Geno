@@ -25,7 +25,7 @@ TextBox::TextBox( void )
 
 	hwnd_ = CreateWindowExW( 0, L"EDIT", L"Hello, world!", style, 0, 0, 256, 256, NULL, NULL, NULL, this );
 
-	SetWindowLongPtrW( hwnd_, GWL_USERDATA, ( LONG_PTR )this );
+	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
 }
 
 GENO_NAMESPACE_END

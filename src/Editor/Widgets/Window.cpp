@@ -28,7 +28,7 @@ Window::Window( void )
 
 	hwnd_ = CreateWindowExW( WS_EX_OVERLAPPEDWINDOW, window_class.GetName(), NULL, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, GetModuleHandleW( NULL ), this );
 
-	SetWindowLongPtrW( hwnd_, GWL_USERDATA, ( LONG_PTR )this );
+	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
 }
 
 void Window::PollEvents( void )
@@ -56,7 +56,7 @@ bool Window::IsOpen( void ) const
 
 LRESULT CALLBACK Window::WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam )
 {
-	Window* self = ( Window* )GetWindowLongPtrW( hwnd, GWL_USERDATA );
+	Window* self = ( Window* )GetWindowLongPtrW( hwnd, GWLP_USERDATA );
 
 	self->HandleMessage( msg, wparam, lparam );
 

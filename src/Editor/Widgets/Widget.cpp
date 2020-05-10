@@ -31,7 +31,7 @@ Widget::Widget( Widget&& other )
 {
 	other.hwnd_ = NULL;
 
-	SetWindowLongPtrW( hwnd_, GWL_USERDATA, ( LONG_PTR )this );
+	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
 }
 
 Widget::~Widget( void )
