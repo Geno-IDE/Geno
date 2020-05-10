@@ -18,6 +18,9 @@
 #pragma once
 #include "Editor/Widgets/Widget.h"
 
+#include <string_view>
+#include <string>
+
 GENO_NAMESPACE_BEGIN
 
 class Widget;
@@ -30,6 +33,14 @@ class TextBox : public Widget
 public:
 
 	explicit TextBox( void );
+
+public:
+
+	void SetText( std::wstring_view text );
+
+public:
+
+	std::wstring GetText( void ) const;
 
 };
 

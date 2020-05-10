@@ -23,9 +23,25 @@ TextBox::TextBox( void )
 {
 	DWORD style = WS_TABSTOP | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL;
 
-	hwnd_ = CreateWindowExW( 0, L"EDIT", L"Hello, world!", style, 0, 0, 0, 0, NULL, NULL, NULL, this );
+	hwnd_ = CreateWindowExW( 0, L"EDIT", L"", style, 0, 0, 0, 0, NULL, NULL, NULL, this );
 
 	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
+}
+
+void TextBox::SetText( std::wstring_view text )
+{
+	SetWindowTextW( hwnd_, text.data() );
+}
+
+std::wstring TextBox::GetText( void ) const
+{
+	std::wstring text;
+
+	text.resize( GetWindowTextLengthW( hwnd_ ) );
+
+	GetWindowTextW( hwnd_, &text[ 0 ], std::numeric_limits< int >::max() );
+
+	return text;
 }
 
 GENO_NAMESPACE_END
