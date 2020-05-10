@@ -17,6 +17,7 @@
 
 #pragma once
 #include "Editor/Widgets/Menu.h"
+#include "Editor/Widgets/Widget.h"
 
 #include <optional>
 #include <string_view>
@@ -25,17 +26,14 @@
 
 GENO_NAMESPACE_BEGIN
 
-class Window
+class Window : public Widget
 {
 	GENO_DISABLE_COPY( Window );
+	GENO_DEFAULT_MOVE( Window );
 
 public:
 
-	 Window( void );
-	 Window( Window&& other );
-	~Window( void );
-
-	Window& operator=( Window&& other );
+	Window( void );
 
 public:
 
@@ -46,8 +44,7 @@ public:
 
 public:
 
-	bool IsOpen         ( void ) const;
-	HWND GetNativeHandle( void ) const { return hwnd_; }
+	bool IsOpen( void ) const;
 
 private:
 
@@ -62,8 +59,6 @@ private:
 	const Menu* FindMenuByHandle( Menu& which, HMENU hmenu ) const;
 
 private:
-
-	HWND                  hwnd_;
 
 	std::optional< Menu > menu_;
 

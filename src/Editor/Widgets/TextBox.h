@@ -16,29 +16,20 @@
  */
 
 #pragma once
-#include "Geno.h"
-
-#include <Windows.h>
+#include "Editor/Widgets/Widget.h"
 
 GENO_NAMESPACE_BEGIN
 
-class Window;
+class Widget;
 
-class TextBox
+class TextBox : public Widget
 {
 	GENO_DISABLE_COPY( TextBox );
+	GENO_DEFAULT_MOVE( TextBox );
 
 public:
 
-	explicit TextBox( const Window& parent );
-	         TextBox( TextBox&& other );
-	        ~TextBox( void );
-
-	TextBox& operator=( TextBox&& other );
-
-private:
-
-	HWND hwnd_;
+	explicit TextBox( const Widget& parent );
 
 };
 

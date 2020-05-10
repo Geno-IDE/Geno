@@ -23,14 +23,25 @@
 #define GENO_NAMESPACE_END   }
 
 // Constructor macros
-#define GENO_DISABLE_COPY( CLASS )              \
+#define GENO_DISABLE_COPY( CLASS )             \
     CLASS( const CLASS& )            = delete; \
     CLASS& operator=( const CLASS& ) = delete;
-#define GENO_DISABLE_MOVE( CLASS )         \
+#define GENO_DISABLE_MOVE( CLASS )        \
     CLASS( CLASS&& )            = delete; \
     CLASS& operator=( CLASS&& ) = delete;
-#define GENO_DISABLE_COPY_AND_MOVE( CLASS )     \
+#define GENO_DISABLE_COPY_AND_MOVE( CLASS )    \
     CLASS( const CLASS& )            = delete; \
     CLASS( CLASS&& )                 = delete; \
     CLASS& operator=( const CLASS& ) = delete; \
     CLASS& operator=( CLASS&& )      = delete;
+#define GENO_DEFAULT_COPY( CLASS )              \
+    CLASS( const CLASS& )            = default; \
+    CLASS& operator=( const CLASS& ) = default;
+#define GENO_DEFAULT_MOVE( CLASS )         \
+    CLASS( CLASS&& )            = default; \
+    CLASS& operator=( CLASS&& ) = default;
+#define GENO_DEFAULT_COPY_AND_MOVE( CLASS )     \
+    CLASS( const CLASS& )            = default; \
+    CLASS( CLASS&& )                 = default; \
+    CLASS& operator=( const CLASS& ) = default; \
+    CLASS& operator=( CLASS&& )      = default;

@@ -28,32 +28,7 @@ Window::Window( void )
 
 	hwnd_ = CreateWindowExW( WS_EX_OVERLAPPEDWINDOW, window_class.GetName(), NULL, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, GetModuleHandleW( NULL ), this );
 
-	SetWindowLongPtrW( hwnd_, GWL_USERDATA, reinterpret_cast< LONG >( this ) );
-}
-
-Window::Window( Window&& other )
-	: hwnd_( other.hwnd_ )
-	, menu_( std::move( other.menu_ ) )
-{
-	other.hwnd_ = NULL;
-
-	SetWindowLongPtrW( hwnd_, GWL_USERDATA, reinterpret_cast< LONG >( this ) );
-}
-
-Window::~Window( void )
-{
-	if( hwnd_ )
-		DestroyWindow( hwnd_ );
-}
-
-Window& Window::operator=( Window&& other )
-{
-	hwnd_       = other.hwnd_;
-	menu_       = std::move( other.menu_ );
-
-	other.hwnd_ = NULL;
-
-	return *this;
+	SetWindowLongPtrW( hwnd_, GWL_USERDATA, ( LONG_PTR )this );
 }
 
 void Window::Show( void )

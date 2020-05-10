@@ -15,18 +15,36 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "TextBox.h"
+#include "Widget.h"
 
 GENO_NAMESPACE_BEGIN
 
-TextBox::TextBox( const Widget& parent )
+Widget::Widget( void )
+	: hwnd_( NULL )
 {
-	HWND  parent_handle = parent.GetNativeHandle();
-	DWORD style         = WS_CHILDWINDOW | WS_TABSTOP | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL;
+}
 
-	hwnd_ = CreateWindowExW( 0, L"EDIT", L"Hello, world!", style, 10, 10, 128, 128, parent_handle, NULL, NULL, this );
+Widget::Widget( Widget&& other )
+	: hwnd_( other.hwnd_ )
+{
+	other.hwnd_ = NULL;
 
 	SetWindowLongPtrW( hwnd_, GWL_USERDATA, ( LONG_PTR )this );
+}
+
+Widget::~Widget( void )
+{
+	if( hwnd_ )
+		DestroyWindow( hwnd_ );
+}
+
+Widget& Widget::operator=( Widget&& other )
+{
+	hwnd_       = other.hwnd_;
+
+	other.hwnd_ = NULL;
+
+	return *this;
 }
 
 GENO_NAMESPACE_END
