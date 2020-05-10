@@ -24,9 +24,10 @@ GENO_NAMESPACE_BEGIN
 TextBox::TextBox( const Window& parent )
 	: hwnd_( NULL )
 {
-	HWND parent_handle = parent.GetNativeHandle();
+	HWND  parent_handle = parent.GetNativeHandle();
+	DWORD style         = WS_CHILDWINDOW | WS_TABSTOP | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL;
 
-	hwnd_ = CreateWindowExW( 0, L"EDIT", L"Hello, world!", WS_CHILDWINDOW | WS_TABSTOP | WS_VISIBLE | ES_LEFT | ES_MULTILINE, 10, 10, 128, 128, parent_handle, NULL, GetModuleHandleW( NULL ), this );
+	hwnd_ = CreateWindowExW( 0, L"EDIT", L"Hello, world!", style, 10, 10, 128, 128, parent_handle, NULL, NULL, this );
 }
 
 TextBox::TextBox( TextBox&& other )
