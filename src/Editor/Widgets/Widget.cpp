@@ -86,6 +86,17 @@ void Widget::AddChild( Widget child )
 	children_.emplace_back( std::move( child ) );
 }
 
+void Widget::SetRect( const Rect& rect )
+{
+	if( !MoveWindow( hwnd_, rect.min.x, rect.min.y, rect.Width(), rect.Height(), TRUE ) )
+		return;
+
+	WidgetRectChanged e;
+	e.new_rect = rect;
+
+	Send( e );
+}
+
 uint32_t Widget::Width( void ) const
 {
 	RECT rect;

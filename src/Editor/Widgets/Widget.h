@@ -16,7 +16,8 @@
  */
 
 #pragma once
-#include "Geno.h"
+#include "Core/EventDispatcher.h"
+#include "Core/Rect.h"
 
 #include <Windows.h>
 
@@ -25,7 +26,12 @@
 
 GENO_NAMESPACE_BEGIN
 
-class Widget
+struct WidgetRectChanged
+{
+	Rect new_rect;
+};
+
+class Widget : public EventDispatcher< Widget, WidgetRectChanged >
 {
 	GENO_DISABLE_COPY( Widget );
 
@@ -42,6 +48,7 @@ public:
 	void Show    ( void );
 	void Hide    ( void );
 	void AddChild( Widget child );
+	void SetRect ( const Rect& rect );
 
 public:
 
@@ -55,9 +62,7 @@ public:
 
 protected:
 
-	HWND hwnd_;
-
-private:
+	HWND                  hwnd_;
 
 	std::vector< Widget > children_;
 
