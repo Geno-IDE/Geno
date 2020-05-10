@@ -23,7 +23,7 @@ TextBox::TextBox( void )
 {
 	DWORD style = WS_TABSTOP | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL;
 
-	hwnd_ = CreateWindowExW( 0, L"EDIT", L"Hello, world!", style, 0, 0, 256, 256, NULL, NULL, NULL, this );
+	hwnd_ = CreateWindowExW( 0, L"EDIT", L"Hello, world!", style, 0, 0, 0, 0, NULL, NULL, NULL, this );
 
 	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
 }
