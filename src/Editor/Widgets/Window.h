@@ -37,8 +37,6 @@ public:
 
 public:
 
-	void Show      ( void );
-	void Hide      ( void );
 	void PollEvents( void );
 	void SetMenu   ( Menu menu );
 

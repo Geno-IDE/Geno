@@ -47,6 +47,22 @@ Widget& Widget::operator=( Widget&& other )
 	return *this;
 }
 
+void Widget::Show( void )
+{
+	ShowWindow( hwnd_, SW_SHOW );
+
+	for( Widget& child : children_ )
+		child.Show();
+}
+
+void Widget::Hide( void )
+{
+	ShowWindow( hwnd_, SW_HIDE );
+
+	for( Widget& child : children_ )
+		child.Hide();
+}
+
 uint32_t Widget::Width( void ) const
 {
 	RECT rect;

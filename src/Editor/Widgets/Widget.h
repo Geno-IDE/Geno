@@ -38,8 +38,13 @@ public:
 
 public:
 
-	uint32_t Width ( void ) const;
-	uint32_t Height( void ) const;
+	void Show    ( void );
+	void Hide    ( void );
+
+public:
+
+	uint32_t Width  ( void ) const;
+	uint32_t Height ( void ) const;
 
 public:
 

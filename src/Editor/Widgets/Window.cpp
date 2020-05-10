@@ -31,16 +31,6 @@ Window::Window( void )
 	SetWindowLongPtrW( hwnd_, GWL_USERDATA, ( LONG_PTR )this );
 }
 
-void Window::Show( void )
-{
-	ShowWindow( hwnd_, SW_SHOW );
-}
-
-void Window::Hide( void )
-{
-	ShowWindow( hwnd_, SW_HIDE );
-}
-
 void Window::PollEvents( void )
 {
 	MSG msg;
