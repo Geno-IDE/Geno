@@ -20,12 +20,14 @@
 GENO_NAMESPACE_BEGIN
 
 Widget::Widget( void )
-	: hwnd_( NULL )
+	: hwnd_    ( NULL )
+	, children_{ }
 {
 }
 
 Widget::Widget( Widget&& other )
-	: hwnd_( other.hwnd_ )
+	: hwnd_    ( other.hwnd_ )
+	, children_( std::move( other.children_ ) )
 {
 	other.hwnd_ = NULL;
 
@@ -34,6 +36,9 @@ Widget::Widget( Widget&& other )
 
 Widget::~Widget( void )
 {
+	// Destroy children before invalidating the handle
+	children_.clear();
+
 	if( hwnd_ )
 		DestroyWindow( hwnd_ );
 }
@@ -41,6 +46,7 @@ Widget::~Widget( void )
 Widget& Widget::operator=( Widget&& other )
 {
 	hwnd_       = other.hwnd_;
+	children_   = std::move( other.children_ );
 
 	other.hwnd_ = NULL;
 
@@ -63,6 +69,23 @@ void Widget::Hide( void )
 		child.Hide();
 }
 
+void Widget::AddChild( Widget child )
+{
+	DWORD style = GetWindowLongW( child.hwnd_, GWL_STYLE );
+	style &= ~WS_POPUP;
+	style &= ~WS_CAPTION;
+	style |=  WS_CHILD;
+
+	SetWindowLongW( child.hwnd_, GWL_STYLE, style );
+	SetParent( child.hwnd_, hwnd_ );
+
+	// Set visibility depending on new parent
+	if( IsShown() ) child.Show();
+	else            child.Hide();
+
+	children_.emplace_back( std::move( child ) );
+}
+
 uint32_t Widget::Width( void ) const
 {
 	RECT rect;
@@ -81,6 +104,11 @@ uint32_t Widget::Height( void ) const
 		return rect.bottom - rect.top;
 
 	return 0;
+}
+
+bool Widget::IsShown( void ) const
+{
+	return ( GetWindowLongW( hwnd_, GWL_STYLE ) & WS_VISIBLE ) != 0;
 }
 
 GENO_NAMESPACE_END

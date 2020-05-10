@@ -21,6 +21,7 @@
 #include <Windows.h>
 
 #include <cstdint>
+#include <vector>
 
 GENO_NAMESPACE_BEGIN
 
@@ -40,11 +41,13 @@ public:
 
 	void Show    ( void );
 	void Hide    ( void );
+	void AddChild( Widget child );
 
 public:
 
 	uint32_t Width  ( void ) const;
 	uint32_t Height ( void ) const;
+	bool     IsShown( void ) const;
 
 public:
 
@@ -53,6 +56,10 @@ public:
 protected:
 
 	HWND hwnd_;
+
+private:
+
+	std::vector< Widget > children_;
 
 };
 

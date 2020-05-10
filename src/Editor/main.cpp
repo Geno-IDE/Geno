@@ -63,8 +63,9 @@ int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /
 	Geno::Compiler compiler( CFG_LLVM_LOCATION );
 	Geno::Window   window;
 	Geno::Menu     menu = SetupRootMenu();
-	Geno::TextBox  text_box( window );
+	Geno::TextBox  text_box;
 
+	window.AddChild( std::move( text_box ) );
 	window.SetMenu( std::move( menu ) );
 	window.Show();
 

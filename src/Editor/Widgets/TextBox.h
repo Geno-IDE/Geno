@@ -29,7 +29,7 @@ class TextBox : public Widget
 
 public:
 
-	explicit TextBox( const Widget& parent );
+	explicit TextBox( void );
 
 };
 
