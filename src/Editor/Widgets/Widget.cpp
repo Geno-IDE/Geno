@@ -47,4 +47,24 @@ Widget& Widget::operator=( Widget&& other )
 	return *this;
 }
 
+uint32_t Widget::Width( void ) const
+{
+	RECT rect;
+
+	if( GetWindowRect( hwnd_, &rect ) )
+		return rect.right - rect.left;
+
+	return 0;
+}
+
+uint32_t Widget::Height( void ) const
+{
+	RECT rect;
+
+	if( GetWindowRect( hwnd_, &rect ) )
+		return rect.bottom - rect.top;
+
+	return 0;
+}
+
 GENO_NAMESPACE_END

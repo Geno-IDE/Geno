@@ -20,6 +20,8 @@
 
 #include <Windows.h>
 
+#include <cstdint>
+
 GENO_NAMESPACE_BEGIN
 
 class Widget
@@ -33,6 +35,11 @@ public:
 	virtual ~Widget( void );
 
 	Widget& operator=( Widget&& other );
+
+public:
+
+	uint32_t Width ( void ) const;
+	uint32_t Height( void ) const;
 
 public:
 
