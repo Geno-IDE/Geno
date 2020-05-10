@@ -26,9 +26,19 @@
 
 #include <Windows.h>
 
+static void ActionOpen( const Geno::MenuItemClicked& )
+{
+	printf( "Open\n" );
+}
+
 static void ActionSave( const Geno::MenuItemClicked& )
 {
-	printf( "Saving...\n" );
+	printf( "Save\n" );
+}
+
+static void ActionSettings( const Geno::MenuItemClicked& )
+{
+	printf( "Settings\n" );
 }
 
 static Geno::Menu SetupRootMenu( void )
@@ -36,10 +46,10 @@ static Geno::Menu SetupRootMenu( void )
 	Geno::Menu menu;
 
 	Geno::Menu menu_file;
-	menu_file.AddItem( Geno::MenuItem( L"Open" ) );
+	menu_file.AddItem( Geno::MenuItem( L"Open" ) <<= ActionOpen );
 	menu_file.AddItem( Geno::MenuItem( L"Save" ) <<= ActionSave );
 	menu_file.AddSeparator();
-	menu_file.AddItem( Geno::MenuItem( L"Settings" ) );
+	menu_file.AddItem( Geno::MenuItem( L"Settings" ) <<= ActionSettings );
 
 	Geno::MenuItem item_file( L"File" );
 	item_file.SetDropdownMenu( std::move( menu_file ) );
