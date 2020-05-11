@@ -32,14 +32,14 @@ struct MenuItemClicked
 
 class MenuItem : public EventDispatcher< MenuItem, MenuItemClicked >
 {
+public:
+
 	GENO_DISABLE_COPY( MenuItem );
+	GENO_DEFAULT_MOVE( MenuItem );
 
 public:
 
 	explicit MenuItem( std::wstring_view name );
-	         MenuItem( MenuItem&& ) = default;
-
-	MenuItem& operator=( MenuItem&& other ) = default;
 
 public:
 

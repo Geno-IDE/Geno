@@ -26,14 +26,14 @@ GENO_NAMESPACE_BEGIN
 template< typename Derived, typename... Types >
 class EventDispatcher
 {
+public:
+
 	GENO_DISABLE_COPY( EventDispatcher );
+	GENO_DEFAULT_MOVE( EventDispatcher );
 
 public:
 
-	EventDispatcher( void )              = default;
-	EventDispatcher( EventDispatcher&& ) = default;
-
-	EventDispatcher& operator=( EventDispatcher&& ) = default;
+	EventDispatcher( void ) = default;
 
 public:
 
