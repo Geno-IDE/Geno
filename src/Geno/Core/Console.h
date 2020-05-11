@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include "Core/Core.h"
+#include "Geno/Core/Core.h"
 
 GENO_NAMESPACE_BEGIN
 

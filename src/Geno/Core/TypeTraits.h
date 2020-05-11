@@ -16,56 +16,27 @@
  */
 
 #pragma once
-#include "Core/EventDispatcher.h"
-#include "Core/Rect.h"
+#include "Geno/Geno.h"
 
-#include <Windows.h>
-
-#include <cstdint>
-#include <vector>
+#include <type_traits>
 
 GENO_NAMESPACE_BEGIN
 
-struct WidgetRectChanged
-{
-	Rect new_rect;
-};
+/* Function argument type deduction by courtesy of https://stackoverflow.com/a/35348334 */
 
-class Widget : public EventDispatcher< Widget, WidgetRectChanged >
-{
-	GENO_DISABLE_COPY( Widget );
+template< typename Ret, typename Arg, typename... Rest >
+constexpr Arg first_argument_helper( Ret( * )( Arg, Rest... ) );
 
-public:
+template< typename Ret, typename F, typename Arg, typename... Rest >
+constexpr Arg first_argument_helper( Ret( F::* )( Arg, Rest... ) );
 
-	         Widget( void );
-	         Widget( Widget&& other );
-	virtual ~Widget( void );
+template< typename Ret, typename F, typename Arg, typename... Rest >
+constexpr Arg first_argument_helper( Ret( F::* )( Arg, Rest... ) const );
 
-	Widget& operator=( Widget&& other );
+template< typename F >
+constexpr decltype( first_argument_helper( &F::operator() ) ) first_argument_helper( F );
 
-public:
-
-	void Show    ( void );
-	void Hide    ( void );
-	void AddChild( Widget child );
-	void SetRect ( const Rect& rect );
-
-public:
-
-	uint32_t Width  ( void ) const;
-	uint32_t Height ( void ) const;
-	bool     IsShown( void ) const;
-
-public:
-
-	HWND GetNativeHandle( void ) const { return hwnd_; }
-
-protected:
-
-	HWND                  hwnd_;
-
-	std::vector< Widget > children_;
-
-};
+template< typename T >
+using FirstArgumentType = decltype( first_argument_helper( std::declval< T >() ) );
 
 GENO_NAMESPACE_END

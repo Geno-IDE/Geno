@@ -16,41 +16,50 @@
  */
 
 #pragma once
-#include "Core/Core.h"
+#include "Geno/Core/EventDispatcher.h"
+#include "Geno/Gui/Widgets/Menu.h"
 
-#include <filesystem>
+#include <optional>
 #include <string_view>
 #include <string>
 
 GENO_NAMESPACE_BEGIN
 
-class Compiler
+struct MenuItemClicked
 {
+	const MenuItem& item;
+};
+
+class MenuItem : public EventDispatcher< MenuItem, MenuItemClicked >
+{
+	GENO_DISABLE_COPY( MenuItem );
+
 public:
 
-	Compiler( std::wstring_view path );
+	explicit MenuItem( std::wstring_view name );
+	         MenuItem( MenuItem&& ) = default;
 
-//////////////////////////////////////////////////////////////////////////
+	MenuItem& operator=( MenuItem&& other ) = default;
 
-	bool Compile( std::wstring_view cpp );
+public:
 
-//////////////////////////////////////////////////////////////////////////
+	void SetDropdownMenu( Menu menu );
+
+public:
+
+	void OnClicked( void ) const;
+
+public:
+
+	std::wstring_view GetName        ( void ) const { return name_; }
+	bool              HasDropdownMenu( void ) const { return !!dropdown_menu_; }
+	const Menu&       GetDropdownMenu( void ) const { return *dropdown_menu_; }
 
 private:
 
-	struct Args
-	{
-		std::filesystem::path input;
-		std::filesystem::path output;
-	};
+	std::wstring          name_;
 
-//////////////////////////////////////////////////////////////////////////
-
-	std::wstring MakeArgsString( const Args& args ) const;
-
-//////////////////////////////////////////////////////////////////////////
-
-	std::filesystem::path path_;
+	std::optional< Menu > dropdown_menu_;
 
 };
 

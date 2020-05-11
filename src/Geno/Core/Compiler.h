@@ -16,4 +16,42 @@
  */
 
 #pragma once
-#include "Geno.h"
+#include "Geno/Core/Core.h"
+
+#include <filesystem>
+#include <string_view>
+#include <string>
+
+GENO_NAMESPACE_BEGIN
+
+class Compiler
+{
+public:
+
+	Compiler( std::wstring_view path );
+
+//////////////////////////////////////////////////////////////////////////
+
+	bool Compile( std::wstring_view cpp );
+
+//////////////////////////////////////////////////////////////////////////
+
+private:
+
+	struct Args
+	{
+		std::filesystem::path input;
+		std::filesystem::path output;
+	};
+
+//////////////////////////////////////////////////////////////////////////
+
+	std::wstring MakeArgsString( const Args& args ) const;
+
+//////////////////////////////////////////////////////////////////////////
+
+	std::filesystem::path path_;
+
+};
+
+GENO_NAMESPACE_END

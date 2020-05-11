@@ -16,4 +16,24 @@
  */
 
 #pragma once
-#include "Geno.h"
+#include "Geno/Geno.h"
+
+#include <cstdint>
+
+GENO_NAMESPACE_BEGIN
+
+class Point
+{
+public:
+
+	Point( void );
+	Point( int32_t x, int32_t y );
+
+public:
+
+	int32_t x;
+	int32_t y;
+
+};
+
+GENO_NAMESPACE_END

@@ -16,30 +16,30 @@
  */
 
 #pragma once
-#include "Geno.h"
+#include "Geno/Core/Point.h"
 
-#include <Windows.h>
+#include <cstdint>
 
 GENO_NAMESPACE_BEGIN
 
-namespace Platform
+class Rect
 {
-	class WindowClass
-	{
-	public:
+public:
 
-		explicit WindowClass( WNDPROC wndproc );
-		        ~WindowClass( void );
+	Rect( void ) = default;
+	Rect( uint32_t width, uint32_t height );
+	Rect( Point min, Point max );
 
-	public:
+public:
 
-		LPCWSTR GetName( void ) const;
+	uint32_t Width ( void ) const;
+	uint32_t Height( void ) const;
 
-	private:
+public:
 
-		ATOM atom_;
+	Point min;
+	Point max;
 
-	};
-}
+};
 
 GENO_NAMESPACE_END

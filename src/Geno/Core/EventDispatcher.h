@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include "Core/TypeTraits.h"
+#include "Geno/Core/TypeTraits.h"
 
 #include <functional>
 #include <tuple>

@@ -103,15 +103,15 @@ local function decl_module( name )
 	--appid( '%{BUNDLE}.libs.' .. name:lower() )
 	base_config()
 	files {
-		'src/' .. name .. '/**.cpp',
-		'src/' .. name .. '/**.h',
+		'src/Geno/' .. name .. '/**.cpp',
+		'src/Geno/' .. name .. '/**.h',
 	}
 
 	filter { 'toolset:msc' }
 		defines { '_CRT_SECURE_NO_WARNINGS' }
 
 	filter { 'system:macosx or ios' }
-		files { 'src/' .. name .. '/**.mm' }
+		files { 'src/Geno/' .. name .. '/**.mm' }
 
 	filter { 'system:macosx or ios', 'files:**.cpp' }
 		language( 'ObjCpp' )
@@ -137,8 +137,8 @@ local function decl_editor( name )
 		'CFG_LLVM_LOCATION=L"%{_OPTIONS["llvm-location"]}"',
 	}
 	files {
-		'src/Editor/**.cpp',
-		'src/Editor/**.h',
+		'src/Geno/Editor/**.cpp',
+		'src/Geno/Editor/**.h',
 	}
 
 	filter { 'system:linux' }

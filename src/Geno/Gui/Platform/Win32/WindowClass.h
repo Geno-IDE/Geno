@@ -16,27 +16,30 @@
  */
 
 #pragma once
-#include "Geno.h"
+#include "Geno/Geno.h"
 
-#include <type_traits>
+#include <Windows.h>
 
 GENO_NAMESPACE_BEGIN
 
-/* Function argument type deduction by courtesy of https://stackoverflow.com/a/35348334 */
+namespace Platform
+{
+	class WindowClass
+	{
+	public:
 
-template< typename Ret, typename Arg, typename... Rest >
-constexpr Arg first_argument_helper( Ret( * )( Arg, Rest... ) );
+		explicit WindowClass( WNDPROC wndproc );
+		        ~WindowClass( void );
 
-template< typename Ret, typename F, typename Arg, typename... Rest >
-constexpr Arg first_argument_helper( Ret( F::* )( Arg, Rest... ) );
+	public:
 
-template< typename Ret, typename F, typename Arg, typename... Rest >
-constexpr Arg first_argument_helper( Ret( F::* )( Arg, Rest... ) const );
+		LPCWSTR GetName( void ) const;
 
-template< typename F >
-constexpr decltype( first_argument_helper( &F::operator() ) ) first_argument_helper( F );
+	private:
 
-template< typename T >
-using FirstArgumentType = decltype( first_argument_helper( std::declval< T >() ) );
+		ATOM atom_;
+
+	};
+}
 
 GENO_NAMESPACE_END

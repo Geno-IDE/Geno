@@ -15,11 +15,11 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Core/Compiler.h"
-#include "Core/Console.h"
-#include "Gui/Widgets/Menu.h"
-#include "Gui/Widgets/TextBox.h"
-#include "Gui/Widgets/Window.h"
+#include "Geno/Core/Compiler.h"
+#include "Geno/Core/Console.h"
+#include "Geno/Gui/Widgets/Menu.h"
+#include "Geno/Gui/Widgets/TextBox.h"
+#include "Geno/Gui/Widgets/Window.h"
 
 #include <cstdlib>
 #include <thread>
