@@ -17,8 +17,8 @@
 
 #include "Window.h"
 
-#include "Editor/Platform/Win32/WindowClass.h"
-#include "Editor/Widgets/MenuItem.h"
+#include "Gui/Platform/Win32/WindowClass.h"
+#include "Gui/Widgets/MenuItem.h"
 
 GENO_NAMESPACE_BEGIN
 

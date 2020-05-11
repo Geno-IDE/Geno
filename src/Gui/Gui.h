@@ -16,32 +16,4 @@
  */
 
 #pragma once
-#include "Editor/Widgets/Widget.h"
-
-#include <string_view>
-#include <string>
-
-GENO_NAMESPACE_BEGIN
-
-class Widget;
-
-class TextBox : public Widget
-{
-	GENO_DISABLE_COPY( TextBox );
-	GENO_DEFAULT_MOVE( TextBox );
-
-public:
-
-	explicit TextBox( void );
-
-public:
-
-	void SetText( std::wstring_view text );
-
-public:
-
-	std::wstring GetText( void ) const;
-
-};
-
-GENO_NAMESPACE_END
+#include "Geno.h"

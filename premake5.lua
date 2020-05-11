@@ -168,6 +168,7 @@ workspace( WORKSPACE )
 
 -- Declare modules
 decl_module( 'Core' )
+decl_module( 'Gui' )
 
 -- Declare editor
 decl_editor( 'Editor' )

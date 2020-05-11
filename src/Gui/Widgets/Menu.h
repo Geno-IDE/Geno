@@ -66,4 +66,4 @@ private:
 GENO_NAMESPACE_END
 
 // Fixes circular dependency
-#include "Editor/Widgets/MenuItem.h"
+#include "Gui/Widgets/MenuItem.h"

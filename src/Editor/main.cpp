@@ -17,9 +17,9 @@
 
 #include "Core/Compiler.h"
 #include "Core/Console.h"
-#include "Editor/Widgets/Menu.h"
-#include "Editor/Widgets/TextBox.h"
-#include "Editor/Widgets/Window.h"
+#include "Gui/Widgets/Menu.h"
+#include "Gui/Widgets/TextBox.h"
+#include "Gui/Widgets/Window.h"
 
 #include <cstdlib>
 #include <thread>
