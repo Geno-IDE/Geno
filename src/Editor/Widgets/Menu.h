@@ -61,8 +61,6 @@ private:
 
 	ItemVector items_;
 
-	UINT_PTR   next_item_id_;
-
 };
 
 GENO_NAMESPACE_END

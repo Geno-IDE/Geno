@@ -15,51 +15,20 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include "Editor/Widgets/Menu.h"
-#include "Editor/Widgets/Widget.h"
-
-#include <optional>
-#include <string_view>
-
-#include <Windows.h>
+#include "Point.h"
 
 GENO_NAMESPACE_BEGIN
 
-class Window : public Widget
+Point::Point( void )
+	: x( 0 )
+	, y( 0 )
 {
-	GENO_DISABLE_COPY( Window );
-	GENO_DEFAULT_MOVE( Window );
+}
 
-public:
-
-	Window( void );
-
-public:
-
-	void PollEvents( void );
-	void SetMenu   ( Menu menu );
-
-public:
-
-	bool IsOpen( void ) const;
-
-private:
-
-	static LRESULT CALLBACK WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam );
-
-private:
-
-	void HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam );
-
-private:
-
-	const Menu* FindMenuByHandle( Menu& which, HMENU hmenu ) const;
-
-private:
-
-	std::optional< Menu > menu_;
-
-};
+Point::Point( int32_t x, int32_t y )
+	: x( x )
+	, y( y )
+{
+}
 
 GENO_NAMESPACE_END

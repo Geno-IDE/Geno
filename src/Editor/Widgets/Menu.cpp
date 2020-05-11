@@ -22,9 +22,8 @@
 GENO_NAMESPACE_BEGIN
 
 Menu::Menu( void )
-	: hmenu_       ( CreateMenu() )
-	, items_       { }
-	, next_item_id_( 0 )
+	: hmenu_( CreateMenu() )
+	, items_{ }
 {
 	MENUINFO info;
 	info.cbSize     = sizeof( MENUINFO );
@@ -35,12 +34,10 @@ Menu::Menu( void )
 }
 
 Menu::Menu( Menu&& other )
-	: hmenu_       ( other.hmenu_ )
-	, items_       ( std::move( other.items_ ) )
-	, next_item_id_( other.next_item_id_ )
+	: hmenu_( other.hmenu_ )
+	, items_( std::move( other.items_ ) )
 {
-	other.hmenu_        = NULL;
-	other.next_item_id_ = 0;
+	other.hmenu_ = NULL;
 
 	MENUINFO info;
 	info.cbSize     = sizeof( MENUINFO );
@@ -57,12 +54,10 @@ Menu::~Menu( void )
 
 Menu& Menu::operator=( Menu&& other )
 {
-	hmenu_              = other.hmenu_;
-	items_              = std::move( other.items_ );
-	next_item_id_       = other.next_item_id_;
+	hmenu_       = other.hmenu_;
+	items_       = std::move( other.items_ );
 
-	other.hmenu_        = NULL;
-	other.next_item_id_ = 0;
+	other.hmenu_ = NULL;
 
 	return *this;
 }
@@ -70,14 +65,17 @@ Menu& Menu::operator=( Menu&& other )
 void Menu::AddItem( MenuItem item )
 {
 	if( item.HasDropdownMenu() ) AppendMenuW( hmenu_, MF_STRING | MF_POPUP, ( UINT_PTR )item.GetDropdownMenu().GetNativeHandle(), item.GetName().data() );
-	else                         AppendMenuW( hmenu_, MF_STRING,            next_item_id_++,                                      item.GetName().data() );
+	else                         AppendMenuW( hmenu_, MF_STRING,            ( UINT_PTR )items_.size(),                            item.GetName().data() );
 
 	items_.emplace_back( std::move( item ) );
 }
 
 void Menu::AddSeparator( void )
 {
-	AppendMenuW( hmenu_, MF_SEPARATOR, next_item_id_++, NULL );
+	AppendMenuW( hmenu_, MF_SEPARATOR, ( UINT_PTR )items_.size(), NULL );
+
+	// Add empty item to make sure indices match
+	items_.emplace_back( L"SEPARATOR" );
 }
 
 GENO_NAMESPACE_END

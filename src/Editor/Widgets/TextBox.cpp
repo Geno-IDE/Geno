@@ -15,51 +15,33 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include "Editor/Widgets/Menu.h"
-#include "Editor/Widgets/Widget.h"
-
-#include <optional>
-#include <string_view>
-
-#include <Windows.h>
+#include "TextBox.h"
 
 GENO_NAMESPACE_BEGIN
 
-class Window : public Widget
+TextBox::TextBox( void )
 {
-	GENO_DISABLE_COPY( Window );
-	GENO_DEFAULT_MOVE( Window );
+	DWORD style = WS_TABSTOP | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL;
 
-public:
+	hwnd_ = CreateWindowExW( 0, L"EDIT", L"", style, 0, 0, 0, 0, NULL, NULL, NULL, this );
 
-	Window( void );
+	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
+}
 
-public:
+void TextBox::SetText( std::wstring_view text )
+{
+	SetWindowTextW( hwnd_, text.data() );
+}
 
-	void PollEvents( void );
-	void SetMenu   ( Menu menu );
+std::wstring TextBox::GetText( void ) const
+{
+	std::wstring text;
 
-public:
+	text.resize( GetWindowTextLengthW( hwnd_ ) );
 
-	bool IsOpen( void ) const;
+	GetWindowTextW( hwnd_, &text[ 0 ], std::numeric_limits< int >::max() );
 
-private:
-
-	static LRESULT CALLBACK WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam );
-
-private:
-
-	void HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam );
-
-private:
-
-	const Menu* FindMenuByHandle( Menu& which, HMENU hmenu ) const;
-
-private:
-
-	std::optional< Menu > menu_;
-
-};
+	return text;
+}
 
 GENO_NAMESPACE_END

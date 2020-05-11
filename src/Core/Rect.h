@@ -16,49 +16,29 @@
  */
 
 #pragma once
-#include "Editor/Widgets/Menu.h"
-#include "Editor/Widgets/Widget.h"
+#include "Core/Point.h"
 
-#include <optional>
-#include <string_view>
-
-#include <Windows.h>
+#include <cstdint>
 
 GENO_NAMESPACE_BEGIN
 
-class Window : public Widget
+class Rect
 {
-	GENO_DISABLE_COPY( Window );
-	GENO_DEFAULT_MOVE( Window );
+public:
+
+	Rect( void ) = default;
+	Rect( uint32_t width, uint32_t height );
+	Rect( Point min, Point max );
 
 public:
 
-	Window( void );
+	uint32_t Width ( void ) const;
+	uint32_t Height( void ) const;
 
 public:
 
-	void PollEvents( void );
-	void SetMenu   ( Menu menu );
-
-public:
-
-	bool IsOpen( void ) const;
-
-private:
-
-	static LRESULT CALLBACK WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam );
-
-private:
-
-	void HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam );
-
-private:
-
-	const Menu* FindMenuByHandle( Menu& which, HMENU hmenu ) const;
-
-private:
-
-	std::optional< Menu > menu_;
+	Point min;
+	Point max;
 
 };
 

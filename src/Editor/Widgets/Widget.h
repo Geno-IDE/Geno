@@ -16,49 +16,55 @@
  */
 
 #pragma once
-#include "Editor/Widgets/Menu.h"
-#include "Editor/Widgets/Widget.h"
-
-#include <optional>
-#include <string_view>
+#include "Core/EventDispatcher.h"
+#include "Core/Rect.h"
 
 #include <Windows.h>
 
+#include <cstdint>
+#include <vector>
+
 GENO_NAMESPACE_BEGIN
 
-class Window : public Widget
+struct WidgetRectChanged
 {
-	GENO_DISABLE_COPY( Window );
-	GENO_DEFAULT_MOVE( Window );
+	Rect new_rect;
+};
+
+class Widget : public EventDispatcher< Widget, WidgetRectChanged >
+{
+	GENO_DISABLE_COPY( Widget );
 
 public:
 
-	Window( void );
+	         Widget( void );
+	         Widget( Widget&& other );
+	virtual ~Widget( void );
+
+	Widget& operator=( Widget&& other );
 
 public:
 
-	void PollEvents( void );
-	void SetMenu   ( Menu menu );
+	void Show    ( void );
+	void Hide    ( void );
+	void AddChild( Widget child );
+	void SetRect ( const Rect& rect );
 
 public:
 
-	bool IsOpen( void ) const;
+	uint32_t Width  ( void ) const;
+	uint32_t Height ( void ) const;
+	bool     IsShown( void ) const;
 
-private:
+public:
 
-	static LRESULT CALLBACK WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam );
+	HWND GetNativeHandle( void ) const { return hwnd_; }
 
-private:
+protected:
 
-	void HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam );
+	HWND                  hwnd_;
 
-private:
-
-	const Menu* FindMenuByHandle( Menu& which, HMENU hmenu ) const;
-
-private:
-
-	std::optional< Menu > menu_;
+	std::vector< Widget > children_;
 
 };
 

@@ -15,51 +15,30 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include "Editor/Widgets/Menu.h"
-#include "Editor/Widgets/Widget.h"
-
-#include <optional>
-#include <string_view>
-
-#include <Windows.h>
+#include "Rect.h"
 
 GENO_NAMESPACE_BEGIN
 
-class Window : public Widget
+Rect::Rect( uint32_t width, uint32_t height )
+	: min( 0, 0 )
+	, max( width, height )
 {
-	GENO_DISABLE_COPY( Window );
-	GENO_DEFAULT_MOVE( Window );
+}
 
-public:
+Rect::Rect( Point min, Point max )
+	: min( min )
+	, max( max )
+{
+}
 
-	Window( void );
+uint32_t Rect::Width( void ) const
+{
+	return ( uint32_t )( max.x - min.x );
+}
 
-public:
-
-	void PollEvents( void );
-	void SetMenu   ( Menu menu );
-
-public:
-
-	bool IsOpen( void ) const;
-
-private:
-
-	static LRESULT CALLBACK WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam );
-
-private:
-
-	void HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam );
-
-private:
-
-	const Menu* FindMenuByHandle( Menu& which, HMENU hmenu ) const;
-
-private:
-
-	std::optional< Menu > menu_;
-
-};
+uint32_t Rect::Height( void ) const
+{
+	return ( uint32_t )( max.y - min.y );
+}
 
 GENO_NAMESPACE_END

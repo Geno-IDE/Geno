@@ -28,42 +28,7 @@ Window::Window( void )
 
 	hwnd_ = CreateWindowExW( WS_EX_OVERLAPPEDWINDOW, window_class.GetName(), NULL, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, GetModuleHandleW( NULL ), this );
 
-	SetWindowLongPtrW( hwnd_, GWL_USERDATA, reinterpret_cast< LONG >( this ) );
-}
-
-Window::Window( Window&& other )
-	: hwnd_( other.hwnd_ )
-	, menu_( std::move( other.menu_ ) )
-{
-	other.hwnd_ = NULL;
-
-	SetWindowLongPtrW( hwnd_, GWL_USERDATA, reinterpret_cast< LONG >( this ) );
-}
-
-Window::~Window( void )
-{
-	if( hwnd_ )
-		DestroyWindow( hwnd_ );
-}
-
-Window& Window::operator=( Window&& other )
-{
-	hwnd_       = other.hwnd_;
-	menu_       = std::move( other.menu_ );
-
-	other.hwnd_ = NULL;
-
-	return *this;
-}
-
-void Window::Show( void )
-{
-	ShowWindow( hwnd_, SW_SHOW );
-}
-
-void Window::Hide( void )
-{
-	ShowWindow( hwnd_, SW_HIDE );
+	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
 }
 
 void Window::PollEvents( void )
@@ -91,7 +56,7 @@ bool Window::IsOpen( void ) const
 
 LRESULT CALLBACK Window::WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam )
 {
-	Window* self = ( Window* )GetWindowLongPtrW( hwnd, GWL_USERDATA );
+	Window* self = ( Window* )GetWindowLongPtrW( hwnd, GWLP_USERDATA );
 
 	self->HandleMessage( msg, wparam, lparam );
 
@@ -102,6 +67,38 @@ void Window::HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam )
 {
 	switch( msg )
 	{
+		case WM_SIZE:
+		{
+			WORD              width  = LOWORD( lparam );
+			WORD              height = HIWORD( lparam );
+			RECT              window_rect;
+			WidgetRectChanged e;
+
+			// Get window position before sending event
+			if( GetWindowRect( hwnd_, &window_rect ) ) e.new_rect = Rect( Point( window_rect.left, window_rect.top ), Point( window_rect.right, window_rect.bottom ) );
+			else                                       e.new_rect = Rect( width, height );
+
+			Send( e );
+
+			if( !children_.empty() )
+			{
+				double child_width = ( double )width / children_.size();
+
+				for( size_t i = 0; i < children_.size(); ++i )
+				{
+					Rect rect;
+					rect.min.x = ( int32_t )( child_width * i );
+					rect.min.y = 0;
+					rect.max.x = ( int32_t )( rect.min.x + child_width );
+					rect.max.y = height;
+
+					// Update children sizes
+					children_[ i ].SetRect( rect );
+				}
+			}
+
+		} break;
+
 		case WM_MENUCOMMAND:
 		{
 			if( !menu_ ) break;
