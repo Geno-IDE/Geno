@@ -16,17 +16,30 @@
  */
 
 #pragma once
-#include "Core/Core.h"
+#include "Geno/Geno.h"
+
+#include <Windows.h>
 
 GENO_NAMESPACE_BEGIN
 
-class Console
+namespace Platform
 {
-public:
+	class WindowClass
+	{
+	public:
 
-	 Console( void );
-	~Console( void );
+		explicit WindowClass( WNDPROC wndproc );
+		        ~WindowClass( void );
 
-};
+	public:
+
+		LPCWSTR GetName( void ) const;
+
+	private:
+
+		ATOM atom_;
+
+	};
+}
 
 GENO_NAMESPACE_END

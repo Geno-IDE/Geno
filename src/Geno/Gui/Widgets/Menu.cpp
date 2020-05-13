@@ -17,7 +17,7 @@
 
 #include "Menu.h"
 
-#include "Editor/Widgets/MenuItem.h"
+#include "Geno/Gui/Widgets/MenuItem.h"
 
 GENO_NAMESPACE_BEGIN
 

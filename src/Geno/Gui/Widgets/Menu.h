@@ -16,24 +16,54 @@
  */
 
 #pragma once
-#include "Geno.h"
+#include "Geno/Geno.h"
 
-#include <cstdint>
+#include <string_view>
+#include <vector>
+
+#include <Windows.h>
 
 GENO_NAMESPACE_BEGIN
 
-class Point
+class MenuItem;
+
+class Menu
 {
-public:
-
-	Point( void );
-	Point( int32_t x, int32_t y );
+	GENO_DISABLE_COPY( Menu );
 
 public:
 
-	int32_t x;
-	int32_t y;
+	using ItemVector = std::vector< MenuItem >;
+
+public:
+
+	 Menu( void );
+	 Menu( Menu&& other );
+	~Menu( void );
+
+	Menu& operator=( Menu&& other );
+
+public:
+
+	void AddItem     ( MenuItem item );
+	void AddSeparator( void );
+
+public:
+
+	HMENU           GetNativeHandle( void )         const { return hmenu_; }
+	size_t          GetItemCount   ( void )         const { return items_.size(); }
+	MenuItem&       GetItem        ( size_t index )       { return items_[ index ]; }
+	const MenuItem& GetItem        ( size_t index ) const { return items_[ index ]; }
+
+private:
+
+	HMENU      hmenu_;
+
+	ItemVector items_;
 
 };
 
 GENO_NAMESPACE_END
+
+// Fixes circular dependency
+#include "Geno/Gui/Widgets/MenuItem.h"

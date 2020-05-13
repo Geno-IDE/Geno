@@ -16,49 +16,50 @@
  */
 
 #pragma once
-#include "Editor/Widgets/Menu.h"
-#include "Editor/Widgets/Widget.h"
+#include "Geno/Core/EventDispatcher.h"
+#include "Geno/Gui/Widgets/Menu.h"
 
 #include <optional>
 #include <string_view>
-
-#include <Windows.h>
+#include <string>
 
 GENO_NAMESPACE_BEGIN
 
-class Window : public Widget
+struct MenuItemClicked
 {
-	GENO_DISABLE_COPY( Window );
-	GENO_DEFAULT_MOVE( Window );
+	const MenuItem& item;
+};
+
+class MenuItem : public EventDispatcher< MenuItem, MenuItemClicked >
+{
+public:
+
+	GENO_DISABLE_COPY( MenuItem );
+	GENO_DEFAULT_MOVE( MenuItem );
 
 public:
 
-	Window( void );
+	explicit MenuItem( std::wstring_view name );
 
 public:
 
-	void PollEvents( void );
-	void SetMenu   ( Menu menu );
+	void SetDropdownMenu( Menu menu );
 
 public:
 
-	bool IsOpen( void ) const;
+	void OnClicked( void ) const;
+
+public:
+
+	std::wstring_view GetName        ( void ) const { return name_; }
+	bool              HasDropdownMenu( void ) const { return !!dropdown_menu_; }
+	const Menu&       GetDropdownMenu( void ) const { return *dropdown_menu_; }
 
 private:
 
-	static LRESULT CALLBACK WndProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam );
+	std::wstring          name_;
 
-private:
-
-	void HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam );
-
-private:
-
-	const Menu* FindMenuByHandle( Menu& which, HMENU hmenu ) const;
-
-private:
-
-	std::optional< Menu > menu_;
+	std::optional< Menu > dropdown_menu_;
 
 };
 

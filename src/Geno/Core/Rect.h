@@ -16,50 +16,29 @@
  */
 
 #pragma once
-#include "Core/EventDispatcher.h"
-#include "Editor/Widgets/Menu.h"
+#include "Geno/Core/Point.h"
 
-#include <optional>
-#include <string_view>
-#include <string>
+#include <cstdint>
 
 GENO_NAMESPACE_BEGIN
 
-struct MenuItemClicked
+class Rect
 {
-	const MenuItem& item;
-};
+public:
 
-class MenuItem : public EventDispatcher< MenuItem, MenuItemClicked >
-{
-	GENO_DISABLE_COPY( MenuItem );
+	Rect( void ) = default;
+	Rect( uint32_t width, uint32_t height );
+	Rect( Point min, Point max );
 
 public:
 
-	explicit MenuItem( std::wstring_view name );
-	         MenuItem( MenuItem&& ) = default;
-
-	MenuItem& operator=( MenuItem&& other ) = default;
+	uint32_t Width ( void ) const;
+	uint32_t Height( void ) const;
 
 public:
 
-	void SetDropdownMenu( Menu menu );
-
-public:
-
-	void OnClicked( void ) const;
-
-public:
-
-	std::wstring_view GetName        ( void ) const { return name_; }
-	bool              HasDropdownMenu( void ) const { return !!dropdown_menu_; }
-	const Menu&       GetDropdownMenu( void ) const { return *dropdown_menu_; }
-
-private:
-
-	std::wstring          name_;
-
-	std::optional< Menu > dropdown_menu_;
+	Point min;
+	Point max;
 
 };
 

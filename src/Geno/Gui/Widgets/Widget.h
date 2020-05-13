@@ -16,29 +16,55 @@
  */
 
 #pragma once
-#include "Core/Point.h"
+#include "Geno/Core/EventDispatcher.h"
+#include "Geno/Core/Rect.h"
+
+#include <Windows.h>
 
 #include <cstdint>
+#include <vector>
 
 GENO_NAMESPACE_BEGIN
 
-class Rect
+struct WidgetRectChanged
 {
-public:
+	Rect new_rect;
+};
 
-	Rect( void ) = default;
-	Rect( uint32_t width, uint32_t height );
-	Rect( Point min, Point max );
-
-public:
-
-	uint32_t Width ( void ) const;
-	uint32_t Height( void ) const;
+class Widget : public EventDispatcher< Widget, WidgetRectChanged >
+{
+	GENO_DISABLE_COPY( Widget );
 
 public:
 
-	Point min;
-	Point max;
+	         Widget( void );
+	         Widget( Widget&& other );
+	virtual ~Widget( void );
+
+	Widget& operator=( Widget&& other );
+
+public:
+
+	void Show    ( void );
+	void Hide    ( void );
+	void AddChild( Widget child );
+	void SetRect ( const Rect& rect );
+
+public:
+
+	uint32_t Width  ( void ) const;
+	uint32_t Height ( void ) const;
+	bool     IsShown( void ) const;
+
+public:
+
+	HWND GetNativeHandle( void ) const { return hwnd_; }
+
+protected:
+
+	HWND                  hwnd_;
+
+	std::vector< Widget > children_;
 
 };
 
