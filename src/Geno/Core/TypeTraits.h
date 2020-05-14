@@ -22,9 +22,6 @@
 
 GENO_NAMESPACE_BEGIN
 
-template< typename T >
-using RemoveConstReferenceType = std::remove_const_t< std::remove_reference_t< T > >;
-
 /* Function argument type deduction by courtesy of https://stackoverflow.com/a/35348334 */
 
 template< typename Ret, typename Arg, typename... Rest >
