@@ -37,7 +37,12 @@ public:
 
 public:
 
-	template< typename Functor >
+	template<
+	  typename Functor,
+	  typename = typename std::enable_if_t<
+	    ( std::is_same_v< Types, std::remove_const_t< std::remove_reference_t< FirstArgumentType< Functor > > > > && ... )
+	  >
+	>
 	Derived&& operator<<=( Functor&& functor )
 	{
 		using T = std::remove_const_t< std::remove_reference_t< FirstArgumentType< Functor > > >;

@@ -16,6 +16,7 @@
  */
 
 #pragma once
+#include "Geno/Core/EventDispatcher.h"
 #include "Geno/Gui/Widgets/Widget.h"
 
 #include <string_view>
@@ -25,7 +26,7 @@ GENO_NAMESPACE_BEGIN
 
 class Widget;
 
-class TextBox : public Widget
+class TextBox : public Widget, public EventDispatcher< TextBox, TextBoxTextChanged >
 {
 	GENO_DISABLE_COPY( TextBox );
 	GENO_DEFAULT_MOVE( TextBox );
