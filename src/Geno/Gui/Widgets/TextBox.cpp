@@ -44,4 +44,12 @@ std::wstring TextBox::GetText( void ) const
 	return text;
 }
 
+void TextBox::OnTextChanged( void ) const
+{
+	TextBoxTextChanged e;
+	e.new_text = GetText();
+
+	Send( e );
+}
+
 GENO_NAMESPACE_END

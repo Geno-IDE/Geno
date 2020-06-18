@@ -19,6 +19,7 @@
 
 #include "Geno/Gui/Platform/Win32/WindowClass.h"
 #include "Geno/Gui/Widgets/MenuItem.h"
+#include "Geno/Gui/Widgets/TextBox.h"
 
 GENO_NAMESPACE_BEGIN
 
@@ -99,6 +100,36 @@ void Window::HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam )
 
 		} break;
 
+		case WM_COMMAND:
+		{
+			WORD notification_code = HIWORD( wparam );
+			WORD identifier        = LOWORD( wparam );
+
+			switch( notification_code )
+			{
+				case 0:
+				{
+					// Menu
+				} break;
+
+				case 1:
+				{
+					// Accelerator
+				} break;
+
+				default:
+				{
+					HWND control_window = ( HWND )lparam;
+
+					HandleControlNotification( control_window, identifier );
+
+				} break;
+			}
+
+			EN_CHANGE;
+
+		} break;
+
 		case WM_MENUCOMMAND:
 		{
 			if( !menu_ ) break;
@@ -109,6 +140,22 @@ void Window::HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam )
 
 			if( menu )
 				menu->GetItem( item_index ).OnClicked();
+
+		} break;
+	}
+}
+
+void Window::HandleControlNotification( HWND hwnd, WORD code )
+{
+	LONG_PTR user_data = GetWindowLongPtrW( hwnd, GWL_USERDATA );
+
+	switch( code )
+	{
+		case EN_CHANGE:
+		{
+			TextBox* text_box = ( TextBox* )user_data;
+
+			text_box->OnTextChanged();
 
 		} break;
 	}

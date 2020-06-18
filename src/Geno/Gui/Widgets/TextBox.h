@@ -36,6 +36,14 @@ class TextBox : public Widget, public EventDispatcher< TextBox, TextBoxTextChang
 	GENO_DISABLE_COPY( TextBox );
 	GENO_DEFAULT_MOVE( TextBox );
 
+	friend class Window;
+
+public:
+
+	using ThisEventDispatcher = EventDispatcher< TextBox, TextBoxTextChanged >;
+	using Widget::operator<<=;
+	using ThisEventDispatcher::operator<<=;
+
 public:
 
 	explicit TextBox( void );
@@ -47,6 +55,14 @@ public:
 public:
 
 	std::wstring GetText( void ) const;
+
+private:
+
+	using ThisEventDispatcher::Send;
+
+private:
+
+	void OnTextChanged( void ) const;
 
 };
 

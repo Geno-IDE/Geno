@@ -50,7 +50,8 @@ private:
 
 private:
 
-	void HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam );
+	void HandleMessage             ( UINT msg, WPARAM wparam, LPARAM lparam );
+	void HandleControlNotification ( HWND hwnd, WORD code );
 
 private:
 

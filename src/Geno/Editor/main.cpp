@@ -26,19 +26,32 @@
 
 #include <Windows.h>
 
-static void ActionOpen( const Geno::MenuItemClicked& )
+static void ActionLLVMLocationChanged( const Geno::TextBoxTextChanged& e )
+{
+	printf( "LLVM location changed: %ls\n", e.new_text.c_str() );
+}
+
+static void ActionOpen( Geno::MenuItemClicked )
 {
 	printf( "Open\n" );
 }
 
-static void ActionSave( const Geno::MenuItemClicked& )
+static void ActionSave( Geno::MenuItemClicked )
 {
 	printf( "Save\n" );
 }
 
-static void ActionSettings( const Geno::MenuItemClicked& )
+static void ActionSettings( Geno::MenuItemClicked )
 {
-	printf( "Settings\n" );
+	Geno::Window settings_window;
+	settings_window.SetRect( Geno::Rect( 250, 200 ) );
+	settings_window.AddChild( Geno::TextBox() <<= ActionLLVMLocationChanged );
+	settings_window.Show();
+
+	while( settings_window.IsOpen() )
+	{
+		settings_window.PollEvents();
+	}
 }
 
 static Geno::Menu SetupRootMenu( void )
