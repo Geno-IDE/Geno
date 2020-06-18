@@ -26,6 +26,11 @@ GENO_NAMESPACE_BEGIN
 
 class Widget;
 
+struct TextBoxTextChanged
+{
+	std::wstring new_text;
+};
+
 class TextBox : public Widget, public EventDispatcher< TextBox, TextBoxTextChanged >
 {
 	GENO_DISABLE_COPY( TextBox );
