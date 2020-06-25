@@ -33,6 +33,8 @@ struct WidgetRectChanged
 
 class Widget : public EventDispatcher< Widget, WidgetRectChanged >
 {
+public:
+
 	GENO_DISABLE_COPY( Widget );
 
 public:

@@ -28,6 +28,8 @@ GENO_NAMESPACE_BEGIN
 
 class Window : public Widget
 {
+public:
+
 	GENO_DISABLE_COPY( Window );
 	GENO_DEFAULT_MOVE( Window );
 

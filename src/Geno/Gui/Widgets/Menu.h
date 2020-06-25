@@ -29,6 +29,8 @@ class MenuItem;
 
 class Menu
 {
+public:
+
 	GENO_DISABLE_COPY( Menu );
 
 public:

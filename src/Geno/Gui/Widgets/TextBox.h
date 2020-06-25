@@ -33,6 +33,8 @@ struct TextBoxTextChanged
 
 class TextBox : public Widget, public EventDispatcher< TextBox, TextBoxTextChanged >
 {
+public:
+
 	GENO_DISABLE_COPY( TextBox );
 	GENO_DEFAULT_MOVE( TextBox );
 
