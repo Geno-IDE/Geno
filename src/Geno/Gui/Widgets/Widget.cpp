@@ -26,8 +26,9 @@ Widget::Widget( void )
 }
 
 Widget::Widget( Widget&& other )
-	: hwnd_    ( other.hwnd_ )
-	, children_( std::move( other.children_ ) )
+	: EventDispatcher( std::move( other ) )
+	, hwnd_          ( other.hwnd_ )
+	, children_      ( std::move( other.children_ ) )
 {
 	other.hwnd_ = NULL;
 
