@@ -50,6 +50,8 @@ Widget& Widget::operator=( Widget&& other )
 
 	other.hwnd_ = NULL;
 
+	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
+
 	return *this;
 }
 
