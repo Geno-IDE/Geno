@@ -94,7 +94,7 @@ void Window::HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam )
 					rect.max.y = height;
 
 					// Update children sizes
-					children_[ i ].SetRect( rect );
+					children_[ i ].Get< Widget >().SetRect( rect );
 				}
 			}
 
@@ -121,12 +121,10 @@ void Window::HandleMessage( UINT msg, WPARAM wparam, LPARAM lparam )
 				{
 					HWND control_window = ( HWND )lparam;
 
-					HandleControlNotification( control_window, identifier );
+					HandleControlNotification( control_window, notification_code );
 
 				} break;
 			}
-
-			EN_CHANGE;
 
 		} break;
 

@@ -28,6 +28,23 @@ TextBox::TextBox( void )
 	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
 }
 
+TextBox::TextBox( TextBox&& other )
+	: Widget             ( std::move( other ) )
+	, ThisEventDispatcher( std::move( other ) )
+{
+}
+
+TextBox::TextBox( HWND parent )
+{
+	DWORD style = WS_TABSTOP | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL;
+
+	hwnd_ = CreateWindowExW( 0, L"EDIT", L"", style, 0, 0, 50, 50, parent, NULL, NULL, this );
+
+	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
+}
+
+TextBox& TextBox::operator=( TextBox&& other ) = default;
+
 void TextBox::SetText( std::wstring_view text )
 {
 	SetWindowTextW( hwnd_, text.data() );

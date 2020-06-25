@@ -60,33 +60,16 @@ void Widget::Show( void )
 {
 	ShowWindow( hwnd_, SW_SHOW );
 
-	for( Widget& child : children_ )
-		child.Show();
+	for( Any& child : children_ )
+		child.Get< Widget >().Show();
 }
 
 void Widget::Hide( void )
 {
 	ShowWindow( hwnd_, SW_HIDE );
 
-	for( Widget& child : children_ )
-		child.Hide();
-}
-
-void Widget::AddChild( Widget child )
-{
-	DWORD style = GetWindowLongW( child.hwnd_, GWL_STYLE );
-	style &= ~WS_POPUP;
-	style &= ~WS_CAPTION;
-	style |=  WS_CHILD;
-
-	SetWindowLongW( child.hwnd_, GWL_STYLE, style );
-	SetParent( child.hwnd_, hwnd_ );
-
-	// Set visibility depending on new parent
-	if( IsShown() ) child.Show();
-	else            child.Hide();
-
-	children_.emplace_back( std::move( child ) );
+	for( Any& child : children_ )
+		child.Get< Widget >().Hide();
 }
 
 void Widget::SetRect( const Rect& rect )
@@ -123,6 +106,21 @@ uint32_t Widget::Height( void ) const
 bool Widget::IsShown( void ) const
 {
 	return ( GetWindowLongW( hwnd_, GWL_STYLE ) & WS_VISIBLE ) != 0;
+}
+
+void Widget::PrepareAddChild( Widget& child )
+{
+	DWORD style = GetWindowLongW( child.hwnd_, GWL_STYLE );
+	style &= ~WS_POPUP;
+	style &= ~WS_CAPTION;
+	style |=  WS_CHILD;
+
+	SetWindowLongW( child.hwnd_, GWL_STYLE, style );
+	SetParent( child.hwnd_, hwnd_ );
+
+	// Set visibility depending on new parent
+	if( IsShown() ) child.Show();
+	else            child.Hide();
 }
 
 GENO_NAMESPACE_END

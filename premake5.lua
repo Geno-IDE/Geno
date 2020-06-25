@@ -29,18 +29,13 @@ if( _TARGET_OS == 'macosx' ) then
 	end
 end
 
-local function get_arch()
-	return io.popen( 'uname -m', 'r' ):read( '*l' )
-end
-
 local function get_platforms()
-	-- Add x86 target for x64 Windows builds
 	if( _ACTION == 'android-studio' ) then
 		return { }
-	elseif( os.host() == 'windows' and get_arch() == 'x86_64' ) then
-		return { 'x64', 'x86' }
+	elseif( os.host() == 'windows' ) then
+		return os.is64bit() and { 'x64', 'x86' } or { 'x86' }
 	else
-		return { get_arch() }
+		return { os.outputof( 'uname -m' ) }
 	end
 end
 

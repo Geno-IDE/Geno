@@ -16,6 +16,7 @@
  */
 
 #pragma once
+#include "Geno/Core/STL/Any.h"
 #include "Geno/Core/EventDispatcher.h"
 #include "Geno/Core/Rect.h"
 
@@ -47,10 +48,19 @@ public:
 
 public:
 
-	void Show    ( void );
-	void Hide    ( void );
-	void AddChild( Widget child );
-	void SetRect ( const Rect& rect );
+	void Show   ( void );
+	void Hide   ( void );
+	void SetRect( const Rect& rect );
+
+public:
+
+	template< typename T, typename = typename std::enable_if_t< std::is_base_of_v< Widget, T > > >
+	void AddChild( T child )
+	{
+		PrepareAddChild( child );
+
+		children_.emplace_back( std::move( child ) );
+	}
 
 public:
 
@@ -64,9 +74,13 @@ public:
 
 protected:
 
-	HWND                  hwnd_;
+	HWND               hwnd_;
 
-	std::vector< Widget > children_;
+	std::vector< Any > children_;
+
+private:
+
+	void PrepareAddChild( Widget& child );
 
 };
 

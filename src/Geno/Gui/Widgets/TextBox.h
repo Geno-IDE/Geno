@@ -36,7 +36,6 @@ class TextBox : public Widget, public EventDispatcher< TextBox, TextBoxTextChang
 public:
 
 	GENO_DISABLE_COPY( TextBox );
-	GENO_DEFAULT_MOVE( TextBox );
 
 	friend class Window;
 
@@ -48,7 +47,11 @@ public:
 
 public:
 
-	explicit TextBox( void );
+	         TextBox( void );
+	         TextBox( TextBox&& other );
+	explicit TextBox( HWND parent );
+
+	TextBox& operator=( TextBox&& other );
 
 public:
 

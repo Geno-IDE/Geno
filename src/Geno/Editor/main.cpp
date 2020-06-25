@@ -31,6 +31,11 @@ static void ActionLLVMLocationChanged( const Geno::TextBoxTextChanged& e )
 	printf( "LLVM location changed: %ls\n", e.new_text.c_str() );
 }
 
+static void Bug( const Geno::WidgetRectChanged& )
+{
+	printf( "Bug\n" );
+}
+
 static void ActionOpen( Geno::MenuItemClicked )
 {
 	printf( "Open\n" );
@@ -45,7 +50,11 @@ static void ActionSettings( Geno::MenuItemClicked )
 {
 	Geno::Window settings_window;
 	settings_window.SetRect( Geno::Rect( 250, 200 ) );
-	settings_window.AddChild( Geno::TextBox() <<= ActionLLVMLocationChanged );
+	settings_window.AddChild( Geno::TextBox( settings_window.GetNativeHandle() ) <<= ActionLLVMLocationChanged );
+
+	// BUG: This will store a child of type Widget instead of TextBox thanks to <<= returning Widget&&
+	settings_window.AddChild( Geno::TextBox() <<= Bug );
+
 	settings_window.Show();
 
 	while( settings_window.IsOpen() )
