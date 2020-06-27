@@ -80,7 +80,7 @@ private:
 	using DestructFunc = void( * )( void* );
 	using MoveFunc     = void( * )( void*, void* );
 	using CtorFunc     = void( * )( void*, void* );
-	using Storage      = std::aligned_storage_t< total_size - sizeof( DestructFunc ) - sizeof( MoveFunc ) >;
+	using Storage      = std::aligned_storage_t< total_size - sizeof( DestructFunc ) - sizeof( MoveFunc ) - sizeof( CtorFunc ) >;
 
 private:
 
