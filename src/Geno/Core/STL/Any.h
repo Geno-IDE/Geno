@@ -34,28 +34,17 @@ public:
 
 public:
 
-	Any( void )
-		: storage_         { }
-		, destructor_func_ { nullptr }
-		, move_func_       { nullptr }
-	{
-	}
-
-	Any( Any&& other )
-		: storage_         { }
-		, destructor_func_ { other.destructor_func_ }
-		, move_func_       { other.move_func_ }
-	{
-		move_func_( &storage_, &other.storage_ );
-	}
+	Any( void );
+	Any( Any&& other );
 
 	template< typename T, typename = typename std::enable_if< std::is_default_constructible_v< T > > >
 	Any( std::in_place_type_t< T > )
 		: storage_         { }
 		, destructor_func_ { Destruct< T > }
 		, move_func_       { Move< T > }
+		, ctor_func_       { Ctor< T > }
 	{
-		new( reinterpret_cast< T* >( &storage_ ) ) T();
+		ctor_func_( &storage_, nullptr );
 	}
 
 	template< typename T, typename = typename std::enable_if< std::is_move_constructible_v< T > > >
@@ -63,25 +52,14 @@ public:
 		: storage_         { }
 		, destructor_func_ { Destruct< T > }
 		, move_func_       { Move< T > }
+		, ctor_func_       { Ctor< T > }
 	{
-		new( reinterpret_cast< T* >( &storage_ ) ) T( std::move( value ) );
+		ctor_func_( &storage_, &value );
 	}
 
-	~Any( void )
-	{
-		if( destructor_func_ )
-			destructor_func_( &storage_ );
-	}
+	~Any( void );
 
-	Any& operator=( Any&& other )
-	{
-		destructor_func_ = other.destructor_func_;
-		move_func_       = other.move_func_;
-
-		move_func_( &storage_, &other.storage_ );
-
-		return *this;
-	}
+	Any& operator=( Any&& other );
 
 public:
 
@@ -101,6 +79,7 @@ private:
 
 	using DestructFunc = void( * )( void* );
 	using MoveFunc     = void( * )( void*, void* );
+	using CtorFunc     = void( * )( void*, void* );
 	using Storage      = std::aligned_storage_t< total_size - sizeof( DestructFunc ) - sizeof( MoveFunc ) >;
 
 private:
@@ -122,11 +101,22 @@ private:
 		*lhs = std::move( *rhs );
 	}
 
+	template< typename T, typename = typename std::enable_if< std::is_move_constructible_v< T > > >
+	static void Ctor( void* lhs_storage_ptr, void* rhs_storage_ptr )
+	{
+		T* lhs = static_cast< T* >( lhs_storage_ptr );
+		T* rhs = static_cast< T* >( rhs_storage_ptr );
+
+		if( rhs ) new( lhs ) T( std::move( *rhs ) );
+		else      new( lhs ) T();
+	}
+
 private:
 
 	Storage      storage_;
 	DestructFunc destructor_func_;
 	MoveFunc     move_func_;
+	CtorFunc     ctor_func_;
 
 };
 
