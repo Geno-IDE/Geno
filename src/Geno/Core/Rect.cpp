@@ -71,4 +71,9 @@ uint32_t Rect::Height( void ) const
 	return ( uint32_t )( max.y - min.y );
 }
 
+uint32_t Rect::Area( void ) const
+{
+	return ( Width() * Height() );
+}
+
 GENO_NAMESPACE_END

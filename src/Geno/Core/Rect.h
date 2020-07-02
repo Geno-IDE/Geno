@@ -39,6 +39,7 @@ public:
 
 	uint32_t Width ( void ) const;
 	uint32_t Height( void ) const;
+	uint32_t Area  ( void ) const;
 
 public:
 
