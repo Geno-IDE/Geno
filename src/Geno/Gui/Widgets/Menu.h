@@ -47,8 +47,8 @@ public:
 
 public:
 
-	void AddItem     ( MenuItem item );
-	void AddSeparator( void );
+	MenuItem& AddItem     ( MenuItem item );
+	void      AddSeparator( void );
 
 public:
 

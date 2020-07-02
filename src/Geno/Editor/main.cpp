@@ -60,10 +60,10 @@ static Geno::Menu SetupRootMenu( void )
 	Geno::Menu menu;
 
 	Geno::Menu menu_file;
-	menu_file.AddItem( std::move( Geno::MenuItem( L"Open" ) <<= ActionOpen ) );
-	menu_file.AddItem( std::move( Geno::MenuItem( L"Save" ) <<= ActionSave ) );
+	menu_file.AddItem( Geno::MenuItem( L"Open" ) ) <<= ActionOpen;
+	menu_file.AddItem( Geno::MenuItem( L"Save" ) ) <<= ActionSave;
 	menu_file.AddSeparator();
-	menu_file.AddItem( std::move( Geno::MenuItem( L"Settings" ) <<= ActionSettings ) );
+	menu_file.AddItem( Geno::MenuItem( L"Settings" ) ) <<= ActionSettings;
 
 	Geno::MenuItem item_file( L"File" );
 	item_file.SetDropdownMenu( std::move( menu_file ) );

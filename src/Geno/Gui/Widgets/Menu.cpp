@@ -62,12 +62,12 @@ Menu& Menu::operator=( Menu&& other )
 	return *this;
 }
 
-void Menu::AddItem( MenuItem item )
+MenuItem& Menu::AddItem( MenuItem item )
 {
 	if( item.HasDropdownMenu() ) AppendMenuW( hmenu_, MF_STRING | MF_POPUP, ( UINT_PTR )item.GetDropdownMenu().GetNativeHandle(), item.GetName().data() );
 	else                         AppendMenuW( hmenu_, MF_STRING,            ( UINT_PTR )items_.size(),                            item.GetName().data() );
 
-	items_.emplace_back( std::move( item ) );
+	return items_.emplace_back( std::move( item ) );
 }
 
 void Menu::AddSeparator( void )
