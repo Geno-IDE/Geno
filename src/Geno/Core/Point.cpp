@@ -25,10 +25,43 @@ Point::Point( void )
 {
 }
 
+Point::Point( const Point& other )
+	: x( other.x )
+	, y( other.y )
+{
+}
+
+Point::Point( Point&& other )
+	: x( other.x )
+	, y( other.y )
+{
+	other.x = 0;
+	other.y = 0;
+}
+
 Point::Point( int32_t x, int32_t y )
 	: x( x )
 	, y( y )
 {
+}
+
+Point& Point::operator=( const Point& other )
+{
+	x = other.x;
+	y = other.y;
+
+	return *this;
+}
+
+Point& Point::operator=( Point&& other )
+{
+	x = other.x;
+	y = other.y;
+
+	other.x = 0;
+	other.y = 0;
+
+	return *this;
 }
 
 GENO_NAMESPACE_END

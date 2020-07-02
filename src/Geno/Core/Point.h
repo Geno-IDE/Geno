@@ -27,7 +27,12 @@ class Point
 public:
 
 	Point( void );
+	Point( const Point& other );
+	Point( Point&& other );
 	Point( int32_t x, int32_t y );
+
+	Point& operator=( const Point& other );
+	Point& operator=( Point&& other );
 
 public:
 

@@ -27,8 +27,13 @@ class Rect
 public:
 
 	Rect( void ) = default;
+	Rect( const Rect& other );
+	Rect( Rect&& other );
 	Rect( uint32_t width, uint32_t height );
 	Rect( Point min, Point max );
+
+	Rect& operator=( const Rect& other );
+	Rect& operator=( Rect&& other );
 
 public:
 

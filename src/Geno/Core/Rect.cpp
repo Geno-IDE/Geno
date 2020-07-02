@@ -17,7 +17,21 @@
 
 #include "Rect.h"
 
+#include <type_traits>
+
 GENO_NAMESPACE_BEGIN
+
+Rect::Rect( const Rect& other )
+	: min( other.min )
+	, max( other.max )
+{
+}
+
+Rect::Rect( Rect&& other )
+	: min( std::move( other.min ) )
+	, max( std::move( other.max ) )
+{
+}
 
 Rect::Rect( uint32_t width, uint32_t height )
 	: min( 0, 0 )
@@ -29,6 +43,22 @@ Rect::Rect( Point min, Point max )
 	: min( min )
 	, max( max )
 {
+}
+
+Rect& Rect::operator=( const Rect& other )
+{
+	min = other.min;
+	max = other.max;
+
+	return *this;
+}
+
+Rect& Rect::operator=( Rect&& other )
+{
+	min = std::move( other.min );
+	max = std::move( other.max );
+
+	return *this;
 }
 
 uint32_t Rect::Width( void ) const
