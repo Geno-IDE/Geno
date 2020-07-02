@@ -24,6 +24,8 @@
 
 GENO_NAMESPACE_BEGIN
 
+class Any;
+
 class Any
 {
 public:
@@ -34,10 +36,10 @@ public:
 
 	static constexpr size_t total_size = 128;
 
-	using DestructFunc = void( * )( void* );
-	using MoveFunc     = void( * )( void*, void* );
-	using CtorFunc     = void( * )( void*, void* );
-	using Storage      = std::aligned_storage_t< total_size - sizeof( DestructFunc ) - sizeof( MoveFunc ) - sizeof( CtorFunc ) >;
+	using DtorFunc = void( Any::* )( void );
+	using MoveFunc = void( Any::* )( Any&& );
+	using CtorFunc = void( Any::* )( Any&& );
+	using Storage  = std::aligned_storage_t< total_size - sizeof( DtorFunc ) - sizeof( MoveFunc ) - sizeof( CtorFunc ) >;
 
 public:
 
@@ -46,26 +48,26 @@ public:
 
 	template< typename T, typename = typename std::enable_if_t< std::is_default_constructible_v< T > > >
 	Any( std::in_place_type_t< T > )
-		: storage_         { }
-		, destructor_func_ { Destruct< T > }
-		, move_func_       { Move< T > }
-		, ctor_func_       { Ctor< T > }
+		: storage_  { }
+		, dtor_func_{ &Any::Dtor< T > }
+		, move_func_{ &Any::Move< T > }
+		, ctor_func_{ &Any::Ctor< T > }
 	{
 		static_assert( sizeof( T ) <= sizeof( Storage ), "type is too large" );
 
-		ctor_func_( &storage_, nullptr );
+		( this->*ctor_func_ )( Any() );
 	}
 
 	template< typename T, typename = typename std::enable_if_t< std::is_move_constructible_v< T > > >
-	Any( T value )
-		: storage_         { }
-		, destructor_func_ { Destruct< T > }
-		, move_func_       { Move< T > }
-		, ctor_func_       { Ctor< T > }
+	Any( T&& value )
+		: storage_  { }
+		, dtor_func_{ &Any::Dtor< T > }
+		, move_func_{ &Any::Move< T > }
+		, ctor_func_{ &Any::Ctor< T > }
 	{
 		static_assert( sizeof( T ) <= sizeof( Storage ), "type is too large" );
 
-		ctor_func_( &storage_, &value );
+		( this->*ctor_func_ )( std::move( value ) );
 	}
 
 	~Any( void );
@@ -88,39 +90,36 @@ public:
 
 private:
 
-	template< typename T >
-	static void Destruct( void* storage_ptr )
+	template< typename T, typename = typename std::enable_if_t< std::is_move_constructible_v< T > > >
+	void Ctor( Any&& other )
 	{
-		T* ptr = static_cast< T* >( storage_ptr );
+		T* lhs = reinterpret_cast< T* >( &storage_ );
+		T* rhs = reinterpret_cast< T* >( &other.storage_ );
 
-		ptr->~T();
+		new( lhs ) T( std::move( *rhs ) );
+	}
+
+	template< typename T >
+	void Dtor( void )
+	{
+		reinterpret_cast< T* >( &storage_ )->~T();
 	}
 
 	template< typename T, typename = typename std::enable_if_t< std::is_move_assignable_v< T > > >
-	static void Move( void* lhs_storage_ptr, void* rhs_storage_ptr )
+	void Move( Any&& other )
 	{
-		T* lhs = static_cast< T* >( lhs_storage_ptr );
-		T* rhs = static_cast< T* >( rhs_storage_ptr );
+		T* lhs = reinterpret_cast< T* >( &storage_ );
+		T* rhs = reinterpret_cast< T* >( &other.storage_ );
 
 		*lhs = std::move( *rhs );
 	}
 
-	template< typename T, typename = typename std::enable_if_t< std::is_move_constructible_v< T > > >
-	static void Ctor( void* lhs_storage_ptr, void* rhs_storage_ptr )
-	{
-		T* lhs = static_cast< T* >( lhs_storage_ptr );
-		T* rhs = static_cast< T* >( rhs_storage_ptr );
-
-		if( rhs ) new( lhs ) T( std::move( *rhs ) );
-		else      new( lhs ) T();
-	}
-
 private:
 
-	Storage      storage_;
-	DestructFunc destructor_func_;
-	MoveFunc     move_func_;
-	CtorFunc     ctor_func_;
+	Storage  storage_;
+	CtorFunc ctor_func_;
+	DtorFunc dtor_func_;
+	MoveFunc move_func_;
 
 };
 

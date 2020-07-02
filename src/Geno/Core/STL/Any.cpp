@@ -20,34 +20,35 @@
 GENO_NAMESPACE_BEGIN
 
 Any::Any( void )
-	: storage_         { }
-	, destructor_func_ { nullptr }
-	, move_func_       { nullptr }
-	, ctor_func_       { nullptr }
+	: storage_  { }
+	, ctor_func_{ nullptr }
+	, dtor_func_{ nullptr }
+	, move_func_{ nullptr }
 {
 }
 
 Any::Any( Any&& other )
-	: storage_         { }
-	, destructor_func_ { other.destructor_func_ }
-	, move_func_       { other.move_func_ }
-	, ctor_func_       { other.ctor_func_ }
+	: storage_  { }
+	, ctor_func_{ other.ctor_func_ }
+	, dtor_func_{ other.dtor_func_ }
+	, move_func_{ other.move_func_ }
 {
-	ctor_func_( &storage_, &other.storage_ );
+	( this->*ctor_func_ )( std::move( other ) );
 }
 
 Any::~Any( void )
 {
-	if( destructor_func_ )
-		destructor_func_( &storage_ );
+	if( dtor_func_ )
+		( this->*dtor_func_)();
 }
 
 Any& Any::operator=( Any&& other )
 {
-	destructor_func_ = other.destructor_func_;
-	move_func_       = other.move_func_;
+	ctor_func_ = other.ctor_func_;
+	dtor_func_ = other.dtor_func_;
+	move_func_ = other.move_func_;
 
-	move_func_( &storage_, &other.storage_ );
+	( this->*move_func_ )( std::move( other ) );
 
 	return *this;
 }
