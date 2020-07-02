@@ -22,7 +22,7 @@ GENO_NAMESPACE_BEGIN
 TextBox::TextBox( TextBox&& other )
 	: Widget             ( std::move( other ) )
 	, ThisEventDispatcher( std::move( other ) )
-	, m_text             ( std::move( other.m_text ) )
+	, text_              ( std::move( other.text_ ) )
 {
 }
 
@@ -30,20 +30,20 @@ TextBox& TextBox::operator=( TextBox&& other ) = default;
 
 void TextBox::SetText( std::wstring_view text )
 {
-	m_text = text;
+	text_ = text;
 
 	if( hwnd_ )
-		SetWindowTextW( hwnd_, m_text.data() );
+		SetWindowTextW( hwnd_, text_.data() );
 }
 
 void TextBox::OnTextChanged( void )
 {
-	m_text.resize( GetWindowTextLengthW( hwnd_ ) );
+	text_.resize( GetWindowTextLengthW( hwnd_ ) );
 
-	GetWindowTextW( hwnd_, &m_text[ 0 ], std::numeric_limits< int >::max() );
+	GetWindowTextW( hwnd_, &text_[ 0 ], std::numeric_limits< int >::max() );
 
 	TextBoxTextChanged e;
-	e.new_text = m_text;
+	e.new_text = text_;
 
 	Send( e );
 }
@@ -56,8 +56,8 @@ HWND TextBox::CreateNativeHandle( HWND parent ) const
 	SetWindowLongPtrW( hwnd, GWLP_USERDATA, ( LONG_PTR )this );
 
 	// Apply text content that may have been set before the handle was created
-	if( !m_text.empty() )
-		SetWindowTextW( hwnd, m_text.data() );
+	if( !text_.empty() )
+		SetWindowTextW( hwnd, text_.data() );
 
 	return hwnd;
 }

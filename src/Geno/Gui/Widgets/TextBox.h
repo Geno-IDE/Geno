@@ -58,7 +58,7 @@ public:
 
 public:
 
-	std::wstring GetText( void ) const { return m_text; }
+	std::wstring GetText( void ) const { return text_; }
 
 private:
 
@@ -74,7 +74,7 @@ private:
 
 private:
 
-	std::wstring m_text;
+	std::wstring text_;
 
 };
 
