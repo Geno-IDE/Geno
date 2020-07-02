@@ -70,19 +70,23 @@ public:
 
 public:
 
-	uint32_t Width  ( void ) const;
-	uint32_t Height ( void ) const;
-	bool     IsShown( void ) const;
-
-public:
-
 	HWND GetNativeHandle( void ) const { return hwnd_; }
+	Rect GetRect        ( void ) const { return rect_; }
+	bool IsShown        ( void ) const { return shown_; }
+
+protected:
+
+	virtual HWND CreateNativeHandle( HWND parent ) const = 0;
 
 protected:
 
 	HWND               hwnd_;
 
 	std::vector< Any > children_;
+
+	Rect               rect_;
+
+	bool               shown_;
 
 private:
 

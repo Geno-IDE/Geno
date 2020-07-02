@@ -61,6 +61,10 @@ private:
 
 private:
 
+	HWND CreateNativeHandle( HWND parent ) const override;
+
+private:
+
 	std::optional< Menu > menu_;
 
 };

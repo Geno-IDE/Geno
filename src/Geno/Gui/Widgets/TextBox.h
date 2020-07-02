@@ -47,9 +47,8 @@ public:
 
 public:
 
-	         TextBox( void );
-	         TextBox( TextBox&& other );
-	explicit TextBox( HWND parent );
+	TextBox( void ) = default;
+	TextBox( TextBox&& other );
 
 	TextBox& operator=( TextBox&& other );
 
@@ -59,7 +58,7 @@ public:
 
 public:
 
-	std::wstring GetText( void ) const;
+	std::wstring GetText( void ) const { return m_text; }
 
 private:
 
@@ -67,7 +66,15 @@ private:
 
 private:
 
-	void OnTextChanged( void ) const;
+	void OnTextChanged( void );
+
+private:
+
+	HWND CreateNativeHandle( HWND parent ) const override;
+
+private:
+
+	std::wstring m_text;
 
 };
 

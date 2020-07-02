@@ -28,25 +28,29 @@
 
 static void ActionLLVMLocationChanged( const Geno::TextBoxTextChanged& e )
 {
-	printf( "LLVM location changed: %ls\n", e.new_text.c_str() );
+	wprintf( L"LLVM location changed: %ls\n", e.new_text.c_str() );
+}
+
+static void CodeChanged( const Geno::TextBoxTextChanged& e )
+{
+	wprintf( L"Code changed: %ls\n", e.new_text.c_str() );
 }
 
 static void ActionOpen( Geno::MenuItemClicked )
 {
-	printf( "Open\n" );
+	wprintf( L"Open\n" );
 }
 
 static void ActionSave( Geno::MenuItemClicked )
 {
-	printf( "Save\n" );
+	wprintf( L"Save\n" );
 }
 
 static void ActionSettings( Geno::MenuItemClicked )
 {
 	Geno::Window settings_window;
 	settings_window.SetRect( Geno::Rect( 250, 200 ) );
-	settings_window.AddChild< Geno::TextBox >( settings_window.GetNativeHandle() ) <<= ActionLLVMLocationChanged;
-
+	settings_window.AddChild< Geno::TextBox >() <<= ActionLLVMLocationChanged;
 	settings_window.Show();
 
 	while( settings_window.IsOpen() )
@@ -89,6 +93,7 @@ int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /
 	Geno::Menu     menu = SetupRootMenu();
 	Geno::TextBox  text_box;
 
+	text_box <<= CodeChanged;
 	text_box.SetText( L"int main( int argc, char* argv[] )\r\n{\r\n\treturn 0;\r\n}\r\n" );
 
 	window.AddChild< Geno::TextBox >( std::move( text_box ) );

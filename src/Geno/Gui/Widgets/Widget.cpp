@@ -17,11 +17,15 @@
 
 #include "Widget.h"
 
+#include <cassert>
+
 GENO_NAMESPACE_BEGIN
 
 Widget::Widget( void )
 	: hwnd_    ( NULL )
 	, children_{ }
+	, rect_    { }
+	, shown_   ( true )
 {
 }
 
@@ -29,10 +33,14 @@ Widget::Widget( Widget&& other )
 	: EventDispatcher( std::move( other ) )
 	, hwnd_          ( other.hwnd_ )
 	, children_      ( std::move( other.children_ ) )
+	, rect_          ( std::move( other.rect_ ) )
+	, shown_         ( other.shown_ )
 {
-	other.hwnd_ = NULL;
+	other.hwnd_  = NULL;
+	other.shown_ = false;
 
-	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
+	if( hwnd_ )
+		SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
 }
 
 Widget::~Widget( void )
@@ -51,14 +59,18 @@ Widget& Widget::operator=( Widget&& other )
 
 	other.hwnd_ = NULL;
 
-	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
+	if( hwnd_ )
+		SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
 
 	return *this;
 }
 
 void Widget::Show( void )
 {
-	ShowWindow( hwnd_, SW_SHOW );
+	shown_ = true;
+
+	if( hwnd_ )
+		ShowWindow( hwnd_, SW_SHOW );
 
 	for( Any& child : children_ )
 		child.Get< Widget >().Show();
@@ -66,7 +78,10 @@ void Widget::Show( void )
 
 void Widget::Hide( void )
 {
-	ShowWindow( hwnd_, SW_HIDE );
+	shown_ = false;
+
+	if( hwnd_ )
+		ShowWindow( hwnd_, SW_HIDE );
 
 	for( Any& child : children_ )
 		child.Get< Widget >().Hide();
@@ -74,53 +89,48 @@ void Widget::Hide( void )
 
 void Widget::SetRect( const Rect& rect )
 {
-	if( !MoveWindow( hwnd_, rect.min.x, rect.min.y, rect.Width(), rect.Height(), TRUE ) )
-		return;
+	rect_ = rect;
+
+	if( hwnd_ )
+	{
+		if( !MoveWindow( hwnd_, rect.min.x, rect.min.y, rect.Width(), rect.Height(), TRUE ) )
+			return;
+	}
 
 	WidgetRectChanged e;
-	e.new_rect = rect;
+	e.new_rect = rect_;
 
 	Send( e );
 }
 
-uint32_t Widget::Width( void ) const
-{
-	RECT rect;
-
-	if( GetWindowRect( hwnd_, &rect ) )
-		return rect.right - rect.left;
-
-	return 0;
-}
-
-uint32_t Widget::Height( void ) const
-{
-	RECT rect;
-
-	if( GetWindowRect( hwnd_, &rect ) )
-		return rect.bottom - rect.top;
-
-	return 0;
-}
-
-bool Widget::IsShown( void ) const
-{
-	return ( GetWindowLongW( hwnd_, GWL_STYLE ) & WS_VISIBLE ) != 0;
-}
-
 void Widget::PrepareAddChild( Widget& child )
 {
-	DWORD style = GetWindowLongW( child.hwnd_, GWL_STYLE );
-	style &= ~WS_POPUP;
-	style &= ~WS_CAPTION;
-	style |=  WS_CHILD;
+	if( child.hwnd_ )
+	{
+		DWORD style = GetWindowLongW( child.hwnd_, GWL_STYLE );
+		style &= ~WS_POPUP;
+		style &= ~WS_CAPTION;
+		style |=  WS_CHILD;
 
-	SetWindowLongW( child.hwnd_, GWL_STYLE, style );
-	SetParent( child.hwnd_, hwnd_ );
+		SetWindowLongW( child.hwnd_, GWL_STYLE, style );
+		SetParent( child.hwnd_, hwnd_ );
+	}
+	else
+	{
+		child.hwnd_ = child.CreateNativeHandle( hwnd_ );
 
-	// Set visibility depending on new parent
-	if( IsShown() ) child.Show();
-	else            child.Hide();
+		// Assume that the rect hasn't been initialized if area is 0
+		if( child.rect_.Area() == 0 )
+		{
+			RECT window_rect;
+			if( GetWindowRect( child.hwnd_, &window_rect ) )
+				child.rect_ = Rect( Point( window_rect.left, window_rect.top ), Point( window_rect.right, window_rect.bottom ) );
+		}
+
+		// Apply states that may have been set before handle was created
+		MoveWindow( child.hwnd_, child.rect_.min.x, child.rect_.min.y, child.rect_.Width(), child.rect_.Height(), TRUE );
+		ShowWindow( child.hwnd_, child.shown_ ? SW_SHOW : SW_HIDE );
+	}
 }
 
 GENO_NAMESPACE_END

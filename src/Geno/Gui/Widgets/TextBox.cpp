@@ -19,54 +19,47 @@
 
 GENO_NAMESPACE_BEGIN
 
-TextBox::TextBox( void )
-{
-	DWORD style = WS_TABSTOP | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL;
-
-	hwnd_ = CreateWindowExW( 0, L"EDIT", L"", style, 0, 0, 0, 0, NULL, NULL, NULL, this );
-
-	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
-}
-
 TextBox::TextBox( TextBox&& other )
 	: Widget             ( std::move( other ) )
 	, ThisEventDispatcher( std::move( other ) )
+	, m_text             ( std::move( other.m_text ) )
 {
-}
-
-TextBox::TextBox( HWND parent )
-{
-	DWORD style = WS_TABSTOP | WS_VISIBLE | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL;
-
-	hwnd_ = CreateWindowExW( 0, L"EDIT", L"", style, 0, 0, 50, 50, parent, NULL, NULL, this );
-
-	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
 }
 
 TextBox& TextBox::operator=( TextBox&& other ) = default;
 
 void TextBox::SetText( std::wstring_view text )
 {
-	SetWindowTextW( hwnd_, text.data() );
+	m_text = text;
+
+	if( hwnd_ )
+		SetWindowTextW( hwnd_, m_text.data() );
 }
 
-std::wstring TextBox::GetText( void ) const
+void TextBox::OnTextChanged( void )
 {
-	std::wstring text;
+	m_text.resize( GetWindowTextLengthW( hwnd_ ) );
 
-	text.resize( GetWindowTextLengthW( hwnd_ ) );
+	GetWindowTextW( hwnd_, &m_text[ 0 ], std::numeric_limits< int >::max() );
 
-	GetWindowTextW( hwnd_, &text[ 0 ], std::numeric_limits< int >::max() );
-
-	return text;
-}
-
-void TextBox::OnTextChanged( void ) const
-{
 	TextBoxTextChanged e;
-	e.new_text = GetText();
+	e.new_text = m_text;
 
 	Send( e );
+}
+
+HWND TextBox::CreateNativeHandle( HWND parent ) const
+{
+	DWORD style = WS_TABSTOP | WS_CHILD | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL;
+	HWND  hwnd  = CreateWindowExW( 0, L"EDIT", L"", style, 0, 0, 64, 64, parent, NULL, NULL, ( LPVOID )this );
+
+	SetWindowLongPtrW( hwnd, GWLP_USERDATA, ( LONG_PTR )this );
+
+	// Apply text content that may have been set before the handle was created
+	if( !m_text.empty() )
+		SetWindowTextW( hwnd, m_text.data() );
+
+	return hwnd;
 }
 
 GENO_NAMESPACE_END

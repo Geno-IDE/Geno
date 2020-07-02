@@ -25,11 +25,7 @@ GENO_NAMESPACE_BEGIN
 
 Window::Window( void )
 {
-	static Platform::WindowClass window_class( WndProc );
-
-	hwnd_ = CreateWindowExW( WS_EX_OVERLAPPEDWINDOW, window_class.GetName(), NULL, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, GetModuleHandleW( NULL ), this );
-
-	SetWindowLongPtrW( hwnd_, GWLP_USERDATA, ( LONG_PTR )this );
+	hwnd_ = CreateNativeHandle( NULL );
 }
 
 void Window::PollEvents( void )
@@ -173,6 +169,19 @@ const Menu* Window::FindMenuByHandle( Menu& which, HMENU hmenu ) const
 	}
 
 	return nullptr;
+}
+
+HWND Window::CreateNativeHandle( HWND parent ) const
+{
+	static Platform::WindowClass window_class( WndProc );
+
+	DWORD style    = WS_OVERLAPPEDWINDOW;
+	DWORD style_ex = WS_EX_OVERLAPPEDWINDOW;
+	HWND  hwnd     = CreateWindowExW( style_ex, window_class.GetName(), NULL, style, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, parent, NULL, GetModuleHandleW( NULL ), ( LPVOID )this );
+
+	SetWindowLongPtrW( hwnd, GWLP_USERDATA, ( LONG_PTR )this );
+
+	return hwnd;
 }
 
 GENO_NAMESPACE_END
