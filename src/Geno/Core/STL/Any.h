@@ -32,7 +32,7 @@ public:
 
 public:
 
-	static constexpr size_t total_size = 64;
+	static constexpr size_t total_size = 128;
 
 	using DestructFunc = void( * )( void* );
 	using MoveFunc     = void( * )( void*, void* );
