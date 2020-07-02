@@ -31,11 +31,6 @@ static void ActionLLVMLocationChanged( const Geno::TextBoxTextChanged& e )
 	printf( "LLVM location changed: %ls\n", e.new_text.c_str() );
 }
 
-static void Bug( const Geno::WidgetRectChanged& )
-{
-	printf( "Bug\n" );
-}
-
 static void ActionOpen( Geno::MenuItemClicked )
 {
 	printf( "Open\n" );
@@ -50,10 +45,7 @@ static void ActionSettings( Geno::MenuItemClicked )
 {
 	Geno::Window settings_window;
 	settings_window.SetRect( Geno::Rect( 250, 200 ) );
-	settings_window.AddChild( Geno::TextBox( settings_window.GetNativeHandle() ) <<= ActionLLVMLocationChanged );
-
-	// BUG: This will store a child of type Widget instead of TextBox thanks to <<= returning Widget&&
-	settings_window.AddChild( Geno::TextBox() <<= Bug );
+	settings_window.AddChild< Geno::TextBox >( settings_window.GetNativeHandle() ) <<= ActionLLVMLocationChanged;
 
 	settings_window.Show();
 
@@ -68,10 +60,10 @@ static Geno::Menu SetupRootMenu( void )
 	Geno::Menu menu;
 
 	Geno::Menu menu_file;
-	menu_file.AddItem( Geno::MenuItem( L"Open" ) <<= ActionOpen );
-	menu_file.AddItem( Geno::MenuItem( L"Save" ) <<= ActionSave );
+	menu_file.AddItem( std::move( Geno::MenuItem( L"Open" ) <<= ActionOpen ) );
+	menu_file.AddItem( std::move( Geno::MenuItem( L"Save" ) <<= ActionSave ) );
 	menu_file.AddSeparator();
-	menu_file.AddItem( Geno::MenuItem( L"Settings" ) <<= ActionSettings );
+	menu_file.AddItem( std::move( Geno::MenuItem( L"Settings" ) <<= ActionSettings ) );
 
 	Geno::MenuItem item_file( L"File" );
 	item_file.SetDropdownMenu( std::move( menu_file ) );
@@ -99,7 +91,7 @@ int WINAPI WinMain( HINSTANCE /*instance*/, HINSTANCE /*prev_instance*/, LPSTR /
 
 	text_box.SetText( L"int main( int argc, char* argv[] )\r\n{\r\n\treturn 0;\r\n}\r\n" );
 
-	window.AddChild( std::move( text_box ) );
+	window.AddChild< Geno::TextBox >( std::move( text_box ) );
 	window.SetMenu( std::move( menu ) );
 	window.Show();
 

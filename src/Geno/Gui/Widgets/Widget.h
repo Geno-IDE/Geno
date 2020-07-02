@@ -54,12 +54,18 @@ public:
 
 public:
 
-	template< typename T, typename = typename std::enable_if_t< std::is_base_of_v< Widget, T > > >
-	void AddChild( T child )
+	template<
+	  typename T,
+	  typename... Args,
+	  typename = typename std::enable_if_t< std::is_base_of_v< Widget, T > >
+	>
+	T& AddChild( Args&&... args )
 	{
+		T child( std::forward< Args >( args )... );
+
 		PrepareAddChild( child );
 
-		children_.emplace_back( std::move( child ) );
+		return children_.emplace_back( std::move( child ) ).Get< T >();
 	}
 
 public:

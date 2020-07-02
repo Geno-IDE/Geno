@@ -43,7 +43,7 @@ public:
 	    ( std::is_same_v< Types, std::remove_const_t< std::remove_reference_t< FirstArgumentType< Functor > > > > && ... )
 	  >
 	>
-	Derived&& operator<<=( Functor&& functor )
+	Derived& operator<<=( Functor&& functor )
 	{
 		using T = std::remove_const_t< std::remove_reference_t< FirstArgumentType< Functor > > >;
 
@@ -54,7 +54,7 @@ public:
 
 		vec.emplace_back( std::move( new_subscriber ) );
 
-		return std::forward< Derived >( *static_cast< Derived* >( this ) );
+		return *static_cast< Derived* >( this );
 	}
 
 protected:
