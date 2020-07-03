@@ -33,7 +33,7 @@ Any::Any( Any&& other )
 	, dtor_func_{ other.dtor_func_ }
 	, move_func_{ other.move_func_ }
 {
-	( this->*ctor_func_ )( std::move( other ) );
+	( this->*ctor_func_ )( &other.storage_ );
 }
 
 Any::~Any( void )

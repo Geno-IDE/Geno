@@ -38,7 +38,7 @@ public:
 
 	using DtorFunc = void( Any::* )( void );
 	using MoveFunc = void( Any::* )( Any&& );
-	using CtorFunc = void( Any::* )( Any&& );
+	using CtorFunc = void( Any::* )( void* );
 	using Storage  = std::aligned_storage_t< total_size - sizeof( DtorFunc ) - sizeof( MoveFunc ) - sizeof( CtorFunc ) >;
 
 public:
@@ -59,7 +59,7 @@ public:
 	}
 
 	template< typename T, typename = typename std::enable_if_t< std::is_move_constructible_v< T > > >
-	Any( T&& value )
+	Any( T value )
 		: storage_  { }
 		, dtor_func_{ &Any::Dtor< T > }
 		, move_func_{ &Any::Move< T > }
@@ -67,7 +67,7 @@ public:
 	{
 		static_assert( sizeof( T ) <= sizeof( Storage ), "type is too large" );
 
-		( this->*ctor_func_ )( std::move( value ) );
+		( this->*ctor_func_ )( &value );
 	}
 
 	~Any( void );
@@ -91,10 +91,10 @@ public:
 private:
 
 	template< typename T, typename = typename std::enable_if_t< std::is_move_constructible_v< T > > >
-	void Ctor( Any&& other )
+	void Ctor( void* value_ptr )
 	{
 		T* lhs = reinterpret_cast< T* >( &storage_ );
-		T* rhs = reinterpret_cast< T* >( &other.storage_ );
+		T* rhs = reinterpret_cast< T* >( value_ptr );
 
 		new( lhs ) T( std::move( *rhs ) );
 	}
