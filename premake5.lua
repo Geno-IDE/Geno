@@ -1,3 +1,4 @@
+require 'third_party/premake-android-studio'
 require 'premake/app'
 require 'premake/customizations'
 require 'premake/defaults'

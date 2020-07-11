@@ -1,10 +1,10 @@
 #pragma once
 
-class SomeClass
+class MyClass
 {
 public:
 
-	SomeClass( int value );
+	MyClass( int value );
 
 public:
 
@@ -13,5 +13,5 @@ public:
 private:
 
 	int value_;
-	
+
 };

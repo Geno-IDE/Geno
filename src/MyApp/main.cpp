@@ -1,12 +1,13 @@
-#include "MyLibrary/SomeClass.h"
+#include "MyLibrary/MyClass.h"
 
 #include <iostream>
 
 int main( int /*argc*/, char* /*argv*/[] )
 {
-	SomeClass a( 50 );
+	MyClass a( 50 );
+
 	std::cout << "Hello, world!\n";
-	std::cout << "Value: " << a.Value() << "\n";
+	std::cout << "A: " << a.Value() << "\n";
 
 	return 0;
 }

@@ -5,13 +5,13 @@ cppdialect 'C++17'
 debugdir '../assets'
 exceptionhandling 'Off'
 flags { 'MultiProcessorCompile' }
---gradleversion( '3.1.4' )
+gradleversion( '3.1.4' )
 includedirs { '../include/' }
---maxsdkversion '28'
---minsdkversion '23'
-objdir '../obj/%{cfg.platform}/%{cfg.buildcfg}'
+maxsdkversion '28'
+minsdkversion '23'
+objdir '../obj'
 rtti 'Off'
-targetdir '../%{iif(prj.kind == "StaticLib","lib","bin")}/%{cfg.platform}/%{cfg.buildcfg}'
+targetdir '../%{iif(prj.kind == "StaticLib" or prj.kind == "SharedLib","lib","bin")}/%{cfg.platform}/%{cfg.buildcfg}'
 warnings 'Extra'
 
 filter 'configurations:Debug'
@@ -32,8 +32,5 @@ filter 'system:not windows'
 
 filter 'system:linux'
 	debugenvs { 'LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../%{OUTDIR}' }
-
-filter 'system:android'
-	--androidabis { 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64' }
 
 filter { }

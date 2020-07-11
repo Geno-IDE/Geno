@@ -8,30 +8,30 @@ function app( name )
 	group 'Apps'
 	project( name )
 
-	--appid '%{settings.bundle_namespace}.%{string.lower(prj.name)}'
+	androidmanifest 'src/%{prj.name}/AndroidManifest.xml'
+	appid '%{settings.bundle_namespace}.%{string.lower(prj.name)}'
+	assetdirs { 'src/%{prj.name}/Assets' }
+	javadirs { 'src/%{prj.name}/Java' }
 	kind 'WindowedApp'
 	links( libraries )
 	location 'build/%{_ACTION}'
+	resdirs { 'src/%{prj.name}/Resources' }
 	sysincludedirs { 'include' }
-	xcodebuildresources 'assets'
+	xcodebuildresources 'src/%{prj.name}/Assets'
 
 	files {
-		'src/'..name..'/**.cpp',
-		'src/'..name..'/**.h',
+		'src/%{prj.name}/**.cpp',
+		'src/%{prj.name}/**.h',
 	}
 
-	filter { 'system:linux' }
+	filter 'system:linux'
 		linkoptions { '-Wl,-rpath=\\$$ORIGIN' }
+
+	filter 'system:ios'
+		files { 'src/%{prj.name}/Resources/Info.plist', 'src/%{prj.name}/Assets' }
 
 	filter { 'system:macosx or ios', 'files:**.cpp' }
 		compileas 'Objective-C++'
-
-	filter { 'system:ios' }
-		files { 'res/Info.plist', 'assets' }
-
-	filter { 'system:android' }
-		--files { 'src/Android/**' }
-		--assetdirs { 'assets/' }
 
 	filter { }
 

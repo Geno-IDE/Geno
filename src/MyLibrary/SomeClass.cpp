@@ -1,6 +1,6 @@
-#include "MyLibrary/SomeClass.h"
+#include "MyLibrary/MyClass.h"
 
-SomeClass::SomeClass( int value )
+MyClass::MyClass( int value )
 	: value_( value )
 {
 }
