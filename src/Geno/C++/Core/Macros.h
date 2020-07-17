@@ -20,3 +20,9 @@
 #define GENO_DISABLE_COPY( CLASS )             \
     CLASS( const CLASS& )            = delete; \
     CLASS& operator=( const CLASS& ) = delete
+
+#define GENO_DISABLE_COPY_AND_MOVE( CLASS )    \
+    CLASS( const CLASS& )            = delete; \
+    CLASS( CLASS&& )                 = delete; \
+    CLASS& operator=( CLASS&& )      = delete; \
+    CLASS& operator=( const CLASS& ) = delete
