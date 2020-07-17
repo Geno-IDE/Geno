@@ -13,6 +13,7 @@ function app( name )
 	appid '%{settings.bundle_namespace}.%{string.lower(prj.name)}'
 	assetdirs { 'src/%{prj.name}/Assets' }
 	debugdir 'src/%{prj.name}/Assets'
+	includedirs { 'src/%{prj.name}/C++' }
 	javadirs { 'src/%{prj.name}/Java' }
 	kind 'WindowedApp'
 	links( libraries )
@@ -23,8 +24,8 @@ function app( name )
 	xcodebuildresources 'src/%{prj.name}/Assets'
 
 	files {
-		'src/%{prj.name}/**.cpp',
-		'src/%{prj.name}/**.h',
+		'src/%{prj.name}/C++/**.cpp',
+		'src/%{prj.name}/C++/**.h',
 	}
 
 	filter 'system:linux'

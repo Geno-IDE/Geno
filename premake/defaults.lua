@@ -3,6 +3,7 @@ require 'customizations'
 
 cppdialect 'C++17'
 debugdir '../assets'
+defines { 'GLEW_STATIC', 'IMGUI_IMPL_OPENGL_LOADER_GLEW' }
 exceptionhandling 'Off'
 flags { 'MultiProcessorCompile' }
 gradleversion( '3.1.4' )
