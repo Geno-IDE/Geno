@@ -1,6 +1,7 @@
 
 require 'library'
 require 'settings'
+require 'third_party_library'
 
 apps = { }
 
@@ -15,6 +16,7 @@ function app( name )
 	javadirs { 'src/%{prj.name}/Java' }
 	kind 'WindowedApp'
 	links( libraries )
+	links( third_party_libraries )
 	location 'build/%{_ACTION}'
 	resdirs { 'src/%{prj.name}/Resources' }
 	sysincludedirs { 'include' }
