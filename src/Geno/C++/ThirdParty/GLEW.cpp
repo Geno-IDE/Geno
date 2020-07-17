@@ -15,41 +15,28 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include "Core/Macros.h"
+#include "GLEW.h"
 
-#include <cassert>
+#include "GUI/MainWindow.h"
 
-template< typename T >
-class Singleton
+#include <iostream>
+
+#include <GL/glew.h>
+
+GLEW::GLEW( void )
 {
-public:
+	// Depends on a current context
+	MainWindow::GetInstance().MakeCurrent();
 
-	GENO_DISABLE_COPY( Singleton );
-
-public:
-
-	Singleton( void )
+	if( GLenum err = glewInit(); err != GLEW_OK )
 	{
-		assert( insance == nullptr );
-		instance_ = this;
+		std::cerr << "glewInit failed: " << ( const char* )glewGetErrorString( err ) << "\n";
+		return;
 	}
+}
 
-	virtual ~Singleton( void )
-	{
-		assert( intance_ != nullptr );
-		instance_ = nullptr;
-	}
-
-public:
-
-	static T& GetInstance( void ) { return *instance_; }
-
-private:
-
-	static T* instance_;
-
-};
-
-template< typename T >
-T* Singleton< T >::instance_ = nullptr;
+GLEW& GLEW::GetInstance( void )
+{
+	static GLEW glew;
+	return glew;
+}
