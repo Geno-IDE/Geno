@@ -41,7 +41,7 @@ public:
 
 public:
 
-	static MainWindow& GetInstance( void );
+	static MainWindow& Get( void );
 
 private:
 

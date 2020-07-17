@@ -39,7 +39,7 @@ public:
 
 public:
 
-	static PrimaryMonitor& GetInstance( void );
+	static PrimaryMonitor& Get( void );
 
 private:
 

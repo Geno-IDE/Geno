@@ -34,7 +34,7 @@ GLFW::~GLFW( void )
 	glfwTerminate();
 }
 
-GLFW& GLFW::GetInstance( void )
+GLFW& GLFW::Get( void )
 {
 	static GLFW glfw;
 	return glfw;

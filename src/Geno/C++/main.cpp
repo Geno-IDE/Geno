@@ -6,11 +6,11 @@ int main( int /*argc*/, char* /*argv*/[] )
 {
 	Console console;
 
-	MainWindow::GetInstance().Init();
+	MainWindow::Get().Init();
 
-	while( MainWindow::GetInstance().BeginFrame() )
+	while( MainWindow::Get().BeginFrame() )
 	{
-		MainWindow::GetInstance().EndFrame();
+		MainWindow::Get().EndFrame();
 	}
 
 	return 0;

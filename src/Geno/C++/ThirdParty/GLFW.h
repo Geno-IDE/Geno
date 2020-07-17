@@ -31,7 +31,7 @@ private:
 
 public:
 
-	static GLFW& GetInstance( void );
+	static GLFW& Get( void );
 
 private:
 

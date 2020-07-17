@@ -30,7 +30,7 @@ MainWindow::MainWindow( void )
 , width_         ( 0 )
 , height_        ( 0 )
 {
-	PrimaryMonitor& monitor = PrimaryMonitor::GetInstance();
+	PrimaryMonitor& monitor = PrimaryMonitor::Get();
 
 	width_  = 3 * monitor.Width()  / 4;
 	height_ = 3 * monitor.Height() / 4;
@@ -70,7 +70,7 @@ void MainWindow::Init( void )
 		ImGui::StyleColorsDark();
 
 		// Requires GLEW to be initialized
-		GLEW::GetInstance();
+		GLEW::Get();
 
 		ImGui_ImplGlfw_InitForOpenGL( window_, true );
 		ImGui_ImplOpenGL3_Init( "#version 130" );
@@ -108,7 +108,7 @@ void MainWindow::EndFrame( void )
 	glfwSwapBuffers( window_ );
 }
 
-MainWindow& MainWindow::GetInstance( void )
+MainWindow& MainWindow::Get( void )
 {
 	static MainWindow main_window;
 	return main_window;
