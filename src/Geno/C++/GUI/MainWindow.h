@@ -19,6 +19,7 @@
 #include "Core/Macros.h"
 
 struct GLFWwindow;
+struct ImGuiContext;
 
 class MainWindow
 {
@@ -44,7 +45,8 @@ public:
 
 private:
 
-	GLFWwindow* window_;
+	GLFWwindow*   window_;
+	ImGuiContext* im_gui_context_;
 
 	int width_;
 	int height_;

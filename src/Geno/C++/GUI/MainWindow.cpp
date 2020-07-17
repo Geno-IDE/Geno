@@ -25,9 +25,10 @@
 #include <GLFW/glfw3.h>
 
 MainWindow::MainWindow( void )
-: window_( nullptr )
-, width_ ( 0 )
-, height_( 0 )
+: window_        ( nullptr )
+, im_gui_context_( nullptr )
+, width_         ( 0 )
+, height_        ( 0 )
 {
 	PrimaryMonitor& monitor = PrimaryMonitor::GetInstance();
 
@@ -47,27 +48,33 @@ MainWindow::MainWindow( void )
 
 MainWindow::~MainWindow( void )
 {
-	if( window_ )
+	if( im_gui_context_ )
 	{
 		ImGui_ImplGlfw_Shutdown();
 		ImGui_ImplOpenGL3_Shutdown();
 
 		ImGui::DestroyContext();
+	}
 
+	if( window_ )
+	{
 		glfwDestroyWindow( window_ );
 	}
 }
 
 void MainWindow::Init( void )
 {
-	ImGui::CreateContext();
-	ImGui::StyleColorsDark();
+	if( !im_gui_context_ )
+	{
+		ImGui::CreateContext();
+		ImGui::StyleColorsDark();
 
-	// Requires GLEW to be initialized
-	GLEW::GetInstance();
+		// Requires GLEW to be initialized
+		GLEW::GetInstance();
 
-	ImGui_ImplGlfw_InitForOpenGL( window_, true );
-	ImGui_ImplOpenGL3_Init( "#version 130" );
+		ImGui_ImplGlfw_InitForOpenGL( window_, true );
+		ImGui_ImplOpenGL3_Init( "#version 130" );
+	}
 }
 
 void MainWindow::MakeCurrent( void )
