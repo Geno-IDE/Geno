@@ -11,6 +11,7 @@ function app( name )
 	androidmanifest 'src/%{prj.name}/AndroidManifest.xml'
 	appid '%{settings.bundle_namespace}.%{string.lower(prj.name)}'
 	assetdirs { 'src/%{prj.name}/Assets' }
+	debugdir 'src/%{prj.name}/Assets'
 	javadirs { 'src/%{prj.name}/Java' }
 	kind 'WindowedApp'
 	links( libraries )
