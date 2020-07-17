@@ -1,4 +1,5 @@
 #include "Debugging/Console.h"
+#include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
 #include "ThirdParty/GLEW.h"
 
@@ -10,6 +11,8 @@ int main( int /*argc*/, char* /*argv*/[] )
 
 	while( MainWindow::Get().BeginFrame() )
 	{
+		MainMenuBar::Get().Update();
+
 		MainWindow::Get().EndFrame();
 	}
 
