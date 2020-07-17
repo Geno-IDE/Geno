@@ -1,5 +1,8 @@
-# 🪁 Project
-Describe your project!
+# 🧬 Geno
+Geno is a WIP lightweight cross-platform IDE for native (C/C++) development.
+
+# 🍴 Prerequisites
+* [LLVM](https://releases.llvm.org/download.html)
 
 ## <img src="https://premake.github.io/premake-logo.png" width=32 /> Premake
 This project uses Premake for project configuration. ([What is Premake?](https://github.com/premake/premake-core/wiki/What-Is-Premake))</br>
