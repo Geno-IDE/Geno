@@ -33,6 +33,7 @@ public:
 
 private:
 
+	bool show_demo_window_  = false;
 	bool show_about_window_ = false;
 	bool show_settings_     = false;
 

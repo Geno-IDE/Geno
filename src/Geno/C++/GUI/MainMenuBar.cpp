@@ -59,6 +59,11 @@ void MainMenuBar::Show( void )
 
 		if( ImGui::BeginMenu( "Help" ) )
 		{
+			if( ImGui::MenuItem( "Demo" ) )
+			{
+				show_demo_window_ = true;
+			}
+
 			if( ImGui::MenuItem( "About" ) )
 			{
 				show_about_window_ = true;
@@ -70,14 +75,19 @@ void MainMenuBar::Show( void )
 		ImGui::EndMainMenuBar();
 	}
 
-	if( show_settings_ )
+	if( show_demo_window_ )
 	{
-		SettingsWindow::Get().Show( &show_settings_ );
+		ImGui::ShowDemoWindow( &show_demo_window_ );
 	}
 
 	if( show_about_window_ )
 	{
 		ImGui::ShowAboutWindow( &show_about_window_ );
+	}
+
+	if( show_settings_ )
+	{
+		SettingsWindow::Get().Show( &show_settings_ );
 	}
 }
 
