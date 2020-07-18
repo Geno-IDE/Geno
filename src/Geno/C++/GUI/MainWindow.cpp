@@ -23,6 +23,7 @@
 #include <examples/imgui_impl_glfw.h>
 #include <examples/imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
+#include <imgui_internal.h>
 
 MainWindow::MainWindow( void )
 : window_        ( nullptr )
@@ -106,6 +107,16 @@ void MainWindow::EndFrame( void )
 	ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
 
 	glfwSwapBuffers( window_ );
+}
+
+void MainWindow::PushHorizontalLayout( void )
+{
+	im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Horizontal;
+}
+
+void MainWindow::PopHorizontalLayout( void )
+{
+	im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Vertical;
 }
 
 MainWindow& MainWindow::Get( void )

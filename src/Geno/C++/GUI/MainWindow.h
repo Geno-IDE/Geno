@@ -34,10 +34,12 @@ private:
 
 public:
 
-	void Init       ( void );
-	void MakeCurrent( void );
-	bool BeginFrame ( void );
-	void EndFrame   ( void );
+	void Init                ( void );
+	void MakeCurrent         ( void );
+	bool BeginFrame          ( void );
+	void EndFrame            ( void );
+	void PushHorizontalLayout( void );
+	void PopHorizontalLayout ( void );
 
 public:
 
