@@ -54,7 +54,7 @@ MainWindow::~MainWindow( void )
 		ImGui_ImplGlfw_Shutdown();
 		ImGui_ImplOpenGL3_Shutdown();
 
-		ImGui::DestroyContext();
+		ImGui::DestroyContext( im_gui_context_ );
 	}
 
 	if( window_ )
@@ -67,7 +67,7 @@ void MainWindow::Init( void )
 {
 	if( !im_gui_context_ )
 	{
-		ImGui::CreateContext();
+		im_gui_context_ = ImGui::CreateContext();
 		ImGui::StyleColorsDark();
 
 		// Requires GLEW to be initialized
