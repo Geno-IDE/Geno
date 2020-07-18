@@ -5,13 +5,16 @@
 
 int main( int /*argc*/, char* /*argv*/[] )
 {
+
+#if defined( DEBUG )
 	Console console;
+#endif // DEBUG
 
 	MainWindow::Get().Init();
 
 	while( MainWindow::Get().BeginFrame() )
 	{
-		MainMenuBar::Get().Update();
+		MainMenuBar::Get().Show();
 
 		MainWindow::Get().EndFrame();
 	}

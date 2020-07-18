@@ -16,24 +16,29 @@
  */
 
 #pragma once
+#include <filesystem>
 
-class MainMenuBar
+class SettingsWindow
 {
 private:
 
-	MainMenuBar( void ) = default;
+	SettingsWindow( void ) = default;
 
 public:
 
-	void Show( void );
+	void Show( bool* p_open );
 
 public:
 
-	static MainMenuBar& Get( void );
+	static SettingsWindow& Get( void );
 
 private:
 
-	bool show_about_window_ = false;
-	bool show_settings_     = false;
+	std::filesystem::path llvm_path_;
+
+	int current_panel_item_ = 0;
+	int current_theme_      = 0;
+
+	bool open_;
 
 };

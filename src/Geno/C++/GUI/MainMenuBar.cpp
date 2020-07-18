@@ -18,12 +18,13 @@
 #include "MainMenuBar.h"
 
 #include "GUI/MainWindow.h"
+#include "GUI/SettingsWindow.h"
 
 #include <iostream>
 
 #include <imgui.h>
 
-void MainMenuBar::Update( void )
+void MainMenuBar::Show( void )
 {
 	if( ImGui::BeginMainMenuBar() )
 	{
@@ -37,6 +38,13 @@ void MainMenuBar::Update( void )
 			if( ImGui::MenuItem( "Open", "Ctrl+O" ) )
 			{
 				std::cout << "Open\n";
+			}
+
+			ImGui::Separator();
+
+			if( ImGui::MenuItem( "Settings" ) )
+			{
+				show_settings_ = true;
 			}
 
 			ImGui::Separator();
@@ -62,8 +70,15 @@ void MainMenuBar::Update( void )
 		ImGui::EndMainMenuBar();
 	}
 
+	if( show_settings_ )
+	{
+		SettingsWindow::Get().Show( &show_settings_ );
+	}
+
 	if( show_about_window_ )
+	{
 		ImGui::ShowAboutWindow( &show_about_window_ );
+	}
 }
 
 MainMenuBar& MainMenuBar::Get( void )
