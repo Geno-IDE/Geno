@@ -17,29 +17,33 @@
 
 #include "SettingsWindow.h"
 
+#include "GUI/MainWindow.h"
+
 #include <array>
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 void SettingsWindow::Show( bool* p_open )
 {
-	if( ImGui::Begin( "Settings", p_open, ImGuiWindowFlags_AlwaysAutoResize ) )
+	if( ImGui::Begin( "Settings", p_open ) )
 	{
 		constexpr float list_width   = 120.f;
 		constexpr char* list_items[] = { "Compiler", "Theme" };
+		constexpr float list_height  = 80.f;
 
-		if( ImGui::BeginChildFrame( 1, ImVec2( list_width, ImGui::GetWindowHeight() ), ImGuiWindowFlags_ChildWindow ) )
+		MainWindow::Get().PushHorizontalLayout();
+
+		if( ImGui::BeginChild( 1, ImVec2( list_width, list_height ) ) )
 		{
-			if( ImGui::ListBox( "", &current_panel_item_, list_items, ( int )std::size( list_items ) ) )
+			for( int i = 0; i < std::size( list_items ); ++i )
 			{
+				if( ImGui::Selectable( list_items[ i ], current_panel_item_ == i ) ) { current_panel_item_ = i; }
 			}
-
 		}
-		ImGui::EndChildFrame();
+		ImGui::EndChild();
 
-		ImGui::SameLine();
-
-		if( ImGui::BeginChildFrame( 2, ImVec2( ImGui::GetWindowWidth() - list_width, ImGui::GetWindowHeight() ), ImGuiWindowFlags_ChildWindow ) )
+		if( ImGui::BeginChild( 2 ) )
 		{
 			switch( current_panel_item_ )
 			{
@@ -47,8 +51,7 @@ void SettingsWindow::Show( bool* p_open )
 				{
 					char llvm_path_buf[ 256 ] = { };
 
-					ImGui::TextUnformatted( "LLVM Path:" );
-					ImGui::InputText( "LLVM", llvm_path_buf, std::size( llvm_path_buf ) );
+					ImGui::InputText( "LLVM Path", llvm_path_buf, std::size( llvm_path_buf ) );
 
 					llvm_path_ = llvm_path_buf;
 
@@ -56,14 +59,15 @@ void SettingsWindow::Show( bool* p_open )
 
 				case 1:
 				{
-					ImGui::TextUnformatted( "Theme:" );
-					ImGui::Combo( "Thame:", &current_theme_, "Default\0Light\0Dark\0" );
+					ImGui::Combo( "Theme", &current_theme_, "Default\0Light\0Dark\0" );
 
 				} break;
 			}
 
 		}
-		ImGui::EndChildFrame();
+		ImGui::EndChild();
+
+		MainWindow::Get().PopHorizontalLayout();
 	}
 	ImGui::End();
 }
