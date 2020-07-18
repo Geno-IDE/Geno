@@ -37,7 +37,7 @@ private:
 	std::filesystem::path llvm_path_;
 
 	int current_panel_item_ = 0;
-	int current_theme_      = 0;
+	int current_theme_      = -1;
 
 	bool open_;
 

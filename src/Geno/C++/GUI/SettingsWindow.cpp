@@ -59,7 +59,15 @@ void SettingsWindow::Show( bool* p_open )
 
 				case 1:
 				{
-					ImGui::Combo( "Theme", &current_theme_, "Default\0Light\0Dark\0" );
+					if( ImGui::Combo( "Theme", &current_theme_, "Classic\0Light\0Dark\0" ) )
+					{
+						switch( current_theme_ )
+						{
+							case 0: { ImGui::StyleColorsClassic(); } break;
+							case 1: { ImGui::StyleColorsLight();   } break;
+							case 2: { ImGui::StyleColorsDark();    } break;
+						}
+					}
 
 				} break;
 			}
