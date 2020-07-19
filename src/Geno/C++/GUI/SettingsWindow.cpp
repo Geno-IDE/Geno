@@ -30,11 +30,10 @@ void SettingsWindow::Show( bool* p_open )
 	{
 		constexpr float list_width   = 120.f;
 		constexpr char* list_items[] = { "Compiler", "Theme" };
-		constexpr float list_height  = 80.f;
 
 		MainWindow::Get().PushHorizontalLayout();
 
-		if( ImGui::BeginChild( 1, ImVec2( list_width, list_height ) ) )
+		if( ImGui::BeginChild( 1, ImVec2( list_width, 0.f ) ) )
 		{
 			for( int i = 0; i < std::size( list_items ); ++i )
 			{
@@ -51,9 +50,15 @@ void SettingsWindow::Show( bool* p_open )
 				{
 					char llvm_path_buf[ 256 ] = { };
 
-					ImGui::InputText( "LLVM Path", llvm_path_buf, std::size( llvm_path_buf ) );
+					for( size_t i = 0; i < llvm_path_.native().size(); ++i )
+					{
+						llvm_path_buf[ i ] = ( char )llvm_path_.native().at( i );
+					}
 
-					llvm_path_ = llvm_path_buf;
+					if( ImGui::InputText( "LLVM Path", &llvm_path_buf[ 0 ], std::size( llvm_path_buf ) ) )
+					{
+						llvm_path_ = llvm_path_buf;
+					}
 
 				} break;
 
