@@ -20,6 +20,10 @@
 #include "GUI/PrimaryMonitor.h"
 #include "ThirdParty/GLEW.h"
 
+#if defined( _WIN32 )
+#include <ShlObj.h>
+#endif // _WIN32
+
 #include <examples/imgui_impl_glfw.h>
 #include <examples/imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
@@ -68,7 +72,40 @@ void MainWindow::Init( void )
 	if( !im_gui_context_ )
 	{
 		im_gui_context_ = ImGui::CreateContext();
-		ImGui::StyleColorsDark();
+
+		// Disable settings saving by default
+		ImGui::GetIO().IniFilename = nullptr;
+
+		// #TODO: get user file on other platforms
+
+#if defined( _WIN32 )
+
+		static char filename[ MAX_PATH + 1 ] = { };
+
+		do 
+		{
+			PWSTR buf;
+			if( SHGetKnownFolderPath( FOLDERID_LocalAppData, 0, nullptr, &buf ) != S_OK )
+				break;
+
+			size_t num_converted;
+			if( wcstombs_s( &num_converted, filename, buf, MAX_PATH ) != 0 )
+				break;
+
+			if( strcat_s( filename, MAX_PATH + 1, "\\Geno" ) != 0 )
+				break;
+
+			if( CreateDirectoryA( filename, nullptr ) || GetLastError() == ERROR_ALREADY_EXISTS )
+			{
+				if( strcat_s( filename, MAX_PATH + 1, "\\imgui.ini" ) != 0 )
+					break;
+
+				ImGui::GetIO().IniFilename = filename;
+			}
+
+		} while( false );
+
+#endif // _WIN32
 
 		// Requires GLEW to be initialized
 		GLEW::Get();
