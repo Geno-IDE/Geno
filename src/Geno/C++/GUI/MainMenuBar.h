@@ -29,9 +29,15 @@ public:
 
 public:
 
+	float Height( void ) const { return height_; }
+
+public:
+
 	static MainMenuBar& Get( void );
 
 private:
+
+	float height_ = 0.f;
 
 	bool show_demo_window_  = false;
 	bool show_about_window_ = false;

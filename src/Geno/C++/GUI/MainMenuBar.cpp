@@ -28,6 +28,8 @@ void MainMenuBar::Show( void )
 {
 	if( ImGui::BeginMainMenuBar() )
 	{
+		height_ = ImGui::GetWindowHeight();
+
 		if( ImGui::BeginMenu( "File" ) )
 		{
 			if( ImGui::MenuItem( "New", "Ctrl+N" ) )
