@@ -26,10 +26,7 @@ Win32ProcessInfo::Win32ProcessInfo( void )
 Win32ProcessInfo::Win32ProcessInfo( Win32ProcessInfo&& other )
 	: underlying_data_{ other.underlying_data_ }
 {
-	other.underlying_data_.hProcess    = nullptr;
-	other.underlying_data_.hThread     = nullptr;
-	other.underlying_data_.dwProcessId = 0;
-	other.underlying_data_.dwThreadId  = 0;
+	ZeroMemory( &other.underlying_data_, sizeof( PROCESS_INFORMATION ) );
 }
 
 Win32ProcessInfo::~Win32ProcessInfo( void )
@@ -45,10 +42,7 @@ Win32ProcessInfo& Win32ProcessInfo::operator=( Win32ProcessInfo&& other )
 {
 	underlying_data_ = other.underlying_data_;
 
-	other.underlying_data_.hProcess    = nullptr;
-	other.underlying_data_.hThread     = nullptr;
-	other.underlying_data_.dwProcessId = 0;
-	other.underlying_data_.dwThreadId  = 0;
+	ZeroMemory( &other.underlying_data_, sizeof( PROCESS_INFORMATION ) );
 
 	return *this;
 }
