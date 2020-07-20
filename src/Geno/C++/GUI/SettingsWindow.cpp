@@ -35,9 +35,12 @@ void SettingsWindow::Show( bool* p_open )
 
 		if( ImGui::BeginChild( 1, ImVec2( list_width, 0.f ) ) )
 		{
-			for( int i = 0; i < std::size( list_items ); ++i )
+			for( size_t i = 0; i < std::size( list_items ); ++i )
 			{
-				if( ImGui::Selectable( list_items[ i ], current_panel_item_ == i ) ) { current_panel_item_ = i; }
+				if( ImGui::Selectable( list_items[ i ], current_panel_item_ == ( int )i ) )
+				{
+					current_panel_item_ = ( int )i;
+				}
 			}
 		}
 		ImGui::EndChild();

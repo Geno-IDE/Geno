@@ -7,6 +7,6 @@ return function()
 		'third_party/glew/include',
 	}
 	files {
-		'third_party/glew/src/*.c',
+		'third_party/glew/src/glew.c',
 	}
 end
