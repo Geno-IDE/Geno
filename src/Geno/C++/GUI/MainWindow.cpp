@@ -20,9 +20,14 @@
 #include "GUI/PrimaryMonitor.h"
 #include "ThirdParty/GLEW.h"
 
+#include <array>
+#include <cstring>
+
 #if defined( _WIN32 )
 #include <ShlObj.h>
-#endif // _WIN32
+#elif defined( __linux__ ) // _WIN32
+#include <sys/stat.h>
+#endif // __linux__
 
 #include <examples/imgui_impl_glfw.h>
 #include <examples/imgui_impl_opengl3.h>
@@ -80,7 +85,7 @@ void MainWindow::Init( void )
 
 #if defined( _WIN32 )
 
-		static char filename[ MAX_PATH + 1 ] = { };
+		static char filename[ FILENAME_MAX + 1 ] = { };
 
 		do 
 		{
@@ -92,12 +97,12 @@ void MainWindow::Init( void )
 			if( wcstombs_s( &num_converted, filename, buf, MAX_PATH ) != 0 )
 				break;
 
-			if( strcat_s( filename, MAX_PATH + 1, "\\Geno" ) != 0 )
+			if( strcat_s( filename, std::size( filename ), "\\Geno" ) != 0 )
 				break;
 
 			if( CreateDirectoryA( filename, nullptr ) || GetLastError() == ERROR_ALREADY_EXISTS )
 			{
-				if( strcat_s( filename, MAX_PATH + 1, "\\imgui.ini" ) != 0 )
+				if( strcat_s( filename, std::size( filename ), "\\imgui.ini" ) != 0 )
 					break;
 
 				ImGui::GetIO().IniFilename = filename;
@@ -105,7 +110,44 @@ void MainWindow::Init( void )
 
 		} while( false );
 
-#endif // _WIN32
+#elif defined( __linux__ ) // _WIN32
+
+		static char filename[ FILENAME_MAX + 1 ] = { };
+
+		do 
+		{
+			if( const char* data_home = getenv( "XDG_DATA_HOME" ); data_home != nullptr )
+			{
+				strcpy( filename, data_home );
+			}
+			else if( const char* data_dirs = getenv( "XDG_DATA_DIRS" ); data_home != nullptr )
+			{
+				if( const char* colon = strchr( data_dirs, ':' ); colon != nullptr )
+				{
+					strncpy( filename, data_dirs, colon - data_dirs - 1 );
+				}
+				else
+				{
+					strcpy( filename, data_dirs );
+				}
+			}
+			else
+			{
+				break;
+			}
+
+			strcat( filename, "/geno" );
+
+			if( mkdir( filename, 0777 ) != 0 )
+				break;
+
+			strcat( filename, "/imgui.ini" );
+
+			ImGui::GetIO().IniFilename = filename;
+
+		} while( false );
+
+#endif // __linux__
 
 		// Requires GLEW to be initialized
 		GLEW::Get();

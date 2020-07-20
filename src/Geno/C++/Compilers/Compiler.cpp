@@ -77,10 +77,10 @@ std::wstring Compiler::MakeArgsString( const Args& args ) const
 	string.reserve( 64 );
 
 	// Input file
-	string += L" -c \"" + args.input.native() +  L"\"";
+	string += L" -c \"" + args.input.wstring() +  L"\"";
 
 	// Output file
-	string += L" -o \"" + args.output.native() + L"\"";
+	string += L" -o \"" + args.output.wstring() + L"\"";
 
 	return string;
 }

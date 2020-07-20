@@ -28,16 +28,17 @@ app( settings.workspace_name )
 	}
 
 	filter 'system:windows'
-	ignoredefaultlibraries {
-		'LIBCMT',
-	}
-	disablewarnings {
-		'4099', -- PDB 'foo.pdb' was not found with 'bar.lib(baz.obj)' or at '/output/dir/foo.pdb'; linking object as if no debug info
-	}
-	links {
-		'opengl32',
-		'glew32s',
-	}
+		links {
+			'opengl32',
+		}
+
+	filter 'system:linux'
+		links {
+			'pthread',
+			'dl',
+			'GL',
+			'X11',
+		}
 
 -- Set last app as startup
 workspace( settings.workspace_name )

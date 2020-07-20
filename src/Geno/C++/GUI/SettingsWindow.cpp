@@ -28,8 +28,8 @@ void SettingsWindow::Show( bool* p_open )
 {
 	if( ImGui::Begin( "Settings", p_open ) )
 	{
-		constexpr float list_width   = 120.f;
-		constexpr char* list_items[] = { "Compiler", "Theme" };
+		constexpr float       list_width   = 120.f;
+		constexpr const char* list_items[] = { "Compiler", "Theme" };
 
 		MainWindow::Get().PushHorizontalLayout();
 

@@ -32,6 +32,7 @@ return function()
 		'third_party/glfw/src/linux_*.c',
 		'third_party/glfw/src/posix_*.c',
 		'third_party/glfw/src/x11_*.c',
+		'third_party/glfw/src/xkb_*.c',
 	}
 
 	filter 'system:macosx'
