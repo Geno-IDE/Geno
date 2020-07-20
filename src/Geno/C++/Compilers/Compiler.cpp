@@ -17,6 +17,8 @@
 
 #include "Compiler.h"
 
+#include "Platform/Windows/Win32ProcessInfo.h"
+
 #if defined( _WIN32 )
 #include <Windows.h>
 #endif // _WIN32
@@ -42,10 +44,10 @@ bool Compiler::Compile( std::wstring_view cpp )
 
 #if defined( _WIN32 )
 
-	STARTUPINFO         startup_info { };
-	PROCESS_INFORMATION process_info { };
-	std::wstring        args_string = MakeArgsString( args );
-	DWORD               exit_code;
+	std::wstring     args_string  = MakeArgsString( args );
+	STARTUPINFO      startup_info = { };
+	Win32ProcessInfo process_info;
+	DWORD            exit_code;
 
 	startup_info.cb = sizeof( STARTUPINFO );
 
@@ -54,7 +56,7 @@ bool Compiler::Compile( std::wstring_view cpp )
 
 	do
 	{
-		if( !GetExitCodeProcess( process_info.hProcess, &exit_code ) )
+		if( !GetExitCodeProcess( process_info->hProcess, &exit_code ) )
 			return false;
 
 		Sleep( 1 );
