@@ -167,8 +167,10 @@ bool MainWindow::BeginFrame( void )
 	if( glfwWindowShouldClose( window_ ) )
 		return false;
 
+	const ImVec4 col = ImGui::GetStyleColorVec4( ImGuiCol_WindowBg );
+
 	glfwPollEvents();
-	glClearColor( 0.25f, 0.25f, 0.25f, 1.0f );
+	glClearColor( col.x, col.y, col.z, 1.0f );
 	glClear( GL_COLOR_BUFFER_BIT );
 
 	ImGui_ImplOpenGL3_NewFrame();
