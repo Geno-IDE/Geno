@@ -13,6 +13,7 @@ workspace( settings.workspace_name )
 platforms( utils.get_platforms() )
 configurations { 'Debug', 'Release' }
 
+third_party_library 'glew'
 third_party_library 'glfw'
 third_party_library 'imgui'
 
