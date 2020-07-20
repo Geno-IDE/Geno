@@ -43,7 +43,16 @@ public:
 
 public:
 
+	int Width ( void ) const { return width_; }
+	int Height( void ) const { return height_; }
+
+public:
+
 	static MainWindow& Get( void );
+
+private:
+
+	static void GLFWSizeCB( GLFWwindow* window, int width, int height );
 
 private:
 

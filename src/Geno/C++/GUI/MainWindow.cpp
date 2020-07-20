@@ -51,8 +51,10 @@ MainWindow::MainWindow( void )
 	if( ( window_ = glfwCreateWindow( width_, height_, "Geno", nullptr, nullptr ) ) == nullptr )
 		return;
 
+	glfwSetWindowUserPointer( window_, this );
 	glfwMakeContextCurrent( window_ );
 	glfwSetWindowPos( window_, monitor.X() + ( monitor.Width() - width_ ) / 2, monitor.Y() + ( monitor.Height() - height_ ) / 2 );
+	glfwSetWindowSizeCallback( window_, GLFWSizeCB );
 	glfwSwapInterval( 1 );
 }
 
@@ -204,4 +206,12 @@ MainWindow& MainWindow::Get( void )
 {
 	static MainWindow main_window;
 	return main_window;
+}
+
+void MainWindow::GLFWSizeCB( GLFWwindow* window, int width, int height )
+{
+	MainWindow* self = ( MainWindow* )glfwGetWindowUserPointer( window );
+
+	self->width_  = width;
+	self->height_ = height;
 }
