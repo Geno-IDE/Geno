@@ -34,10 +34,10 @@ GLFW::~GLFW( void )
 	glfwTerminate();
 }
 
-GLFW& GLFW::Get( void )
+GLFW& GLFW::Instance( void )
 {
-	static GLFW glfw;
-	return glfw;
+	static GLFW instance;
+	return instance;
 }
 
 void GLFW::ErrorFunction( int error, const char* description )

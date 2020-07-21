@@ -32,7 +32,7 @@ MainWindow::MainWindow( void )
 , width_         ( 0 )
 , height_        ( 0 )
 {
-	PrimaryMonitor& monitor = PrimaryMonitor::Get();
+	PrimaryMonitor& monitor = PrimaryMonitor::Instance();
 
 	width_  = 3 * monitor.Width()  / 4;
 	height_ = 3 * monitor.Height() / 4;
@@ -76,7 +76,7 @@ void MainWindow::Init( void )
 		ImGui::GetIO().IniFilename = ini_path_.c_str();
 
 		// Requires GLEW to be initialized
-		GLEW::Get();
+		GLEW::Instance();
 
 		ImGui_ImplGlfw_InitForOpenGL( window_, true );
 		ImGui_ImplOpenGL3_Init( "#version 130" );
@@ -126,10 +126,10 @@ void MainWindow::PopHorizontalLayout( void )
 	im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Vertical;
 }
 
-MainWindow& MainWindow::Get( void )
+MainWindow& MainWindow::Instance( void )
 {
-	static MainWindow main_window;
-	return main_window;
+	static MainWindow instance;
+	return instance;
 }
 
 void MainWindow::GLFWSizeCB( GLFWwindow* window, int width, int height )

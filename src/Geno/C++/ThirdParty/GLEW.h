@@ -30,6 +30,6 @@ private:
 
 public:
 
-	static GLEW& Get( void );
+	static GLEW& Instance( void );
 
 };

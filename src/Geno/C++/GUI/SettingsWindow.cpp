@@ -31,7 +31,7 @@ void SettingsWindow::Show( bool* p_open )
 		constexpr float       list_width   = 120.f;
 		constexpr const char* list_items[] = { "Compiler", "Theme" };
 
-		MainWindow::Get().PushHorizontalLayout();
+		MainWindow::Instance().PushHorizontalLayout();
 
 		if( ImGui::BeginChild( 1, ImVec2( list_width, 0.f ) ) )
 		{
@@ -83,13 +83,13 @@ void SettingsWindow::Show( bool* p_open )
 		}
 		ImGui::EndChild();
 
-		MainWindow::Get().PopHorizontalLayout();
+		MainWindow::Instance().PopHorizontalLayout();
 	}
 	ImGui::End();
 }
 
-SettingsWindow& SettingsWindow::Get( void )
+SettingsWindow& SettingsWindow::Instance( void )
 {
-	static SettingsWindow settings_window;
-	return settings_window;
+	static SettingsWindow instance;
+	return instance;
 }

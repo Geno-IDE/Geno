@@ -11,19 +11,19 @@ int main( int /*argc*/, char* /*argv*/[] )
 	Console console;
 #endif // DEBUG
 
-	MainWindow::Get().Init();
+	MainWindow::Instance().Init();
 
 //////////////////////////////////////////////////////////////////////////
 
 	TextEditor text_editor;
 
-	while( MainWindow::Get().BeginFrame() )
+	while( MainWindow::Instance().BeginFrame() )
 	{
 		text_editor.Show();
 
-		MainMenuBar::Get().Show();
+		MainMenuBar::Instance().Show();
 
-		MainWindow::Get().EndFrame();
+		MainWindow::Instance().EndFrame();
 	}
 
 	return 0;

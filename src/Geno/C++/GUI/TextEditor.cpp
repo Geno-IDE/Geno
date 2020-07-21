@@ -55,10 +55,10 @@ void TextEditor::Show( void )
 		| ImGuiWindowFlags_NoBringToFrontOnFocus
 	);
 
-	MainWindow& main_window = MainWindow::Get();
+	MainWindow& main_window = MainWindow::Instance();
 
 	ImVec2 pos;
-	pos.y += MainMenuBar::Get().Height();
+	pos.y += MainMenuBar::Instance().Height();
 
 	ImGui::SetNextWindowPos( pos, ImGuiCond_Always );
 	ImGui::SetNextWindowSize( ImVec2( main_window.Width() - pos.x, main_window.Height() - pos.y ), ImGuiCond_Always );

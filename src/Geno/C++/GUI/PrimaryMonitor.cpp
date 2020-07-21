@@ -29,7 +29,7 @@ PrimaryMonitor::PrimaryMonitor( void )
 	, height_ ( 0 )
 {
 	// Depends on GLFW to be initialized
-	GLFW::Get();
+	GLFW::Instance();
 
 	glfwSetMonitorCallback( MonitorFunction );
 
@@ -46,10 +46,10 @@ PrimaryMonitor::PrimaryMonitor( void )
 	}
 }
 
-PrimaryMonitor& PrimaryMonitor::Get( void )
+PrimaryMonitor& PrimaryMonitor::Instance( void )
 {
-	static PrimaryMonitor primary_monitor;
-	return primary_monitor;
+	static PrimaryMonitor instance;
+	return instance;
 }
 
 void PrimaryMonitor::MonitorFunction( GLFWmonitor* monitor, int /*event*/ )

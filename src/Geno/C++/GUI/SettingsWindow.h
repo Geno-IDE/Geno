@@ -30,7 +30,7 @@ public:
 
 public:
 
-	static SettingsWindow& Get( void );
+	static SettingsWindow& Instance( void );
 
 private:
 

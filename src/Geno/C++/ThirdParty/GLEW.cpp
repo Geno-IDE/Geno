@@ -26,7 +26,7 @@
 GLEW::GLEW( void )
 {
 	// Depends on a current context
-	MainWindow::Get().MakeCurrent();
+	MainWindow::Instance().MakeCurrent();
 
 	if( GLenum err = glewInit(); err != GLEW_OK )
 	{
@@ -35,8 +35,8 @@ GLEW::GLEW( void )
 	}
 }
 
-GLEW& GLEW::Get( void )
+GLEW& GLEW::Instance( void )
 {
-	static GLEW glew;
-	return glew;
+	static GLEW instance;
+	return instance;
 }

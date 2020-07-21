@@ -78,7 +78,7 @@ void MainMenuBar::Show( void )
 
 	if( show_settings_ )
 	{
-		SettingsWindow::Get().Show( &show_settings_ );
+		SettingsWindow::Instance().Show( &show_settings_ );
 	}
 
 	// Keybinds
@@ -102,10 +102,10 @@ void MainMenuBar::Show( void )
 	}
 }
 
-MainMenuBar& MainMenuBar::Get( void )
+MainMenuBar& MainMenuBar::Instance( void )
 {
-	static MainMenuBar main_menu_bar;
-	return main_menu_bar;
+	static MainMenuBar instance;
+	return instance;
 }
 
 void MainMenuBar::ActionFileNew( void )

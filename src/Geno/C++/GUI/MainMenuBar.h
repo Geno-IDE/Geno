@@ -35,7 +35,7 @@ public:
 
 public:
 
-	static MainMenuBar& Get( void );
+	static MainMenuBar& Instance( void );
 
 private:
 

@@ -50,7 +50,7 @@ public:
 
 public:
 
-	static MainWindow& Get( void );
+	static MainWindow& Instance( void );
 
 private:
 
