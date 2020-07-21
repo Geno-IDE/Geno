@@ -17,6 +17,7 @@
 
 #include "Compiler.h"
 
+#include "Core/LocalAppData.h"
 #include "Platform/Windows/Win32ProcessInfo.h"
 
 #include <iostream>
@@ -45,14 +46,15 @@ bool Compiler::Compile( std::wstring_view cpp )
 
 #if defined( _WIN32 )
 
-	std::wstring     args_string  = MakeArgsString( args );
+	std::wstring     command_line = MakeCommandLine( args );
+	path_string      cd           = LocalAppData::Instance().Path();
 	STARTUPINFO      startup_info = { };
 	Win32ProcessInfo process_info;
 	DWORD            exit_code;
 
 	startup_info.cb = sizeof( STARTUPINFO );
 
-	if( !CreateProcessW( ( path_ / L"bin/clang++.exe" ).c_str(), &args_string[ 0 ], NULL, NULL, TRUE, 0, NULL, NULL, &startup_info, &process_info ) )
+	if( !CreateProcessW( NULL, &command_line[ 0 ], NULL, NULL, TRUE, 0, NULL, NULL, &startup_info, &process_info ) )
 	{
 		wchar_t buf[ 256 ];
 		FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), buf, std::size( buf ), NULL );
@@ -73,6 +75,11 @@ bool Compiler::Compile( std::wstring_view cpp )
 		Sleep( 1 );
 
 	} while( exit_code == STILL_ACTIVE );
+
+	if( exit_code == 0 )
+	{
+		std::cout << "Build successful!\n";
+	}
 
 	return ( exit_code == 0 );
 
@@ -97,16 +104,19 @@ Compiler& Compiler::Instance( void )
 	return instance;
 }
 
-std::wstring Compiler::MakeArgsString( const Args& args ) const
+std::wstring Compiler::MakeCommandLine( const Args& args ) const
 {
 	std::wstring string;
-	string.reserve( 64 );
+	string.reserve( 128 );
 
-	// Input file
-	string += L" -c \"" + args.input.wstring() +  L"\"";
+	// GCC. Must be added first.
+	string += L"g++ ";
 
-	// Output file
+	// Output file. Must be added last
 	string += L" -o \"" + args.output.wstring() + L"\"";
+
+	// Input file. Must be added last
+	string += L" \"" + args.input.wstring() +  L"\"";
 
 	return string;
 }

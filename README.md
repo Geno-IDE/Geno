@@ -2,6 +2,13 @@
 Geno is a WIP lightweight cross-platform IDE for native (C/C++) development.
 
 # 🍴 Prerequisites
+
+<u>Windows</u>
+
+* [MinGW](https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/)
+
+<u>Unix</u>
+
 * [LLVM](https://releases.llvm.org/download.html)
 
 ## <img src="https://premake.github.io/premake-logo.png" width=32 /> Premake

@@ -52,7 +52,7 @@ private:
 
 private:
 
-	std::wstring MakeArgsString( const Args& args ) const;
+	std::wstring MakeCommandLine( const Args& args ) const;
 
 private:
 
