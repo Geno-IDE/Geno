@@ -19,6 +19,8 @@
 
 #include "Platform/Windows/Win32ProcessInfo.h"
 
+#include <iostream>
+
 #if defined( _WIN32 )
 #include <Windows.h>
 #endif // _WIN32
@@ -52,12 +54,22 @@ bool Compiler::Compile( std::wstring_view cpp )
 	startup_info.cb = sizeof( STARTUPINFO );
 
 	if( !CreateProcessW( ( path_ / L"bin/clang++.exe" ).c_str(), &args_string[ 0 ], NULL, NULL, TRUE, 0, NULL, NULL, &startup_info, &process_info ) )
+	{
+		wchar_t buf[ 256 ];
+		FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), buf, std::size( buf ), NULL );
+		std::wcerr << L"CreateProcessW failed: " << buf;
 		return false;
+	}
 
 	do
 	{
 		if( !GetExitCodeProcess( process_info->hProcess, &exit_code ) )
+		{
+			wchar_t buf[ 256 ];
+			FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), buf, std::size( buf ), NULL );
+			std::wcerr << L"GetExitCodeProcess failed: " << buf;
 			return false;
+		}
 
 		Sleep( 1 );
 
