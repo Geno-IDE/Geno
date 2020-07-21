@@ -120,7 +120,7 @@ void MainMenuBar::ActionFileOpen( void )
 
 void MainMenuBar::ActionFileSettings( void )
 {
-	show_settings_ = true;
+	show_settings_ ^= 1;
 }
 
 void MainMenuBar::ActionFileExit( void )
@@ -135,10 +135,10 @@ void MainMenuBar::ActionBuildBuild( void )
 
 void MainMenuBar::ActionHelpDemo( void )
 {
-	show_demo_window_ = true;
+	show_demo_window_ ^= 1;
 }
 
 void MainMenuBar::ActionHelpAbout( void )
 {
-	show_about_window_ = true;
+	show_about_window_ ^= 1;
 }
