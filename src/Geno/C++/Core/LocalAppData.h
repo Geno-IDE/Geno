@@ -16,6 +16,7 @@
  */
 
 #pragma once
+#include "Core/Aliases.h"
 #include "Core/Macros.h"
 
 #include <filesystem>
@@ -35,6 +36,10 @@ public:
 
 	std::string  operator/( std::string_view relative_path )  const;
 	std::wstring operator/( std::wstring_view relative_path ) const;
+
+public:
+
+	path_string Path( void ) const { return path_; }
 
 public:
 
