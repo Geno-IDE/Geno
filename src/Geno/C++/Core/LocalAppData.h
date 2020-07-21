@@ -18,52 +18,30 @@
 #pragma once
 #include "Core/Macros.h"
 
+#include <filesystem>
 #include <string>
 
-struct GLFWwindow;
-struct ImGuiContext;
-
-class MainWindow
+class LocalAppData
 {
 public:
 
-	GENO_DISABLE_COPY_AND_MOVE( MainWindow );
+	GENO_DISABLE_COPY_AND_MOVE( LocalAppData );
 
 private:
 
-	 MainWindow( void );
-	~MainWindow( void );
+	LocalAppData( void );
 
 public:
 
-	void Init                ( void );
-	void MakeCurrent         ( void );
-	bool BeginFrame          ( void );
-	void EndFrame            ( void );
-	void PushHorizontalLayout( void );
-	void PopHorizontalLayout ( void );
+	std::string  operator/( std::string_view relative_path )  const;
+	std::wstring operator/( std::wstring_view relative_path ) const;
 
 public:
 
-	int Width ( void ) const { return width_; }
-	int Height( void ) const { return height_; }
-
-public:
-
-	static MainWindow& Get( void );
+	static LocalAppData& Instance( void );
 
 private:
 
-	static void GLFWSizeCB( GLFWwindow* window, int width, int height );
-
-private:
-
-	GLFWwindow*   window_;
-	ImGuiContext* im_gui_context_;
-
-	std::string ini_path_;
-
-	int width_;
-	int height_;
+	std::filesystem::path path_;
 
 };
