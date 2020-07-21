@@ -66,11 +66,24 @@ void TextEditor::Show( void )
 
 	if( ImGui::Begin( "TextEditor", &show_, window_flags ) )
 	{
-		const int input_text_flags = ImGuiInputTextFlags_AllowTabInput;
+		const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
 
-		if( ImGui::InputTextMultiline( "Editor", &text_, ImVec2( 0, 0 ), input_text_flags ) )
+		if( ImGui::InputTextMultiline( "Editor", &text_[ 0 ], text_.size() + 1, ImGui::GetWindowSize(), input_text_flags, InputTextCB, this ) )
 		{
 		}
 	}
 	ImGui::End();
+}
+
+int TextEditor::InputTextCB( ImGuiInputTextCallbackData* data )
+{
+	TextEditor* self = ( TextEditor* )data->UserData;
+
+	if( data->EventFlag == ImGuiInputTextFlags_CallbackResize )
+	{
+		self->text_.resize( data->BufTextLen );
+		data->Buf = &self->text_[ 0 ];
+	}
+
+	return 0;
 }

@@ -20,6 +20,8 @@
 
 #include <string>
 
+struct ImGuiInputTextCallbackData;
+
 class TextEditor
 {
 public:
@@ -36,6 +38,10 @@ public:
 public:
 
 	void Show( void );
+
+private:
+
+	static int InputTextCB( ImGuiInputTextCallbackData* data );
 
 private:
 
