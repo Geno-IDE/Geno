@@ -17,6 +17,8 @@
 
 #include "MainMenuBar.h"
 
+#include "Compilers/Compiler.h"
+#include "Core/LocalAppData.h"
 #include "GUI/MainWindow.h"
 #include "GUI/SettingsWindow.h"
 
@@ -132,7 +134,7 @@ void MainMenuBar::ActionFileExit( void )
 
 void MainMenuBar::ActionBuildBuild( void )
 {
-	std::cout << "Build\n";
+	Compiler::Instance().Compile( LocalAppData::Instance() / L"build.cpp" );
 }
 
 void MainMenuBar::ActionHelpDemo( void )

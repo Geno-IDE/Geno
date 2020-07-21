@@ -17,6 +17,7 @@
 
 #include "SettingsWindow.h"
 
+#include "Compilers/Compiler.h"
 #include "GUI/MainWindow.h"
 
 #include <array>
@@ -51,7 +52,7 @@ void SettingsWindow::Show( bool* p_open )
 			{
 				case 0:
 				{
-					char llvm_path_buf[ 256 ] = { };
+					char llvm_path_buf[ FILENAME_MAX + 1 ] = { };
 
 					for( size_t i = 0; i < llvm_path_.native().size(); ++i )
 					{
@@ -61,6 +62,8 @@ void SettingsWindow::Show( bool* p_open )
 					if( ImGui::InputText( "LLVM Path", &llvm_path_buf[ 0 ], std::size( llvm_path_buf ) ) )
 					{
 						llvm_path_ = llvm_path_buf;
+
+						Compiler::Instance().SetLLVMPath( llvm_path_.native() );
 					}
 
 				} break;
@@ -79,7 +82,6 @@ void SettingsWindow::Show( bool* p_open )
 
 				} break;
 			}
-
 		}
 		ImGui::EndChild();
 

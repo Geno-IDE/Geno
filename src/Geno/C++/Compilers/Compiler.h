@@ -16,6 +16,9 @@
  */
 
 #pragma once
+#include "Core/Aliases.h"
+#include "Core/Macros.h"
+
 #include <filesystem>
 #include <string_view>
 #include <string>
@@ -24,11 +27,20 @@ class Compiler
 {
 public:
 
-	Compiler( std::wstring_view path );
+	GENO_DISABLE_COPY_AND_MOVE( Compiler );
+
+private:
+
+	Compiler( void );
 
 public:
 
-	bool Compile( std::wstring_view cpp );
+	bool Compile    ( std::wstring_view cpp );
+	void SetLLVMPath( path_view llvm_path );
+
+public:
+
+	static Compiler& Instance( void );
 
 private:
 

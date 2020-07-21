@@ -16,21 +16,9 @@
  */
 
 #pragma once
-#include <type_traits>
+#include <filesystem>
+#include <string_view>
 
-// Function argument type deduction by courtesy of https://stackoverflow.com/a/35348334
+using path      = std::filesystem::path;
+using path_view = std::basic_string_view< std::filesystem::path::value_type >;
 
-template< typename Ret, typename Arg, typename... Rest >
-constexpr Arg _FirstArgumentHelper( Ret( * )( Arg, Rest... ) );
-
-template< typename Ret, typename F, typename Arg, typename... Rest >
-constexpr Arg _FirstArgumentHelper( Ret( F::* )( Arg, Rest... ) );
-
-template< typename Ret, typename F, typename Arg, typename... Rest >
-constexpr Arg _FirstArgumentHelper( Ret( F::* )( Arg, Rest... ) const );
-
-template< typename F >
-constexpr decltype( _FirstArgumentHelper( &F::operator() ) ) _FirstArgumentHelper( F );
-
-template< typename T >
-using FirstArgumentType = decltype( _FirstArgumentHelper( std::declval< T >() ) );

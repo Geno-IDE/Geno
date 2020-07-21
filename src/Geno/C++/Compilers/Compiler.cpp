@@ -25,8 +25,7 @@
 #include <Windows.h>
 #endif // _WIN32
 
-Compiler::Compiler( std::wstring_view path )
-	: path_( path )
+Compiler::Compiler( void )
 {
 }
 
@@ -79,10 +78,23 @@ bool Compiler::Compile( std::wstring_view cpp )
 
 #else // _WIN32
 
+#error Invoke compiler
+
 	return false;
 
-#endif // _WIN32
+#endif // else
 
+}
+
+void Compiler::SetLLVMPath( path_view llvm_path )
+{
+	path_ = llvm_path;
+}
+
+Compiler& Compiler::Instance( void )
+{
+	static Compiler instance;
+	return instance;
 }
 
 std::wstring Compiler::MakeArgsString( const Args& args ) const
