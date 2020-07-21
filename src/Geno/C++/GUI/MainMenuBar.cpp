@@ -66,21 +66,6 @@ void MainMenuBar::Show( void )
 		ImGui::EndMainMenuBar();
 	}
 
-	if( show_demo_window_ )
-	{
-		ImGui::ShowDemoWindow( &show_demo_window_ );
-	}
-
-	if( show_about_window_ )
-	{
-		ImGui::ShowAboutWindow( &show_about_window_ );
-	}
-
-	if( show_settings_ )
-	{
-		SettingsWindow::Instance().Show( &show_settings_ );
-	}
-
 	// Keybinds
 
 	if( ImGui::IsKeyDown( GLFW_KEY_LEFT_SHIFT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_SHIFT ) )
@@ -99,6 +84,23 @@ void MainMenuBar::Show( void )
 	else
 	{
 		if( ImGui::IsKeyPressed( GLFW_KEY_F7 ) ) ActionBuildBuild();
+	}
+
+	// Show windows
+
+	if( show_demo_window_ )
+	{
+		ImGui::ShowDemoWindow( &show_demo_window_ );
+	}
+
+	if( show_about_window_ )
+	{
+		ImGui::ShowAboutWindow( &show_about_window_ );
+	}
+
+	if( show_settings_ )
+	{
+		SettingsWindow::Instance().Show( &show_settings_ );
 	}
 }
 
