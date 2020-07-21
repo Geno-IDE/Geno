@@ -16,12 +16,11 @@
  */
 
 #pragma once
-#include "Geno/Core/TypeTraits.h"
+#include "Core/Macros.h"
+#include "Core/TypeTraits.h"
 
 #include <functional>
 #include <tuple>
-
-GENO_NAMESPACE_BEGIN
 
 template< typename Derived, typename... Types >
 class EventDispatcher
@@ -29,11 +28,13 @@ class EventDispatcher
 public:
 
 	GENO_DISABLE_COPY( EventDispatcher );
-	GENO_DEFAULT_MOVE( EventDispatcher );
 
 public:
 
-	EventDispatcher( void ) = default;
+	EventDispatcher( void )              = default;
+	EventDispatcher( EventDispatcher&& ) = default;
+
+	EventDispatcher& operator=( EventDispatcher&& ) = default;
 
 public:
 
@@ -86,5 +87,3 @@ private:
 	std::tuple< SubscriberVector< Types >... > subscribers_;
 
 };
-
-GENO_NAMESPACE_END
