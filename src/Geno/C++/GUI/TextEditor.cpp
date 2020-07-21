@@ -17,8 +17,11 @@
 
 #include "TextEditor.h"
 
+#include "Core/LocalAppData.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
+
+#include <fstream>
 
 #include <imgui.h>
 
@@ -26,6 +29,10 @@ TextEditor::TextEditor( void )
 	: text_( "#include <iostream>\n\nint main(int argc, char* argv[])\n{\n\tstd::cout << \"Hello, world!\\n\";\n\treturn 0;\n}\n" )
 	, show_( true )
 {
+	if( std::ifstream ifs( LocalAppData::Instance() / L"build.cpp" ); ifs.is_open() )
+	{
+		text_.assign( ( std::istreambuf_iterator< char >( ifs ) ), std::istreambuf_iterator< char >() );
+	}
 }
 
 TextEditor::TextEditor( TextEditor&& other )
@@ -71,6 +78,8 @@ void TextEditor::Show( void )
 
 		if( ImGui::InputTextMultiline( "Editor", &text_[ 0 ], text_.size(), ImGui::GetWindowSize(), input_text_flags, InputTextCB, this ) )
 		{
+			std::ofstream ofs( LocalAppData::Instance() / "build.cpp", std::ios::binary | std::ios::trunc );
+			ofs << text_;
 		}
 	}
 	ImGui::End();
