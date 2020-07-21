@@ -18,7 +18,8 @@
 #pragma once
 #include <filesystem>
 #include <string_view>
+#include <string>
 
-using path      = std::filesystem::path;
-using path_view = std::basic_string_view< std::filesystem::path::value_type >;
-
+using path        = std::filesystem::path;
+using path_string = std::basic_string< std::filesystem::path::value_type >;
+using path_view   = std::basic_string_view< std::filesystem::path::value_type >;
