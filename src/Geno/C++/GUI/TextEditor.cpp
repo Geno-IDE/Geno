@@ -64,6 +64,8 @@ void TextEditor::Show( void )
 	ImGui::SetNextWindowPos( pos, ImGuiCond_Always );
 	ImGui::SetNextWindowSize( ImVec2( main_window.Width() - pos.x, main_window.Height() - pos.y ), ImGuiCond_Always );
 
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0.0f );
 	if( ImGui::Begin( "TextEditor", &show_, window_flags ) )
 	{
 		const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
@@ -73,6 +75,7 @@ void TextEditor::Show( void )
 		}
 	}
 	ImGui::End();
+	ImGui::PopStyleVar( 2 );
 }
 
 int TextEditor::InputTextCB( ImGuiInputTextCallbackData* data )
