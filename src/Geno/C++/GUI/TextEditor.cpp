@@ -21,6 +21,7 @@
 #include "GUI/MainWindow.h"
 
 #include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 TextEditor::TextEditor( void )
 	: text_( "#include <iostream>\n\nint main(int argc, char* argv[])\n{\n\tstd::cout << \"Hello, world!\\n\";\n\treturn 0;\n}\n" )
@@ -67,7 +68,9 @@ void TextEditor::Show( void )
 	{
 		const int input_text_flags = ImGuiInputTextFlags_AllowTabInput;
 
-		ImGui::InputTextMultiline( "Editor", &text_[ 0 ], text_.size(), ImVec2( 0, 0 ), input_text_flags );
+		if( ImGui::InputTextMultiline( "Editor", &text_, ImVec2( 0, 0 ), input_text_flags ) )
+		{
+		}
 	}
 	ImGui::End();
 }
