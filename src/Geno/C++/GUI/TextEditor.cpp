@@ -21,7 +21,6 @@
 #include "GUI/MainWindow.h"
 
 #include <imgui.h>
-#include <misc/cpp/imgui_stdlib.h>
 
 TextEditor::TextEditor( void )
 	: text_( "#include <iostream>\n\nint main(int argc, char* argv[])\n{\n\tstd::cout << \"Hello, world!\\n\";\n\treturn 0;\n}\n" )
