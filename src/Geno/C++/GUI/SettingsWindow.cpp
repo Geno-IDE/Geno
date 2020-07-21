@@ -18,12 +18,24 @@
 #include "SettingsWindow.h"
 
 #include "Compilers/Compiler.h"
+#include "Core/LocalAppData.h"
 #include "GUI/MainWindow.h"
 
 #include <array>
+#include <fstream>
 
 #include <imgui.h>
 #include <imgui_internal.h>
+
+SettingsWindow::SettingsWindow( void )
+{
+	if( std::ifstream ifs( LocalAppData::Instance() / "llvm-path.txt" ); ifs.good() )
+	{
+		ifs >> llvm_path_;
+
+		Compiler::Instance().SetLLVMPath( llvm_path_.native() );
+	}
+}
 
 void SettingsWindow::Show( bool* p_open )
 {
@@ -64,6 +76,9 @@ void SettingsWindow::Show( bool* p_open )
 						llvm_path_ = llvm_path_buf;
 
 						Compiler::Instance().SetLLVMPath( llvm_path_.native() );
+
+						std::ofstream ofs( LocalAppData::Instance() / "llvm-path.txt", std::ios::binary | std::ios::trunc );
+						ofs << llvm_path_;
 					}
 
 				} break;

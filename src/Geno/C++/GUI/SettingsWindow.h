@@ -22,7 +22,7 @@ class SettingsWindow
 {
 private:
 
-	SettingsWindow( void ) = default;
+	SettingsWindow( void );
 
 public:
 
