@@ -20,8 +20,10 @@
 #include "GUI/MainWindow.h"
 #include "GUI/SettingsWindow.h"
 
+#include <string>
 #include <iostream>
 
+#include <GLFW/glfw3.h>
 #include <imgui.h>
 
 void MainMenuBar::Show( void )
@@ -32,44 +34,31 @@ void MainMenuBar::Show( void )
 
 		if( ImGui::BeginMenu( "File" ) )
 		{
-			if( ImGui::MenuItem( "New", "Ctrl+N" ) )
-			{
-				std::cout << "New\n";
-			}
-
-			if( ImGui::MenuItem( "Open", "Ctrl+O" ) )
-			{
-				std::cout << "Open\n";
-			}
+			if( ImGui::MenuItem( "New", "Ctrl+N" ) )  ActionFileNew();
+			if( ImGui::MenuItem( "Open", "Ctrl+O" ) ) ActionFileOpen();
 
 			ImGui::Separator();
 
-			if( ImGui::MenuItem( "Settings" ) )
-			{
-				show_settings_ = true;
-			}
+			if( ImGui::MenuItem( "Settings", "Alt+S" ) ) ActionFileSettings();
 
 			ImGui::Separator();
 
-			if( ImGui::MenuItem( "Exit" ) )
-			{
-				exit( 0 );
-			}
+			if( ImGui::MenuItem( "Exit", "Alt+E" ) ) ActionFileExit();
+
+			ImGui::EndMenu();
+		}
+
+		if( ImGui::BeginMenu( "Build" ) )
+		{
+			if( ImGui::MenuItem( "Build", "F7" ) ) ActionBuildBuild();
 
 			ImGui::EndMenu();
 		}
 
 		if( ImGui::BeginMenu( "Help" ) )
 		{
-			if( ImGui::MenuItem( "Demo" ) )
-			{
-				show_demo_window_ = true;
-			}
-
-			if( ImGui::MenuItem( "About" ) )
-			{
-				show_about_window_ = true;
-			}
+			if( ImGui::MenuItem( "Demo" ) )  ActionHelpDemo();
+			if( ImGui::MenuItem( "About" ) ) ActionHelpAbout();
 
 			ImGui::EndMenu();
 		}
@@ -91,10 +80,65 @@ void MainMenuBar::Show( void )
 	{
 		SettingsWindow::Get().Show( &show_settings_ );
 	}
+
+	// Keybinds
+
+	if( ImGui::IsKeyDown( GLFW_KEY_LEFT_SHIFT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_SHIFT ) )
+	{
+	}
+	else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_CONTROL ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_CONTROL ) )
+	{
+		if( ImGui::IsKeyPressed( GLFW_KEY_N ) ) ActionFileNew();
+		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionFileOpen();
+	}
+	else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_ALT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_ALT ) )
+	{
+		if( ImGui::IsKeyPressed( GLFW_KEY_S ) ) ActionFileSettings();
+		if( ImGui::IsKeyPressed( GLFW_KEY_E ) ) ActionFileExit();
+	}
+	else
+	{
+		if( ImGui::IsKeyPressed( GLFW_KEY_F7 ) ) ActionBuildBuild();
+	}
 }
 
 MainMenuBar& MainMenuBar::Get( void )
 {
 	static MainMenuBar main_menu_bar;
 	return main_menu_bar;
+}
+
+void MainMenuBar::ActionFileNew( void )
+{
+	std::cout << "New\n";
+}
+
+void MainMenuBar::ActionFileOpen( void )
+{
+	std::cout << "Open\n";
+}
+
+void MainMenuBar::ActionFileSettings( void )
+{
+	show_settings_ = true;
+}
+
+void MainMenuBar::ActionFileExit( void )
+{
+	exit( 0 );
+}
+
+void MainMenuBar::ActionBuildBuild( void )
+{
+	std::cout << "Build\n";
+}
+
+void MainMenuBar::ActionHelpDemo( void )
+{
+	show_demo_window_ = true;
+}
+
+void MainMenuBar::ActionHelpAbout( void )
+{
+	show_about_window_ = true;
 }

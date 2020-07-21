@@ -69,7 +69,7 @@ void TextEditor::Show( void )
 	{
 		const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
 
-		if( ImGui::InputTextMultiline( "Editor", &text_[ 0 ], text_.size() + 1, ImGui::GetWindowSize(), input_text_flags, InputTextCB, this ) )
+		if( ImGui::InputTextMultiline( "Editor", &text_[ 0 ], text_.size(), ImGui::GetWindowSize(), input_text_flags, InputTextCB, this ) )
 		{
 		}
 	}

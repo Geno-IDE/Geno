@@ -16,6 +16,8 @@
  */
 
 #pragma once
+#include <string_view>
+#include <vector>
 
 class MainMenuBar
 {
@@ -34,6 +36,16 @@ public:
 public:
 
 	static MainMenuBar& Get( void );
+
+private:
+
+	void ActionFileNew     ( void );
+	void ActionFileOpen    ( void );
+	void ActionFileSettings( void );
+	void ActionFileExit    ( void );
+	void ActionBuildBuild  ( void );
+	void ActionHelpDemo    ( void );
+	void ActionHelpAbout   ( void );
 
 private:
 
