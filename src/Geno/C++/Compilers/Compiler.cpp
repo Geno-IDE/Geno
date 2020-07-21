@@ -110,7 +110,7 @@ std::wstring Compiler::MakeCommandLine( const Args& args ) const
 	string.reserve( 128 );
 
 	// GCC. Must be added first.
-	string += L"g++ ";
+	string += ( path_ / L"bin" / L"g++" ) += L" ";
 
 	// Output file. Must be added last
 	string += L" -o \"" + args.output.wstring() + L"\"";
