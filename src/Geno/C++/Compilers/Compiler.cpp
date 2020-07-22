@@ -22,6 +22,8 @@
 
 #include <iostream>
 
+#include <io.h>
+
 #if defined( _WIN32 )
 #include <Windows.h>
 #endif // _WIN32
@@ -52,7 +54,20 @@ bool Compiler::Compile( std::wstring_view cpp )
 	Win32ProcessInfo process_info;
 	DWORD            exit_code;
 
-	startup_info.cb = sizeof( STARTUPINFO );
+	startup_info.cb         = sizeof( STARTUPINFO );
+	startup_info.hStdInput  = GetStdHandle( STD_INPUT_HANDLE );
+	startup_info.hStdOutput = GetStdHandle( STD_OUTPUT_HANDLE );
+	startup_info.hStdError  = GetStdHandle( STD_ERROR_HANDLE );
+	startup_info.dwFlags    = STARTF_USESTDHANDLES;
+
+	if( int in = _fileno( stdin ); in > 0 )
+		startup_info.hStdInput = ( HANDLE )_get_osfhandle( in );
+
+	if( int out = _fileno( stdout ); out > 0 )
+		startup_info.hStdOutput = ( HANDLE )_get_osfhandle( out );
+	
+	if( int err = _fileno( stderr ); err > 0 )
+		startup_info.hStdError = ( HANDLE )_get_osfhandle( err );
 
 	if( !CreateProcessW( NULL, &command_line[ 0 ], NULL, NULL, TRUE, 0, NULL, NULL, &startup_info, &process_info ) )
 	{
