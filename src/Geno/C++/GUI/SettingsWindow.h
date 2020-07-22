@@ -34,11 +34,15 @@ public:
 
 private:
 
-	std::filesystem::path llvm_path_;
-
 	int current_panel_item_ = 0;
 	int current_theme_      = -1;
 
 	bool open_;
+
+#if defined( _WIN32 )
+	std::filesystem::path mingw_path_;
+#elif defined( __linux__ ) // _WIN32
+	std::filesystem::path llvm_path_;
+#endif // __linux
 
 };

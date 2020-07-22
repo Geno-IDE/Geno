@@ -93,9 +93,9 @@ bool Compiler::Compile( std::wstring_view cpp )
 
 }
 
-void Compiler::SetLLVMPath( path_view llvm_path )
+void Compiler::SetPath( path_view path )
 {
-	path_ = llvm_path;
+	path_ = path;
 }
 
 Compiler& Compiler::Instance( void )

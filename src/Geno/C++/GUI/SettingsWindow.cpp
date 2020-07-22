@@ -29,12 +29,25 @@
 
 SettingsWindow::SettingsWindow( void )
 {
+#if defined( _WIN32 )
+
+	if( std::ifstream ifs( LocalAppData::Instance() / "mingw-path.txt" ); ifs.good() )
+	{
+		ifs >> mingw_path_;
+
+		Compiler::Instance().SetPath( mingw_path_.native() );
+	}
+
+#elif defined( __linux__ ) // _WIN32
+	
 	if( std::ifstream ifs( LocalAppData::Instance() / "llvm-path.txt" ); ifs.good() )
 	{
 		ifs >> llvm_path_;
 
-		Compiler::Instance().SetLLVMPath( llvm_path_.native() );
+		Compiler::Instance().SetPath( llvm_path_.native() );
 	}
+
+#endif // __linux__
 }
 
 void SettingsWindow::Show( bool* p_open )
@@ -64,6 +77,28 @@ void SettingsWindow::Show( bool* p_open )
 			{
 				case 0:
 				{
+
+			#if defined( _WIN32 )
+
+					char mingw_path_buf[ FILENAME_MAX + 1 ] = { };
+
+					for( size_t i = 0; i < mingw_path_.native().size(); ++i )
+					{
+						mingw_path_buf[ i ] = ( char )mingw_path_.native().at( i );
+					}
+
+					if( ImGui::InputText( "MinGW Path", &mingw_path_buf[ 0 ], std::size( mingw_path_buf ) ) )
+					{
+						mingw_path_ = mingw_path_buf;
+
+						Compiler::Instance().SetPath( mingw_path_.native() );
+
+						std::ofstream ofs( LocalAppData::Instance() / "mingw-path.txt", std::ios::binary | std::ios::trunc );
+						ofs << mingw_path_;
+					}
+
+			#elif defined( __linux__ ) // _WIN32
+
 					char llvm_path_buf[ FILENAME_MAX + 1 ] = { };
 
 					for( size_t i = 0; i < llvm_path_.native().size(); ++i )
@@ -75,11 +110,13 @@ void SettingsWindow::Show( bool* p_open )
 					{
 						llvm_path_ = llvm_path_buf;
 
-						Compiler::Instance().SetLLVMPath( llvm_path_.native() );
+						Compiler::Instance().SetPath( llvm_path_.native() );
 
 						std::ofstream ofs( LocalAppData::Instance() / "llvm-path.txt", std::ios::binary | std::ios::trunc );
 						ofs << llvm_path_;
 					}
+
+			#endif // __linux__
 
 				} break;
 

@@ -35,8 +35,8 @@ private:
 
 public:
 
-	bool Compile    ( std::wstring_view cpp );
-	void SetLLVMPath( path_view llvm_path );
+	bool Compile( std::wstring_view cpp );
+	void SetPath( path_view path );
 
 public:
 
