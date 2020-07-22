@@ -30,6 +30,9 @@
 
 void MainMenuBar::Show( void )
 {
+	// Initialize settings window before user requests it be shown
+	SettingsWindow::Instance();
+
 	if( ImGui::BeginMainMenuBar() )
 	{
 		height_ = ImGui::GetWindowHeight();
