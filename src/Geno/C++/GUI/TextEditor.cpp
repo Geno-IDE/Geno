@@ -27,12 +27,16 @@
 #include <imgui_internal.h>
 
 TextEditor::TextEditor( void )
-	: text_( "#include <iostream>\n\nint main(int argc, char* argv[])\n{\n\tstd::cout << \"Hello, world!\\n\";\n\treturn 0;\n}\n" )
+	: text_{ }
 	, show_( true )
 {
 	if( std::ifstream ifs( LocalAppData::Instance() / L"build.cpp" ); ifs.is_open() )
 	{
 		text_.assign( ( std::istreambuf_iterator< char >( ifs ) ), std::istreambuf_iterator< char >() );
+	}
+	else
+	{
+		text_ = "#include <iostream>\n\nint main(int argc, char* argv[])\n{\n\tstd::cout << \"Hello, world!\\n\";\n\treturn 0;\n}\n";
 	}
 }
 
