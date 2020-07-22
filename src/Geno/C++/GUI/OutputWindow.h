@@ -44,8 +44,7 @@ public:
 
 private:
 
-	void BeginCapture( void );
-	void EndCapture  ( void );
+	void Capture( void );
 
 private:
 

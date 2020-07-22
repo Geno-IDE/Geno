@@ -61,7 +61,9 @@ OutputWindow::OutputWindow( void )
 
 	if( _pipe( pipe_, pipe_size, O_BINARY ) != -1 )
 	{
-		BeginCapture();
+		// Associate the output pipe descriptor to stdout and stderr
+		_dup2( pipe_[ WRITE ], stdout_ );
+		_dup2( pipe_[ WRITE ], stderr_ );
 
 		std::cout << "stdout\n";
 		std::cerr << "stderr\n";
@@ -75,7 +77,8 @@ OutputWindow::OutputWindow( OutputWindow&& other )
 
 OutputWindow::~OutputWindow( void )
 {
-	EndCapture();
+	_dup2( old_stdout_, stdout_ );
+	_dup2( old_stderr_, stderr_ );
 
 	if( old_stdout_ > 0 ) _close( old_stdout_ );
 	if( old_stderr_ > 0 ) _close( old_stderr_ );
@@ -106,49 +109,34 @@ void OutputWindow::Show( void )
 {
 	if( ImGui::Begin( "Output", &show_ ) )
 	{
-		EndCapture();
-		BeginCapture();
+		Capture();
 
 		ImGui::TextUnformatted( captured_.c_str(), captured_.c_str() + captured_.size() );
 	}
 	ImGui::End();
 }
 
-void OutputWindow::BeginCapture( void )
+void OutputWindow::Capture( void )
 {
-	// Reassign stdout and stderr to pipe
-	_dup2( pipe_[ WRITE ], stdout_ );
-	_dup2( pipe_[ WRITE ], stderr_ );
-}
+	char   buf[ 1024 ];
+	size_t bytes_read = 0;
 
-void OutputWindow::EndCapture( void )
-{
-	// Reassign stdout and stderr to old handles
-	_dup2( old_stdout_, stdout_ );
-	_dup2( old_stderr_, stderr_ );
-
-	if( pipe_[ READ ] > 0 )
+	if( !_eof( pipe_[ READ ] ) )
 	{
-		char   buf[ 1024 ];
-		size_t bytes_read = 0;
+		memset( buf, 0, std::size( buf ) );
+		bytes_read = _read( pipe_[ READ ], buf, std::size( buf ) );
+		captured_ += buf;
+	}
+
+	while( bytes_read == std::size( buf ) )
+	{
+		bytes_read = 0;
 
 		if( !_eof( pipe_[ READ ] ) )
 		{
 			memset( buf, 0, std::size( buf ) );
 			bytes_read = _read( pipe_[ READ ], buf, std::size( buf ) );
 			captured_ += buf;
-		}
-
-		while( bytes_read == std::size( buf ) )
-		{
-			bytes_read = 0;
-
-			if( !_eof( pipe_[ READ ] ) )
-			{
-				memset( buf, 0, std::size( buf ) );
-				bytes_read = _read( pipe_[ READ ], buf, std::size( buf ) );
-				captured_ += buf;
-			}
 		}
 	}
 }
