@@ -45,19 +45,17 @@ public:
 
 private:
 
-	void Capture( void );
+	void RedirectOutputStream( int* fd, FILE* stream );
+	void Capture             ( void );
 
 private:
 
-	int stdout_;
-	int stderr_;
+	std::string captured_;
 
 	int pipe_[ 2 ]  = { };
+	int stdout_     = 0;
+	int stderr_     = 0;
 	int old_stdout_ = 0;
 	int old_stderr_ = 0;
-
-	bool show_ = true;
-
-	std::string captured_;
 
 };

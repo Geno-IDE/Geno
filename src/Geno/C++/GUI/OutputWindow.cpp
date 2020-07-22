@@ -18,6 +18,7 @@
 #include "OutputWindow.h"
 
 #include <cassert>
+#include <filesystem>
 
 #include <fcntl.h>
 #include <io.h>
@@ -34,17 +35,8 @@ constexpr uint32_t pipe_size = 65536;
 
 OutputWindow::OutputWindow( void )
 {
-	if( ( stdout_ = _fileno( stdout ) ) < 0 )
-	{
-		if( FILE* f = nullptr; freopen_s( &f, "CONOUT$", "w", stdout ) == 0 && f != nullptr )
-			stdout_ = _fileno( f );
-	}
-	
-	if( ( stderr_ = _fileno( stderr ) ) < 0 )
-	{
-		if( FILE* f = nullptr; freopen_s( &f, "CONOUT$", "w", stderr ) == 0 && f != nullptr )
-			stderr_ = _fileno( f );
-	}
+	RedirectOutputStream( &stdout_, stdout );
+	RedirectOutputStream( &stderr_, stderr );
 
 	// Need stdout and stderr
 	assert( stdout_ > 0 );
@@ -93,6 +85,26 @@ OutputWindow& OutputWindow::Instance( void )
 {
 	static OutputWindow instance;
 	return instance;
+}
+
+void OutputWindow::RedirectOutputStream( int* fd, FILE* stream )
+{
+	if( ( *fd = _fileno( stream ) ) < 0 )
+	{
+	#if defined( _WIN32 )
+
+		if( FILE* f; freopen_s( &f, "CONOUT$", "w", stream ) == 0 )
+			*fd = _fileno( f );
+		else if( freopen_s( &f, "NUL", "w", stream ) == 0 )
+			*fd = _fileno( f );
+
+	#else // _WIN32
+
+		if( FILE* f = freopen( "/dev/null", "w", stream ); f != nullptr )
+			*fd = _fileno( f );
+
+	#endif // else
+	}
 }
 
 void OutputWindow::Capture( void )
