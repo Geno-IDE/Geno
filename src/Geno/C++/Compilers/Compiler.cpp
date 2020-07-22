@@ -28,10 +28,6 @@
 #include <Windows.h>
 #endif // _WIN32
 
-Compiler::Compiler( void )
-{
-}
-
 bool Compiler::Compile( std::wstring_view cpp )
 {
 	if( !std::filesystem::exists( cpp ) )

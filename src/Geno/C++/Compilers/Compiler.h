@@ -31,7 +31,7 @@ public:
 
 private:
 
-	Compiler( void );
+	Compiler( void ) = default;
 
 public:
 
