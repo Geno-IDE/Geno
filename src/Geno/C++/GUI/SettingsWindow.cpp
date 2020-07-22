@@ -53,6 +53,8 @@ SettingsWindow::SettingsWindow( void )
 	{
 		// #TODO: This should be a string. Otherwise it's going to load the wrong theme if we add a new one with an index lower than the saved theme.
 		ifs >> current_theme_;
+
+		UpdateTheme();
 	}
 }
 
@@ -130,12 +132,7 @@ void SettingsWindow::Show( bool* p_open )
 				{
 					if( ImGui::Combo( "Theme", &current_theme_, "Classic\0Light\0Dark\0" ) )
 					{
-						switch( current_theme_ )
-						{
-							case 0: { ImGui::StyleColorsClassic(); } break;
-							case 1: { ImGui::StyleColorsLight();   } break;
-							case 2: { ImGui::StyleColorsDark();    } break;
-						}
+						UpdateTheme();
 
 						std::ofstream ofs( LocalAppData::Instance() / "theme.txt", std::ios::binary | std::ios::trunc );
 						ofs << current_theme_;
@@ -155,4 +152,14 @@ SettingsWindow& SettingsWindow::Instance( void )
 {
 	static SettingsWindow instance;
 	return instance;
+}
+
+void SettingsWindow::UpdateTheme( void )
+{
+	switch( current_theme_ )
+	{
+		case 0: { ImGui::StyleColorsClassic(); } break;
+		case 1: { ImGui::StyleColorsLight();   } break;
+		case 2: { ImGui::StyleColorsDark();    } break;
+	}
 }
