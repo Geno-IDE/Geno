@@ -77,17 +77,11 @@ OutputWindow::~OutputWindow( void )
 {
 	EndCapture();
 
-	if( old_stdout_ > 0 )
-		_close( old_stdout_ );
+	if( old_stdout_ > 0 ) _close( old_stdout_ );
+	if( old_stderr_ > 0 ) _close( old_stderr_ );
 
-	if( old_stderr_ > 0 )
-		_close( old_stderr_ );
-
-	if( pipe_[ READ ] > 0 )
-		_close( pipe_[ READ ] );
-
-	if( pipe_[ WRITE ] > 0 )
-		_close( pipe_[ WRITE ] );
+	if( pipe_[ READ ] > 0 )  _close( pipe_[ READ ] );
+	if( pipe_[ WRITE ] > 0 ) _close( pipe_[ WRITE ] );
 }
 
 OutputWindow& OutputWindow::operator=( OutputWindow&& other )
@@ -122,20 +116,16 @@ void OutputWindow::Show( void )
 
 void OutputWindow::BeginCapture( void )
 {
-	if( int out = _fileno( stdout ); out > 0 )
-		_dup2( pipe_[ WRITE ], out );
-
-	if( int err = _fileno( stderr ); err > 0 )
-		_dup2( pipe_[ WRITE ], err );
+	// Reassign stdout and stderr to pipe
+	_dup2( pipe_[ WRITE ], stdout_ );
+	_dup2( pipe_[ WRITE ], stderr_ );
 }
 
 void OutputWindow::EndCapture( void )
 {
-	if( int out = _fileno( stdout ); out > 0 )
-		_dup2( old_stdout_, out );
-
-	if( int err = _fileno( stderr ); err > 0 )
-		_dup2( old_stderr_, err );
+	// Reassign stdout and stderr to old handles
+	_dup2( old_stdout_, stdout_ );
+	_dup2( old_stderr_, stderr_ );
 
 	if( pipe_[ READ ] > 0 )
 	{
