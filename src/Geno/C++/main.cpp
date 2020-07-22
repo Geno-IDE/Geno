@@ -1,4 +1,3 @@
-#include "Debugging/Console.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
 #include "GUI/TextEditor.h"
@@ -6,11 +5,6 @@
 
 int main( int /*argc*/, char* /*argv*/[] )
 {
-
-#if defined( DEBUG )
-	Console console;
-#endif // DEBUG
-
 	MainWindow::Instance().Init();
 
 	TextEditor text_editor;
