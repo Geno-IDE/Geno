@@ -18,6 +18,12 @@
 #pragma once
 #include "Core/Macros.h"
 
+#include <string>
+
+#if defined( _WIN32 )
+#include <Windows.h>
+#endif // _WIN32
+
 class OutputWindow
 {
 public:
@@ -26,8 +32,9 @@ public:
 
 public:
 
-	OutputWindow( void ) = default;
-	OutputWindow( OutputWindow&& other );
+	 OutputWindow( void );
+	 OutputWindow( OutputWindow&& other );
+	~OutputWindow( void );
 
 	OutputWindow& operator=( OutputWindow&& other );
 
@@ -37,6 +44,23 @@ public:
 
 private:
 
+	void BeginCapture( void );
+	void EndCapture  ( void );
+
+private:
+
+	enum
+	{
+		READ,
+		WRITE,
+	};
+
+	int pipe_[ 2 ]  = { };
+	int old_stdout_ = 0;
+	int old_stderr_ = 0;
+
 	bool show_ = true;
+
+	std::string captured_;
 
 };

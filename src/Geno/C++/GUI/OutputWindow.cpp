@@ -17,10 +17,55 @@
 
 #include "OutputWindow.h"
 
+#include <iostream>
+
+#include <fcntl.h>
+#include <io.h>
+
 #include <imgui.h>
+
+OutputWindow::OutputWindow( void )
+{
+	if( int out = _fileno( stdout ); out > 0 )
+	{
+		setvbuf( stdout, nullptr, _IONBF, 0 );
+		old_stdout_ = _dup( out );
+	}
+
+	if( int err = _fileno( stderr ); err > 0 )
+	{
+		setvbuf( stderr, nullptr, _IONBF, 0 );
+		old_stderr_ = _dup( _fileno( stderr ) );
+	}
+
+	if( _pipe( pipe_, 65536, O_BINARY ) != -1 )
+	{
+		BeginCapture();
+
+		std::cout << "stdout\n";
+		std::cerr << "stderr\n";
+	}
+}
 
 OutputWindow::OutputWindow( OutputWindow&& /*other*/ )
 {
+}
+
+OutputWindow::~OutputWindow( void )
+{
+	EndCapture();
+
+	if( old_stdout_ > 0 )
+		_close( old_stdout_ );
+
+	if( old_stderr_ > 0 )
+		_close( old_stderr_ );
+
+	if( pipe_[ READ ] > 0 )
+		_close( pipe_[ READ ] );
+
+	if( pipe_[ WRITE ] > 0 )
+		_close( pipe_[ WRITE ] );
 }
 
 OutputWindow& OutputWindow::operator=( OutputWindow&& /*other*/ )
@@ -32,7 +77,53 @@ void OutputWindow::Show( void )
 {
 	if( ImGui::Begin( "Output", &show_ ) )
 	{
-		ImGui::Text( "build.cpp\nDone!\n" );
+		EndCapture();
+		BeginCapture();
+
+		ImGui::TextUnformatted( captured_.c_str(), captured_.c_str() + captured_.size() );
 	}
 	ImGui::End();
+}
+
+void OutputWindow::BeginCapture( void )
+{
+	if( int out = _fileno( stdout ); out > 0 )
+		_dup2( pipe_[ WRITE ], out );
+
+	if( int err = _fileno( stderr ); err > 0 )
+		_dup2( pipe_[ WRITE ], err );
+}
+
+void OutputWindow::EndCapture( void )
+{
+	if( int out = _fileno( stdout ); out > 0 )
+		_dup2( old_stdout_, out );
+
+	if( int err = _fileno( stderr ); err > 0 )
+		_dup2( old_stderr_, err );
+
+	if( pipe_[ READ ] > 0 )
+	{
+		char   buf[ 1024 ];
+		size_t bytes_read = 0;
+
+		if( !_eof( pipe_[ READ ] ) )
+		{
+			memset( buf, 0, std::size( buf ) );
+			bytes_read = _read( pipe_[ READ ], buf, std::size( buf ) );
+			captured_ += buf;
+		}
+
+		while( bytes_read == std::size( buf ) )
+		{
+			bytes_read = 0;
+
+			if( !_eof( pipe_[ READ ] ) )
+			{
+				memset( buf, 0, std::size( buf ) );
+				bytes_read = _read( pipe_[ READ ], buf, std::size( buf ) );
+				captured_ += buf;
+			}
+		}
+	}
 }
