@@ -37,7 +37,8 @@ private:
 
 public:
 
-	void Show( bool* p_open );
+	void Show        ( bool* p_open );
+	void ClearCapture( void );
 
 public:
 

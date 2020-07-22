@@ -144,6 +144,7 @@ void MainMenuBar::ActionFileExit( void )
 
 void MainMenuBar::ActionBuildBuild( void )
 {
+	OutputWindow::Instance().ClearCapture();
 	Compiler::Instance().Compile( LocalAppData::Instance() / L"build.cpp" );
 }
 

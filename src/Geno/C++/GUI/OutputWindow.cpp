@@ -81,6 +81,11 @@ void OutputWindow::Show( bool* p_open )
 	ImGui::End();
 }
 
+void OutputWindow::ClearCapture( void )
+{
+	captured_.clear();
+}
+
 OutputWindow& OutputWindow::Instance( void )
 {
 	static OutputWindow instance;
