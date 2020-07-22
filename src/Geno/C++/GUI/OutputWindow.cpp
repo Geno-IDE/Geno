@@ -18,7 +18,6 @@
 #include "OutputWindow.h"
 
 #include <cassert>
-#include <iostream>
 
 #include <fcntl.h>
 #include <io.h>
@@ -64,9 +63,6 @@ OutputWindow::OutputWindow( void )
 		// Associate stdout and stderr with the output pipe
 		_dup2( pipe_[ WRITE ], stdout_ );
 		_dup2( pipe_[ WRITE ], stderr_ );
-
-		std::cout << "stdout\n";
-		std::cerr << "stderr\n";
 	}
 }
 
