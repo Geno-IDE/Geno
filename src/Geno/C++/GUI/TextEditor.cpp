@@ -57,7 +57,7 @@ void TextEditor::Show( void )
 {
 	const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
 
-	if( ImGui::InputTextMultiline( "##TextEditor", &text_[ 0 ], text_.size() + 1, ImVec2( -0.01f, 0.0f ), input_text_flags, InputTextCB, this ) )
+	if( ImGui::InputTextMultiline( "##TextEditor", &text_[ 0 ], text_.size() + 1, ImVec2( -0.01f, -0.01f ), input_text_flags, InputTextCB, this ) )
 	{
 		std::ofstream ofs( LocalAppData::Instance() / "build.cpp", std::ios::binary | std::ios::trunc );
 		ofs << text_;
