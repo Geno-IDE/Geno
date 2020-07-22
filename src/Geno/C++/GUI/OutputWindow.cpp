@@ -61,7 +61,7 @@ OutputWindow::OutputWindow( void )
 
 	if( _pipe( pipe_, pipe_size, O_BINARY ) != -1 )
 	{
-		// Associate the output pipe descriptor to stdout and stderr
+		// Associate stdout and stderr with the output pipe
 		_dup2( pipe_[ WRITE ], stdout_ );
 		_dup2( pipe_[ WRITE ], stderr_ );
 
@@ -121,22 +121,13 @@ void OutputWindow::Capture( void )
 	char   buf[ 1024 ];
 	size_t bytes_read = 0;
 
-	if( !_eof( pipe_[ READ ] ) )
+	do
 	{
-		memset( buf, 0, std::size( buf ) );
+		if( _eof( pipe_[ READ ] ) )
+			break;
+
 		bytes_read = _read( pipe_[ READ ], buf, std::size( buf ) );
-		captured_ += buf;
-	}
+		captured_.insert( captured_.end(), std::begin( buf ), std::begin( buf ) + bytes_read );
 
-	while( bytes_read == std::size( buf ) )
-	{
-		bytes_read = 0;
-
-		if( !_eof( pipe_[ READ ] ) )
-		{
-			memset( buf, 0, std::size( buf ) );
-			bytes_read = _read( pipe_[ READ ], buf, std::size( buf ) );
-			captured_ += buf;
-		}
-	}
+	} while( bytes_read == std::size( buf ) );
 }
