@@ -50,11 +50,12 @@ bool Compiler::Compile( std::wstring_view cpp )
 	Win32ProcessInfo process_info;
 	DWORD            exit_code;
 
-	startup_info.cb         = sizeof( STARTUPINFO );
-	startup_info.hStdInput  = GetStdHandle( STD_INPUT_HANDLE );
-	startup_info.hStdOutput = GetStdHandle( STD_OUTPUT_HANDLE );
-	startup_info.hStdError  = GetStdHandle( STD_ERROR_HANDLE );
-	startup_info.dwFlags    = STARTF_USESTDHANDLES;
+	startup_info.cb          = sizeof( STARTUPINFO );
+	startup_info.wShowWindow = SW_HIDE;
+	startup_info.hStdInput   = GetStdHandle( STD_INPUT_HANDLE );
+	startup_info.hStdOutput  = GetStdHandle( STD_OUTPUT_HANDLE );
+	startup_info.hStdError   = GetStdHandle( STD_ERROR_HANDLE );
+	startup_info.dwFlags     = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
 
 	if( int in = _fileno( stdin ); in > 0 )
 		startup_info.hStdInput = ( HANDLE )_get_osfhandle( in );
