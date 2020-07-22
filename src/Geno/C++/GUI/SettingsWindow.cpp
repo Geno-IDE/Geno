@@ -48,6 +48,12 @@ SettingsWindow::SettingsWindow( void )
 	}
 
 #endif // __linux__
+
+	if( std::ifstream ifs( LocalAppData::Instance() / "theme.txt" ); ifs.good() )
+	{
+		// #TODO: This should be a string. Otherwise it's going to load the wrong theme if we add a new one with an index lower than the saved theme.
+		ifs >> current_theme_;
+	}
 }
 
 void SettingsWindow::Show( bool* p_open )
@@ -130,6 +136,9 @@ void SettingsWindow::Show( bool* p_open )
 							case 1: { ImGui::StyleColorsLight();   } break;
 							case 2: { ImGui::StyleColorsDark();    } break;
 						}
+
+						std::ofstream ofs( LocalAppData::Instance() / "theme.txt", std::ios::binary | std::ios::trunc );
+						ofs << current_theme_;
 					}
 
 				} break;
