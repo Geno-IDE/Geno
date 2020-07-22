@@ -24,6 +24,7 @@
 #include <fstream>
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 TextEditor::TextEditor( void )
 	: text_( "#include <iostream>\n\nint main(int argc, char* argv[])\n{\n\tstd::cout << \"Hello, world!\\n\";\n\treturn 0;\n}\n" )
@@ -62,14 +63,12 @@ void TextEditor::Show( void )
 		| ImGuiWindowFlags_NoBringToFrontOnFocus
 	);
 
-	MainWindow& main_window = MainWindow::Instance();
-
-	ImVec2 pos;
-	pos.y += MainMenuBar::Instance().Height();
+	MainWindow&  main_window = MainWindow::Instance();
+	const ImVec2 pos         = ImVec2( 0, MainMenuBar::Instance().Height() );
+	const ImVec2 size        = main_window.Size() - pos;
 
 	ImGui::SetNextWindowPos( pos, ImGuiCond_Always );
-	ImGui::SetNextWindowSize( ImVec2( main_window.Width() - pos.x, main_window.Height() - pos.y ), ImGuiCond_Always );
-
+	ImGui::SetNextWindowSize( size, ImGuiCond_Always );
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0.0f );
 	if( ImGui::Begin( "TextEditor", &show_, window_flags ) )

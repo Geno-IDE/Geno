@@ -20,6 +20,8 @@
 
 #include <string>
 
+#include <imgui.h>
+
 struct GLFWwindow;
 struct ImGuiContext;
 
@@ -45,8 +47,7 @@ public:
 
 public:
 
-	int Width ( void ) const { return width_; }
-	int Height( void ) const { return height_; }
+	ImVec2 Size( void ) const { return ImVec2( ( float )width_, ( float )height_ ); }
 
 public:
 
