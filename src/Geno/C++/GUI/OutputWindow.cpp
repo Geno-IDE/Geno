@@ -17,6 +17,7 @@
 
 #include "OutputWindow.h"
 
+#include <cassert>
 #include <iostream>
 
 #include <fcntl.h>
@@ -24,21 +25,41 @@
 
 #include <imgui.h>
 
+enum
+{
+	READ,
+	WRITE,
+};
+
+constexpr uint32_t pipe_size = 65536;
+
 OutputWindow::OutputWindow( void )
 {
-	if( int out = _fileno( stdout ); out > 0 )
+	if( ( stdout_ = _fileno( stdout ) ) < 0 )
 	{
-		setvbuf( stdout, nullptr, _IONBF, 0 );
-		old_stdout_ = _dup( out );
+		if( FILE* f = nullptr; freopen_s( &f, "CONOUT$", "w", stdout ) == 0 && f != nullptr )
+			stdout_ = _fileno( f );
+	}
+	
+	if( ( stderr_ = _fileno( stderr ) ) < 0 )
+	{
+		if( FILE* f = nullptr; freopen_s( &f, "CONOUT$", "w", stderr ) == 0 && f != nullptr )
+			stderr_ = _fileno( f );
 	}
 
-	if( int err = _fileno( stderr ); err > 0 )
-	{
-		setvbuf( stderr, nullptr, _IONBF, 0 );
-		old_stderr_ = _dup( _fileno( stderr ) );
-	}
+	// Need stdout and stderr
+	assert( stdout_ > 0 );
+	assert( stderr_ > 0 );
 
-	if( _pipe( pipe_, 65536, O_BINARY ) != -1 )
+	// Make stdout and stderr unbuffered so that we don't need to fflush before and after capture
+	setvbuf( stdout, nullptr, _IONBF, 0 );
+	setvbuf( stderr, nullptr, _IONBF, 0 );
+
+	// Duplicate stdout and stderr
+	old_stdout_ = _dup( stdout_ );
+	old_stderr_ = _dup( stderr_ );
+
+	if( _pipe( pipe_, pipe_size, O_BINARY ) != -1 )
 	{
 		BeginCapture();
 
@@ -47,8 +68,9 @@ OutputWindow::OutputWindow( void )
 	}
 }
 
-OutputWindow::OutputWindow( OutputWindow&& /*other*/ )
+OutputWindow::OutputWindow( OutputWindow&& other )
 {
+	*this = std::move( other );
 }
 
 OutputWindow::~OutputWindow( void )
@@ -68,8 +90,21 @@ OutputWindow::~OutputWindow( void )
 		_close( pipe_[ WRITE ] );
 }
 
-OutputWindow& OutputWindow::operator=( OutputWindow&& /*other*/ )
+OutputWindow& OutputWindow::operator=( OutputWindow&& other )
 {
+	pipe_[ 0 ]  = other.pipe_[ 0 ];
+	pipe_[ 1 ]  = other.pipe_[ 1 ];
+	old_stdout_ = other.old_stdout_;
+	old_stderr_ = other.old_stderr_;
+	show_       = other.show_;
+	captured_   = std::move( other.captured_ );
+
+	other.pipe_[ 0 ]  = 0;
+	other.pipe_[ 1 ]  = 0;
+	other.old_stdout_ = 0;
+	other.old_stderr_ = 0;
+	other.show_       = false;
+
 	return *this;
 }
 

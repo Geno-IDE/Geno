@@ -49,11 +49,8 @@ private:
 
 private:
 
-	enum
-	{
-		READ,
-		WRITE,
-	};
+	int stdout_;
+	int stderr_;
 
 	int pipe_[ 2 ]  = { };
 	int old_stdout_ = 0;
