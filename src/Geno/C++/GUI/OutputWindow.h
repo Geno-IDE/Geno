@@ -28,19 +28,20 @@ class OutputWindow
 {
 public:
 
-	GENO_DISABLE_COPY( OutputWindow );
+	GENO_DISABLE_COPY_AND_MOVE( OutputWindow );
 
-public:
+private:
 
 	 OutputWindow( void );
-	 OutputWindow( OutputWindow&& other );
 	~OutputWindow( void );
-
-	OutputWindow& operator=( OutputWindow&& other );
 
 public:
 
-	void Show( void );
+	void Show( bool* p_open );
+
+public:
+
+	static OutputWindow& Instance( void );
 
 private:
 

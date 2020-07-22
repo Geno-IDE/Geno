@@ -41,9 +41,10 @@ private:
 
 	void ActionFileNew     ( void );
 	void ActionFileOpen    ( void );
-	void ActionFileSettings( void );
 	void ActionFileExit    ( void );
 	void ActionBuildBuild  ( void );
+	void ActionViewSettings( void );
+	void ActionViewOutput  ( void );
 	void ActionHelpDemo    ( void );
 	void ActionHelpAbout   ( void );
 
@@ -54,5 +55,6 @@ private:
 	bool show_demo_window_  = false;
 	bool show_about_window_ = false;
 	bool show_settings_     = false;
+	bool show_output_       = false;
 
 };

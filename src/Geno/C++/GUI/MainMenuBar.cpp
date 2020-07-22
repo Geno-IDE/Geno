@@ -20,6 +20,7 @@
 #include "Compilers/Compiler.h"
 #include "Core/LocalAppData.h"
 #include "GUI/MainWindow.h"
+#include "GUI/OutputWindow.h"
 #include "GUI/SettingsWindow.h"
 
 #include <string>
@@ -30,8 +31,9 @@
 
 void MainMenuBar::Show( void )
 {
-	// Initialize settings window before user requests it be shown
+	// Initialize windows before user requests it be shown
 	SettingsWindow::Instance();
+	OutputWindow::Instance();
 
 	if( ImGui::BeginMainMenuBar() )
 	{
@@ -44,10 +46,6 @@ void MainMenuBar::Show( void )
 
 			ImGui::Separator();
 
-			if( ImGui::MenuItem( "Settings", "Alt+S" ) ) ActionFileSettings();
-
-			ImGui::Separator();
-
 			if( ImGui::MenuItem( "Exit", "Alt+E" ) ) ActionFileExit();
 
 			ImGui::EndMenu();
@@ -56,6 +54,14 @@ void MainMenuBar::Show( void )
 		if( ImGui::BeginMenu( "Build" ) )
 		{
 			if( ImGui::MenuItem( "Build", "F7" ) ) ActionBuildBuild();
+
+			ImGui::EndMenu();
+		}
+
+		if( ImGui::BeginMenu( "View" ) )
+		{
+			if( ImGui::MenuItem( "Settings", "Alt+S" ) ) ActionViewSettings();
+			if( ImGui::MenuItem( "Output", "Alt+O" ) )   ActionViewOutput();
 
 			ImGui::EndMenu();
 		}
@@ -83,8 +89,9 @@ void MainMenuBar::Show( void )
 	}
 	else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_ALT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_ALT ) )
 	{
-		if( ImGui::IsKeyPressed( GLFW_KEY_S ) ) ActionFileSettings();
 		if( ImGui::IsKeyPressed( GLFW_KEY_E ) ) ActionFileExit();
+		if( ImGui::IsKeyPressed( GLFW_KEY_S ) ) ActionViewSettings();
+		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionViewOutput();
 	}
 	else
 	{
@@ -107,6 +114,11 @@ void MainMenuBar::Show( void )
 	{
 		SettingsWindow::Instance().Show( &show_settings_ );
 	}
+
+	if( show_output_ )
+	{
+		OutputWindow::Instance().Show( &show_output_ );
+	}
 }
 
 MainMenuBar& MainMenuBar::Instance( void )
@@ -125,11 +137,6 @@ void MainMenuBar::ActionFileOpen( void )
 	std::cout << "Open\n";
 }
 
-void MainMenuBar::ActionFileSettings( void )
-{
-	show_settings_ ^= 1;
-}
-
 void MainMenuBar::ActionFileExit( void )
 {
 	exit( 0 );
@@ -138,6 +145,16 @@ void MainMenuBar::ActionFileExit( void )
 void MainMenuBar::ActionBuildBuild( void )
 {
 	Compiler::Instance().Compile( LocalAppData::Instance() / L"build.cpp" );
+}
+
+void MainMenuBar::ActionViewSettings( void )
+{
+	show_settings_ ^= 1;
+}
+
+void MainMenuBar::ActionViewOutput( void )
+{
+	show_output_ ^= 1;
 }
 
 void MainMenuBar::ActionHelpDemo( void )

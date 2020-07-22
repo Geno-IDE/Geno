@@ -66,11 +66,6 @@ OutputWindow::OutputWindow( void )
 	}
 }
 
-OutputWindow::OutputWindow( OutputWindow&& other )
-{
-	*this = std::move( other );
-}
-
 OutputWindow::~OutputWindow( void )
 {
 	_dup2( old_stdout_, stdout_ );
@@ -83,33 +78,21 @@ OutputWindow::~OutputWindow( void )
 	if( pipe_[ WRITE ] > 0 ) _close( pipe_[ WRITE ] );
 }
 
-OutputWindow& OutputWindow::operator=( OutputWindow&& other )
+void OutputWindow::Show( bool* p_open )
 {
-	pipe_[ 0 ]  = other.pipe_[ 0 ];
-	pipe_[ 1 ]  = other.pipe_[ 1 ];
-	old_stdout_ = other.old_stdout_;
-	old_stderr_ = other.old_stderr_;
-	show_       = other.show_;
-	captured_   = std::move( other.captured_ );
-
-	other.pipe_[ 0 ]  = 0;
-	other.pipe_[ 1 ]  = 0;
-	other.old_stdout_ = 0;
-	other.old_stderr_ = 0;
-	other.show_       = false;
-
-	return *this;
-}
-
-void OutputWindow::Show( void )
-{
-	if( ImGui::Begin( "Output", &show_ ) )
+	if( ImGui::Begin( "Output", p_open ) )
 	{
 		Capture();
 
 		ImGui::TextUnformatted( captured_.c_str(), captured_.c_str() + captured_.size() );
 	}
 	ImGui::End();
+}
+
+OutputWindow& OutputWindow::Instance( void )
+{
+	static OutputWindow instance;
+	return instance;
 }
 
 void OutputWindow::Capture( void )
