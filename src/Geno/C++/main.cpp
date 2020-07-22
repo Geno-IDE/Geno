@@ -1,6 +1,7 @@
 #include "Debugging/Console.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
+#include "GUI/OutputWindow.h"
 #include "GUI/TextEditor.h"
 #include "ThirdParty/GLEW.h"
 
@@ -15,11 +16,13 @@ int main( int /*argc*/, char* /*argv*/[] )
 
 //////////////////////////////////////////////////////////////////////////
 
-	TextEditor text_editor;
+	TextEditor   text_editor;
+	OutputWindow output_window;
 
 	while( MainWindow::Instance().BeginFrame() )
 	{
 		text_editor.Show();
+		output_window.Show();
 
 		MainMenuBar::Instance().Show();
 
