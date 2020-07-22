@@ -55,34 +55,13 @@ TextEditor& TextEditor::operator=( TextEditor&& other )
 
 void TextEditor::Show( void )
 {
-	const int window_flags = ( 0
-		| ImGuiWindowFlags_NoTitleBar
-		| ImGuiWindowFlags_NoResize
-		| ImGuiWindowFlags_NoMove
-		| ImGuiWindowFlags_NoCollapse
-		| ImGuiWindowFlags_NoBringToFrontOnFocus
-	);
+	const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
 
-	MainWindow&  main_window = MainWindow::Instance();
-	const ImVec2 pos         = ImVec2( 0, MainMenuBar::Instance().Height() );
-	const ImVec2 size        = main_window.Size() - pos;
-
-	ImGui::SetNextWindowPos( pos, ImGuiCond_Always );
-	ImGui::SetNextWindowSize( size, ImGuiCond_Always );
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0.0f );
-	if( ImGui::Begin( "TextEditor", &show_, window_flags ) )
+	if( ImGui::InputTextMultiline( "##TextEditor", &text_[ 0 ], text_.size() + 1, ImVec2( -0.01f, 0.0f ), input_text_flags, InputTextCB, this ) )
 	{
-		const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
-
-		if( ImGui::InputTextMultiline( "Editor", &text_[ 0 ], text_.size() + 1, ImGui::GetWindowSize(), input_text_flags, InputTextCB, this ) )
-		{
-			std::ofstream ofs( LocalAppData::Instance() / "build.cpp", std::ios::binary | std::ios::trunc );
-			ofs << text_;
-		}
+		std::ofstream ofs( LocalAppData::Instance() / "build.cpp", std::ios::binary | std::ios::trunc );
+		ofs << text_;
 	}
-	ImGui::End();
-	ImGui::PopStyleVar( 2 );
 }
 
 int TextEditor::InputTextCB( ImGuiInputTextCallbackData* data )

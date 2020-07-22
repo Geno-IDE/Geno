@@ -47,10 +47,6 @@ public:
 
 public:
 
-	ImVec2 Size( void ) const { return ImVec2( ( float )width_, ( float )height_ ); }
-
-public:
-
 	static MainWindow& Instance( void );
 
 private:

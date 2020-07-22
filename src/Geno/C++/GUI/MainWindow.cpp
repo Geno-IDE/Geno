@@ -18,6 +18,7 @@
 #include "MainWindow.h"
 
 #include "Core/LocalAppData.h"
+#include "GUI/MainMenuBar.h"
 #include "GUI/PrimaryMonitor.h"
 #include "ThirdParty/GLEW.h"
 
@@ -104,11 +105,32 @@ bool MainWindow::BeginFrame( void )
 
 	ImGui::NewFrame();
 
+//////////////////////////////////////////////////////////////////////////
+
+	const ImVec2 pos          = ImVec2( 0, MainMenuBar::Instance().Height() );
+	const ImVec2 size         = ImVec2( ( float )width_, ( float )height_ ) - pos;
+	const int    window_flags = ( 0
+		| ImGuiWindowFlags_NoTitleBar
+		| ImGuiWindowFlags_NoResize
+		| ImGuiWindowFlags_NoMove
+		| ImGuiWindowFlags_NoCollapse
+		| ImGuiWindowFlags_NoBringToFrontOnFocus
+		| ImGuiWindowFlags_AlwaysAutoResize
+	);
+
+	ImGui::SetNextWindowPos( pos, ImGuiCond_Always );
+	ImGui::SetNextWindowSize( size, ImGuiCond_Always );
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0.0f );
+	ImGui::Begin( "MainWindow", nullptr, window_flags );
+
 	return true;
 }
 
 void MainWindow::EndFrame( void )
 {
+	ImGui::End();
+	ImGui::PopStyleVar( 2 );
 	ImGui::Render();
 
 	ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
