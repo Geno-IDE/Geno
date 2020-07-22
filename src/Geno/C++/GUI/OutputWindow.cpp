@@ -118,16 +118,19 @@ void OutputWindow::Show( void )
 
 void OutputWindow::Capture( void )
 {
-	char   buf[ 1024 ];
-	size_t bytes_read = 0;
-
-	do
+	if( !_eof( pipe_[ READ ] ) )
 	{
-		if( _eof( pipe_[ READ ] ) )
-			break;
+		int64_t starting_offset = _telli64( pipe_[ READ ] );
+		size_t  bytes_in_front  = ( size_t )_lseeki64( pipe_[ READ ], 0, SEEK_END );
+		size_t  old_size        = captured_.size();
 
-		bytes_read = _read( pipe_[ READ ], buf, std::size( buf ) );
-		captured_.insert( captured_.end(), std::begin( buf ), std::begin( buf ) + bytes_read );
+		_lseeki64( pipe_[ READ ], starting_offset, SEEK_SET );
 
-	} while( bytes_read == std::size( buf ) );
+		captured_.resize( old_size + bytes_in_front );
+
+		for( size_t bytes_read = 0;
+		     bytes_read < bytes_in_front;
+		     bytes_read += _read( pipe_[ READ ], &captured_[ old_size + bytes_read ], bytes_in_front - bytes_read )
+		);
+	}
 }
