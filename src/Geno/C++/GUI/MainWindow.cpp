@@ -75,7 +75,7 @@ void MainWindow::Init( void )
 		im_gui_context_ = ImGui::CreateContext();
 
 		ImGui::GetIO().IniFilename  = ini_path_.c_str();
-		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
 
 		// Requires GLEW to be initialized
 		GLEW::Instance();
@@ -105,36 +105,23 @@ bool MainWindow::BeginFrame( void )
 	ImGui_ImplGlfw_NewFrame();
 
 	ImGui::NewFrame();
-
-//////////////////////////////////////////////////////////////////////////
-
-	const ImVec2 pos          = ImVec2( 0, MainMenuBar::Instance().Height() );
-	const ImVec2 size         = ImVec2( ( float )width_, ( float )height_ ) - pos;
-	const int    window_flags = ( 0
-		| ImGuiWindowFlags_NoTitleBar
-		| ImGuiWindowFlags_NoResize
-		| ImGuiWindowFlags_NoMove
-		| ImGuiWindowFlags_NoCollapse
-		| ImGuiWindowFlags_NoBringToFrontOnFocus
-		| ImGuiWindowFlags_AlwaysAutoResize
-	);
-
-	ImGui::SetNextWindowPos( pos, ImGuiCond_Always );
-	ImGui::SetNextWindowSize( size, ImGuiCond_Always );
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0, 0 ) );
-	ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0.0f );
-	ImGui::Begin( "MainWindow", nullptr, window_flags );
+	ImGui::DockSpaceOverViewport();
 
 	return true;
 }
 
 void MainWindow::EndFrame( void )
 {
-	ImGui::End();
-	ImGui::PopStyleVar( 2 );
 	ImGui::Render();
 
 	ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
+
+	if( ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
+	{
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+		glfwMakeContextCurrent( window_ );
+	}
 
 	glfwSwapBuffers( window_ );
 }
