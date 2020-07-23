@@ -44,13 +44,29 @@ void TextEditWindow::Show( bool* p_open )
 {
 	if( ImGui::Begin( "Text Edit", p_open ) )
 	{
-		const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
+		const int tab_bar_flags = ( 0
+			| ImGuiTabBarFlags_Reorderable
+			| ImGuiTabBarFlags_FittingPolicyScroll
+		);
 
-		if( ImGui::InputTextMultiline( "##TextEditor", &text_[ 0 ], text_.size() + 1, ImVec2( -0.01f, -0.01f ), input_text_flags, InputTextCB, this ) )
+		if( ImGui::BeginTabBar( "TextEditTabBar", tab_bar_flags ) )
 		{
-			std::ofstream ofs( LocalAppData::Instance() / "build.cpp", std::ios::binary | std::ios::trunc );
-			ofs << text_;
+			if( ImGui::BeginTabItem( "build.cpp" ) )
+			{
+				const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
+
+				if( ImGui::InputTextMultiline( "##TextEditor", &text_[ 0 ], text_.size() + 1, ImVec2( -0.01f, -0.01f ), input_text_flags, InputTextCB, this ) )
+				{
+					std::ofstream ofs( LocalAppData::Instance() / "build.cpp", std::ios::binary | std::ios::trunc );
+					ofs << text_;
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			ImGui::EndTabBar();
 		}
+
 	}
 	ImGui::End();
 }
