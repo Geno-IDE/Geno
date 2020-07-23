@@ -74,7 +74,8 @@ void MainWindow::Init( void )
 		ini_path_       = LocalAppData::Instance() / "imgui.ini";
 		im_gui_context_ = ImGui::CreateContext();
 
-		ImGui::GetIO().IniFilename = ini_path_.c_str();
+		ImGui::GetIO().IniFilename  = ini_path_.c_str();
+		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 		// Requires GLEW to be initialized
 		GLEW::Instance();
