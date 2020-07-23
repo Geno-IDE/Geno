@@ -15,7 +15,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "TextEditor.h"
+#include "TextEditWindow.h"
 
 #include "Core/LocalAppData.h"
 #include "GUI/MainMenuBar.h"
@@ -26,7 +26,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-TextEditor::TextEditor( void )
+TextEditWindow::TextEditWindow( void )
 	: text_{ }
 	, show_( true )
 {
@@ -40,37 +40,30 @@ TextEditor::TextEditor( void )
 	}
 }
 
-TextEditor::TextEditor( TextEditor&& other )
-	: text_( std::move( other.text_ ) )
-	, show_( other.show_ )
+void TextEditWindow::Show( bool* p_open )
 {
-	other.show_ = false;
-}
-
-TextEditor& TextEditor::operator=( TextEditor&& other )
-{
-	text_ = std::move( other.text_ );
-	show_ = other.show_;
-
-	other.show_ = false;
-
-	return *this;
-}
-
-void TextEditor::Show( void )
-{
-	const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
-
-	if( ImGui::InputTextMultiline( "##TextEditor", &text_[ 0 ], text_.size() + 1, ImVec2( -0.01f, -0.01f ), input_text_flags, InputTextCB, this ) )
+	if( ImGui::Begin( "Text Edit", p_open ) )
 	{
-		std::ofstream ofs( LocalAppData::Instance() / "build.cpp", std::ios::binary | std::ios::trunc );
-		ofs << text_;
+		const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
+
+		if( ImGui::InputTextMultiline( "##TextEditor", &text_[ 0 ], text_.size() + 1, ImVec2( -0.01f, -0.01f ), input_text_flags, InputTextCB, this ) )
+		{
+			std::ofstream ofs( LocalAppData::Instance() / "build.cpp", std::ios::binary | std::ios::trunc );
+			ofs << text_;
+		}
 	}
+	ImGui::End();
 }
 
-int TextEditor::InputTextCB( ImGuiInputTextCallbackData* data )
+TextEditWindow& TextEditWindow::Instance( void )
 {
-	TextEditor* self = ( TextEditor* )data->UserData;
+	static TextEditWindow instance;
+	return instance;
+}
+
+int TextEditWindow::InputTextCB( ImGuiInputTextCallbackData* data )
+{
+	TextEditWindow* self = ( TextEditWindow* )data->UserData;
 
 	if( data->EventFlag == ImGuiInputTextFlags_CallbackResize )
 	{

@@ -1,18 +1,14 @@
 #include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
-#include "GUI/TextEditor.h"
+#include "GUI/TextEditWindow.h"
 #include "ThirdParty/GLEW.h"
 
 int main( int /*argc*/, char* /*argv*/[] )
 {
 	MainWindow::Instance().Init();
 
-	TextEditor text_editor;
-
 	while( MainWindow::Instance().BeginFrame() )
 	{
-		text_editor.Show();
-
 		MainMenuBar::Instance().Show();
 
 		MainWindow::Instance().EndFrame();

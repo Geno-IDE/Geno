@@ -22,6 +22,7 @@
 #include "GUI/MainWindow.h"
 #include "GUI/OutputWindow.h"
 #include "GUI/SettingsWindow.h"
+#include "GUI/TextEditWindow.h"
 
 #include <string>
 #include <iostream>
@@ -34,6 +35,7 @@ void MainMenuBar::Show( void )
 	// Initialize windows before user requests it be shown
 	SettingsWindow::Instance();
 	OutputWindow::Instance();
+	TextEditWindow::Instance();
 
 	if( ImGui::BeginMainMenuBar() )
 	{
@@ -60,6 +62,7 @@ void MainMenuBar::Show( void )
 
 		if( ImGui::BeginMenu( "View" ) )
 		{
+			if( ImGui::MenuItem( "Text Edit", "Alt+T" ) ) ActionViewTextEdit();
 			if( ImGui::MenuItem( "Settings", "Alt+S" ) ) ActionViewSettings();
 			if( ImGui::MenuItem( "Output", "Alt+O" ) )   ActionViewOutput();
 
@@ -90,6 +93,7 @@ void MainMenuBar::Show( void )
 	else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_ALT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_ALT ) )
 	{
 		if( ImGui::IsKeyPressed( GLFW_KEY_E ) ) ActionFileExit();
+		if( ImGui::IsKeyPressed( GLFW_KEY_T ) ) ActionViewTextEdit();
 		if( ImGui::IsKeyPressed( GLFW_KEY_S ) ) ActionViewSettings();
 		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionViewOutput();
 	}
@@ -108,6 +112,11 @@ void MainMenuBar::Show( void )
 	if( show_about_window_ )
 	{
 		ImGui::ShowAboutWindow( &show_about_window_ );
+	}
+
+	if( show_text_edit_ )
+	{
+		TextEditWindow::Instance().Show( &show_text_edit_ );
 	}
 
 	if( show_settings_ )
@@ -146,6 +155,11 @@ void MainMenuBar::ActionBuildBuild( void )
 {
 	OutputWindow::Instance().ClearCapture();
 	Compiler::Instance().Compile( LocalAppData::Instance() / L"build.cpp" );
+}
+
+void MainMenuBar::ActionViewTextEdit( void )
+{
+	show_text_edit_ ^= 1;
 }
 
 void MainMenuBar::ActionViewSettings( void )

@@ -22,22 +22,23 @@
 
 struct ImGuiInputTextCallbackData;
 
-class TextEditor
+class TextEditWindow
 {
 public:
 
-	GENO_DISABLE_COPY( TextEditor );
+	GENO_DISABLE_COPY_AND_MOVE( TextEditWindow );
+
+private:
+
+	TextEditWindow( void );
 
 public:
 
-	TextEditor( void );
-	TextEditor( TextEditor&& other );
-
-	TextEditor& operator=( TextEditor&& other );
+	void Show( bool* p_open );
 
 public:
 
-	void Show( void );
+	static TextEditWindow& Instance( void );
 
 private:
 

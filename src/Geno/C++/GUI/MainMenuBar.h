@@ -43,6 +43,7 @@ private:
 	void ActionFileOpen    ( void );
 	void ActionFileExit    ( void );
 	void ActionBuildBuild  ( void );
+	void ActionViewTextEdit( void );
 	void ActionViewSettings( void );
 	void ActionViewOutput  ( void );
 	void ActionHelpDemo    ( void );
@@ -54,6 +55,7 @@ private:
 
 	bool show_demo_window_  = false;
 	bool show_about_window_ = false;
+	bool show_text_edit_    = true;
 	bool show_settings_     = false;
 	bool show_output_       = false;
 
