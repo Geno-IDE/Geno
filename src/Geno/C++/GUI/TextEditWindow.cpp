@@ -27,8 +27,6 @@
 #include <imgui_internal.h>
 
 TextEditWindow::TextEditWindow( void )
-	: text_{ }
-	, show_( true )
 {
 	if( std::ifstream ifs( LocalAppData::Instance() / L"build.cpp" ); ifs.is_open() )
 	{
@@ -66,7 +64,6 @@ void TextEditWindow::Show( bool* p_open )
 
 			ImGui::EndTabBar();
 		}
-
 	}
 	ImGui::End();
 }

@@ -48,6 +48,4 @@ private:
 
 	std::string text_;
 
-	bool show_;
-
 };
