@@ -17,10 +17,9 @@ You can get the latest version [here](https://premake.github.io/download)! Make 
 
 ## 🔧 Building
 
-0. Requirements:
-   
-* Linux Packages: `libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev`
-   
+0. Requirements:   
+   * Linux Packages: `libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev`
+
 1. Open a terminal in the project root directory.
 
 2. Run `git submodule update --init` to initialize the submodules.
