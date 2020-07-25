@@ -18,6 +18,7 @@
 #include "Compiler.h"
 
 #include "Core/LocalAppData.h"
+#include "Platform/Windows/Win32Error.h"
 #include "Platform/Windows/Win32ProcessInfo.h"
 
 #include <iostream>
@@ -69,23 +70,13 @@ bool Compiler::Compile( std::wstring_view cpp )
 	else
 		startup_info.hStdError = GetStdHandle( STD_ERROR_HANDLE );
 
-	if( !CreateProcessW( NULL, &command_line[ 0 ], NULL, NULL, TRUE, 0, NULL, NULL, &startup_info, &process_info ) )
-	{
-		char buf[ 256 ];
-		FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), buf, ( DWORD )std::size( buf ), NULL );
-		std::cerr << "CreateProcessW failed: " << buf;
+	if( !WIN32_CALL( CreateProcessW( NULL, &command_line[ 0 ], NULL, NULL, TRUE, 0, NULL, NULL, &startup_info, &process_info ) ) )
 		return false;
-	}
 
 	do
 	{
-		if( !GetExitCodeProcess( process_info->hProcess, &exit_code ) )
-		{
-			char buf[ 256 ];
-			FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), buf, ( DWORD )std::size( buf ), NULL );
-			std::cerr << "GetExitCodeProcess failed: " << buf;
+		if( !WIN32_CALL( GetExitCodeProcess( process_info->hProcess, &exit_code ) ) )
 			return false;
-		}
 
 		Sleep( 1 );
 
