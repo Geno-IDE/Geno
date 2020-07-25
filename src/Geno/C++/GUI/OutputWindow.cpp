@@ -43,25 +43,24 @@ OutputWindow::OutputWindow( void )
 	assert( stderr_ > 0 );
 
 	// Make stdout and stderr unbuffered so that we don't need to fflush before and after capture
-	setvbuf( stdout, nullptr, _IONBF, 0 );
-	setvbuf( stderr, nullptr, _IONBF, 0 );
+	GENO_ASSERT( setvbuf( stdout, nullptr, _IONBF, 0 ) == 0 );
+	GENO_ASSERT( setvbuf( stderr, nullptr, _IONBF, 0 ) == 0 );
 
 	// Duplicate stdout and stderr
-	old_stdout_ = _dup( stdout_ );
-	old_stderr_ = _dup( stderr_ );
+	GENO_ASSERT( ( old_stdout_ = _dup( stdout_ ) ) > 0 );
+	GENO_ASSERT( ( old_stderr_ = _dup( stderr_ ) ) > 0 );
 
-	if( _pipe( pipe_, pipe_size, O_BINARY ) != -1 )
-	{
-		// Associate stdout and stderr with the output pipe
-		_dup2( pipe_[ WRITE ], stdout_ );
-		_dup2( pipe_[ WRITE ], stderr_ );
-	}
+	GENO_ASSERT( _pipe( pipe_, pipe_size, O_BINARY ) != -1 );
+
+	// Associate stdout and stderr with the output pipe
+	GENO_ASSERT( _dup2( pipe_[ WRITE ], stdout_ ) == 0 );
+	GENO_ASSERT( _dup2( pipe_[ WRITE ], stderr_ ) == 0 );
 }
 
 OutputWindow::~OutputWindow( void )
 {
-	_dup2( old_stdout_, stdout_ );
-	_dup2( old_stderr_, stderr_ );
+	GENO_ASSERT( _dup2( old_stdout_, stdout_ ) == 0 );
+	GENO_ASSERT( _dup2( old_stderr_, stderr_ ) == 0 );
 
 	if( old_stdout_ > 0 ) _close( old_stdout_ );
 	if( old_stderr_ > 0 ) _close( old_stderr_ );
@@ -110,6 +109,8 @@ void OutputWindow::RedirectOutputStream( int* fd, FILE* stream )
 
 	#endif // else
 	}
+
+	GENO_ASSERT( *fd > 0 );
 }
 
 void OutputWindow::Capture( void )

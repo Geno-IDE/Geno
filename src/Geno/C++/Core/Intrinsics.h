@@ -16,24 +16,15 @@
  */
 
 #pragma once
-#include "Core/Intrinsics.h"
 
-// Per-configuration macros
-
-#if defined( DEBUG )
-#define GENO_ASSERT( ... ) ( __VA_ARGS__ )
-#else // DEBUG
-#define GENO_ASSERT( ... ) do { if( !( __VA_ARGS__ ) ) ::DebugBreak(); } while( false )
-#endif // else
-
-// Universal macros
-
-#define GENO_DISABLE_COPY( CLASS )             \
-    CLASS( const CLASS& )            = delete; \
-    CLASS& operator=( const CLASS& ) = delete
-
-#define GENO_DISABLE_COPY_AND_MOVE( CLASS )    \
-    CLASS( const CLASS& )            = delete; \
-    CLASS( CLASS&& )                 = delete; \
-    CLASS& operator=( CLASS&& )      = delete; \
-    CLASS& operator=( const CLASS& ) = delete
+namespace Geno
+{
+	inline void DebugBreak( void )
+	{
+	#if defined( _MSC_VER )
+		__debugbreak();
+	#elif defined( __clang__ ) // _MSC_VER
+		__builtin_debugtrap();
+	#endif // __clang__
+	}
+}
