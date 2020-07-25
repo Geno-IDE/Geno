@@ -10,6 +10,7 @@ function third_party_library( name )
 
 	kind 'StaticLib'
 	location 'build/%{_ACTION}'
+	warnings 'Off'
 
 	pcall( dofunc )
 

@@ -127,7 +127,7 @@ void OutputWindow::Capture( void )
 
 		for( size_t bytes_read = 0;
 		     bytes_read < bytes_in_front;
-		     bytes_read += _read( pipe_[ READ ], &captured_[ old_size + bytes_read ], bytes_in_front - bytes_read )
+			 bytes_read += _read( pipe_[ READ ], &captured_[ old_size + bytes_read ], ( uint32_t )( bytes_in_front - bytes_read ) )
 		);
 	}
 }

@@ -69,7 +69,7 @@ bool Compiler::Compile( std::wstring_view cpp )
 	if( !CreateProcessW( NULL, &command_line[ 0 ], NULL, NULL, TRUE, 0, NULL, NULL, &startup_info, &process_info ) )
 	{
 		char buf[ 256 ];
-		FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), buf, std::size( buf ), NULL );
+		FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), buf, ( DWORD )std::size( buf ), NULL );
 		std::cerr << "CreateProcessW failed: " << buf;
 		return false;
 	}
@@ -79,7 +79,7 @@ bool Compiler::Compile( std::wstring_view cpp )
 		if( !GetExitCodeProcess( process_info->hProcess, &exit_code ) )
 		{
 			char buf[ 256 ];
-			FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), buf, std::size( buf ), NULL );
+			FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), buf, ( DWORD )std::size( buf ), NULL );
 			std::cerr << "GetExitCodeProcess failed: " << buf;
 			return false;
 		}
