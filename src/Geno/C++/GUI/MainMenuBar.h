@@ -19,11 +19,13 @@
 #include <string_view>
 #include <vector>
 
+struct CompilerDone;
+
 class MainMenuBar
 {
 private:
 
-	MainMenuBar( void ) = default;
+	MainMenuBar( void );
 
 public:
 
@@ -48,6 +50,10 @@ private:
 	void ActionViewOutput  ( void );
 	void ActionHelpDemo    ( void );
 	void ActionHelpAbout   ( void );
+
+private:
+
+	static void OnCompilerDone( const CompilerDone& e );
 
 private:
 

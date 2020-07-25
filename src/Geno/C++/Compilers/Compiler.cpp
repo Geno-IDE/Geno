@@ -29,10 +29,14 @@
 #include <Windows.h>
 #endif // _WIN32
 
-bool Compiler::Compile( std::wstring_view cpp )
+void Compiler::Compile( std::wstring_view cpp )
 {
 	if( !std::filesystem::exists( cpp ) )
-		return false;
+	{
+//		std::wcerr << L"Failed to compile " << cpp << L". File does not exist.\n";
+		std::cerr << "Failed to compile " << ( const char* )cpp.data() << ". File does not exist.\n";
+		return;
+	}
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -62,27 +66,25 @@ bool Compiler::Compile( std::wstring_view cpp )
 	startup_info.hStdError   = ( ( fd_err > 0 ) ? ( HANDLE )_get_osfhandle( fd_err ) : GetStdHandle( STD_ERROR_HANDLE ) );
 
 	if( !WIN32_CALL( CreateProcessW( NULL, &command_line[ 0 ], NULL, NULL, TRUE, 0, NULL, NULL, &startup_info, &process_info ) ) )
-		return false;
+		return;
 
 	do
 	{
 		if( !WIN32_CALL( GetExitCodeProcess( process_info->hProcess, &exit_code ) ) )
-			return false;
+			return;
 
 		Sleep( 1 );
 
 	} while( exit_code == STILL_ACTIVE );
 
-	if( exit_code == 0 )
-		std::cout << "Build successful!\n";
+	CompilerDone e;
+	e.exit_code = ( int )exit_code;
 
-	return ( exit_code == 0 );
+	Publish( e );
 
 #else // _WIN32
 
 #error Invoke compiler
-
-	return false;
 
 #endif // else
 

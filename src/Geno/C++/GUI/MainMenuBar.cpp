@@ -24,11 +24,17 @@
 #include "GUI/SettingsWindow.h"
 #include "GUI/TextEditWindow.h"
 
-#include <string>
+#include <functional>
 #include <iostream>
+#include <string>
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
+
+MainMenuBar::MainMenuBar( void )
+{
+	Compiler::Instance() <<= OnCompilerDone;
+}
 
 void MainMenuBar::Show( void )
 {
@@ -180,4 +186,12 @@ void MainMenuBar::ActionHelpDemo( void )
 void MainMenuBar::ActionHelpAbout( void )
 {
 	show_about_window_ ^= 1;
+}
+
+void MainMenuBar::OnCompilerDone( const CompilerDone& e )
+{
+	if( e.exit_code == 0 )
+		std::cerr << "Build succeeded\n";
+	else
+		std::cerr << "Build failed\n";
 }

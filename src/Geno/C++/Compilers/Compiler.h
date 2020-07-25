@@ -17,13 +17,19 @@
 
 #pragma once
 #include "Core/Aliases.h"
+#include "Core/EventDispatcher.h"
 #include "Core/Macros.h"
 
 #include <filesystem>
 #include <string_view>
 #include <string>
 
-class Compiler
+struct CompilerDone
+{
+	int exit_code;
+};
+
+class Compiler : public EventDispatcher< Compiler, CompilerDone >
 {
 public:
 
@@ -35,7 +41,7 @@ private:
 
 public:
 
-	bool Compile( std::wstring_view cpp );
+	void Compile( std::wstring_view cpp );
 	void SetPath( path_view path );
 
 public:
