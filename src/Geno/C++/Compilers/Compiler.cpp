@@ -48,27 +48,18 @@ bool Compiler::Compile( std::wstring_view cpp )
 	std::wstring     command_line = MakeCommandLine( args );
 	path_string      cd           = LocalAppData::Instance().Path();
 	STARTUPINFO      startup_info = { };
+	int              fd_in        = _fileno( stdin );
+	int              fd_out       = _fileno( stdout );
+	int              fd_err       = _fileno( stderr );
 	Win32ProcessInfo process_info;
 	DWORD            exit_code;
 
 	startup_info.cb          = sizeof( STARTUPINFO );
 	startup_info.wShowWindow = SW_HIDE;
 	startup_info.dwFlags     = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
-
-	if( int in = _fileno( stdin ); in > 0 )
-		startup_info.hStdInput = ( HANDLE )_get_osfhandle( in );
-	else
-		startup_info.hStdInput = GetStdHandle( STD_INPUT_HANDLE );
-
-	if( int out = _fileno( stdout ); out > 0 )
-		startup_info.hStdOutput = ( HANDLE )_get_osfhandle( out );
-	else
-		startup_info.hStdOutput = GetStdHandle( STD_OUTPUT_HANDLE );
-	
-	if( int err = _fileno( stderr ); err > 0 )
-		startup_info.hStdError = ( HANDLE )_get_osfhandle( err );
-	else
-		startup_info.hStdError = GetStdHandle( STD_ERROR_HANDLE );
+	startup_info.hStdInput   = ( ( fd_in  > 0 ) ? ( HANDLE )_get_osfhandle( fd_in )  : GetStdHandle( STD_INPUT_HANDLE ) );
+	startup_info.hStdOutput  = ( ( fd_out > 0 ) ? ( HANDLE )_get_osfhandle( fd_out ) : GetStdHandle( STD_OUTPUT_HANDLE ) );
+	startup_info.hStdError   = ( ( fd_err > 0 ) ? ( HANDLE )_get_osfhandle( fd_err ) : GetStdHandle( STD_ERROR_HANDLE ) );
 
 	if( !WIN32_CALL( CreateProcessW( NULL, &command_line[ 0 ], NULL, NULL, TRUE, 0, NULL, NULL, &startup_info, &process_info ) ) )
 		return false;
@@ -83,9 +74,7 @@ bool Compiler::Compile( std::wstring_view cpp )
 	} while( exit_code == STILL_ACTIVE );
 
 	if( exit_code == 0 )
-	{
 		std::cout << "Build successful!\n";
-	}
 
 	return ( exit_code == 0 );
 
