@@ -20,43 +20,32 @@
 
 #include <string>
 
-#if defined( _WIN32 )
-#include <Windows.h>
-#endif // _WIN32
+struct ImGuiInputTextCallbackData;
 
-class OutputWindow
+class TextEditWidget
 {
 public:
 
-	GENO_DISABLE_COPY_AND_MOVE( OutputWindow );
+	GENO_DISABLE_COPY_AND_MOVE( TextEditWidget );
 
 private:
 
-	 OutputWindow( void );
-	~OutputWindow( void );
+	TextEditWidget( void );
 
 public:
 
-	void Show        ( bool* p_open );
-	void ClearCapture( void );
+	void Show( bool* p_open );
 
 public:
 
-	static OutputWindow& Instance( void );
+	static TextEditWidget& Instance( void );
 
 private:
 
-	void RedirectOutputStream( int* fd, FILE* stream );
-	void Capture             ( void );
+	static int InputTextCB( ImGuiInputTextCallbackData* data );
 
 private:
 
-	std::string captured_;
-
-	int pipe_[ 2 ]  = { };
-	int stdout_     = 0;
-	int stderr_     = 0;
-	int old_stdout_ = 0;
-	int old_stderr_ = 0;
+	std::string text_;
 
 };

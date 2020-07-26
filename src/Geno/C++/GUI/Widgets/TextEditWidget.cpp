@@ -15,7 +15,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "TextEditWindow.h"
+#include "TextEditWidget.h"
 
 #include "Core/LocalAppData.h"
 #include "GUI/MainMenuBar.h"
@@ -26,7 +26,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-TextEditWindow::TextEditWindow( void )
+TextEditWidget::TextEditWidget( void )
 {
 	if( std::ifstream ifs( LocalAppData::Instance() / L"build.cpp" ); ifs.is_open() )
 	{
@@ -38,7 +38,7 @@ TextEditWindow::TextEditWindow( void )
 	}
 }
 
-void TextEditWindow::Show( bool* p_open )
+void TextEditWidget::Show( bool* p_open )
 {
 	if( ImGui::Begin( "Text Edit", p_open ) )
 	{
@@ -68,15 +68,15 @@ void TextEditWindow::Show( bool* p_open )
 	ImGui::End();
 }
 
-TextEditWindow& TextEditWindow::Instance( void )
+TextEditWidget& TextEditWidget::Instance( void )
 {
-	static TextEditWindow instance;
+	static TextEditWidget instance;
 	return instance;
 }
 
-int TextEditWindow::InputTextCB( ImGuiInputTextCallbackData* data )
+int TextEditWidget::InputTextCB( ImGuiInputTextCallbackData* data )
 {
-	TextEditWindow* self = ( TextEditWindow* )data->UserData;
+	TextEditWidget* self = ( TextEditWidget* )data->UserData;
 
 	if( data->EventFlag == ImGuiInputTextFlags_CallbackResize )
 	{

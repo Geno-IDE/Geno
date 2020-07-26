@@ -1,6 +1,6 @@
+#include "GUI/Widgets/TextEditWidget.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
-#include "GUI/TextEditWindow.h"
 #include "ThirdParty/GLEW.h"
 
 int main( int /*argc*/, char* /*argv*/[] )

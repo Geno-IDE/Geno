@@ -18,11 +18,11 @@
 #pragma once
 #include <filesystem>
 
-class SettingsWindow
+class SettingsWidget
 {
 private:
 
-	SettingsWindow( void );
+	SettingsWidget( void );
 
 public:
 
@@ -30,7 +30,7 @@ public:
 
 public:
 
-	static SettingsWindow& Instance( void );
+	static SettingsWidget& Instance( void );
 
 private:
 

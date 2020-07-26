@@ -15,7 +15,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "OutputWindow.h"
+#include "OutputWidget.h"
 
 #include <cassert>
 #include <filesystem>
@@ -33,7 +33,7 @@ enum
 
 constexpr uint32_t pipe_size = 65536;
 
-OutputWindow::OutputWindow( void )
+OutputWidget::OutputWidget( void )
 {
 	RedirectOutputStream( &stdout_, stdout );
 	RedirectOutputStream( &stderr_, stderr );
@@ -57,7 +57,7 @@ OutputWindow::OutputWindow( void )
 	GENO_ASSERT( _dup2( pipe_[ WRITE ], stderr_ ) == 0 );
 }
 
-OutputWindow::~OutputWindow( void )
+OutputWidget::~OutputWidget( void )
 {
 	GENO_ASSERT( _dup2( old_stdout_, stdout_ ) == 0 );
 	GENO_ASSERT( _dup2( old_stderr_, stderr_ ) == 0 );
@@ -69,7 +69,7 @@ OutputWindow::~OutputWindow( void )
 	if( pipe_[ WRITE ] > 0 ) _close( pipe_[ WRITE ] );
 }
 
-void OutputWindow::Show( bool* p_open )
+void OutputWidget::Show( bool* p_open )
 {
 	if( ImGui::Begin( "Output", p_open ) )
 	{
@@ -80,18 +80,18 @@ void OutputWindow::Show( bool* p_open )
 	ImGui::End();
 }
 
-void OutputWindow::ClearCapture( void )
+void OutputWidget::ClearCapture( void )
 {
 	captured_.clear();
 }
 
-OutputWindow& OutputWindow::Instance( void )
+OutputWidget& OutputWidget::Instance( void )
 {
-	static OutputWindow instance;
+	static OutputWidget instance;
 	return instance;
 }
 
-void OutputWindow::RedirectOutputStream( int* fd, FILE* stream )
+void OutputWidget::RedirectOutputStream( int* fd, FILE* stream )
 {
 	if( ( *fd = _fileno( stream ) ) < 0 )
 	{
@@ -113,7 +113,7 @@ void OutputWindow::RedirectOutputStream( int* fd, FILE* stream )
 	GENO_ASSERT( *fd > 0 );
 }
 
-void OutputWindow::Capture( void )
+void OutputWidget::Capture( void )
 {
 	if( !_eof( pipe_[ READ ] ) )
 	{

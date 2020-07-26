@@ -19,10 +19,10 @@
 
 #include "Compilers/Compiler.h"
 #include "Core/LocalAppData.h"
+#include "GUI/Widgets/OutputWidget.h"
+#include "GUI/Widgets/SettingsWidget.h"
+#include "GUI/Widgets/TextEditWidget.h"
 #include "GUI/MainWindow.h"
-#include "GUI/OutputWindow.h"
-#include "GUI/SettingsWindow.h"
-#include "GUI/TextEditWindow.h"
 
 #include <functional>
 #include <iostream>
@@ -39,9 +39,9 @@ MainMenuBar::MainMenuBar( void )
 void MainMenuBar::Show( void )
 {
 	// Initialize windows before user requests it be shown
-	SettingsWindow::Instance();
-	OutputWindow::Instance();
-	TextEditWindow::Instance();
+	SettingsWidget::Instance();
+	OutputWidget::Instance();
+	TextEditWidget::Instance();
 
 	if( ImGui::BeginMainMenuBar() )
 	{
@@ -122,17 +122,17 @@ void MainMenuBar::Show( void )
 
 	if( show_text_edit_ )
 	{
-		TextEditWindow::Instance().Show( &show_text_edit_ );
+		TextEditWidget::Instance().Show( &show_text_edit_ );
 	}
 
 	if( show_settings_ )
 	{
-		SettingsWindow::Instance().Show( &show_settings_ );
+		SettingsWidget::Instance().Show( &show_settings_ );
 	}
 
 	if( show_output_ )
 	{
-		OutputWindow::Instance().Show( &show_output_ );
+		OutputWidget::Instance().Show( &show_output_ );
 	}
 }
 
@@ -159,7 +159,7 @@ void MainMenuBar::ActionFileExit( void )
 
 void MainMenuBar::ActionBuildBuild( void )
 {
-	OutputWindow::Instance().ClearCapture();
+	OutputWidget::Instance().ClearCapture();
 
 	std::cout << "Building build.cpp..\n";
 

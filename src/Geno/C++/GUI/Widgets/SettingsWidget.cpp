@@ -15,7 +15,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "SettingsWindow.h"
+#include "SettingsWidget.h"
 
 #include "Compilers/Compiler.h"
 #include "Core/LocalAppData.h"
@@ -27,7 +27,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-SettingsWindow::SettingsWindow( void )
+SettingsWidget::SettingsWidget( void )
 {
 #if defined( _WIN32 )
 
@@ -58,7 +58,7 @@ SettingsWindow::SettingsWindow( void )
 	}
 }
 
-void SettingsWindow::Show( bool* p_open )
+void SettingsWidget::Show( bool* p_open )
 {
 	if( ImGui::Begin( "Settings", p_open ) )
 	{
@@ -148,13 +148,13 @@ void SettingsWindow::Show( bool* p_open )
 	ImGui::End();
 }
 
-SettingsWindow& SettingsWindow::Instance( void )
+SettingsWidget& SettingsWidget::Instance( void )
 {
-	static SettingsWindow instance;
+	static SettingsWidget instance;
 	return instance;
 }
 
-void SettingsWindow::UpdateTheme( void )
+void SettingsWidget::UpdateTheme( void )
 {
 	switch( current_theme_ )
 	{
