@@ -20,7 +20,9 @@
 #include "Core/EventDispatcher.h"
 #include "Core/Macros.h"
 
+#include <atomic>
 #include <filesystem>
+#include <future>
 #include <string_view>
 #include <string>
 
@@ -41,8 +43,12 @@ private:
 
 public:
 
-	void Compile( std::wstring_view cpp );
-	void SetPath( path_view path );
+	[[ nodiscard ]] bool IsBuilding( void ) const;
+
+public:
+
+	void Compile   ( std::wstring_view cpp );
+	void SetPath   ( path_view path );
 
 public:
 
@@ -58,10 +64,13 @@ private:
 
 private:
 
-	std::wstring MakeCommandLine( const Args& args ) const;
+	std::wstring MakeCommandLine( const Args& args );
+	void         AsyncCB        ( Args args );
 
 private:
 
+	std::mutex            path_mutex_;
 	std::filesystem::path path_;
+	std::future< void >   build_future_;
 
 };

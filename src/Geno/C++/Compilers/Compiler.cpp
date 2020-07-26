@@ -21,6 +21,8 @@
 #include "Platform/Windows/Win32Error.h"
 #include "Platform/Windows/Win32ProcessInfo.h"
 
+#include <codecvt>
+#include <future>
 #include <iostream>
 
 #include <io.h>
@@ -28,6 +30,11 @@
 #if defined( _WIN32 )
 #include <Windows.h>
 #endif // _WIN32
+
+bool Compiler::IsBuilding( void ) const
+{
+	return ( build_future_.valid() && build_future_.wait_until( std::chrono::steady_clock::now() ) != std::future_status::ready );
+}
 
 void Compiler::Compile( std::wstring_view cpp )
 {
@@ -40,6 +47,15 @@ void Compiler::Compile( std::wstring_view cpp )
 		return;
 	}
 
+	if( IsBuilding() )
+	{
+		wstring_convert_utf8 wstring_converter;
+		std::string          cpp_utf8 = wstring_converter.to_bytes( cpp.data(), cpp.data() + cpp.size() );
+
+		std::cerr << "Build already in progress (won't compile " << cpp_utf8 << ").\n";
+		return;
+	}
+
 //////////////////////////////////////////////////////////////////////////
 
 	Args args;
@@ -47,8 +63,43 @@ void Compiler::Compile( std::wstring_view cpp )
 	args.output = cpp;
 	args.output.replace_extension( "exe" );
 
-//////////////////////////////////////////////////////////////////////////
+	build_future_ = std::async( &Compiler::AsyncCB, this, std::move( args ) );
+}
 
+void Compiler::SetPath( path_view path )
+{
+	std::scoped_lock lock( path_mutex_ );
+	path_ = path;
+}
+
+Compiler& Compiler::Instance( void )
+{
+	static Compiler instance;
+	return instance;
+}
+
+std::wstring Compiler::MakeCommandLine( const Args& args )
+{
+	std::wstring string;
+	string.reserve( 128 );
+
+	// GCC. Must be added first.
+	{
+		std::scoped_lock lock( path_mutex_ );
+		string += ( path_ / L"bin" / L"g++" ) += L" ";
+	}
+
+	// Output file. Must be added last
+	string += L" -o \"" + args.output.wstring() + L"\"";
+
+	// Input file. Must be added last
+	string += L" \"" + args.input.wstring() +  L"\"";
+
+	return string;
+}
+
+void Compiler::AsyncCB( Args args )
+{
 #if defined( _WIN32 )
 
 	std::wstring     command_line = MakeCommandLine( args );
@@ -75,7 +126,7 @@ void Compiler::Compile( std::wstring_view cpp )
 		if( !WIN32_CALL( GetExitCodeProcess( process_info->hProcess, &exit_code ) ) )
 			return;
 
-		Sleep( 1 );
+		std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
 
 	} while( exit_code == STILL_ACTIVE );
 
@@ -86,36 +137,7 @@ void Compiler::Compile( std::wstring_view cpp )
 
 #else // _WIN32
 
-#error Invoke compiler
+#error Can not invoke compiler
 
 #endif // else
-
-}
-
-void Compiler::SetPath( path_view path )
-{
-	path_ = path;
-}
-
-Compiler& Compiler::Instance( void )
-{
-	static Compiler instance;
-	return instance;
-}
-
-std::wstring Compiler::MakeCommandLine( const Args& args ) const
-{
-	std::wstring string;
-	string.reserve( 128 );
-
-	// GCC. Must be added first.
-	string += ( path_ / L"bin" / L"g++" ) += L" ";
-
-	// Output file. Must be added last
-	string += L" -o \"" + args.output.wstring() + L"\"";
-
-	// Input file. Must be added last
-	string += L" \"" + args.input.wstring() +  L"\"";
-
-	return string;
 }
