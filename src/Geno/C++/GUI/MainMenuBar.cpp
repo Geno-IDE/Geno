@@ -160,6 +160,9 @@ void MainMenuBar::ActionFileExit( void )
 void MainMenuBar::ActionBuildBuild( void )
 {
 	OutputWindow::Instance().ClearCapture();
+
+	std::cout << "Building build.cpp..\n";
+
 	Compiler::Instance().Compile( LocalAppData::Instance() / L"build.cpp" );
 }
 
