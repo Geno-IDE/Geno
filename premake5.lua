@@ -18,6 +18,9 @@ third_party_library 'glfw'
 third_party_library 'imgui'
 
 app( settings.workspace_name )
+	defines {
+		'_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING',
+	}
 	sysincludedirs {
 		'third_party/glew/include',
 		'third_party/glfw/include',

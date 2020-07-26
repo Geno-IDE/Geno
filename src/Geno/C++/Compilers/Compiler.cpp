@@ -33,8 +33,10 @@ void Compiler::Compile( std::wstring_view cpp )
 {
 	if( !std::filesystem::exists( cpp ) )
 	{
-//		std::wcerr << L"Failed to compile " << cpp << L". File does not exist.\n";
-		std::cerr << "Failed to compile " << ( const char* )cpp.data() << ". File does not exist.\n";
+		wstring_convert_utf8 wstring_converter;
+		std::string          cpp_utf8 = wstring_converter.to_bytes( cpp.data(), cpp.data() + cpp.size() );
+
+		std::cerr << "Failed to compile " << cpp_utf8 << ". File does not exist.\n";
 		return;
 	}
 
