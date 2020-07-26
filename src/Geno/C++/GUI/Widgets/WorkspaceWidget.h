@@ -16,55 +16,24 @@
  */
 
 #pragma once
-#include <string_view>
-#include <vector>
+#include "Core/Macros.h"
 
-struct CompilerDone;
-
-class MainMenuBar
+class WorkspaceWidget
 {
+public:
+
+	GENO_DISABLE_COPY_AND_MOVE( WorkspaceWidget );
+
 private:
 
-	MainMenuBar( void );
+	WorkspaceWidget( void );
 
 public:
 
-	void Show( void );
+	void Show( bool* p_open );
 
 public:
 
-	float Height( void ) const { return height_; }
-
-public:
-
-	static MainMenuBar& Instance( void );
-
-private:
-
-	void ActionFileNew      ( void );
-	void ActionFileOpen     ( void );
-	void ActionFileExit     ( void );
-	void ActionBuildBuild   ( void );
-	void ActionViewTextEdit ( void );
-	void ActionViewWorkspace( void );
-	void ActionViewSettings ( void );
-	void ActionViewOutput   ( void );
-	void ActionHelpDemo     ( void );
-	void ActionHelpAbout    ( void );
-
-private:
-
-	static void OnCompilerDone( const CompilerDone& e );
-
-private:
-
-	float height_ = 0.f;
-
-	bool show_demo_window_  = false;
-	bool show_about_window_ = false;
-	bool show_text_edit_    = true;
-	bool show_workspace_    = true;
-	bool show_settings_     = false;
-	bool show_output_       = false;
+	static WorkspaceWidget& Instance( void );
 
 };

@@ -22,6 +22,7 @@
 #include "GUI/Widgets/OutputWidget.h"
 #include "GUI/Widgets/SettingsWidget.h"
 #include "GUI/Widgets/TextEditWidget.h"
+#include "GUI/Widgets/WorkspaceWidget.h"
 #include "GUI/MainWindow.h"
 
 #include <functional>
@@ -42,6 +43,7 @@ void MainMenuBar::Show( void )
 	SettingsWidget::Instance();
 	OutputWidget::Instance();
 	TextEditWidget::Instance();
+	WorkspaceWidget::Instance();
 
 	if( ImGui::BeginMainMenuBar() )
 	{
@@ -69,6 +71,7 @@ void MainMenuBar::Show( void )
 		if( ImGui::BeginMenu( "View" ) )
 		{
 			if( ImGui::MenuItem( "Text Edit", "Alt+T" ) ) ActionViewTextEdit();
+			if( ImGui::MenuItem( "Workspace", "Alt+W" ) ) ActionViewWorkspace();
 			if( ImGui::MenuItem( "Settings", "Alt+S" ) ) ActionViewSettings();
 			if( ImGui::MenuItem( "Output", "Alt+O" ) )   ActionViewOutput();
 
@@ -100,6 +103,7 @@ void MainMenuBar::Show( void )
 	{
 		if( ImGui::IsKeyPressed( GLFW_KEY_E ) ) ActionFileExit();
 		if( ImGui::IsKeyPressed( GLFW_KEY_T ) ) ActionViewTextEdit();
+		if( ImGui::IsKeyPressed( GLFW_KEY_W ) ) ActionViewWorkspace();
 		if( ImGui::IsKeyPressed( GLFW_KEY_S ) ) ActionViewSettings();
 		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionViewOutput();
 	}
@@ -123,6 +127,11 @@ void MainMenuBar::Show( void )
 	if( show_text_edit_ )
 	{
 		TextEditWidget::Instance().Show( &show_text_edit_ );
+	}
+
+	if( show_workspace_ )
+	{
+		WorkspaceWidget::Instance().Show( &show_workspace_ );
 	}
 
 	if( show_settings_ )
@@ -169,6 +178,11 @@ void MainMenuBar::ActionBuildBuild( void )
 void MainMenuBar::ActionViewTextEdit( void )
 {
 	show_text_edit_ ^= 1;
+}
+
+void MainMenuBar::ActionViewWorkspace( void )
+{
+	show_workspace_ ^= 1;
 }
 
 void MainMenuBar::ActionViewSettings( void )
