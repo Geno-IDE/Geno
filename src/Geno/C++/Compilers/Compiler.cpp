@@ -109,7 +109,6 @@ void Compiler::AsyncCB( Args args )
 	int              fd_out       = _fileno( stdout );
 	int              fd_err       = _fileno( stderr );
 	Win32ProcessInfo process_info;
-	DWORD            exit_code;
 
 	startup_info.cb          = sizeof( STARTUPINFO );
 	startup_info.wShowWindow = SW_HIDE;
@@ -118,22 +117,26 @@ void Compiler::AsyncCB( Args args )
 	startup_info.hStdOutput  = ( ( fd_out > 0 ) ? ( HANDLE )_get_osfhandle( fd_out ) : GetStdHandle( STD_OUTPUT_HANDLE ) );
 	startup_info.hStdError   = ( ( fd_err > 0 ) ? ( HANDLE )_get_osfhandle( fd_err ) : GetStdHandle( STD_ERROR_HANDLE ) );
 
-	if( !WIN32_CALL( CreateProcessW( NULL, &command_line[ 0 ], NULL, NULL, TRUE, 0, NULL, NULL, &startup_info, &process_info ) ) )
+	if( !WIN32_CALL( CreateProcessW( nullptr, &command_line[ 0 ], nullptr, nullptr, TRUE, 0, nullptr, nullptr, &startup_info, &process_info ) ) )
 		return;
 
-	do
+//////////////////////////////////////////////////////////////////////////
+
+	BOOL  result;
+	DWORD exit_code;
+
+	while( WIN32_CALL( result = GetExitCodeProcess( process_info->hProcess, &exit_code ) ) && exit_code == STILL_ACTIVE )
 	{
-		if( !WIN32_CALL( GetExitCodeProcess( process_info->hProcess, &exit_code ) ) )
-			return;
-
 		std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
+	}
 
-	} while( exit_code == STILL_ACTIVE );
+	if( result )
+	{
+		CompilerDone e;
+		e.exit_code = ( int )exit_code;
 
-	CompilerDone e;
-	e.exit_code = ( int )exit_code;
-
-	Publish( e );
+		Publish( e );
+	}
 
 #else // _WIN32
 
