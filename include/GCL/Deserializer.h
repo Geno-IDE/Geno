@@ -16,29 +16,19 @@
  */
 
 #pragma once
-#include "Components/Project.h"
-
 #include <filesystem>
-#include <vector>
 
-class Workspace
+namespace GCL
 {
-public:
+	class Deserializer
+	{
+	public:
+	
+		explicit Deserializer( const std::filesystem::path& path );
 
-	Workspace( void ) = default;
+	private:
 
-public:
-
-	void Deserialize( void );
-	void SetLocation( const std::filesystem::path& location ) { location_ = location; }
-
-public:
-
-	const std::filesystem::path& Location( void ) const { return location_; }
-
-private:
-
-	std::filesystem::path  location_;
-	std::vector< Project > projects_;
-
-};
+		void ParseLine( std::string_view line );
+	
+	};
+}

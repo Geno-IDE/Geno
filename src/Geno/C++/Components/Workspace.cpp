@@ -17,6 +17,14 @@
 
 #include "Workspace.h"
 
-Workspace::Workspace( void )
+#include <iostream>
+
+#include <GCL/Deserializer.h>
+
+void Workspace::Deserialize( void )
 {
+	if( !location_.empty() )
+	{
+		GCL::Deserializer serializer( location_ );
+	}
 }

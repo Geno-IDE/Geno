@@ -23,6 +23,7 @@
 #include "GUI/Widgets/SettingsWidget.h"
 #include "GUI/Widgets/TextEditWidget.h"
 #include "GUI/Widgets/WorkspaceWidget.h"
+#include "GUI/Application.h"
 #include "GUI/MainWindow.h"
 
 #include <functional>
@@ -51,8 +52,8 @@ void MainMenuBar::Show( void )
 
 		if( ImGui::BeginMenu( "File" ) )
 		{
-			if( ImGui::MenuItem( "New", "Ctrl+N" ) )  ActionFileNew();
-			if( ImGui::MenuItem( "Open", "Ctrl+O" ) ) ActionFileOpen();
+			if( ImGui::MenuItem( "New Workspace", "Ctrl+N" ) )  ActionFileNewWorkspace();
+			if( ImGui::MenuItem( "Open Workspace", "Ctrl+O" ) ) ActionFileOpenWorkspace();
 
 			ImGui::Separator();
 
@@ -96,8 +97,8 @@ void MainMenuBar::Show( void )
 	}
 	else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_CONTROL ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_CONTROL ) )
 	{
-		if( ImGui::IsKeyPressed( GLFW_KEY_N ) ) ActionFileNew();
-		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionFileOpen();
+		if( ImGui::IsKeyPressed( GLFW_KEY_N ) ) ActionFileNewWorkspace();
+		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionFileOpenWorkspace();
 	}
 	else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_ALT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_ALT ) )
 	{
@@ -145,14 +146,16 @@ void MainMenuBar::Show( void )
 	}
 }
 
-void MainMenuBar::ActionFileNew( void )
+void MainMenuBar::ActionFileNewWorkspace( void )
 {
-	std::cout << "New\n";
+	std::wstring random_workspace_name = L"MyWorkspace.gwks";
+
+	Application::Instance().NewWorkspace( LocalAppData::Instance() / random_workspace_name );
 }
 
-void MainMenuBar::ActionFileOpen( void )
+void MainMenuBar::ActionFileOpenWorkspace( void )
 {
-	std::cout << "Open\n";
+	Application::Instance().LoadWorkspace( LocalAppData::Instance() / L"MyWorkspace.gwks" );
 }
 
 void MainMenuBar::ActionFileExit( void )

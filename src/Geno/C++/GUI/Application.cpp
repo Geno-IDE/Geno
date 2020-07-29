@@ -20,6 +20,8 @@
 #include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
 
+#include <iostream>
+
 int Application::Run( void )
 {
 	MainWindow::Instance().Init();
@@ -32,4 +34,17 @@ int Application::Run( void )
 	}
 
 	return 0;
+}
+
+void Application::NewWorkspace( const std::filesystem::path& where )
+{
+
+	current_workspace_ = Workspace();
+	current_workspace_.SetLocation( where );
+}
+
+void Application::LoadWorkspace( const std::filesystem::path& path )
+{
+	NewWorkspace( path );
+	current_workspace_.Deserialize();
 }

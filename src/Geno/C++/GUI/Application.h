@@ -25,11 +25,9 @@ class Application
 
 public:
 
-	int Run( void );
-
-public:
-
-	const Workspace& CurrentWorkspace( void ) const { return current_workspace_; }
+	int  Run          ( void );
+	void NewWorkspace ( const std::filesystem::path& where );
+	void LoadWorkspace( const std::filesystem::path& path );
 
 private:
 
