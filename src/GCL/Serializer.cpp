@@ -15,38 +15,47 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Application.h"
+#include "GCL/Serializer.h"
 
-#include "GUI/MainMenuBar.h"
-#include "GUI/MainWindow.h"
+#include "Common/Platform/POSIX/POSIXError.h"
 
 #include <iostream>
 
-int Application::Run( void )
-{
-	MainWindow::Instance().Init();
+#include <fcntl.h>
+#include <io.h>
+#include <string.h>
 
-	while( MainWindow::Instance().BeginFrame() )
+namespace GCL
+{
+	Serializer::Serializer( const std::filesystem::path& path )
 	{
-		MainMenuBar::Instance().Show();
+		if( !std::filesystem::exists( path ) )
+		{
+			std::cerr << "GCL::Serializer failed: '" << path << "' does not exist.\n";
+			return;
+		}
 
-		MainWindow::Instance().EndFrame();
+	#if defined( _WIN32 )
+
+//		if( int fd; POSIX_CALL( _wsopen_s( &fd, path.c_str(), _O_WRONLY | _O_BINARY | _O_TRUNC | _O_CREAT, _SH_DENYNO, _S_IREAD | _S_IWRITE ) ) )
+//		{
+//			constexpr std::string_view buf =
+//R"(Name: MyWorkspace
+//Matrix:
+//	Platform: x86, x64
+//	Configuration: Debug, Release
+//Projects:
+//	$(Root)/MyLibrary
+//	$(Root)/MyApp
+//)";
+//			_write( fd, buf.data(), static_cast< uint32_t >( buf.size() ) );
+//			_close( fd );
+//		}
+
+	#else // _WIN32
+
+	#error Write
+
+	#endif // else
 	}
-
-	return 0;
-}
-
-void Application::NewWorkspace( const std::filesystem::path& where )
-{
-	// Save previous workspace
-	current_workspace_.Serialize();
-
-	current_workspace_ = Workspace();
-	current_workspace_.SetLocation( where );
-}
-
-void Application::LoadWorkspace( const std::filesystem::path& path )
-{
-	NewWorkspace( path );
-	current_workspace_.Deserialize();
 }

@@ -29,6 +29,7 @@ public:
 
 public:
 
+	void Serialize  ( void );
 	void Deserialize( void );
 	void SetLocation( const std::filesystem::path& location ) { location_ = location; }
 

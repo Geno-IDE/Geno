@@ -15,38 +15,16 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Application.h"
+#pragma once
+#include <filesystem>
 
-#include "GUI/MainMenuBar.h"
-#include "GUI/MainWindow.h"
-
-#include <iostream>
-
-int Application::Run( void )
+namespace GCL
 {
-	MainWindow::Instance().Init();
-
-	while( MainWindow::Instance().BeginFrame() )
+	class Serializer
 	{
-		MainMenuBar::Instance().Show();
+	public:
+	
+		explicit Serializer( const std::filesystem::path& path );
 
-		MainWindow::Instance().EndFrame();
-	}
-
-	return 0;
-}
-
-void Application::NewWorkspace( const std::filesystem::path& where )
-{
-	// Save previous workspace
-	current_workspace_.Serialize();
-
-	current_workspace_ = Workspace();
-	current_workspace_.SetLocation( where );
-}
-
-void Application::LoadWorkspace( const std::filesystem::path& path )
-{
-	NewWorkspace( path );
-	current_workspace_.Deserialize();
+	};
 }

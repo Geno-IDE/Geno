@@ -20,6 +20,15 @@
 #include <iostream>
 
 #include <GCL/Deserializer.h>
+#include <GCL/Serializer.h>
+
+void Workspace::Serialize( void )
+{
+	if( !location_.empty() )
+	{
+		GCL::Serializer serializer( location_ );
+	}
+}
 
 void Workspace::Deserialize( void )
 {
