@@ -36,4 +36,4 @@ inline std::optional< T > _POSIXHandleResultPassthrough( T result, std::string_v
 }
 
 #define POSIX_CALL( X )             ( ::_POSIXHandleResult( ( X ), #X, __FILE__, __LINE__ ) )
-#define POSIX_CALL_PASSTHROUGH( X ) ( ::_POSIXHandleResultPassthrough( ( X ), #X, __FILE__, __LINE__ ) )
+#define POSIX_CALL_PASSTHROUGH( X ) ( errno = 0, ::_POSIXHandleResultPassthrough( ( X ), #X, __FILE__, __LINE__ ) )
