@@ -16,6 +16,7 @@
  */
 
 #pragma once
+#include <string_view>
 
 namespace Geno
 {
@@ -26,5 +27,18 @@ namespace Geno
 	#elif defined( __clang__ ) // _MSC_VER
 		__builtin_debugtrap();
 	#endif // __clang__
+	}
+
+	constexpr std::string_view TargetMachine( void )
+	{
+	#if defined( _M_IX86 ) || defined( __i386__ )
+		return "x86";
+	#elif defined( _M_AMD64 ) || defined( __amd64__ ) // _M_IX86 || __i386__
+		return "AMD64";
+	#elif defined( _M_ARM ) || defined( __arm__ ) // _M_AMD64 || __amd64__
+		return "ARM";
+	#elif defined( _M_ARM64  ) || defined( __aarch64__ ) // _M_ARM || __arm__
+		return "ARM64";
+	#endif // _M_ARM64 || __aarch64__
 	}
 }
