@@ -1,20 +1,8 @@
-#include "GUI/Widgets/TextEditWidget.h"
-#include "GUI/MainMenuBar.h"
-#include "GUI/MainWindow.h"
-#include "ThirdParty/GLEW.h"
+#include "GUI/Application.h"
 
 int main( int /*argc*/, char* /*argv*/[] )
 {
-	MainWindow::Instance().Init();
-
-	while( MainWindow::Instance().BeginFrame() )
-	{
-		MainMenuBar::Instance().Show();
-
-		MainWindow::Instance().EndFrame();
-	}
-
-	return 0;
+	return Application::Instance().Run();
 }
 
 #if defined( _WIN32 )
