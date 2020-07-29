@@ -18,7 +18,7 @@
 #pragma once
 #include <string_view>
 
-namespace Geno
+namespace Intrinsics
 {
 	inline void DebugBreak( void )
 	{

@@ -21,7 +21,7 @@
 // Per-configuration macros
 
 #if defined( DEBUG )
-#define GENO_ASSERT( ... ) do { if( !( __VA_ARGS__ ) ) ::DebugBreak(); } while( false )
+#define GENO_ASSERT( ... ) do { if( !( __VA_ARGS__ ) ) ::Intrinsics::DebugBreak(); } while( false )
 #else // DEBUG
 #define GENO_ASSERT( ... ) ( __VA_ARGS__ )
 #endif // else
