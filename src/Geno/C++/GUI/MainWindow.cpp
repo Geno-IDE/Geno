@@ -17,7 +17,7 @@
 
 #include "MainWindow.h"
 
-#include "Core/LocalAppData.h"
+#include "Common/LocalAppData.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/PrimaryMonitor.h"
 #include "ThirdParty/GLEW.h"

@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include "Core/Intrinsics.h"
+#include "Common/Intrinsics.h"
 
 // Per-configuration macros
 

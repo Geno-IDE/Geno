@@ -17,7 +17,7 @@
 
 #include "BuildMatrix.h"
 
-#include "Core/Intrinsics.h"
+#include "Common/Intrinsics.h"
 
 BuildMatrix BuildMatrix::PlatformDefault( void )
 {

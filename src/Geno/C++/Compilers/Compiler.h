@@ -16,9 +16,9 @@
  */
 
 #pragma once
-#include "Core/Aliases.h"
-#include "Core/EventDispatcher.h"
-#include "Core/Macros.h"
+#include "Common/Aliases.h"
+#include "Common/EventDispatcher.h"
+#include "Common/Macros.h"
 
 #include <atomic>
 #include <filesystem>

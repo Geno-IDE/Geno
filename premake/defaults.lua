@@ -27,7 +27,7 @@ filter 'configurations:Release'
 
 filter 'system:windows'
 	toolset 'msc'
-	defines { 'NOMINMAX' }
+	defines { 'NOMINMAX', '_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING' }
 
 filter 'system:not windows'
 	toolset 'gcc'

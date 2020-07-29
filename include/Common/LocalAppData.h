@@ -15,36 +15,28 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#if defined( _WIN32 )
-#include "Win32ProcessInfo.h"
+#pragma once
+#include "Common/Aliases.h"
+#include "Common/Macros.h"
 
-Win32ProcessInfo::Win32ProcessInfo( void )
-	: underlying_data_{ }
+#include <filesystem>
+#include <string>
+
+class LocalAppData
 {
-}
-
-Win32ProcessInfo::Win32ProcessInfo( Win32ProcessInfo&& other )
-	: underlying_data_{ other.underlying_data_ }
-{
-	ZeroMemory( &other.underlying_data_, sizeof( PROCESS_INFORMATION ) );
-}
-
-Win32ProcessInfo::~Win32ProcessInfo( void )
-{
-	if( underlying_data_.hThread )
-		CloseHandle( underlying_data_.hThread );
-
-	if( underlying_data_.hProcess )
-		CloseHandle( underlying_data_.hProcess );
-}
-
-Win32ProcessInfo& Win32ProcessInfo::operator=( Win32ProcessInfo&& other )
-{
-	underlying_data_ = other.underlying_data_;
-
-	ZeroMemory( &other.underlying_data_, sizeof( PROCESS_INFORMATION ) );
-
-	return *this;
-}
-
-#endif // _WIN32
+	GENO_SINGLETON( LocalAppData );
+	
+public:
+	
+	std::string  operator/( std::string_view relative_path )  const;
+	std::wstring operator/( std::wstring_view relative_path ) const;
+	
+public:
+	
+	path_string Path( void ) const { return path_; }
+	
+private:
+	
+	std::filesystem::path path_;
+	
+};

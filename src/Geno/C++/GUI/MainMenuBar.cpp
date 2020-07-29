@@ -17,8 +17,8 @@
 
 #include "MainMenuBar.h"
 
+#include "Common/LocalAppData.h"
 #include "Compilers/Compiler.h"
-#include "Core/LocalAppData.h"
 #include "GUI/Widgets/OutputWidget.h"
 #include "GUI/Widgets/SettingsWidget.h"
 #include "GUI/Widgets/TextEditWidget.h"

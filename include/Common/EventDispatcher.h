@@ -16,8 +16,8 @@
  */
 
 #pragma once
-#include "Core/Macros.h"
-#include "Core/TypeTraits.h"
+#include "Common/Macros.h"
+#include "Common/TypeTraits.h"
 
 #include <functional>
 #include <tuple>

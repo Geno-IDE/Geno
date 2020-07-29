@@ -17,8 +17,8 @@
 
 #include "SettingsWidget.h"
 
+#include "Common/LocalAppData.h"
 #include "Compilers/Compiler.h"
-#include "Core/LocalAppData.h"
 #include "GUI/MainWindow.h"
 
 #include <array>

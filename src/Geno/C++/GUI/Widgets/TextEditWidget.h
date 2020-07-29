@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include "Core/Macros.h"
+#include "Common/Macros.h"
 
 #include <string>
 

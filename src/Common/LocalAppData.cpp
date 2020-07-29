@@ -15,7 +15,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "LocalAppData.h"
+#include "Common/LocalAppData.h"
 
 #include <array>
 #include <cstdlib>

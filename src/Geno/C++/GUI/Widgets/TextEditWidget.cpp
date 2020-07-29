@@ -17,7 +17,7 @@
 
 #include "TextEditWidget.h"
 
-#include "Core/LocalAppData.h"
+#include "Common/LocalAppData.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
 

@@ -17,9 +17,9 @@
 
 #include "Compiler.h"
 
-#include "Core/LocalAppData.h"
-#include "Platform/Windows/Win32Error.h"
-#include "Platform/Windows/Win32ProcessInfo.h"
+#include "Common/Platform/Windows/Win32Error.h"
+#include "Common/Platform/Windows/Win32ProcessInfo.h"
+#include "Common/LocalAppData.h"
 
 #include <codecvt>
 #include <future>
