@@ -23,7 +23,7 @@
 
 bool _POSIXHandleErrno( errno_t err, std::string_view function, std::string_view file, int line )
 {
-	if( errno != 0 )
+	if( err != 0 )
 	{
 	#if defined( _WIN32 )
 
