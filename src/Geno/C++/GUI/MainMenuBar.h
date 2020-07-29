@@ -16,6 +16,8 @@
  */
 
 #pragma once
+#include "Core/Macros.h"
+
 #include <string_view>
 #include <vector>
 
@@ -23,9 +25,7 @@ struct CompilerDone;
 
 class MainMenuBar
 {
-private:
-
-	MainMenuBar( void );
+	GENO_SINGLETON( MainMenuBar );
 
 public:
 
@@ -34,10 +34,6 @@ public:
 public:
 
 	float Height( void ) const { return height_; }
-
-public:
-
-	static MainMenuBar& Instance( void );
 
 private:
 

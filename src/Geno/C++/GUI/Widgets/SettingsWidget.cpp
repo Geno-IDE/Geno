@@ -148,12 +148,6 @@ void SettingsWidget::Show( bool* p_open )
 	ImGui::End();
 }
 
-SettingsWidget& SettingsWidget::Instance( void )
-{
-	static SettingsWidget instance;
-	return instance;
-}
-
 void SettingsWidget::UpdateTheme( void )
 {
 	switch( current_theme_ )

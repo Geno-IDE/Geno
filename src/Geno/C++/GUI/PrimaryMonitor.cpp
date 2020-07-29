@@ -46,12 +46,6 @@ PrimaryMonitor::PrimaryMonitor( void )
 	}
 }
 
-PrimaryMonitor& PrimaryMonitor::Instance( void )
-{
-	static PrimaryMonitor instance;
-	return instance;
-}
-
 void PrimaryMonitor::MonitorFunction( GLFWmonitor* monitor, int /*event*/ )
 {
 	if( PrimaryMonitor* self = ( PrimaryMonitor* )glfwGetMonitorUserPointer( monitor ); self != nullptr )

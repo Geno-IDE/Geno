@@ -16,21 +16,17 @@
  */
 
 #pragma once
+#include "Core/Macros.h"
+
 #include <filesystem>
 
 class SettingsWidget
 {
-private:
-
-	SettingsWidget( void );
+	GENO_SINGLETON( SettingsWidget );
 
 public:
 
 	void Show( bool* p_open );
-
-public:
-
-	static SettingsWidget& Instance( void );
 
 private:
 

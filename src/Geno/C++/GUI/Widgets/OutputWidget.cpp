@@ -85,12 +85,6 @@ void OutputWidget::ClearCapture( void )
 	captured_.clear();
 }
 
-OutputWidget& OutputWidget::Instance( void )
-{
-	static OutputWidget instance;
-	return instance;
-}
-
 void OutputWidget::RedirectOutputStream( int* fd, FILE* stream )
 {
 	if( ( *fd = _fileno( stream ) ) < 0 )

@@ -19,10 +19,6 @@
 
 #include <imgui.h>
 
-WorkspaceWidget::WorkspaceWidget( void )
-{
-}
-
 void WorkspaceWidget::Show( bool* p_open )
 {
 	if( ImGui::Begin( "Workspace", p_open ) )
@@ -61,10 +57,4 @@ void WorkspaceWidget::Show( bool* p_open )
 		}
 	}
 	ImGui::End();
-}
-
-WorkspaceWidget& WorkspaceWidget::Instance( void )
-{
-	static WorkspaceWidget instance;
-	return instance;
 }

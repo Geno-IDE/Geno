@@ -33,13 +33,7 @@ struct CompilerDone
 
 class Compiler : public EventDispatcher< Compiler, CompilerDone >
 {
-public:
-
-	GENO_DISABLE_COPY_AND_MOVE( Compiler );
-
-private:
-
-	Compiler( void ) = default;
+	GENO_SINGLETON( Compiler ) = default;
 
 public:
 
@@ -49,10 +43,6 @@ public:
 
 	void Compile   ( std::wstring_view cpp );
 	void SetPath   ( path_view path );
-
-public:
-
-	static Compiler& Instance( void );
 
 private:
 

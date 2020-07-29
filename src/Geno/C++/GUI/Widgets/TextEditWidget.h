@@ -24,21 +24,11 @@ struct ImGuiInputTextCallbackData;
 
 class TextEditWidget
 {
-public:
-
-	GENO_DISABLE_COPY_AND_MOVE( TextEditWidget );
-
-private:
-
-	TextEditWidget( void );
+	GENO_SINGLETON( TextEditWidget );
 
 public:
 
 	void Show( bool* p_open );
-
-public:
-
-	static TextEditWidget& Instance( void );
 
 private:
 

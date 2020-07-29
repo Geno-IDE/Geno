@@ -136,12 +136,6 @@ void MainWindow::PopHorizontalLayout( void )
 	im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Vertical;
 }
 
-MainWindow& MainWindow::Instance( void )
-{
-	static MainWindow instance;
-	return instance;
-}
-
 void MainWindow::GLFWSizeCB( GLFWwindow* window, int width, int height )
 {
 	MainWindow* self = ( MainWindow* )glfwGetWindowUserPointer( window );

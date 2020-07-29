@@ -22,13 +22,7 @@ struct GLFWmonitor;
 
 class PrimaryMonitor
 {
-public:
-
-	GENO_DISABLE_COPY_AND_MOVE( PrimaryMonitor );
-
-public:
-
-	PrimaryMonitor( void );
+	GENO_SINGLETON( PrimaryMonitor );
 
 public:
 
@@ -36,10 +30,6 @@ public:
 	int Y     ( void ) const { return y_; }
 	int Width ( void ) const { return width_; }
 	int Height( void ) const { return height_; }
-
-public:
-
-	static PrimaryMonitor& Instance( void );
 
 private:
 

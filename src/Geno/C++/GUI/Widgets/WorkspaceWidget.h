@@ -20,20 +20,10 @@
 
 class WorkspaceWidget
 {
-public:
-
-	GENO_DISABLE_COPY_AND_MOVE( WorkspaceWidget );
-
-private:
-
-	WorkspaceWidget( void );
+	GENO_SINGLETON( WorkspaceWidget ) = default;
 
 public:
 
 	void Show( bool* p_open );
-
-public:
-
-	static WorkspaceWidget& Instance( void );
 
 };

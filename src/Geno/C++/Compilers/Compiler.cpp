@@ -72,12 +72,6 @@ void Compiler::SetPath( path_view path )
 	path_ = path;
 }
 
-Compiler& Compiler::Instance( void )
-{
-	static Compiler instance;
-	return instance;
-}
-
 std::wstring Compiler::MakeCommandLine( const Args& args )
 {
 	std::wstring string;

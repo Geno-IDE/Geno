@@ -37,3 +37,13 @@
     CLASS( CLASS&& )                 = delete; \
     CLASS& operator=( CLASS&& )      = delete; \
     CLASS& operator=( const CLASS& ) = delete
+
+#define GENO_SINGLETON( CLASS )                                  \
+public:                                                          \
+    static CLASS& Instance( void ) { static CLASS _; return _; } \
+    CLASS( const CLASS& )            = delete;                   \
+    CLASS( CLASS&& )                 = delete;                   \
+    CLASS& operator=( CLASS&& )      = delete;                   \
+    CLASS& operator=( const CLASS& ) = delete;                   \
+private:                                                         \
+    CLASS( void )

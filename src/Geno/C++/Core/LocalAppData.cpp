@@ -103,9 +103,3 @@ std::wstring LocalAppData::operator/( std::wstring_view relative_path ) const
 
 	return abs_path.wstring();
 }
-
-LocalAppData& LocalAppData::Instance( void )
-{
-	static LocalAppData instance;
-	return instance;
-}

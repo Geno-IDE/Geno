@@ -26,23 +26,14 @@
 
 class OutputWidget
 {
-public:
+	GENO_SINGLETON( OutputWidget );
 
-	GENO_DISABLE_COPY_AND_MOVE( OutputWidget );
-
-private:
-
-	 OutputWidget( void );
 	~OutputWidget( void );
 
 public:
 
 	void Show        ( bool* p_open );
 	void ClearCapture( void );
-
-public:
-
-	static OutputWidget& Instance( void );
 
 private:
 

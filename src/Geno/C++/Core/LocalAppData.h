@@ -24,13 +24,7 @@
 
 class LocalAppData
 {
-public:
-
-	GENO_DISABLE_COPY_AND_MOVE( LocalAppData );
-
-private:
-
-	LocalAppData( void );
+	GENO_SINGLETON( LocalAppData );
 
 public:
 
@@ -40,10 +34,6 @@ public:
 public:
 
 	path_string Path( void ) const { return path_; }
-
-public:
-
-	static LocalAppData& Instance( void );
 
 private:
 

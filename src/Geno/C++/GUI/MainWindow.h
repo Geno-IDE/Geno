@@ -29,11 +29,8 @@ class MainWindow
 {
 public:
 
-	GENO_DISABLE_COPY_AND_MOVE( MainWindow );
+	GENO_SINGLETON( MainWindow );
 
-private:
-
-	 MainWindow( void );
 	~MainWindow( void );
 
 public:
@@ -44,10 +41,6 @@ public:
 	void EndFrame            ( void );
 	void PushHorizontalLayout( void );
 	void PopHorizontalLayout ( void );
-
-public:
-
-	static MainWindow& Instance( void );
 
 private:
 

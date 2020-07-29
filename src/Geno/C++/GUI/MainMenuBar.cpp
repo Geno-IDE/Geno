@@ -145,12 +145,6 @@ void MainMenuBar::Show( void )
 	}
 }
 
-MainMenuBar& MainMenuBar::Instance( void )
-{
-	static MainMenuBar instance;
-	return instance;
-}
-
 void MainMenuBar::ActionFileNew( void )
 {
 	std::cout << "New\n";

@@ -68,12 +68,6 @@ void TextEditWidget::Show( bool* p_open )
 	ImGui::End();
 }
 
-TextEditWidget& TextEditWidget::Instance( void )
-{
-	static TextEditWidget instance;
-	return instance;
-}
-
 int TextEditWidget::InputTextCB( ImGuiInputTextCallbackData* data )
 {
 	TextEditWidget* self = ( TextEditWidget* )data->UserData;
