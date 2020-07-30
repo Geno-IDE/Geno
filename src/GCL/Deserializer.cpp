@@ -37,7 +37,6 @@ namespace GCL
 
 		if( int fd; POSIX_CALL( _wsopen_s( &fd, path.c_str(), _O_RDONLY | _O_BINARY, _SH_DENYNO, 0 ) ) )
 		{
-			_lseek( fd, 0, SEEK_SET );
 			long file_size = _lseek( fd, 0, SEEK_END );
 			_lseek( fd, 0, SEEK_SET );
 
@@ -50,10 +49,14 @@ namespace GCL
 			char* end = buf + file_size;
 			for( char* kw_begin = buf, *kw_end = buf; kw_begin != end; )
 			{
-				kw_end     = ( char* )memchr( kw_begin, '\n', file_size );
-				file_size -= ( long )( kw_end - kw_begin );
+				kw_end = ( char* )memchr( kw_begin, '\n', file_size );
 
-				ParseLine( std::string_view( kw_begin, kw_end - kw_begin ) );
+				size_t line_size = ( kw_end - kw_begin );
+				file_size       -= ( long )line_size;
+
+				ParseLine( std::string_view( kw_begin, line_size ) );
+
+				kw_begin = kw_end + ( kw_end != end );
 			}
 
 			free( buf );
