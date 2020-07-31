@@ -43,7 +43,7 @@ public:
 
 private:
 
-	static void GCLValueCallback( const GCL::Deserializer::KeyedValues& values, void* user );
+	static void GCLTableCallback( GCL::Table table, void* user );
 
 private:
 

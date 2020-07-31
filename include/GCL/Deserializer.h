@@ -19,38 +19,53 @@
 #include <filesystem>
 #include <initializer_list>
 #include <string_view>
+#include <variant>
 
 namespace GCL
 {
+	struct Table;
+
+	using Value       = std::string_view;
+	using Array       = std::vector< Value >;
+	using TableVector = std::vector< Table >;
+
+	struct Table
+	{
+		Table( void ) = default;
+		Table( Table&& other );
+
+		Table& operator=( Table&& other );
+
+		std::string_view                                          key;
+		std::variant< std::monostate, Value, Array, TableVector > value;
+	};
+
 	class Deserializer
 	{
 	public:
 
-		struct KeyedValues;
-		struct KeyedValues
-		{
-			explicit KeyedValues( std::string_view value )
-				: key_or_value( value )
-			{
-			}
-
-			KeyedValues( std::string_view key, const KeyedValues* first, const KeyedValues* last )
-				: key_or_value( key )
-				, values      ( first, last )
-			{
-			}
-
-			std::string_view                     key_or_value;
-			std::initializer_list< KeyedValues > values;
-		};
-
-	public:
-
-		using ValueCallback = void( * )( const KeyedValues& values, void* user );
+		using ValueCallback = void( * )( Value value, void* user );
+		using TableCallback = void( * )( Table table, void* user );
 
 	public:
 	
-		explicit Deserializer( const std::filesystem::path& path, ValueCallback value_callback, void* user );
+		explicit Deserializer( const std::filesystem::path& path, ValueCallback value_callback, TableCallback table_callback, void* user );
+
+	private:
+
+		bool ParseLine( std::string_view line, int indent_level );
+
+	private:
+
+		static void AddValueToTableCallback( Value value, void* user );
+		static void AddTableToTableCallback( Table table, void* user );
+
+	private:
+
+		std::string_view unparsed_;
+		ValueCallback    value_callback_;
+		TableCallback    table_callback_;
+		void*            user_;
 
 	};
 }

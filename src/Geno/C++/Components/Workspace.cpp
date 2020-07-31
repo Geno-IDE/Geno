@@ -34,50 +34,36 @@ void Workspace::Deserialize( void )
 {
 	if( !location_.empty() )
 	{
-		GCL::Deserializer serializer( location_, GCLValueCallback, this );
+		GCL::Deserializer serializer( location_, nullptr, GCLTableCallback, this );
 	}
 }
 
-void Workspace::GCLValueCallback( const GCL::Deserializer::KeyedValues& values, void* user )
+void Workspace::GCLTableCallback( GCL::Table table, void* user )
 {
-	Workspace*       self = ( Workspace* )user;
-	std::string_view key  = values.key_or_value;
+	Workspace* self = ( Workspace* )user;
 
-	if( key == "Name" )
+	if( table.key == "Name" )
 	{
-		self->name_ = values.values.begin()->key_or_value;
+		self->name_ = std::get< GCL::Value >( table.value );
 
-		std::cout << "Loaded workspace: " << self->name_ << "\n";
+		std::cout << "Workspace: " << self->name_ << "\n";
 	}
-	else if( key == "Matrix" )
+	else if( table.key == "Matrix" )
 	{
 		self->matrix_ = BuildMatrix();
 
-		for( auto& value : values.values )
+		const GCL::TableVector& columns = std::get< GCL::TableVector >( table.value );
+		for( const GCL::Table& column : columns )
 		{
-			self->matrix_.AddColumn( value.key_or_value );
+			self->matrix_.AddColumn( column.key );
 
-			std::string_view configurations = value.values.begin()->key_or_value;
-			for( size_t cfg_begin = 0, cfg_end = 0; cfg_begin != std::string_view::npos; )
+			const GCL::Array& configurations = std::get< GCL::Array >( column.value );
+			for( const GCL::Value& cfg : configurations )
 			{
-				cfg_end = configurations.find( ',', cfg_begin );
+				self->matrix_.AddConfiguration( column.key, cfg );
 
-				if( cfg_end == std::string_view::npos )
-				{
-					std::string_view cfg = configurations.substr( cfg_begin );
-					self->matrix_.AddConfiguration( value.key_or_value, cfg );
-					cfg_begin = std::string_view::npos;
-					std::cout << "Added to matrix: " << value.key_or_value << "|" << cfg << "\n";
-				}
-				else
-				{
-					std::string_view cfg = configurations.substr( cfg_begin, cfg_end - cfg_begin );
-					self->matrix_.AddConfiguration( value.key_or_value, cfg );
-					cfg_begin = cfg_end + 1;
-					std::cout << "Added to matrix: " << value.key_or_value << "|" << cfg << "\n";
-				}
+				std::cout << "Configuration: " << column.key << "|" << cfg << "\n";
 			}
-
 		}
 	}
 }
