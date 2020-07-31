@@ -27,7 +27,7 @@
 
 namespace GCL
 {
-	Deserializer::Deserializer( const std::filesystem::path& path )
+	Deserializer::Deserializer( const std::filesystem::path& path, ValueCallback value_callback, void* user )
 	{
 		if( !std::filesystem::exists( path ) )
 		{
@@ -49,12 +49,50 @@ namespace GCL
 			char* end = buf + file_size;
 			for( char* kw_begin = buf, *kw_end = buf; kw_begin != end; )
 			{
-				kw_end = ( char* )memchr( kw_begin, '\n', file_size );
+				kw_end = ( char* )memchr( kw_begin, '\n', end - kw_begin );
 
-				size_t line_size = ( kw_end - kw_begin );
-				file_size       -= ( long )line_size;
+				const size_t           line_size    = ( kw_end - kw_begin );
+				const std::string_view line         = std::string_view( kw_begin, line_size );
+				const size_t           colon_offset = line.find( ':' );
+				const std::string_view key          = line.substr( 0, colon_offset );
+				const std::string_view value        = line.substr( colon_offset + 1 );
 
-				ParseLine( std::string_view( kw_begin, line_size ) );
+				if( value.empty() )
+				{
+					std::vector< KeyedValues > values;
+
+					for( ;; )
+					{
+						char* item_begin = kw_end + 1;
+						char* item_end   = ( char* )memchr( item_begin, '\n', end - item_begin );
+
+						if( *( item_begin++ ) == '\t' )
+						{
+							const size_t           item_line_size    = ( item_end - item_begin );
+							const std::string_view item_line         = std::string_view( item_begin, item_line_size );
+							const size_t           item_colon_offset = item_line.find( ':' );
+							const std::string_view item_key          = item_line.substr( 0, item_colon_offset );
+							const std::string_view item_value        = item_line.substr( item_colon_offset + 1 );
+							const KeyedValues      item_keyed_value  = KeyedValues( item_value );
+
+							values.emplace_back( item_key, &item_keyed_value, &item_keyed_value );
+
+							kw_begin = item_begin;
+							kw_end   = item_end;
+						}
+						else
+						{
+							value_callback( KeyedValues( key, &values.front(), &values.back() ), user );
+							break;
+						}
+					}
+				}
+				else
+				{
+					const KeyedValues keyed_value( value );
+
+					value_callback( KeyedValues( key, &keyed_value, &keyed_value ), user );
+				}
 
 				kw_begin = kw_end + ( kw_end != end );
 			}
@@ -62,14 +100,5 @@ namespace GCL
 			free( buf );
 			_close( fd );
 		}
-	}
-
-	void Deserializer::ParseLine( std::string_view line )
-	{
-		size_t           colon_offset = line.find( ':' );
-		std::string_view key          = line.substr( 0, colon_offset );
-		std::string_view val          = line.substr( colon_offset + 1 );
-
-		std::cout << "Key: " << key << ", Val: " << val << "\n";
 	}
 }

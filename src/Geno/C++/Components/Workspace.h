@@ -16,9 +16,13 @@
  */
 
 #pragma once
+#include "Components/BuildMatrix.h"
 #include "Components/Project.h"
 
+#include <GCL/Deserializer.h>
+
 #include <filesystem>
+#include <string>
 #include <vector>
 
 class Workspace
@@ -39,7 +43,14 @@ public:
 
 private:
 
+	static void GCLValueCallback( const GCL::Deserializer::KeyedValues& values, void* user );
+
+private:
+
 	std::filesystem::path  location_;
 	std::vector< Project > projects_;
+	std::string            name_;
+
+	BuildMatrix            matrix_;
 
 };

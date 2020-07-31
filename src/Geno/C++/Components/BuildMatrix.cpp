@@ -19,6 +19,26 @@
 
 #include "Common/Intrinsics.h"
 
+void BuildMatrix::AddColumn( std::string_view name )
+{
+	Column column;
+	column.name = name;
+
+	columns_.emplace_back( std::move( column ) );
+}
+
+void BuildMatrix::AddConfiguration( std::string_view which_column, std::string_view configuration )
+{
+	for( Column& column : columns_ )
+	{
+		if( column.name == which_column )
+		{
+			column.configuration_names.emplace_back( configuration );
+			return;
+		}
+	}
+}
+
 BuildMatrix BuildMatrix::PlatformDefault( void )
 {
 	BuildMatrix matrix;

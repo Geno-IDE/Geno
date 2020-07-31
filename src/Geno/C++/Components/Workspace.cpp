@@ -34,6 +34,50 @@ void Workspace::Deserialize( void )
 {
 	if( !location_.empty() )
 	{
-		GCL::Deserializer serializer( location_ );
+		GCL::Deserializer serializer( location_, GCLValueCallback, this );
+	}
+}
+
+void Workspace::GCLValueCallback( const GCL::Deserializer::KeyedValues& values, void* user )
+{
+	Workspace*       self = ( Workspace* )user;
+	std::string_view key  = values.key_or_value;
+
+	if( key == "Name" )
+	{
+		self->name_ = values.values.begin()->key_or_value;
+
+		std::cout << "Loaded workspace: " << self->name_ << "\n";
+	}
+	else if( key == "Matrix" )
+	{
+		self->matrix_ = BuildMatrix();
+
+		for( auto& value : values.values )
+		{
+			self->matrix_.AddColumn( value.key_or_value );
+
+			std::string_view configurations = value.values.begin()->key_or_value;
+			for( size_t cfg_begin = 0, cfg_end = 0; cfg_begin != std::string_view::npos; )
+			{
+				cfg_end = configurations.find( ',', cfg_begin );
+
+				if( cfg_end == std::string_view::npos )
+				{
+					std::string_view cfg = configurations.substr( cfg_begin );
+					self->matrix_.AddConfiguration( value.key_or_value, cfg );
+					cfg_begin = std::string_view::npos;
+					std::cout << "Added to matrix: " << value.key_or_value << "|" << cfg << "\n";
+				}
+				else
+				{
+					std::string_view cfg = configurations.substr( cfg_begin, cfg_end - cfg_begin );
+					self->matrix_.AddConfiguration( value.key_or_value, cfg );
+					cfg_begin = cfg_end + 1;
+					std::cout << "Added to matrix: " << value.key_or_value << "|" << cfg << "\n";
+				}
+			}
+
+		}
 	}
 }

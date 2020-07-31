@@ -40,6 +40,11 @@ public:
 
 public:
 
+	void AddColumn       ( std::string_view name );
+	void AddConfiguration( std::string_view which_column, std::string_view configuration );
+
+public:
+
 	static BuildMatrix PlatformDefault( void );
 
 private:

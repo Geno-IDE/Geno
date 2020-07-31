@@ -17,18 +17,40 @@
 
 #pragma once
 #include <filesystem>
+#include <initializer_list>
+#include <string_view>
 
 namespace GCL
 {
 	class Deserializer
 	{
 	public:
-	
-		explicit Deserializer( const std::filesystem::path& path );
 
-	private:
+		struct KeyedValues;
+		struct KeyedValues
+		{
+			explicit KeyedValues( std::string_view value )
+				: key_or_value( value )
+			{
+			}
 
-		void ParseLine( std::string_view line );
+			KeyedValues( std::string_view key, const KeyedValues* first, const KeyedValues* last )
+				: key_or_value( key )
+				, values      ( first, last )
+			{
+			}
+
+			std::string_view                     key_or_value;
+			std::initializer_list< KeyedValues > values;
+		};
+
+	public:
+
+		using ValueCallback = void( * )( const KeyedValues& values, void* user );
+
+	public:
 	
+		explicit Deserializer( const std::filesystem::path& path, ValueCallback value_callback, void* user );
+
 	};
 }
