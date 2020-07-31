@@ -16,34 +16,50 @@
  */
 
 #pragma once
-#include "GCL/Object.h"
+#include "Common/Macros.h"
 
-#include <filesystem>
-#include <initializer_list>
-#include <string_view>
 #include <variant>
+#include <vector>
 
 namespace GCL
 {
-	class Deserializer
+	class Object
 	{
 	public:
 
-		using ObjectCallback = void( * )( Object object, void* user );
+		GENO_DISABLE_COPY( Object );
+
+	public:
+
+		using Variant = std::variant< std::monostate, std::string_view, std::vector< std::string_view >, std::vector< Object > >;
 
 	public:
 	
-		explicit Deserializer( const std::filesystem::path& path, ObjectCallback object_callback, void* user );
+		explicit Object( std::string_view key );
+		         Object( Object&& other );
+
+		Object& operator=( Object&& other );
+
+	public:
+
+		void SetString   ( std::string_view string );
+		void AddArrayItem( std::string_view item );
+		void AddChild    ( Object child );
+
+	public:
+
+		const std::vector< std::string_view >& Array   ( void ) const;
+		const std::vector< Object >&           Children( void ) const;
+		std::string_view                       Key     ( void ) const { return key_; }
+
+	public:
+
+		operator std::string_view( void ) const;
 
 	private:
 
-		bool ParseLine( std::string_view line, int indent_level );
-
-	private:
-
-		std::string_view unparsed_;
-		ObjectCallback   object_callback_;
-		void*            user_;
-
+		std::string_view key_;
+		Variant          value_;
+	
 	};
 }

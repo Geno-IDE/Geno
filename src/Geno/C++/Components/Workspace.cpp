@@ -34,35 +34,33 @@ void Workspace::Deserialize( void )
 {
 	if( !location_.empty() )
 	{
-		GCL::Deserializer serializer( location_, nullptr, GCLTableCallback, this );
+		GCL::Deserializer serializer( location_, GCLObjectCallback, this );
 	}
 }
 
-void Workspace::GCLTableCallback( GCL::Table table, void* user )
+void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 {
 	Workspace* self = ( Workspace* )user;
 
-	if( table.key == "Name" )
+	if( object.Key() == "Name" )
 	{
-		self->name_ = std::get< GCL::Value >( table.value );
+		self->name_ = object;
 
 		std::cout << "Workspace: " << self->name_ << "\n";
 	}
-	else if( table.key == "Matrix" )
+	else if( object.Key() == "Matrix" )
 	{
 		self->matrix_ = BuildMatrix();
 
-		const GCL::TableVector& columns = std::get< GCL::TableVector >( table.value );
-		for( const GCL::Table& column : columns )
+		for( const GCL::Object& column : object.Children() )
 		{
-			self->matrix_.AddColumn( column.key );
+			self->matrix_.AddColumn( column.Key() );
 
-			const GCL::Array& configurations = std::get< GCL::Array >( column.value );
-			for( const GCL::Value& cfg : configurations )
+			for( std::string_view cfg : column.Array() )
 			{
-				self->matrix_.AddConfiguration( column.key, cfg );
+				self->matrix_.AddConfiguration( column.Key(), cfg );
 
-				std::cout << "Configuration: " << column.key << "|" << cfg << "\n";
+				std::cout << "Configuration: " << column.Key() << "|" << cfg << "\n";
 			}
 		}
 	}

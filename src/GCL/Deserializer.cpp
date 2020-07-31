@@ -40,27 +40,9 @@ namespace GCL
 		return true;
 	}
 
-	Table::Table( Table&& other )
-		: key( other.key )
-	{
-		other.key = std::string_view();
-		value.swap( other.value );
-	}
-
-	Table& Table::operator=( Table&& other )
-	{
-		key = other.key;
-		value.swap( other.value );
-
-		other.key = std::string_view();
-
-		return *this;
-	}
-
-	Deserializer::Deserializer( const std::filesystem::path& path, ValueCallback value_callback, TableCallback table_callback, void* user )
-		: value_callback_( value_callback )
-		, table_callback_( table_callback )
-		, user_          ( user )
+	Deserializer::Deserializer( const std::filesystem::path& path, ObjectCallback object_callback, void* user )
+		: object_callback_( object_callback )
+		, user_           ( user )
 	{
 		if( !std::filesystem::exists( path ) )
 		{
@@ -108,70 +90,36 @@ namespace GCL
 
 		if( colon_index == std::string_view::npos )
 		{
-			if( value_callback_ )
-				value_callback_( unindented_line, user_ );
+			Object* parent_object = static_cast< Object* >( user_ );
+
+			parent_object->AddArrayItem( unindented_line );
 		}
 		else if( ( colon_index + 1 ) < unindented_line.size() )
 		{
-			/*
-			Key:Value
-			*/
-			Table table;
-			table.key = unindented_line.substr( 0, colon_index );
-			table.value.emplace< Value >( unindented_line.substr( colon_index + 1 ) );
+			Object object( unindented_line.substr( 0, colon_index ) );
+			object.SetString( unindented_line.substr( colon_index + 1 ) );
 
-			if( table_callback_ )
-				table_callback_( std::move( table ), user_ );
+			if( object_callback_ )
+				object_callback_( std::move( object ), user_ );
 		}
 		else
 		{
-			/*
-			Table:
-				Item1:Foo1
-				Item2:Bar1
+			ObjectCallback old_object_callback = object_callback_;
+			void*          old_user            = user_;
+			Object         object              = Object( unindented_line.substr( 0, colon_index ) );
 
-			or
-
-			Table:
-				Item1
-				Item2
-			*/
-			ValueCallback old_value_callback = value_callback_;
-			TableCallback old_table_callback = table_callback_;
-			void*         old_user           = user_;
-			Table         table;
-
-			table.key       = unindented_line.substr( 0, colon_index );
-			value_callback_ = AddValueToTableCallback;
-			table_callback_ = AddTableToTableCallback;
-			user_           = &table;
+			object_callback_ = []( Object child, void* parent ) { static_cast< Object* >( parent )->AddChild( std::move( child ) ); };
+			user_            = &object;
 
 			while( !unparsed_.empty() && ParseLine( unparsed_.substr( 0, unparsed_.find( '\n' ) ), indent_level + 1 ) );
-			
-			value_callback_ = old_value_callback;
-			table_callback_ = old_table_callback;
-			user_           = old_user;
 
-			if( table_callback_ )
-				table_callback_( std::move( table ), user_ );
+			object_callback_ = old_object_callback;
+			user_            = old_user;
+
+			if( object_callback_ )
+				object_callback_( std::move( object ), user_ );
 		}
 
 		return true;
-	}
-
-	void Deserializer::AddValueToTableCallback( Value value, void* user )
-	{
-		Table* parent_table     = ( Table* )user;
-		Array& underlying_array = parent_table->value.index() == 0 ? parent_table->value.emplace< Array >() : std::get< Array >( parent_table->value );
-
-		underlying_array.push_back( value );
-	}
-
-	void Deserializer::AddTableToTableCallback( Table table, void* user )
-	{
-		Table*       parent_table            = ( Table* )user;
-		TableVector& underlying_table_vector = parent_table->value.index() == 0 ? parent_table->value.emplace< TableVector >() : std::get< TableVector >( parent_table->value );
-
-		underlying_table_vector.emplace_back( std::move( table ) );
 	}
 }

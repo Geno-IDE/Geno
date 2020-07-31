@@ -43,7 +43,7 @@ public:
 
 private:
 
-	static void GCLTableCallback( GCL::Table table, void* user );
+	static void GCLObjectCallback( GCL::Object object, void* user );
 
 private:
 
