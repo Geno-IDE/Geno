@@ -26,4 +26,9 @@ public:
 
 	void Show( bool* p_open );
 
+private:
+
+	std::string popup_text_;
+	std::string selected_project_;
+
 };
