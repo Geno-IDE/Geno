@@ -33,17 +33,21 @@ namespace GCL
 
 	public:
 	
-		explicit Deserializer( const std::filesystem::path& path, ObjectCallback object_callback, void* user );
+		explicit Deserializer( const std::filesystem::path& path );
+		        ~Deserializer( void );
+
+	public:
+
+		void Objects( ObjectCallback callback, void* user );
 
 	private:
 
-		bool ParseLine( std::string_view line, int indent_level );
+		bool ParseLine( std::string_view line, int indent_level, std::string_view* unparsed, ObjectCallback callback, void* user );
 
 	private:
 
-		std::string_view unparsed_;
-		ObjectCallback   object_callback_;
-		void*            user_;
+		char*  file_buf_  = nullptr;
+		size_t file_size_ = 0;
 
 	};
 }

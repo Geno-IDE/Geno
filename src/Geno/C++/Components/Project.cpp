@@ -41,7 +41,9 @@ void Project::Deserialize( void )
 {
 	if( !location_.empty() )
 	{
-		GCL::Deserializer deserializer( location_, GCLObjectCallback, this );
+		GCL::Deserializer deserializer( location_ );
+
+		deserializer.Objects( GCLObjectCallback, this );
 	}
 }
 

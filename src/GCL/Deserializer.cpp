@@ -40,9 +40,7 @@ namespace GCL
 		return true;
 	}
 
-	Deserializer::Deserializer( const std::filesystem::path& path, ObjectCallback object_callback, void* user )
-		: object_callback_( object_callback )
-		, user_           ( user )
+	Deserializer::Deserializer( const std::filesystem::path& path )
 	{
 		if( !std::filesystem::exists( path ) )
 		{
@@ -52,36 +50,44 @@ namespace GCL
 
 		if( int fd; POSIX_CALL( _wsopen_s( &fd, path.c_str(), _O_RDONLY | _O_BINARY, _SH_DENYNO, 0 ) ) )
 		{
-			long file_size = _lseek( fd, 0, SEEK_END );
+			file_size_ = static_cast< size_t >( _lseek( fd, 0, SEEK_END ) );
 			_lseek( fd, 0, SEEK_SET );
 
-			char* buf = ( char* )malloc( file_size );
+			file_buf_ = ( char* )malloc( file_size_ );
+
 			for( int bytes_read = 0;
-			     bytes_read < file_size;
-			     bytes_read += _read( fd, buf, file_size )
+			     bytes_read < file_size_;
+			     bytes_read += _read( fd, file_buf_, static_cast< uint32_t >( file_size_ ) )
 			);
 
-			unparsed_ = std::string_view( buf, file_size );
-
-			while( !unparsed_.empty() )
-			{
-				size_t           line_end = unparsed_.find( '\n' );
-				std::string_view line     = unparsed_.substr( 0, line_end );
-
-				ParseLine( line, 0 );
-			}
-
-			free( buf );
 			_close( fd );
 		}
 	}
 
-	bool Deserializer::ParseLine( std::string_view line, int indent_level )
+	Deserializer::~Deserializer( void )
+	{
+		free( file_buf_ );
+	}
+
+	void Deserializer::Objects( ObjectCallback callback, void* user )
+	{
+		std::string_view unparsed( file_buf_, file_size_ );
+
+		while( !unparsed.empty() )
+		{
+			size_t           line_end = unparsed.find( '\n' );
+			std::string_view line     = unparsed.substr( 0, line_end );
+
+			ParseLine( line, 0, &unparsed, callback, user );
+		}
+	}
+
+	bool Deserializer::ParseLine( std::string_view line, int indent_level, std::string_view* unparsed, ObjectCallback callback, void* user )
 	{
 		if( !LineStartsWithIndent( line, indent_level ) )
 			return false;
 
-		unparsed_ = unparsed_.substr( line.size() + ( line.size() < unparsed_.size() ) );
+		*unparsed = unparsed->substr( line.size() + ( line.size() < unparsed->size() ) );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -90,7 +96,7 @@ namespace GCL
 
 		if( colon_index == std::string_view::npos )
 		{
-			Object* parent_object = static_cast< Object* >( user_ );
+			Object* parent_object = static_cast< Object* >( user );
 
 			parent_object->AddArrayItem( unindented_line );
 		}
@@ -99,25 +105,16 @@ namespace GCL
 			Object object( unindented_line.substr( 0, colon_index ) );
 			object.SetString( unindented_line.substr( colon_index + 1 ) );
 
-			if( object_callback_ )
-				object_callback_( std::move( object ), user_ );
+			callback( std::move( object ), user );
 		}
 		else
 		{
-			ObjectCallback old_object_callback = object_callback_;
-			void*          old_user            = user_;
-			Object         object              = Object( unindented_line.substr( 0, colon_index ) );
+			Object object             = Object( unindented_line.substr( 0, colon_index ) );
+			auto   add_child_callback = []( Object child, void* parent ) { static_cast< Object* >( parent )->AddChild( std::move( child ) ); };
 
-			object_callback_ = []( Object child, void* parent ) { static_cast< Object* >( parent )->AddChild( std::move( child ) ); };
-			user_            = &object;
+			while( !unparsed->empty() && ParseLine( unparsed->substr( 0, unparsed->find( '\n' ) ), indent_level + 1, unparsed, add_child_callback, &object ) );
 
-			while( !unparsed_.empty() && ParseLine( unparsed_.substr( 0, unparsed_.find( '\n' ) ), indent_level + 1 ) );
-
-			object_callback_ = old_object_callback;
-			user_            = old_user;
-
-			if( object_callback_ )
-				object_callback_( std::move( object ), user_ );
+			callback( std::move( object ), user );
 		}
 
 		return true;

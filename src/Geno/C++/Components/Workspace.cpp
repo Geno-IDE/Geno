@@ -48,7 +48,9 @@ void Workspace::Deserialize( void )
 {
 	if( !location_.empty() )
 	{
-		GCL::Deserializer serializer( location_, GCLObjectCallback, this );
+		GCL::Deserializer serializer( location_ );
+
+		serializer.Objects( GCLObjectCallback, this );
 	}
 }
 
