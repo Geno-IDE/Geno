@@ -60,6 +60,17 @@ std::filesystem::path Workspace::operator/( const std::filesystem::path& path ) 
 		return ( location_.parent_path() / path );
 }
 
+Project* Workspace::ProjectByName( std::string_view name )
+{
+	for( Project& prj : projects_ )
+	{
+		if( prj.name_ == name )
+			return &prj;
+	}
+
+	return nullptr;
+}
+
 void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 {
 	Workspace* self = ( Workspace* )user;
