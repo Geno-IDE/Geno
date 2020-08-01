@@ -27,7 +27,7 @@ class Project
 {
 public:
 
-	Project( void ) = default;
+	explicit Project( const std::filesystem::path& location );
 
 public:
 
@@ -36,7 +36,7 @@ public:
 
 public:
 
-	std::filesystem::path RelativePath( const std::filesystem::path& path ) const;
+	std::filesystem::path operator/( const std::filesystem::path& path ) const;
 
 public:
 

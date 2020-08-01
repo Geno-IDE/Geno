@@ -39,10 +39,11 @@ public:
 
 public:
 
-	std::filesystem::path RelativePath( const std::filesystem::path& path ) const;
+	Project* ProjectByName( std::string_view name );
 
 public:
 
+	std::filesystem::path operator/( const std::filesystem::path& path ) const;
 
 public:
 

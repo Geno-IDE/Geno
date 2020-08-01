@@ -23,6 +23,12 @@
 
 #include <iostream>
 
+Project::Project( const std::filesystem::path& location )
+	: location_( location )
+	, name_    ( "MyProject" )
+{
+}
+
 void Project::Build( void )
 {
 	for( const std::filesystem::path& cpp : files_ )
@@ -39,7 +45,7 @@ void Project::Deserialize( void )
 	}
 }
 
-std::filesystem::path Project::RelativePath( const std::filesystem::path& path ) const
+std::filesystem::path Project::operator/( const std::filesystem::path& path ) const
 {
 	if( path.is_absolute() )
 		return ( path.lexically_relative( location_.parent_path() ) );
@@ -64,7 +70,7 @@ void Project::GCLObjectCallback( GCL::Object object, void* user )
 			std::filesystem::path file_path = file_path_string;
 
 			if( !file_path.is_absolute() )
-				file_path = self->RelativePath( file_path );
+				file_path = *self / file_path;
 
 			file_path.make_preferred();
 			self->files_.emplace_back( std::move( file_path ) );
@@ -77,7 +83,7 @@ void Project::GCLObjectCallback( GCL::Object object, void* user )
 			std::filesystem::path file_path = file_path_string;
 
 			if( !file_path.is_absolute() )
-				file_path = self->RelativePath( file_path );
+				file_path = *self / file_path;
 
 			file_path.make_preferred();
 			self->includes_.emplace_back( std::move( file_path ) );
