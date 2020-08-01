@@ -27,7 +27,7 @@ public:
 	struct Column
 	{
 		std::string                name;
-		std::vector< std::string > configuration_names;
+		std::vector< std::string > configurations;
 
 		int current_row = -1;
 	};

@@ -33,7 +33,7 @@ void BuildMatrix::AddConfiguration( std::string_view which_column, std::string_v
 	{
 		if( column.name == which_column )
 		{
-			column.configuration_names.emplace_back( configuration );
+			column.configurations.emplace_back( configuration );
 			return;
 		}
 	}
