@@ -48,6 +48,7 @@ public:
 	std::vector< Project >& Projects( void )       { return projects_; }
 	std::string_view        Name    ( void ) const { return name_; }
 	BuildMatrix&            Matrix  ( void )       { return build_matrix_; }
+	bool                    IsOpen  ( void ) const { return open_; }
 
 private:
 
@@ -60,5 +61,7 @@ private:
 	std::string            name_;
 
 	BuildMatrix            build_matrix_;
+
+	bool                   open_ = false;
 
 };
