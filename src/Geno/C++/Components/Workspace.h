@@ -40,9 +40,14 @@ public:
 
 public:
 
-	std::filesystem::path& Location( void )       { return location_; }
-	std::string_view       Name    ( void ) const { return name_; }
-	BuildMatrix&           Matrix  ( void )       { return build_matrix_; }
+	std::filesystem::path RelativePath( const std::filesystem::path& path ) const;
+
+public:
+
+	std::filesystem::path&  Location( void )       { return location_; }
+	std::vector< Project >& Projects( void )       { return projects_; }
+	std::string_view        Name    ( void ) const { return name_; }
+	BuildMatrix&            Matrix  ( void )       { return build_matrix_; }
 
 private:
 

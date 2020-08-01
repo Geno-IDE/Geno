@@ -46,6 +46,14 @@ void Workspace::Deserialize( void )
 	}
 }
 
+std::filesystem::path Workspace::RelativePath( const std::filesystem::path& path ) const
+{
+	if( path.is_absolute() )
+		return ( path.lexically_relative( location_.parent_path() ) );
+	else
+		return ( location_.parent_path() / path );
+}
+
 void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 {
 	Workspace* self = ( Workspace* )user;
@@ -79,7 +87,7 @@ void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 			std::filesystem::path prj_path = prj_path_string;
 
 			if( !prj_path.is_absolute() )
-				prj_path = self->location_.parent_path() / prj_path;
+				prj_path = self->RelativePath( prj_path );
 
 			if( !prj_path.has_extension() )
 				prj_path += ".gprj";

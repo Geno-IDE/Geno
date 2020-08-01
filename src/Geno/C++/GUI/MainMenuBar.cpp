@@ -237,8 +237,7 @@ void MainMenuBar::ActionHelpAbout( void )
 
 void MainMenuBar::OnCompilerDone( const CompilationDone& e )
 {
-	std::filesystem::path workspace_dir = Application::Instance().CurrentWorkspace().Location().parent_path();
-	std::filesystem::path relative_path = e.path.lexically_relative( workspace_dir );
+	std::filesystem::path relative_path = Application::Instance().CurrentWorkspace().RelativePath( e.path );
 
 	if( e.exit_code == 0 )
 		std::cerr << ":" << relative_path.string() << "\n";

@@ -35,6 +35,15 @@ public:
 	void Deserialize( void );
 	void SetLocation( const std::filesystem::path& location ) { location_ = location; }
 
+public:
+
+	std::filesystem::path RelativePath( const std::filesystem::path& path ) const;
+
+public:
+
+	std::string_view                      Name ( void ) { return name_; }
+	std::vector< std::filesystem::path >& Files( void ) { return files_; }
+
 private:
 
 	static void GCLObjectCallback( GCL::Object object, void* user );
