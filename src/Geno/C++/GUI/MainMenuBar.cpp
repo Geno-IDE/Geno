@@ -17,7 +17,6 @@
 
 #include "MainMenuBar.h"
 
-#include "Common/LocalAppData.h"
 #include "Compilers/Compiler.h"
 #include "GUI/Widgets/OutputWidget.h"
 #include "GUI/Widgets/SettingsWidget.h"
@@ -28,7 +27,11 @@
 
 #include <functional>
 #include <iostream>
+#include <numeric>
 #include <string>
+
+#include <Common/LocalAppData.h>
+#include <Common/STLExtras.h>
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -85,6 +88,34 @@ void MainMenuBar::Show( void )
 			if( ImGui::MenuItem( "About" ) ) ActionHelpAbout();
 
 			ImGui::EndMenu();
+		}
+
+		Workspace&   workspace = Application::Instance().CurrentWorkspace();
+		BuildMatrix& matrix    = workspace.Matrix();
+
+		size_t column_count = matrix.ColumnCount();
+
+		for( size_t i = 0; i < column_count; ++i )
+		{
+			BuildMatrix::Column& column                 = matrix.ColumnAt( i );
+			size_t               cfg_accumulated_length = AccumulateContainerSizes( column.configurations );
+			char*                items_string           = static_cast< char* >( calloc( cfg_accumulated_length + column.configurations.size() + 1, sizeof( char ) ) );
+			size_t               off                    = 0;
+
+			for( const std::string& cfg : column.configurations )
+			{
+				size_t cfg_true_length = cfg.size() + 1;
+
+				memcpy( items_string + off, cfg.c_str(), cfg_true_length );
+				off += cfg_true_length;
+			}
+
+			ImGui::Spacing();
+
+			ImGui::SetNextItemWidth( 120.0f );
+			if( ImGui::Combo( ( "##" + column.name ).c_str(), &column.current_row, items_string ) )
+			{
+			}
 		}
 
 		ImGui::EndMainMenuBar();
