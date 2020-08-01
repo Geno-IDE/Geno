@@ -93,16 +93,11 @@ void MainMenuBar::Show( void )
 
 		if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 		{
-			BuildMatrix& matrix = workspace->Matrix();
-
-			size_t column_count = matrix.ColumnCount();
-
-			for( size_t i = 0; i < column_count; ++i )
+			for( BuildMatrix::Column& column : workspace->build_matrix_.columns_ )
 			{
-				BuildMatrix::Column& column                 = matrix.ColumnAt( i );
-				size_t               cfg_accumulated_length = AccumulateContainerSizes( column.configurations );
-				char*                items_string           = static_cast< char* >( calloc( cfg_accumulated_length + column.configurations.size() + 1, sizeof( char ) ) );
-				size_t               off                    = 0;
+				size_t cfg_accumulated_length = AccumulateContainerSizes( column.configurations );
+				char*  items_string           = static_cast< char* >( calloc( cfg_accumulated_length + column.configurations.size() + 1, sizeof( char ) ) );
+				size_t off                    = 0;
 
 				for( const std::string& cfg : column.configurations )
 				{
@@ -209,7 +204,7 @@ void MainMenuBar::ActionBuildBuild( void )
 	{
 		OutputWidget::Instance().ClearCapture();
 
-		std::cout << "Building " << workspace->Name() << "..\n";
+		std::cout << "Building " << workspace->name_ << "..\n";
 
 		workspace->Build();
 	}

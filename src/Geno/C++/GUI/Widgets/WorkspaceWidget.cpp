@@ -29,17 +29,17 @@ void WorkspaceWidget::Show( bool* p_open )
 	{
 		if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 		{
-			std::string_view workspace_name = workspace->Name();
+			const std::string workspace_id_string    = workspace->name_ + "##WKS_" + workspace->name_;
 
-			if( ImGui::TreeNode( workspace_name.data() ) )
+			if( ImGui::TreeNode( workspace_id_string.c_str() ) )
 			{
-				for( Project& prj : workspace->Projects() )
+				for( Project& prj : workspace->projects_ )
 				{
-					std::string_view prj_name = prj.Name();
+					const std::string project_id_string = prj.name_ + "##PRJ_" + prj.name_;
 
-					if( ImGui::TreeNode( prj_name.data() ) )
+					if( ImGui::TreeNode( project_id_string.c_str() ) )
 					{
-						for( std::filesystem::path& file : prj.Files() )
+						for( std::filesystem::path& file : prj.files_ )
 						{
 							std::filesystem::path relative_file_path = workspace->RelativePath( file );
 							std::string           file_string        = relative_file_path.string();

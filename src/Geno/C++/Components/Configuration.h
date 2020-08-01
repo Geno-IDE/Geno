@@ -24,7 +24,7 @@ public:
 
 	Configuration( void );
 
-private:
+public:
 
 	std::vector< std::filesystem::path > files_;
 

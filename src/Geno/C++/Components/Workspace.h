@@ -43,21 +43,17 @@ public:
 
 public:
 
-	std::filesystem::path&  Location( void )       { return location_; }
-	std::vector< Project >& Projects( void )       { return projects_; }
-	std::string_view        Name    ( void ) const { return name_; }
-	BuildMatrix&            Matrix  ( void )       { return build_matrix_; }
 
-private:
-
-	static void GCLObjectCallback( GCL::Object object, void* user );
-
-private:
+public:
 
 	std::filesystem::path  location_;
 	std::vector< Project > projects_;
 	std::string            name_;
 
 	BuildMatrix            build_matrix_;
+
+private:
+
+	static void GCLObjectCallback( GCL::Object object, void* user );
 
 };
