@@ -55,8 +55,9 @@ void MainMenuBar::Show( void )
 
 		if( ImGui::BeginMenu( "File" ) )
 		{
-			if( ImGui::MenuItem( "New Workspace", "Ctrl+N" ) )  ActionFileNewWorkspace();
-			if( ImGui::MenuItem( "Open Workspace", "Ctrl+O" ) ) ActionFileOpenWorkspace();
+			if( ImGui::MenuItem( "New Workspace", "Ctrl+N" ) )   ActionFileNewWorkspace();
+			if( ImGui::MenuItem( "Open Workspace", "Ctrl+O" ) )  ActionFileOpenWorkspace();
+			if( ImGui::MenuItem( "Close Workspace", "Ctrl+W" ) ) ActionFileCloseWorkspace();
 
 			ImGui::Separator();
 
@@ -76,8 +77,8 @@ void MainMenuBar::Show( void )
 		{
 			if( ImGui::MenuItem( "Text Edit", "Alt+T" ) ) ActionViewTextEdit();
 			if( ImGui::MenuItem( "Workspace", "Alt+W" ) ) ActionViewWorkspace();
-			if( ImGui::MenuItem( "Settings", "Alt+S" ) ) ActionViewSettings();
-			if( ImGui::MenuItem( "Output", "Alt+O" ) )   ActionViewOutput();
+			if( ImGui::MenuItem( "Settings", "Alt+S" ) )  ActionViewSettings();
+			if( ImGui::MenuItem( "Output", "Alt+O" ) )    ActionViewOutput();
 
 			ImGui::EndMenu();
 		}
@@ -90,31 +91,33 @@ void MainMenuBar::Show( void )
 			ImGui::EndMenu();
 		}
 
-		Workspace&   workspace = Application::Instance().CurrentWorkspace();
-		BuildMatrix& matrix    = workspace.Matrix();
-
-		size_t column_count = matrix.ColumnCount();
-
-		for( size_t i = 0; i < column_count; ++i )
+		if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 		{
-			BuildMatrix::Column& column                 = matrix.ColumnAt( i );
-			size_t               cfg_accumulated_length = AccumulateContainerSizes( column.configurations );
-			char*                items_string           = static_cast< char* >( calloc( cfg_accumulated_length + column.configurations.size() + 1, sizeof( char ) ) );
-			size_t               off                    = 0;
+			BuildMatrix& matrix = workspace->Matrix();
 
-			for( const std::string& cfg : column.configurations )
+			size_t column_count = matrix.ColumnCount();
+
+			for( size_t i = 0; i < column_count; ++i )
 			{
-				size_t cfg_true_length = cfg.size() + 1;
+				BuildMatrix::Column& column                 = matrix.ColumnAt( i );
+				size_t               cfg_accumulated_length = AccumulateContainerSizes( column.configurations );
+				char*                items_string           = static_cast< char* >( calloc( cfg_accumulated_length + column.configurations.size() + 1, sizeof( char ) ) );
+				size_t               off                    = 0;
 
-				memcpy( items_string + off, cfg.c_str(), cfg_true_length );
-				off += cfg_true_length;
-			}
+				for( const std::string& cfg : column.configurations )
+				{
+					size_t cfg_true_length = cfg.size() + 1;
 
-			ImGui::Spacing();
+					memcpy( items_string + off, cfg.c_str(), cfg_true_length );
+					off += cfg_true_length;
+				}
 
-			ImGui::SetNextItemWidth( 120.0f );
-			if( ImGui::Combo( ( "##" + column.name ).c_str(), &column.current_row, items_string ) )
-			{
+				ImGui::Spacing();
+
+				ImGui::SetNextItemWidth( 120.0f );
+				if( ImGui::Combo( ( "##" + column.name ).c_str(), &column.current_row, items_string ) )
+				{
+				}
 			}
 		}
 
@@ -130,6 +133,7 @@ void MainMenuBar::Show( void )
 	{
 		if( ImGui::IsKeyPressed( GLFW_KEY_N ) ) ActionFileNewWorkspace();
 		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionFileOpenWorkspace();
+		if( ImGui::IsKeyPressed( GLFW_KEY_W ) ) ActionFileCloseWorkspace();
 	}
 	else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_ALT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_ALT ) )
 	{
@@ -189,6 +193,11 @@ void MainMenuBar::ActionFileOpenWorkspace( void )
 	Application::Instance().LoadWorkspace( LocalAppData::Instance() / L"MyWorkspace.gwks" );
 }
 
+void MainMenuBar::ActionFileCloseWorkspace( void )
+{
+	Application::Instance().CloseWorkspace();
+}
+
 void MainMenuBar::ActionFileExit( void )
 {
 	exit( 0 );
@@ -196,13 +205,14 @@ void MainMenuBar::ActionFileExit( void )
 
 void MainMenuBar::ActionBuildBuild( void )
 {
-	OutputWidget::Instance().ClearCapture();
+	if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+	{
+		OutputWidget::Instance().ClearCapture();
 
-	Workspace& workspace = Application::Instance().CurrentWorkspace();
+		std::cout << "Building " << workspace->Name() << "..\n";
 
-	std::cout << "Building " << workspace.Name() << "..\n";
-
-	workspace.Build();
+		workspace->Build();
+	}
 }
 
 void MainMenuBar::ActionViewTextEdit( void )
@@ -237,10 +247,13 @@ void MainMenuBar::ActionHelpAbout( void )
 
 void MainMenuBar::OnCompilerDone( const CompilationDone& e )
 {
-	std::filesystem::path relative_path = Application::Instance().CurrentWorkspace().RelativePath( e.path );
+	if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+	{
+		std::filesystem::path relative_path = workspace->RelativePath( e.path );
 
-	if( e.exit_code == 0 )
-		std::cerr << ":" << relative_path.string() << "\n";
-	else
-		std::cerr << "!" << relative_path.string() << " (exit code:" << e.exit_code << ")\n";
+		if( e.exit_code == 0 )
+			std::cerr << ":" << relative_path.string() << "\n";
+		else
+			std::cerr << "!" << relative_path.string() << " (exit code:" << e.exit_code << ")\n";
+	}
 }

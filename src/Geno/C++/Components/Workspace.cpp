@@ -22,6 +22,12 @@
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
 
+Workspace::Workspace( const std::filesystem::path& location )
+	: location_( location )
+	, name_    ( "MyWorkspace" )
+{
+}
+
 void Workspace::Build( void )
 {
 	for( Project& prj : projects_ )
@@ -43,7 +49,6 @@ void Workspace::Deserialize( void )
 	if( !location_.empty() )
 	{
 		GCL::Deserializer serializer( location_, GCLObjectCallback, this );
-		open_ = true;
 	}
 }
 

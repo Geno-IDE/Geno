@@ -37,16 +37,17 @@ public:
 
 private:
 
-	void ActionFileNewWorkspace ( void );
-	void ActionFileOpenWorkspace( void );
-	void ActionFileExit         ( void );
-	void ActionBuildBuild       ( void );
-	void ActionViewTextEdit     ( void );
-	void ActionViewWorkspace    ( void );
-	void ActionViewSettings     ( void );
-	void ActionViewOutput       ( void );
-	void ActionHelpDemo         ( void );
-	void ActionHelpAbout        ( void );
+	void ActionFileNewWorkspace  ( void );
+	void ActionFileOpenWorkspace ( void );
+	void ActionFileCloseWorkspace( void );
+	void ActionFileExit          ( void );
+	void ActionBuildBuild        ( void );
+	void ActionViewTextEdit      ( void );
+	void ActionViewWorkspace     ( void );
+	void ActionViewSettings      ( void );
+	void ActionViewOutput        ( void );
+	void ActionHelpDemo          ( void );
+	void ActionHelpAbout         ( void );
 
 private:
 

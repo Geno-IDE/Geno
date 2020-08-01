@@ -39,13 +39,11 @@ void TextEditWidget::Show( bool* p_open )
 
 		if( ImGui::BeginTabBar( "TextEditTabBar", tab_bar_flags ) )
 		{
-			Workspace& workspace = Application::Instance().CurrentWorkspace();
-
-			if( workspace.IsOpen() )
+			if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 			{
 				for( File& file : files_ )
 				{
-					std::filesystem::path relative_path        = workspace.RelativePath( file.path );
+					std::filesystem::path relative_path        = workspace->RelativePath( file.path );
 					std::string           relative_path_string = relative_path.string();
 
 					if( ImGui::BeginTabItem( relative_path_string.c_str(), &file.open ) )

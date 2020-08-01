@@ -19,22 +19,25 @@
 #include "Common/Macros.h"
 #include "Components/Workspace.h"
 
+#include <optional>
+
 class Application
 {
 	GENO_SINGLETON( Application ) = default;
 
 public:
 
-	int  Run          ( void );
-	void NewWorkspace ( const std::filesystem::path& where );
-	void LoadWorkspace( const std::filesystem::path& path );
+	int  Run           ( void );
+	void NewWorkspace  ( const std::filesystem::path& where );
+	void LoadWorkspace ( const std::filesystem::path& path );
+	void CloseWorkspace( void );
 
 public:
 
-	Workspace& CurrentWorkspace( void ) { return current_workspace_; }
+	Workspace* CurrentWorkspace( void );
 
 private:
 
-	Workspace current_workspace_;
+	std::optional< Workspace > current_workspace_;
 
 };

@@ -27,15 +27,13 @@ void WorkspaceWidget::Show( bool* p_open )
 {
 	if( ImGui::Begin( "Workspace", p_open ) )
 	{
-		Workspace& workspace = Application::Instance().CurrentWorkspace();
-
-		if( workspace.IsOpen() )
+		if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 		{
-			std::string_view workspace_name = workspace.Name();
+			std::string_view workspace_name = workspace->Name();
 
 			if( ImGui::TreeNode( workspace_name.data() ) )
 			{
-				for( Project& prj : workspace.Projects() )
+				for( Project& prj : workspace->Projects() )
 				{
 					std::string_view prj_name = prj.Name();
 
@@ -43,7 +41,7 @@ void WorkspaceWidget::Show( bool* p_open )
 					{
 						for( std::filesystem::path& file : prj.Files() )
 						{
-							std::filesystem::path relative_file_path = workspace.RelativePath( file );
+							std::filesystem::path relative_file_path = workspace->RelativePath( file );
 							std::string           file_string        = relative_file_path.string();
 
 							if( ImGui::Selectable( file_string.c_str() ) )

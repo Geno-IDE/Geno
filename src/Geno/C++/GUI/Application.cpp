@@ -38,15 +38,27 @@ int Application::Run( void )
 
 void Application::NewWorkspace( const std::filesystem::path& where )
 {
-	// Save previous workspace
-	current_workspace_.Serialize();
+	CloseWorkspace();
 
-	current_workspace_ = Workspace();
-	current_workspace_.SetLocation( where );
+	current_workspace_.emplace( where );
 }
 
 void Application::LoadWorkspace( const std::filesystem::path& path )
 {
 	NewWorkspace( path );
-	current_workspace_.Deserialize();
+
+	current_workspace_->Deserialize();
+}
+
+void Application::CloseWorkspace( void )
+{
+	if( current_workspace_ )
+		current_workspace_->Serialize();
+
+	current_workspace_.reset();
+}
+
+Workspace* Application::CurrentWorkspace( void )
+{
+	return current_workspace_.has_value() ? &current_workspace_.value() : nullptr;
 }
