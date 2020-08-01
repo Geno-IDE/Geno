@@ -48,10 +48,6 @@ public:
 
 private:
 
-	static int InputTextCB( ImGuiInputTextCallbackData* data );
-
-private:
-
 	std::vector< File > files_;
 
 };

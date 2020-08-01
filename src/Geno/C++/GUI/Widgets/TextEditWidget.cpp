@@ -27,6 +27,7 @@
 
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 void TextEditWidget::Show( bool* p_open )
 {
@@ -48,9 +49,9 @@ void TextEditWidget::Show( bool* p_open )
 
 					if( ImGui::BeginTabItem( relative_path_string.c_str(), &file.open ) )
 					{
-						const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
+						const int input_text_flags = ImGuiInputTextFlags_AllowTabInput;
 
-						if( ImGui::InputTextMultiline( "##TextEditor", &file.text[ 0 ], file.text.size() + 1, ImVec2( -0.01f, -0.01f ), input_text_flags, InputTextCB, &file ) )
+						if( ImGui::InputTextMultiline( "##TextEditor", &file.text, ImVec2( -0.01f, -0.01f ), input_text_flags ) )
 						{
 							std::ofstream ofs( file.path, std::ios::binary | std::ios::trunc );
 							ofs << file.text;
@@ -105,17 +106,4 @@ void TextEditWidget::AddFile( const std::filesystem::path& path )
 	file.text = text;
 
 	files_.emplace_back( std::move( file ) );
-}
-
-int TextEditWidget::InputTextCB( ImGuiInputTextCallbackData* data )
-{
-	File* file = static_cast< File* >( data->UserData );
-
-	if( data->EventFlag == ImGuiInputTextFlags_CallbackResize )
-	{
-		file->text.resize( data->BufTextLen );
-		data->Buf = &file->text[ 0 ];
-	}
-
-	return 0;
 }
