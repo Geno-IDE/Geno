@@ -31,6 +31,7 @@ public:
 
 public:
 
+	void Build      ( void );
 	void Deserialize( void );
 	void SetLocation( const std::filesystem::path& location ) { location_ = location; }
 

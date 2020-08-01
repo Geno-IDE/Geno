@@ -17,9 +17,19 @@
 
 #include "Project.h"
 
+#include "Compilers/Compiler.h"
+
 #include <GCL/Deserializer.h>
 
 #include <iostream>
+
+void Project::Build( void )
+{
+	for( const std::filesystem::path& cpp : files_ )
+	{
+		Compiler::Instance().Compile( cpp );
+	}
+}
 
 void Project::Deserialize( void )
 {

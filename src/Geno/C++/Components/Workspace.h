@@ -33,14 +33,16 @@ public:
 
 public:
 
+	void Build      ( void );
 	void Serialize  ( void );
 	void Deserialize( void );
 	void SetLocation( const std::filesystem::path& location ) { location_ = location; }
 
 public:
 
-	std::filesystem::path& Location( void ) { return location_; }
-	BuildMatrix&           Matrix  ( void ) { return build_matrix_; }
+	std::filesystem::path& Location( void )       { return location_; }
+	std::string_view       Name    ( void ) const { return name_; }
+	BuildMatrix&           Matrix  ( void )       { return build_matrix_; }
 
 private:
 

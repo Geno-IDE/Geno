@@ -22,6 +22,14 @@
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
 
+void Workspace::Build( void )
+{
+	for( Project& prj : projects_ )
+	{
+		prj.Build();
+	}
+}
+
 void Workspace::Serialize( void )
 {
 	if( !location_.empty() )

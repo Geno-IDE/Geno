@@ -198,9 +198,11 @@ void MainMenuBar::ActionBuildBuild( void )
 {
 	OutputWidget::Instance().ClearCapture();
 
-	std::cout << "Building build.cpp..\n";
+	Workspace& workspace = Application::Instance().CurrentWorkspace();
 
-	Compiler::Instance().Compile( LocalAppData::Instance() / L"build.cpp" );
+	std::cout << "Building " << workspace.Name() << "..\n";
+
+	workspace.Build();
 }
 
 void MainMenuBar::ActionViewTextEdit( void )
@@ -235,8 +237,11 @@ void MainMenuBar::ActionHelpAbout( void )
 
 void MainMenuBar::OnCompilerDone( const CompilationDone& e )
 {
+	std::filesystem::path workspace_dir = Application::Instance().CurrentWorkspace().Location().parent_path();
+	std::filesystem::path relative_path = e.path.lexically_relative( workspace_dir );
+
 	if( e.exit_code == 0 )
-		std::cerr << "Build succeeded\n";
+		std::cerr << ":" << relative_path.string() << "\n";
 	else
-		std::cerr << "Build failed\n";
+		std::cerr << "!" << relative_path.string() << " (exit code:" << e.exit_code << ")\n";
 }
