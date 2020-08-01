@@ -64,4 +64,25 @@ void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 			}
 		}
 	}
+	else if( object.Key() == "Projects" )
+	{
+		for( std::string_view prj_path_string : object.Array() )
+		{
+			std::filesystem::path prj_path = prj_path_string;
+
+			if( !prj_path.is_absolute() )
+				prj_path = self->location_.parent_path() / prj_path;
+
+			if( !prj_path.has_extension() )
+				prj_path += ".gprj";
+
+			prj_path.make_preferred();
+
+			Project prj;
+			prj.SetLocation( prj_path );
+			prj.Deserialize();
+
+			self->projects_.emplace_back( std::move( prj ) );
+		}
+	}
 }

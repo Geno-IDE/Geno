@@ -17,6 +17,52 @@
 
 #include "Project.h"
 
-Project::Project( void )
+#include <GCL/Deserializer.h>
+
+#include <iostream>
+
+void Project::Deserialize( void )
 {
+	if( !location_.empty() )
+	{
+		GCL::Deserializer deserializer( location_, GCLObjectCallback, this );
+	}
+}
+
+void Project::GCLObjectCallback( GCL::Object object, void* user )
+{
+	Project* self = static_cast< Project* >( user );
+
+	if( object.Key() == "Name" )
+	{
+		self->name_ = object;
+
+		std::cout << "Project: " << self->name_ << "\n";
+	}
+	else if( object.Key() == "Files" )
+	{
+		for( std::string_view file_path_string : object.Array() )
+		{
+			std::filesystem::path file_path = file_path_string;
+
+			if( !file_path.is_absolute() )
+				file_path = self->location_.parent_path() / file_path;
+
+			file_path.make_preferred();
+			self->files_.emplace_back( std::move( file_path ) );
+		}
+	}
+	else if( object.Key() == "Includes" )
+	{
+		for( std::string_view file_path_string : object.Array() )
+		{
+			std::filesystem::path file_path = file_path_string;
+
+			if( !file_path.is_absolute() )
+				file_path = self->location_.parent_path() / file_path;
+
+			file_path.make_preferred();
+			self->includes_.emplace_back( std::move( file_path ) );
+		}
+	}
 }

@@ -18,16 +18,32 @@
 #pragma once
 #include "Components/Configuration.h"
 
+#include <GCL/Object.h>
+
+#include <filesystem>
 #include <vector>
 
 class Project
 {
 public:
 
-	Project( void );
+	Project( void ) = default;
+
+public:
+
+	void Deserialize( void );
+	void SetLocation( const std::filesystem::path& location ) { location_ = location; }
 
 private:
 
-	std::vector< Configuration > configrations_;
+	static void GCLObjectCallback( GCL::Object object, void* user );
+
+private:
+
+	std::filesystem::path                location_;
+	std::string                          name_;
+	std::vector< std::filesystem::path > files_;
+	std::vector< std::filesystem::path > includes_;
+	std::vector< Configuration >         configrations_;
 
 };
