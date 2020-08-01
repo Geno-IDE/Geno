@@ -17,43 +17,47 @@
 
 #include "WorkspaceWidget.h"
 
+#include "Components/Project.h"
+#include "GUI/Widgets/TextEditWidget.h"
+#include "GUI/Application.h"
+
 #include <imgui.h>
 
 void WorkspaceWidget::Show( bool* p_open )
 {
 	if( ImGui::Begin( "Workspace", p_open ) )
 	{
-		if( ImGui::TreeNode( "Workspace" ) )
+		Workspace& workspace = Application::Instance().CurrentWorkspace();
+
+		if( workspace.IsOpen() )
 		{
-			if( ImGui::TreeNode( "MyApp" ) )
+			std::string_view workspace_name = workspace.Name();
+
+			if( ImGui::TreeNode( workspace_name.data() ) )
 			{
-				if( ImGui::TreeNode( "src" ) )
+				for( Project& prj : workspace.Projects() )
 				{
-					ImGui::Selectable( "main.cpp" );
-					ImGui::TreePop();
+					std::string_view prj_name = prj.Name();
+
+					if( ImGui::TreeNode( prj_name.data() ) )
+					{
+						for( std::filesystem::path& file : prj.Files() )
+						{
+							std::filesystem::path relative_file_path = workspace.RelativePath( file );
+							std::string           file_string        = relative_file_path.string();
+
+							if( ImGui::Selectable( file_string.c_str() ) )
+							{
+								TextEditWidget::Instance().AddFile( file );
+							}
+						}
+
+						ImGui::TreePop();
+					}
 				}
 
 				ImGui::TreePop();
 			}
-
-			if( ImGui::TreeNode( "MyLibrary" ) )
-			{
-				if( ImGui::TreeNode( "include" ) )
-				{
-					ImGui::Selectable( "Foo.h" );
-					ImGui::TreePop();
-				}
-
-				if( ImGui::TreeNode( "src" ) )
-				{
-					ImGui::Selectable( "Foo.cpp" );
-					ImGui::TreePop();
-				}
-
-				ImGui::TreePop();
-			}
-
-			ImGui::TreePop();
 		}
 	}
 	ImGui::End();

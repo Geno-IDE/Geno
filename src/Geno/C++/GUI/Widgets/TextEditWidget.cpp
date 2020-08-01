@@ -18,25 +18,15 @@
 #include "TextEditWidget.h"
 
 #include "Common/LocalAppData.h"
+#include "GUI/Application.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
 
 #include <fstream>
+#include <iostream>
 
 #include <imgui.h>
 #include <imgui_internal.h>
-
-TextEditWidget::TextEditWidget( void )
-{
-	if( std::ifstream ifs( LocalAppData::Instance() / L"build.cpp" ); ifs.is_open() )
-	{
-		text_.assign( ( std::istreambuf_iterator< char >( ifs ) ), std::istreambuf_iterator< char >() );
-	}
-	else
-	{
-		text_ = "#include <iostream>\n\nint main(int argc, char* argv[])\n{\n\tstd::cout << \"Hello, world!\\n\";\n\treturn 0;\n}\n";
-	}
-}
 
 void TextEditWidget::Show( bool* p_open )
 {
@@ -49,18 +39,31 @@ void TextEditWidget::Show( bool* p_open )
 
 		if( ImGui::BeginTabBar( "TextEditTabBar", tab_bar_flags ) )
 		{
-			if( ImGui::BeginTabItem( "build.cpp" ) )
+			Workspace& workspace = Application::Instance().CurrentWorkspace();
+
+			if( workspace.IsOpen() )
 			{
-				const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
-
-				if( ImGui::InputTextMultiline( "##TextEditor", &text_[ 0 ], text_.size() + 1, ImVec2( -0.01f, -0.01f ), input_text_flags, InputTextCB, this ) )
+				for( File& file : files_ )
 				{
-					std::ofstream ofs( LocalAppData::Instance() / "build.cpp", std::ios::binary | std::ios::trunc );
-					ofs << text_;
-				}
+					std::filesystem::path relative_path        = workspace.RelativePath( file.path );
+					std::string           relative_path_string = relative_path.string();
 
-				ImGui::EndTabItem();
+					if( ImGui::BeginTabItem( relative_path_string.c_str() ) )
+					{
+						const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
+
+						if( ImGui::InputTextMultiline( "##TextEditor", &file.text[ 0 ], file.text.size() + 1, ImVec2( -0.01f, -0.01f ), input_text_flags, InputTextCB, &file ) )
+						{
+							std::ofstream ofs( file.path, std::ios::binary | std::ios::trunc );
+							ofs << file.text;
+						}
+
+						ImGui::EndTabItem();
+					}
+				}
 			}
+
+			// #TODO: Add manually opened files here
 
 			ImGui::EndTabBar();
 		}
@@ -68,14 +71,45 @@ void TextEditWidget::Show( bool* p_open )
 	ImGui::End();
 }
 
+void TextEditWidget::AddFile( const std::filesystem::path& path )
+{
+	if( !std::filesystem::exists( path ) )
+	{
+		std::cerr << "Failed to add '" << path << "' to text-edit. File does not exist.\n";
+		return;
+	}
+
+//////////////////////////////////////////////////////////////////////////
+
+	std::ifstream ifs  = std::ifstream( path, std::ios::binary );
+	std::string   text = std::string( ( std::istreambuf_iterator< char >( ifs ) ), std::istreambuf_iterator< char >() );
+
+	for( File& file : files_ )
+	{
+		// Do not need to add file to vector if it already exists
+		if( file.path == path )
+		{
+			// Update text in case file changed externally
+			file.text = text;
+			return;
+		}
+	}
+
+	File file;
+	file.path = path;
+	file.text = text;
+
+	files_.emplace_back( std::move( file ) );
+}
+
 int TextEditWidget::InputTextCB( ImGuiInputTextCallbackData* data )
 {
-	TextEditWidget* self = ( TextEditWidget* )data->UserData;
+	File* file = static_cast< File* >( data->UserData );
 
 	if( data->EventFlag == ImGuiInputTextFlags_CallbackResize )
 	{
-		self->text_.resize( data->BufTextLen );
-		data->Buf = &self->text_[ 0 ];
+		file->text.resize( data->BufTextLen );
+		data->Buf = &file->text[ 0 ];
 	}
 
 	return 0;

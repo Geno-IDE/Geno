@@ -18,17 +18,31 @@
 #pragma once
 #include "Common/Macros.h"
 
+#include <filesystem>
 #include <string>
+#include <vector>
 
 struct ImGuiInputTextCallbackData;
 
 class TextEditWidget
 {
-	GENO_SINGLETON( TextEditWidget );
+	GENO_SINGLETON( TextEditWidget ) = default;
+
+public:
+
+	struct File
+	{
+		std::filesystem::path path;
+		std::string           text;
+	};
 
 public:
 
 	void Show( bool* p_open );
+
+public:
+
+	void AddFile( const std::filesystem::path& path );
 
 private:
 
@@ -36,6 +50,6 @@ private:
 
 private:
 
-	std::string text_;
+	std::vector< File > files_;
 
 };
