@@ -26,23 +26,21 @@
 #include <string_view>
 #include <string>
 
-struct CompilerDone
+struct CompilationDone
 {
+	std::filesystem::path path;
+
 	int exit_code;
 };
 
-class Compiler : public EventDispatcher< Compiler, CompilerDone >
+class Compiler : public EventDispatcher< Compiler, CompilationDone >
 {
 	GENO_SINGLETON( Compiler ) = default;
 
 public:
 
-	[[ nodiscard ]] bool IsBuilding( void ) const;
-
-public:
-
-	void Compile   ( std::wstring_view cpp );
-	void SetPath   ( path_view path );
+	void Compile( const std::filesystem::path& path );
+	void SetPath( path_view path );
 
 private:
 
@@ -59,8 +57,8 @@ private:
 
 private:
 
-	std::mutex            path_mutex_;
-	std::filesystem::path path_;
-	std::future< void >   build_future_;
+	std::mutex                         path_mutex_;
+	std::filesystem::path              path_;
+	std::vector< std::future< void > > build_futures_;
 
 };

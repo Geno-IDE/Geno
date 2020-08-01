@@ -31,39 +31,24 @@
 #include <Windows.h>
 #endif // _WIN32
 
-bool Compiler::IsBuilding( void ) const
+void Compiler::Compile( const std::filesystem::path& path )
 {
-	return ( build_future_.valid() && build_future_.wait_until( std::chrono::steady_clock::now() ) != std::future_status::ready );
-}
-
-void Compiler::Compile( std::wstring_view cpp )
-{
-	if( !std::filesystem::exists( cpp ) )
+	if( !std::filesystem::exists( path ) )
 	{
-		wstring_convert_utf8 wstring_converter;
-		std::string          cpp_utf8 = wstring_converter.to_bytes( cpp.data(), cpp.data() + cpp.size() );
-
-		std::cerr << "Failed to compile " << cpp_utf8 << ". File does not exist.\n";
-		return;
-	}
-
-	if( IsBuilding() )
-	{
-		wstring_convert_utf8 wstring_converter;
-		std::string          cpp_utf8 = wstring_converter.to_bytes( cpp.data(), cpp.data() + cpp.size() );
-
-		std::cerr << "Build already in progress (won't compile " << cpp_utf8 << ").\n";
+		std::cerr << "Failed to compile " << path.string() << ". File does not exist.\n";
 		return;
 	}
 
 //////////////////////////////////////////////////////////////////////////
 
 	Args args;
-	args.input  = cpp;
-	args.output = cpp;
+	args.input  = path;
+	args.output = path;
 	args.output.replace_extension( "exe" );
 
-	build_future_ = std::async( &Compiler::AsyncCB, this, std::move( args ) );
+	std::future future = std::async( &Compiler::AsyncCB, this, std::move( args ) );
+
+	build_futures_.emplace_back( std::move( future ) );
 }
 
 void Compiler::SetPath( path_view path )
@@ -126,7 +111,8 @@ void Compiler::AsyncCB( Args args )
 
 	if( result )
 	{
-		CompilerDone e;
+		CompilationDone e;
+		e.path      = args.input;
 		e.exit_code = ( int )exit_code;
 
 		Publish( e );

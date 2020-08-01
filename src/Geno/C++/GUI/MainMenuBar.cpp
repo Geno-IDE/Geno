@@ -233,7 +233,7 @@ void MainMenuBar::ActionHelpAbout( void )
 	show_about_window_ ^= 1;
 }
 
-void MainMenuBar::OnCompilerDone( const CompilerDone& e )
+void MainMenuBar::OnCompilerDone( const CompilationDone& e )
 {
 	if( e.exit_code == 0 )
 		std::cerr << "Build succeeded\n";

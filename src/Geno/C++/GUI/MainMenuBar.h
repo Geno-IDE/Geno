@@ -21,7 +21,7 @@
 #include <string_view>
 #include <vector>
 
-struct CompilerDone;
+struct CompilationDone;
 
 class MainMenuBar
 {
@@ -50,7 +50,7 @@ private:
 
 private:
 
-	static void OnCompilerDone( const CompilerDone& e );
+	static void OnCompilerDone( const CompilationDone& e );
 
 private:
 
