@@ -48,7 +48,7 @@ void TextEditWidget::Show( bool* p_open )
 					std::filesystem::path relative_path        = workspace.RelativePath( file.path );
 					std::string           relative_path_string = relative_path.string();
 
-					if( ImGui::BeginTabItem( relative_path_string.c_str() ) )
+					if( ImGui::BeginTabItem( relative_path_string.c_str(), &file.open ) )
 					{
 						const int input_text_flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CallbackResize;
 
@@ -60,6 +60,13 @@ void TextEditWidget::Show( bool* p_open )
 
 						ImGui::EndTabItem();
 					}
+				}
+
+				// Clear closed files from list
+				for( auto it = files_.begin(); it != files_.end(); )
+				{
+					if( it->open ) it++;
+					else           it = files_.erase( it );
 				}
 			}
 

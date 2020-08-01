@@ -34,6 +34,8 @@ public:
 	{
 		std::filesystem::path path;
 		std::string           text;
+
+		bool open = true;
 	};
 
 public:
