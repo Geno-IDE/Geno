@@ -45,6 +45,11 @@ public:
 
 public:
 
+	size_t  ColumnCount( void ) const   { return columns_.size(); }
+	Column& ColumnAt   ( size_t index ) { return columns_.at( index ); }
+
+public:
+
 	static BuildMatrix PlatformDefault( void );
 
 private:

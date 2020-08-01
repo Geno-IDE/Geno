@@ -39,7 +39,8 @@ public:
 
 public:
 
-	const std::filesystem::path& Location( void ) const { return location_; }
+	std::filesystem::path& Location( void ) { return location_; }
+	BuildMatrix&           Matrix  ( void ) { return build_matrix_; }
 
 private:
 
@@ -51,6 +52,6 @@ private:
 	std::vector< Project > projects_;
 	std::string            name_;
 
-	BuildMatrix            matrix_;
+	BuildMatrix            build_matrix_;
 
 };

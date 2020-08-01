@@ -50,15 +50,15 @@ void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 	}
 	else if( object.Key() == "Matrix" )
 	{
-		self->matrix_ = BuildMatrix();
+		self->build_matrix_ = BuildMatrix();
 
 		for( const GCL::Object& column : object.Children() )
 		{
-			self->matrix_.AddColumn( column.Key() );
+			self->build_matrix_.AddColumn( column.Key() );
 
 			for( std::string_view cfg : column.Array() )
 			{
-				self->matrix_.AddConfiguration( column.Key(), cfg );
+				self->build_matrix_.AddConfiguration( column.Key(), cfg );
 
 				std::cout << "Configuration: " << column.Key() << "|" << cfg << "\n";
 			}

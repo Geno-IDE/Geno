@@ -29,6 +29,10 @@ public:
 	void NewWorkspace ( const std::filesystem::path& where );
 	void LoadWorkspace( const std::filesystem::path& path );
 
+public:
+
+	Workspace& CurrentWorkspace( void ) { return current_workspace_; }
+
 private:
 
 	Workspace current_workspace_;
