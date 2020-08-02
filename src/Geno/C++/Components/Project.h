@@ -32,6 +32,7 @@ public:
 public:
 
 	void Build      ( void );
+	void Serialize  ( void );
 	void Deserialize( void );
 
 public:

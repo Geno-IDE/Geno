@@ -17,7 +17,9 @@
 
 #include "GCL/Serializer.h"
 
-#include "Common/Platform/POSIX/POSIXError.h"
+#include "GCL/Object.h"
+
+#include <Common/Platform/POSIX/POSIXError.h>
 
 #include <iostream>
 
@@ -35,27 +37,86 @@ namespace GCL
 			return;
 		}
 
+//////////////////////////////////////////////////////////////////////////
+
+		constexpr int open_flags       = O_WRONLY | O_BINARY | O_TRUNC | O_CREAT;
+		constexpr int share_flags      = SH_DENYNO;
+		constexpr int permission_flags = S_IREAD | S_IWRITE;
+
 	#if defined( _WIN32 )
-
-//		if( int fd; POSIX_CALL( _wsopen_s( &fd, path.c_str(), _O_WRONLY | _O_BINARY | _O_TRUNC | _O_CREAT, _SH_DENYNO, _S_IREAD | _S_IWRITE ) ) )
-//		{
-//			constexpr std::string_view buf =
-//R"(Name: MyWorkspace
-//Matrix:
-//	Platform: x86, x64
-//	Configuration: Debug, Release
-//Projects:
-//	$(Root)/MyLibrary
-//	$(Root)/MyApp
-//)";
-//			_write( fd, buf.data(), static_cast< uint32_t >( buf.size() ) );
-//			_close( fd );
-//		}
-
+		POSIX_CALL( _wsopen_s( &file_descriptor_, path.c_str(), open_flags, share_flags, permission_flags ) );
 	#else // _WIN32
-
-	#error Write
-
+		POSIX_CALL( file_descriptor_ = open( path.c_str(), ofstream, share_flags, permission_flags ) );
 	#endif // else
+	}
+
+	Serializer::~Serializer( void )
+	{
+		if( file_descriptor_ >= 0 )
+		{
+	#if defined( _WIN32 )
+			_close( file_descriptor_ );
+	#else // _WIN32
+			close( file_descriptor_ );
+	#endif // else
+		}
+	}
+
+	void Serializer::WriteObject( const Object& object, int indent_level )
+	{
+		std::string_view key = object.Key();
+
+		for( int i = 0; i < indent_level; ++i )
+			_write( file_descriptor_, "\t", 1 );
+
+		_write( file_descriptor_, key.data(), static_cast< uint32_t >( key.size() ) );
+		_write( file_descriptor_, ":", 1 );
+
+		if( object.IsString() )
+		{
+			/*
+			String:Value
+			*/
+			Object::StringType string = object.String();
+
+			_write( file_descriptor_, string.data(), static_cast< uint32_t >( string.size() ) );
+			_write( file_descriptor_, "\n", 1 );
+		}
+		else if( object.IsArray() )
+		{
+			/*
+			Array:
+				Foo
+				Bar
+			*/
+			const Object::ArrayType& array = object.Array();
+
+			_write( file_descriptor_, "\n", 1 );
+
+			for( std::string_view elem : array )
+			{
+				for( int i = 0; i < ( indent_level + 1 ); ++i )
+					_write( file_descriptor_, "\t", 1 );
+
+				_write( file_descriptor_, elem.data(), static_cast< uint32_t >( elem.size() ) );
+				_write( file_descriptor_, "\n", 1 );
+			}
+		}
+		else if( object.IsTable() )
+		{
+			/*
+			Table:
+				Key:Value
+				Array:
+					Foo
+					Bar
+			*/
+			const Object::TableType& table = object.Table();
+
+			_write( file_descriptor_, "\n", 1 );
+
+			for( const Object& child : table )
+				WriteObject( child, indent_level + 1 );
+		}
 	}
 }

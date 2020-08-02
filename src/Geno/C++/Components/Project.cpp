@@ -20,6 +20,7 @@
 #include "Compilers/Compiler.h"
 
 #include <GCL/Deserializer.h>
+#include <GCL/Serializer.h>
 
 #include <iostream>
 
@@ -34,6 +35,36 @@ void Project::Build( void )
 	for( const std::filesystem::path& cpp : files_ )
 	{
 		Compiler::Instance().Compile( cpp );
+	}
+}
+
+void Project::Serialize( void )
+{
+	if( !location_.empty() )
+	{
+		GCL::Serializer serializer( location_ );
+
+		// Name
+		{
+			GCL::Object name( "Name" );
+			name.SetString( name_ );
+			serializer.WriteObject( name );
+		}
+
+		// Files
+		{
+			GCL::Object              files( "Files", std::in_place_type< GCL::Object::ArrayType > );
+			std::list< std::string > relative_file_path_strings;
+			for( const std::filesystem::path& file : files_ )
+			{
+				std::filesystem::path relative_file_path        = file.lexically_relative( location_.parent_path() );
+				std::string&          relative_file_path_string = relative_file_path_strings.emplace_back( relative_file_path.string() );
+
+				files.AddArrayItem( relative_file_path_string );
+			}
+
+			serializer.WriteObject( files );
+		}
 	}
 }
 

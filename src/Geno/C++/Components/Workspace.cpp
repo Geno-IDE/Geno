@@ -41,6 +41,47 @@ void Workspace::Serialize( void )
 	if( !location_.empty() )
 	{
 		GCL::Serializer serializer( location_ );
+
+		// Name string
+		{
+			GCL::Object name( "Name" );
+			name.SetString( name_ );
+
+			serializer.WriteObject( name );
+		}
+
+		// Matrix table
+		{
+			GCL::Object matrix( "Matrix", std::in_place_type< GCL::Object::TableType > );
+			for( BuildMatrix::Column& column : build_matrix_.columns_ )
+			{
+				GCL::Object child( column.name, std::in_place_type< GCL::Object::ArrayType > );
+
+				for( const std::string& cfg : column.configurations )
+					child.AddArrayItem( cfg );
+
+				matrix.AddChild( std::move( child ) );
+			}
+
+			serializer.WriteObject( matrix );
+		}
+
+		// Projects array
+		{
+			GCL::Object              projects( "Projects", std::in_place_type< GCL::Object::ArrayType > );
+			std::list< std::string > relative_project_path_strings; // GCL Arrays store its elements as std::string_view which means the string needs to live until we call WriteObject
+			for( Project& prj : projects_ )
+			{
+				std::filesystem::path relative_project_path        = prj.location_.lexically_relative( location_.parent_path() );
+				std::string&          relative_project_path_string = relative_project_path_strings.emplace_back( relative_project_path.string() );
+
+				projects.AddArrayItem( relative_project_path_string );
+
+				prj.Serialize();
+			}
+
+			serializer.WriteObject( projects );
+		}
 	}
 }
 
