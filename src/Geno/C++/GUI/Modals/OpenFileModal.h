@@ -19,6 +19,7 @@
 #include <Common/Macros.h>
 
 #include <filesystem>
+#include <memory>
 
 class OpenFileModal
 {
@@ -35,12 +36,23 @@ public:
 
 private:
 
-	void Close( void );
+	void                  Init         ( void );
+	void                  Close        ( void );
+	std::filesystem::path RootDirectory( void );
 
 private:
+
+	std::filesystem::path current_directory_;
+	std::filesystem::path selected_file_;
 
 	Callback callback_ = nullptr;
 	void*    user_     = nullptr;
 	bool     open_     = false;
+
+#if defined( _WIN32 )
+	std::unique_ptr< char[] > drives_buffer_;
+	size_t                    drives_buffer_size_  = 0;
+	size_t                    current_drive_index_ = 0;
+#endif // _WIN32
 
 };
