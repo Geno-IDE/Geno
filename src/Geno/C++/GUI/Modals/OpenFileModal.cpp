@@ -17,9 +17,16 @@
 
 #include "OpenFileModal.h"
 
+#include "GUI/MainWindow.h"
+
 #include <Common/LocalAppData.h>
 
 #include <imgui.h>
+#include <imgui_internal.h>
+
+#if defined( _WIN32 )
+#include <Windows.h>
+#endif // _WIN32
 
 void OpenFileModal::Present( void* user, Callback callback )
 {
@@ -34,28 +41,157 @@ void OpenFileModal::Present( void* user, Callback callback )
 void OpenFileModal::Update( void )
 {
 	if( open_ && !ImGui::IsPopupOpen( "OpenFile" ) )
+	{
+		Init();
 		ImGui::OpenPopup( "OpenFile" );
+	}
 
 	if( ImGui::BeginPopupModal( "OpenFile" ) )
 	{
-		std::filesystem::path path = LocalAppData::Instance() / "MyWorkspace.gwks";
-
-		if( ImGui::Button( "OK", ImVec2( 80, 0 ) ) )
+		if( ImGui::BeginChild( 1 , ImVec2( 0, -24 ) ) )
 		{
-			if( callback_ )
-				callback_( path, user_ );
+			MainWindow::Instance().PushHorizontalLayout();
 
-			Close();
+	#if defined( _WIN32 )
+
+			if( ImGui::BeginChild( 2, ImVec2( 100, 0 ) ) )
+			{
+				size_t i = 0;
+				for( char* it = &drives_buffer_[ 0 ]; it < &drives_buffer_[ drives_buffer_size_ ]; it += ( strlen( it ) + 1 ), ++i )
+				{
+					bool selected = ( current_drive_index_ == i );
+
+					if( ImGui::Selectable( it, &selected ) )
+					{
+						current_drive_index_ = i;
+						current_directory_   = RootDirectory();
+					}
+				}
+			}
+			ImGui::EndChild();
+
+	#endif // _WIN32
+
+			if( ImGui::BeginChild( 3 ) )
+			{
+				std::filesystem::directory_iterator root_directory_iterator( current_directory_, std::filesystem::directory_options::skip_permission_denied );
+				std::filesystem::path               parent_directory = current_directory_.parent_path();
+
+				if( current_directory_ != parent_directory )
+				{
+					if( ImGui::Selectable( ".." ) )
+					{
+						current_directory_ = parent_directory;
+					}
+				}
+
+				for( const std::filesystem::directory_entry& entry : root_directory_iterator )
+				{
+					if( entry.is_directory() )
+					{
+						std::error_code              error;
+						std::filesystem::file_status status     = entry.status( error );
+						bool                         has_access = !error && ( status.permissions() & std::filesystem::perms::all ) == std::filesystem::perms::all;
+						std::string                  filename   = entry.path().filename().string();
+
+						if( has_access )
+						{
+							if( ImGui::Selectable( filename.c_str() ) )
+							{
+								current_directory_ = entry;
+							}
+						}
+						else
+						{
+							ImGui::TextColored( ImVec4( 0.4f, 0.4f, 0.4f, 1 ), "%s", filename.c_str() );
+						}
+					}
+				}
+
+				ImGui::Separator();
+
+				for( const std::filesystem::directory_entry& entry : root_directory_iterator )
+				{
+					if( entry.is_regular_file() )
+					{
+						std::error_code              error;
+						std::filesystem::file_status status     = entry.status( error );
+						bool                         has_access = !error && ( status.permissions() & std::filesystem::perms::all ) == std::filesystem::perms::all;
+						std::string                  filename   = entry.path().filename().string();
+
+						if( has_access )
+						{
+							bool selected = entry == selected_file_;
+
+							if( ImGui::Selectable( filename.c_str(), &selected ) )
+							{
+								selected_file_ = entry;
+							}
+						}
+						else
+						{
+							ImGui::TextColored( ImVec4( 0.4f, 0.4f, 0.4f, 1 ), "%s", filename.c_str() );
+						}
+					}
+				}
+			}
+			ImGui::EndChild();
+
+			MainWindow::Instance().PopHorizontalLayout();
 		}
+		ImGui::EndChild();
 
-		ImGui::SameLine();
-		if( ImGui::Button( "Cancel", ImVec2( 80, 0 ) ) )
+		if( ImGui::BeginChild( 4 , ImVec2( 0, 20 ) ) )
 		{
-			Close();
+			bool disable_ok_button = selected_file_.empty() || !std::filesystem::exists( selected_file_ );
+
+			if( disable_ok_button )
+			{
+				ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
+				ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
+			}
+
+			if( ImGui::Button( "OK", ImVec2( 80, 0 ) ) )
+			{
+				if( callback_ )
+					callback_( selected_file_, user_ );
+
+				Close();
+			}
+
+			if( disable_ok_button )
+			{
+				ImGui::PopStyleVar();
+				ImGui::PopItemFlag();
+			}
+
+			ImGui::SameLine();
+			if( ImGui::Button( "Cancel", ImVec2( 80, 0 ) ) )
+			{
+				Close();
+			}
+
+			std::string selected_file_string = selected_file_.string();
+			ImGui::SameLine();
+			ImGui::Text( selected_file_string.c_str() );
 		}
+		ImGui::EndChild();
 
 		ImGui::EndPopup();
 	}
+}
+
+void OpenFileModal::Init( void )
+{
+#if defined( _WIN32 )
+
+	drives_buffer_size_ = GetLogicalDriveStringsA( 0, nullptr );
+	drives_buffer_      = std::unique_ptr< char[] >( new char[ drives_buffer_size_ ] );
+	drives_buffer_size_ = GetLogicalDriveStringsA( static_cast< DWORD >( drives_buffer_size_ ), &drives_buffer_[ 0 ] );
+
+#endif // _WIN32
+
+	current_directory_ = RootDirectory();
 }
 
 void OpenFileModal::Close( void )
@@ -65,4 +201,22 @@ void OpenFileModal::Close( void )
 	open_     = false;
 
 	ImGui::CloseCurrentPopup();
+}
+
+std::filesystem::path OpenFileModal::RootDirectory( void )
+{
+#if defined( _WIN32 )
+
+	char* drive = &drives_buffer_[ 0 ];
+	char* end   = &drives_buffer_[ drives_buffer_size_ ];
+
+	for( size_t i = 0; i < current_drive_index_ && drive < end; drive += ( strlen( drive ) + 1 ), ++i );
+
+	return std::filesystem::path( drive, drive + strlen( drive ) );
+
+#else // _WIN32
+
+	return std::filesystem::path( "/" );
+
+#endif // else
 }
