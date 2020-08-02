@@ -171,7 +171,7 @@ void WorkspaceWidget::Show( bool* p_open )
 				{
 					ImGui::CloseCurrentPopup();
 
-					if (Project* prj = workspace->ProjectByName( selected_project_ ))
+					if( Project* prj = workspace->ProjectByName( selected_project_ ) )
 					{
 						std::filesystem::remove( prj->location_ );
 						prj->location_.append( popup_text_ + ".gprj" );
