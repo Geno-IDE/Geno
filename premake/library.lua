@@ -11,6 +11,7 @@ function library( name )
 	location 'build/%{_ACTION}'
 
 	files {
+		'include/%{prj.name}/**.h',
 		'src/%{prj.name}/**.cpp',
 		'src/%{prj.name}/**.h',
 	}
