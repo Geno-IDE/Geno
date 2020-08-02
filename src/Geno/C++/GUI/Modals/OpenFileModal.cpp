@@ -89,21 +89,11 @@ void OpenFileModal::Update( void )
 				{
 					if( entry.is_directory() )
 					{
-						std::error_code              error;
-						std::filesystem::file_status status     = entry.status( error );
-						bool                         has_access = !error && ( status.permissions() & std::filesystem::perms::all ) == std::filesystem::perms::all;
-						std::string                  filename   = entry.path().filename().string();
+						std::string filename = entry.path().filename().string();
 
-						if( has_access )
+						if( ImGui::Selectable( filename.c_str() ) )
 						{
-							if( ImGui::Selectable( filename.c_str() ) )
-							{
-								current_directory_ = entry;
-							}
-						}
-						else
-						{
-							ImGui::TextColored( ImVec4( 0.4f, 0.4f, 0.4f, 1 ), "%s", filename.c_str() );
+							current_directory_ = entry;
 						}
 					}
 				}
@@ -114,23 +104,12 @@ void OpenFileModal::Update( void )
 				{
 					if( entry.is_regular_file() )
 					{
-						std::error_code              error;
-						std::filesystem::file_status status     = entry.status( error );
-						bool                         has_access = !error && ( status.permissions() & std::filesystem::perms::all ) == std::filesystem::perms::all;
-						std::string                  filename   = entry.path().filename().string();
+						std::string filename = entry.path().filename().string();
+						bool        selected = entry == selected_file_;
 
-						if( has_access )
+						if( ImGui::Selectable( filename.c_str(), &selected ) )
 						{
-							bool selected = entry == selected_file_;
-
-							if( ImGui::Selectable( filename.c_str(), &selected ) )
-							{
-								selected_file_ = entry;
-							}
-						}
-						else
-						{
-							ImGui::TextColored( ImVec4( 0.4f, 0.4f, 0.4f, 1 ), "%s", filename.c_str() );
+							selected_file_ = entry;
 						}
 					}
 				}
