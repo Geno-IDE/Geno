@@ -18,6 +18,7 @@
 #include "MainWindow.h"
 
 #include "Common/LocalAppData.h"
+#include "GUI/Modals/OpenFileModal.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/PrimaryMonitor.h"
 #include "ThirdParty/GLEW.h"
@@ -112,6 +113,8 @@ bool MainWindow::BeginFrame( void )
 
 void MainWindow::EndFrame( void )
 {
+	ShowOpenFileModal();
+
 	ImGui::Render();
 
 	ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );

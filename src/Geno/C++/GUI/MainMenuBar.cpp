@@ -18,6 +18,7 @@
 #include "MainMenuBar.h"
 
 #include "Compilers/Compiler.h"
+#include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Widgets/OutputWidget.h"
 #include "GUI/Widgets/SettingsWidget.h"
 #include "GUI/Widgets/TextEditWidget.h"
@@ -185,7 +186,12 @@ void MainMenuBar::ActionFileNewWorkspace( void )
 
 void MainMenuBar::ActionFileOpenWorkspace( void )
 {
-	Application::Instance().LoadWorkspace( LocalAppData::Instance() / L"MyWorkspace.gwks" );
+	OpenOpenFileModal( this,
+		[]( const std::filesystem::path& path, void* /*user*/ )
+		{
+			Application::Instance().LoadWorkspace( path );
+		}
+	);
 }
 
 void MainMenuBar::ActionFileCloseWorkspace( void )
