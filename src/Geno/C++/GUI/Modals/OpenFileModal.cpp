@@ -74,8 +74,10 @@ void OpenFileModal::Update( void )
 
 			if( ImGui::BeginChild( 3 ) )
 			{
-				std::filesystem::directory_iterator root_directory_iterator( current_directory_, std::filesystem::directory_options::skip_permission_denied );
-				std::filesystem::path               parent_directory = current_directory_.parent_path();
+				std::filesystem::directory_iterator  root_directory_iterator( current_directory_, std::filesystem::directory_options::skip_permission_denied );
+				std::filesystem::path                parent_directory = current_directory_.parent_path();
+				std::vector< std::filesystem::path > directory_paths;
+				std::vector< std::filesystem::path > file_paths;
 
 				if( current_directory_ != parent_directory )
 				{
@@ -87,30 +89,30 @@ void OpenFileModal::Update( void )
 
 				for( const std::filesystem::directory_entry& entry : root_directory_iterator )
 				{
-					if( entry.is_directory() )
-					{
-						std::string filename = entry.path().filename().string();
+					/**/ if( entry.is_directory() )    directory_paths.push_back( entry );
+					else if( entry.is_regular_file() ) file_paths.push_back( entry );
+				}
 
-						if( ImGui::Selectable( filename.c_str() ) )
-						{
-							current_directory_ = entry;
-						}
+				for( const std::filesystem::path& directory_entry : directory_paths )
+				{
+					std::string filename = directory_entry.filename().string();
+
+					if( ImGui::Selectable( filename.c_str() ) )
+					{
+						current_directory_ = directory_entry;
 					}
 				}
 
 				ImGui::Separator();
 
-				for( const std::filesystem::directory_entry& entry : root_directory_iterator )
+				for( const std::filesystem::path& file_path : file_paths )
 				{
-					if( entry.is_regular_file() )
-					{
-						std::string filename = entry.path().filename().string();
-						bool        selected = entry == selected_file_;
+					std::string filename = file_path.filename().string();
+					bool        selected = file_path == selected_file_;
 
-						if( ImGui::Selectable( filename.c_str(), &selected ) )
-						{
-							selected_file_ = entry;
-						}
+					if( ImGui::Selectable( filename.c_str(), &selected ) )
+					{
+						selected_file_ = file_path;
 					}
 				}
 			}
