@@ -21,20 +21,19 @@
 
 #include <imgui.h>
 
-static bool                  open_modal      = false;
-static OpenFileModalCallback global_callback = nullptr;
-static void*                 global_user     = nullptr;
-
-void OpenOpenFileModal( void* user, OpenFileModalCallback callback )
+void OpenFileModal::Present( void* user, Callback callback )
 {
-	open_modal      = true;
-	global_user     = user;
-	global_callback = callback;
+	if( user_ || callback_ )
+		return;
+
+	user_     = user;
+	callback_ = callback;
+	open_     = true;
 }
 
-void ShowOpenFileModal( void )
+void OpenFileModal::Update( void )
 {
-	if( open_modal )
+	if( open_ && !ImGui::IsPopupOpen( "OpenFile" ) )
 		ImGui::OpenPopup( "OpenFile" );
 
 	if( ImGui::BeginPopupModal( "OpenFile" ) )
@@ -43,26 +42,27 @@ void ShowOpenFileModal( void )
 
 		if( ImGui::Button( "OK", ImVec2( 80, 0 ) ) )
 		{
-			if( global_callback )
-				global_callback( path, global_user );
+			if( callback_ )
+				callback_( path, user_ );
 
-			global_callback = nullptr;
-			global_user     = nullptr;
-
-			ImGui::CloseCurrentPopup();
+			Close();
 		}
 
 		ImGui::SameLine();
 		if( ImGui::Button( "Cancel", ImVec2( 80, 0 ) ) )
 		{
-			global_callback = nullptr;
-			global_user     = nullptr;
-
-			ImGui::CloseCurrentPopup();
+			Close();
 		}
 
 		ImGui::EndPopup();
 	}
+}
 
-	open_modal = false;
+void OpenFileModal::Close( void )
+{
+	callback_ = nullptr;
+	user_     = nullptr;
+	open_     = false;
+
+	ImGui::CloseCurrentPopup();
 }

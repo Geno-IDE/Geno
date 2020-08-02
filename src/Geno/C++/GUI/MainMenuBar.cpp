@@ -186,7 +186,7 @@ void MainMenuBar::ActionFileNewWorkspace( void )
 
 void MainMenuBar::ActionFileOpenWorkspace( void )
 {
-	OpenOpenFileModal( this,
+	OpenFileModal::Instance().Present( this,
 		[]( const std::filesystem::path& path, void* /*user*/ )
 		{
 			Application::Instance().LoadWorkspace( path );

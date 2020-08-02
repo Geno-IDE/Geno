@@ -16,9 +16,31 @@
  */
 
 #pragma once
+#include <Common/Macros.h>
+
 #include <filesystem>
 
-using OpenFileModalCallback = void( * )( const std::filesystem::path& path, void* user );
+class OpenFileModal
+{
+	GENO_SINGLETON( OpenFileModal ) = default;
 
-extern void OpenOpenFileModal( void* user, OpenFileModalCallback callback );
-extern void ShowOpenFileModal( void );
+public:
+
+	using Callback = void( * )( const std::filesystem::path& path, void* user );
+
+public:
+
+	void Present( void* user, Callback callback );
+	void Update ( void );
+
+private:
+
+	void Close( void );
+
+private:
+
+	Callback callback_ = nullptr;
+	void*    user_     = nullptr;
+	bool     open_     = false;
+
+};

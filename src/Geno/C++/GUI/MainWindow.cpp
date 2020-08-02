@@ -113,7 +113,7 @@ bool MainWindow::BeginFrame( void )
 
 void MainWindow::EndFrame( void )
 {
-	ShowOpenFileModal();
+	OpenFileModal::Instance().Update();
 
 	ImGui::Render();
 
