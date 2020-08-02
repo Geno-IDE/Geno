@@ -27,13 +27,11 @@
 
 namespace GCL
 {
-	constexpr std::string_view indent_string = "\t";
-
 	constexpr bool LineStartsWithIndent( std::string_view line, int indent_level )
 	{
-		for( size_t i = 0; i < ( indent_string.size() * indent_level ); i += indent_string.size() )
+		for( size_t i = 0; i < indent_level; ++i )
 		{
-			if( line.substr( i, indent_string.size() ) != indent_string )
+			if( line[ i ] != '\t' )
 				return false;
 		}
 
@@ -91,7 +89,7 @@ namespace GCL
 
 //////////////////////////////////////////////////////////////////////////
 
-		std::string_view unindented_line = line.substr( indent_level * indent_string.size() );
+		std::string_view unindented_line = line.substr( indent_level );
 		size_t           colon_index     = unindented_line.find_first_of( ':' );
 
 		if( colon_index == std::string_view::npos )
