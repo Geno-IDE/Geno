@@ -31,14 +31,6 @@ namespace GCL
 {
 	Serializer::Serializer( const std::filesystem::path& path )
 	{
-		if( !std::filesystem::exists( path ) )
-		{
-			std::cerr << "GCL::Serializer failed: '" << path << "' does not exist.\n";
-			return;
-		}
-
-//////////////////////////////////////////////////////////////////////////
-
 		constexpr int open_flags       = O_WRONLY | O_BINARY | O_TRUNC | O_CREAT;
 		constexpr int share_flags      = SH_DENYNO;
 		constexpr int permission_flags = S_IREAD | S_IWRITE;
