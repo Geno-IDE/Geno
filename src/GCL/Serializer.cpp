@@ -56,6 +56,11 @@ namespace GCL
 
 	void Serializer::WriteObject( const Object& object, int indent_level )
 	{
+		if( file_descriptor_ < 0 )
+			return;
+
+//////////////////////////////////////////////////////////////////////////
+
 		std::string_view key = object.Key();
 
 		for( int i = 0; i < indent_level; ++i )
