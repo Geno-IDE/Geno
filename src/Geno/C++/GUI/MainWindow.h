@@ -48,12 +48,13 @@ private:
 
 private:
 
-	GLFWwindow*   window_;
-	ImGuiContext* im_gui_context_;
+	GLFWwindow*   window_         = nullptr;
+	ImGuiContext* im_gui_context_ = nullptr;
 
 	std::string ini_path_;
 
-	int width_;
-	int height_;
+	int width_                = 0;
+	int height_               = 0;
+	int layout_stack_counter_ = 0;
 
 };

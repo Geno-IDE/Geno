@@ -29,10 +29,6 @@
 #include <imgui_internal.h>
 
 MainWindow::MainWindow( void )
-: window_        ( nullptr )
-, im_gui_context_( nullptr )
-, width_         ( 0 )
-, height_        ( 0 )
 {
 	PrimaryMonitor& monitor = PrimaryMonitor::Instance();
 
@@ -131,12 +127,14 @@ void MainWindow::EndFrame( void )
 
 void MainWindow::PushHorizontalLayout( void )
 {
-	im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Horizontal;
+	if( layout_stack_counter_++ == 0 )
+		im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Horizontal;
 }
 
 void MainWindow::PopHorizontalLayout( void )
 {
-	im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Vertical;
+	if( --layout_stack_counter_ == 0 )
+		im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Vertical;
 }
 
 void MainWindow::GLFWSizeCB( GLFWwindow* window, int width, int height )
