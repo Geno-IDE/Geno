@@ -128,7 +128,11 @@ void WorkspaceWidget::Show( bool* p_open )
 				{
 					ImGui::CloseCurrentPopup();
 
+					std::filesystem::remove( workspace->location_ );
+					workspace->location_.remove_filename();
+					workspace->location_.append( popup_text_ + ".gwks");
 					workspace->name_ = std::move( popup_text_ );
+					workspace->Serialize();
 				}
 
 				ImGui::SameLine();
