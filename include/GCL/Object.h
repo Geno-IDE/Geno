@@ -59,6 +59,7 @@ namespace GCL
 	public:
 
 		std::string_view Key     ( void ) const { return key_; }
+		bool             IsNull  ( void ) const { return value_.index() == 0; }
 		bool             IsString( void ) const { return value_.index() == 1; }
 		bool             IsArray ( void ) const { return value_.index() == 2; }
 		bool             IsTable ( void ) const { return value_.index() == 3; }

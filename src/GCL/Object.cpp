@@ -64,16 +64,31 @@ namespace GCL
 
 	Object::StringType Object::String( void ) const
 	{
+		if( IsNull() )
+			return std::string_view();
+
 		return std::get< StringType >( value_ );
 	}
 
 	const Object::ArrayType& Object::Array( void ) const
 	{
+		if( IsNull() )
+		{
+			thread_local Object::ArrayType empty_dummy;
+			return empty_dummy;
+		}
+
 		return std::get< ArrayType >( value_ );
 	}
 
 	const Object::TableType& Object::Table( void ) const
 	{
+		if( IsNull() )
+		{
+			thread_local Object::TableType empty_dummy;
+			return empty_dummy;
+		}
+
 		return std::get< TableType >( value_ );
 	}
 }
