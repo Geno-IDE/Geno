@@ -79,7 +79,7 @@ void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 
 	if( object.Key() == "Name" )
 	{
-		self->name_ = object;
+		self->name_ = object.String();
 
 		std::cout << "Workspace: " << self->name_ << "\n";
 	}
@@ -87,7 +87,7 @@ void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 	{
 		self->build_matrix_ = BuildMatrix();
 
-		for( const GCL::Object& column : object.Children() )
+		for( const GCL::Object& column : object.Table() )
 		{
 			self->build_matrix_.AddColumn( column.Key() );
 

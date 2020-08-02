@@ -61,7 +61,7 @@ void Project::GCLObjectCallback( GCL::Object object, void* user )
 
 	if( object.Key() == "Name" )
 	{
-		self->name_ = object;
+		self->name_ = object.String();
 
 		std::cout << "Project: " << self->name_ << "\n";
 	}

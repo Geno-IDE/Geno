@@ -31,12 +31,22 @@ namespace GCL
 
 	public:
 
-		using Variant = std::variant< std::monostate, std::string_view, std::vector< std::string_view >, std::vector< Object > >;
+		using StringType = std::string_view;
+		using ArrayType  = std::vector< std::string_view >;
+		using TableType  = std::vector< Object >;
+		using Variant    = std::variant< std::monostate, StringType, ArrayType, TableType >;
 
 	public:
 	
 		explicit Object( std::string_view key );
 		         Object( Object&& other );
+
+		template< typename T >
+		Object( std::string_view key, std::in_place_type_t< T > )
+			: key_  ( key )
+			, value_( std::in_place_type< T > )
+		{
+		}
 
 		Object& operator=( Object&& other );
 
@@ -48,13 +58,16 @@ namespace GCL
 
 	public:
 
-		const std::vector< std::string_view >& Array   ( void ) const;
-		const std::vector< Object >&           Children( void ) const;
-		std::string_view                       Key     ( void ) const { return key_; }
+		std::string_view Key     ( void ) const { return key_; }
+		bool             IsString( void ) const { return value_.index() == 1; }
+		bool             IsArray ( void ) const { return value_.index() == 2; }
+		bool             IsTable ( void ) const { return value_.index() == 3; }
 
 	public:
 
-		operator std::string_view( void ) const;
+		StringType       String( void ) const;
+		const ArrayType& Array ( void ) const;
+		const TableType& Table ( void ) const;
 
 	private:
 

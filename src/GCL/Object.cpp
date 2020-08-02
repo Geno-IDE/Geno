@@ -43,37 +43,37 @@ namespace GCL
 
 	void Object::SetString( std::string_view string )
 	{
-		auto& underlying_string = value_.index() == 0 ? value_.emplace< std::string_view >() : std::get< std::string_view >( value_ );
+		StringType& underlying_string = value_.index() == 0 ? value_.emplace< StringType >() : std::get< StringType >( value_ );
 
 		underlying_string = string;
 	}
 
 	void Object::AddArrayItem( std::string_view item )
 	{
-		auto& underlying_array = value_.index() == 0 ? value_.emplace< std::vector< std::string_view > >() : std::get< std::vector< std::string_view > >( value_ );
+		ArrayType& underlying_array = value_.index() == 0 ? value_.emplace< ArrayType >() : std::get< ArrayType >( value_ );
 
 		underlying_array.push_back( item );
 	}
 
 	void Object::AddChild( Object child )
 	{
-		auto& underlying_table_vector = value_.index() == 0 ? value_.emplace< std::vector< Object > >() : std::get< std::vector< Object > >( value_ );
+		TableType& underlying_table_vector = value_.index() == 0 ? value_.emplace< TableType >() : std::get< TableType >( value_ );
 
 		underlying_table_vector.emplace_back( std::move( child ) );
 	}
 
-	const std::vector< std::string_view >& Object::Array( void ) const
+	Object::StringType Object::String( void ) const
 	{
-		return std::get< std::vector< std::string_view > >( value_ );
+		return std::get< StringType >( value_ );
 	}
 
-	const std::vector< Object >& Object::Children( void ) const
+	const Object::ArrayType& Object::Array( void ) const
 	{
-		return std::get< std::vector< Object > >( value_ );
+		return std::get< ArrayType >( value_ );
 	}
 
-	Object::operator std::string_view( void ) const
+	const Object::TableType& Object::Table( void ) const
 	{
-		return std::get< std::string_view >( value_ );
+		return std::get< TableType >( value_ );
 	}
 }
