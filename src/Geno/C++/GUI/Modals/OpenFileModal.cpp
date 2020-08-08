@@ -21,12 +21,28 @@
 
 #include <Common/LocalAppData.h>
 
+#include <fstream>
+
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 #if defined( _WIN32 )
 #include <Windows.h>
 #endif // _WIN32
+
+OpenFileModal::OpenFileModal( void )
+{
+#if defined( _WIN32 )
+
+	drives_buffer_size_ = GetLogicalDriveStringsA( 0, nullptr );
+	drives_buffer_      = std::unique_ptr< char[] >( new char[ drives_buffer_size_ ] );
+	drives_buffer_size_ = GetLogicalDriveStringsA( static_cast< DWORD >( drives_buffer_size_ ), &drives_buffer_[ 0 ] );
+
+#endif // _WIN32
+
+	current_directory_ = RootDirectory();
+}
 
 void OpenFileModal::Present( void* user, Callback callback )
 {
@@ -42,7 +58,6 @@ void OpenFileModal::Update( void )
 {
 	if( open_ && !ImGui::IsPopupOpen( "OpenFile" ) )
 	{
-		Init();
 		ImGui::OpenPopup( "OpenFile" );
 	}
 
@@ -72,8 +87,80 @@ void OpenFileModal::Update( void )
 
 	#endif // _WIN32
 
-			if( ImGui::BeginChild( 3 ) )
+			if( ImGui::BeginChild( 3, ImVec2( 0, 0 ), false, ImGuiWindowFlags_MenuBar ) )
 			{
+				ImGui::PushStyleColor( ImGuiCol_MenuBarBg, ImVec4( 0, 0, 0, 1 ) );
+
+				if( ImGui::BeginMenuBar() )
+				{
+					if( ImGui::Button( "New Folder" ) )
+					{
+						editing_path_           = current_directory_ / "New Folder";
+						editing_path_is_folder_ = true;
+						change_edit_focus_      = true;
+					}
+
+					if( ImGui::Button( "New File" ) )
+					{
+						editing_path_           = current_directory_ / "New File.txt";
+						editing_path_is_folder_ = false;
+						change_edit_focus_      = true;
+					}
+
+					if( !editing_path_.empty() )
+					{
+						std::string filename = editing_path_.filename().string();
+
+						if( change_edit_focus_ )
+						{
+							ImGui::SetKeyboardFocusHere();
+
+							if( ImGuiInputTextState* state = ImGui::GetInputTextState( ImGui::GetID( "##NewFileName" ) ) )
+							{
+								state->ID = 0;
+							}
+
+							change_edit_focus_ = false;
+						}
+
+						if( ImGui::InputText( "##NewFileName", &filename, ImGuiInputTextFlags_EnterReturnsTrue ) )
+						{
+							std::filesystem::path& new_path = editing_path_.replace_filename( filename );
+
+							if( std::filesystem::exists( new_path ) )
+							{
+								change_edit_focus_ = true;
+							}
+							else
+							{
+								if( editing_path_is_folder_ )
+								{
+									if( std::filesystem::create_directory( new_path ) ) editing_path_.clear();
+									else                                                change_edit_focus_ = true;
+								}
+								else
+								{
+									std::ofstream ofs( new_path );
+
+									if( ofs.is_open() ) editing_path_.clear();
+									else                change_edit_focus_ = true;
+								}
+							}
+						}
+						else if( ImGui::IsItemDeactivated() )
+						{
+							editing_path_.clear();
+							change_edit_focus_ = false;
+						}
+					}
+
+					ImGui::EndMenuBar();
+				}
+
+				ImGui::PopStyleColor();
+
+//////////////////////////////////////////////////////////////////////////
+
 				std::filesystem::directory_iterator  root_directory_iterator( current_directory_, std::filesystem::directory_options::skip_permission_denied );
 				std::filesystem::path                parent_directory = current_directory_.parent_path();
 				std::vector< std::filesystem::path > directory_paths;
@@ -160,19 +247,6 @@ void OpenFileModal::Update( void )
 
 		ImGui::EndPopup();
 	}
-}
-
-void OpenFileModal::Init( void )
-{
-#if defined( _WIN32 )
-
-	drives_buffer_size_ = GetLogicalDriveStringsA( 0, nullptr );
-	drives_buffer_      = std::unique_ptr< char[] >( new char[ drives_buffer_size_ ] );
-	drives_buffer_size_ = GetLogicalDriveStringsA( static_cast< DWORD >( drives_buffer_size_ ), &drives_buffer_[ 0 ] );
-
-#endif // _WIN32
-
-	current_directory_ = RootDirectory();
 }
 
 void OpenFileModal::Close( void )

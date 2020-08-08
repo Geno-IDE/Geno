@@ -23,7 +23,7 @@
 
 class OpenFileModal
 {
-	GENO_SINGLETON( OpenFileModal ) = default;
+	GENO_SINGLETON( OpenFileModal );
 
 public:
 
@@ -36,7 +36,6 @@ public:
 
 private:
 
-	void                  Init         ( void );
 	void                  Close        ( void );
 	std::filesystem::path RootDirectory( void );
 
@@ -44,6 +43,9 @@ private:
 
 	std::filesystem::path current_directory_;
 	std::filesystem::path selected_file_;
+	std::filesystem::path editing_path_;
+	bool                  editing_path_is_folder_ = false;
+	bool                  change_edit_focus_      = false;
 
 	Callback callback_ = nullptr;
 	void*    user_     = nullptr;
