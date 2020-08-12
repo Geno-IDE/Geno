@@ -44,7 +44,7 @@ void TextEditWidget::Show( bool* p_open )
 			{
 				for( File& file : files_ )
 				{
-					std::filesystem::path relative_path        = *workspace / file.path;
+					std::filesystem::path relative_path        = workspace->location_ / file.path;
 					std::string           relative_path_string = relative_path.string();
 
 					if( ImGui::BeginTabItem( relative_path_string.c_str(), &file.open ) )

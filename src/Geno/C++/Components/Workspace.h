@@ -47,10 +47,6 @@ public:
 
 public:
 
-	std::filesystem::path operator/( const std::filesystem::path& path ) const;
-
-public:
-
 	std::filesystem::path  location_;
 	std::vector< Project > projects_;
 	std::string            name_;

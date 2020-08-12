@@ -103,14 +103,6 @@ bool Workspace::Deserialize( void )
 	return true;
 }
 
-std::filesystem::path Workspace::operator/( const std::filesystem::path& path ) const
-{
-	if( path.is_absolute() )
-		return ( path.lexically_relative( location_ ) );
-	else
-		return ( location_ / path );
-}
-
 Project* Workspace::ProjectByName( std::string_view name )
 {
 	for( Project& prj : projects_ )
@@ -155,7 +147,7 @@ void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 			std::filesystem::path prj_path = prj_path_string;
 
 			if( !prj_path.is_absolute() )
-				prj_path = *self / prj_path;
+				prj_path = self->location_ / prj_path;
 
 			prj_path = prj_path.lexically_normal();
 

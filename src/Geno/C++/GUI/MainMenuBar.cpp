@@ -253,7 +253,7 @@ void MainMenuBar::OnCompilerDone( const CompilationDone& e )
 {
 	if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 	{
-		std::filesystem::path relative_path = *workspace / e.path;
+		std::filesystem::path relative_path = workspace->location_ / e.path;
 
 		if( e.exit_code == 0 )
 			std::cerr << ":" << relative_path.string() << "\n";

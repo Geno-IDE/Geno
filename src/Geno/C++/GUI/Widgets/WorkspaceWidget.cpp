@@ -52,7 +52,7 @@ void WorkspaceWidget::Show( bool* p_open )
 
 						for( std::filesystem::path& file : prj.files_ )
 						{
-							std::filesystem::path relative_file_path = *workspace / file;
+							std::filesystem::path relative_file_path = workspace->location_ / file;
 							std::string           file_string        = relative_file_path.string();
 
 							if( ImGui::Selectable( file_string.c_str() ) )
@@ -216,19 +216,29 @@ void WorkspaceWidget::Show( bool* p_open )
 				{
 					ImGui::CloseCurrentPopup();
 
-					if( Project* prj = workspace->ProjectByName( selected_project_ ) )
-					{
-						std::filesystem::path file_path = *prj / std::move( popup_text_ );
-						std::ofstream         ofs       = std::ofstream( file_path, std::ios::binary | std::ios::trunc );
-
-						if( ofs.is_open() )
+					OpenFileModal::Instance().RequestDirectory( "New File Location", this,
+						[]( const std::filesystem::path& path, void* user )
 						{
-							prj->files_.emplace_back( std::move( file_path ) );
-						}
-					}
+							WorkspaceWidget* self = static_cast< WorkspaceWidget* >( user );
 
-					popup_text_.clear();
-					selected_project_.clear();
+							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+							{
+								if( Project* prj = workspace->ProjectByName( self->selected_project_ ) )
+								{
+									std::filesystem::path file_path = path / std::move( self->popup_text_ );
+									std::ofstream         ofs = std::ofstream( file_path, std::ios::binary | std::ios::trunc );
+
+									if( ofs.is_open() )
+									{
+										prj->files_.emplace_back( std::move( file_path ) );
+									}
+								}
+							}
+
+							self->popup_text_.clear();
+							self->selected_project_.clear();
+						}
+					);
 				}
 
 				ImGui::SameLine();

@@ -104,14 +104,6 @@ bool Project::Deserialize( void )
 	return true;
 }
 
-std::filesystem::path Project::operator/( const std::filesystem::path& path ) const
-{
-	if( path.is_absolute() )
-		return ( path.lexically_relative( location_ ) );
-	else
-		return ( location_ / path );
-}
-
 void Project::GCLObjectCallback( GCL::Object object, void* user )
 {
 	Project* self = static_cast< Project* >( user );
@@ -129,7 +121,7 @@ void Project::GCLObjectCallback( GCL::Object object, void* user )
 			std::filesystem::path file_path = file_path_string;
 
 			if( !file_path.is_absolute() )
-				file_path = *self / file_path;
+				file_path = self->location_ / file_path;
 
 			file_path = file_path.lexically_normal();
 			self->files_.emplace_back( std::move( file_path ) );
@@ -142,7 +134,7 @@ void Project::GCLObjectCallback( GCL::Object object, void* user )
 			std::filesystem::path file_path = file_path_string;
 
 			if( !file_path.is_absolute() )
-				file_path = *self / file_path;
+				file_path = self->location_ / file_path;
 
 			file_path = file_path.lexically_normal();
 			self->includes_.emplace_back( std::move( file_path ) );
