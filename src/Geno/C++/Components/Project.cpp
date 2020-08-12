@@ -38,52 +38,78 @@ void Project::Build( void )
 	}
 }
 
-void Project::Serialize( void )
+bool Project::Serialize( void )
 {
-	if( !location_.empty() )
+	if( location_.empty() )
 	{
-		GCL::Serializer serializer( location_ );
+		std::cerr << "Failed to serialize ";
 
-		// Name
-		{
-			GCL::Object name( "Name" );
-			name.SetString( name_ );
-			serializer.WriteObject( name );
-		}
+		if( name_.empty() ) std::cerr << "unnamed project.";
+		else                std::cerr << "project '" << name_ << "'.";
 
-		// Files
-		{
-			GCL::Object              files( "Files", std::in_place_type< GCL::Object::ArrayType > );
-			std::list< std::string > relative_file_path_strings;
-			for( const std::filesystem::path& file : files_ )
-			{
-				std::filesystem::path relative_file_path        = file.lexically_relative( location_.parent_path() );
-				std::string&          relative_file_path_string = relative_file_path_strings.emplace_back( relative_file_path.string() );
+		std::cerr << " Location not specified.\n";
 
-				files.AddArrayItem( relative_file_path_string );
-			}
-
-			serializer.WriteObject( files );
-		}
+		return false;
 	}
+
+	GCL::Serializer serializer( ( location_ / name_ ).replace_extension( ext ) );
+	if( !serializer.IsOpen() )
+		return false;
+
+	// Name
+	{
+		GCL::Object name( "Name" );
+		name.SetString( name_ );
+		serializer.WriteObject( name );
+	}
+
+	// Files
+	{
+		GCL::Object              files( "Files", std::in_place_type< GCL::Object::ArrayType > );
+		std::list< std::string > relative_file_path_strings;
+		for( const std::filesystem::path& file : files_ )
+		{
+			std::filesystem::path relative_file_path        = file.lexically_relative( location_ );
+			std::string&          relative_file_path_string = relative_file_path_strings.emplace_back( relative_file_path.string() );
+
+			files.AddArrayItem( relative_file_path_string );
+		}
+
+		serializer.WriteObject( files );
+	}
+
+	return true;
 }
 
-void Project::Deserialize( void )
+bool Project::Deserialize( void )
 {
-	if( !location_.empty() )
+	if( location_.empty() )
 	{
-		GCL::Deserializer deserializer( location_ );
+		std::cerr << "Failed to deserialize ";
 
-		deserializer.Objects( GCLObjectCallback, this );
+		if( name_.empty() ) std::cerr << "unnamed project.";
+		else                std::cerr << "project '" << name_ << "'.";
+
+		std::cerr << " Location not specified.\n";
+
+		return false;
 	}
+
+	GCL::Deserializer deserializer( ( location_ / name_ ).replace_extension( ext ) );
+	if( !deserializer.IsOpen() )
+		return false;
+
+	deserializer.Objects( GCLObjectCallback, this );
+
+	return true;
 }
 
 std::filesystem::path Project::operator/( const std::filesystem::path& path ) const
 {
 	if( path.is_absolute() )
-		return ( path.lexically_relative( location_.parent_path() ) );
+		return ( path.lexically_relative( location_ ) );
 	else
-		return ( location_.parent_path() / path );
+		return ( location_ / path );
 }
 
 void Project::GCLObjectCallback( GCL::Object object, void* user )
@@ -105,7 +131,7 @@ void Project::GCLObjectCallback( GCL::Object object, void* user )
 			if( !file_path.is_absolute() )
 				file_path = *self / file_path;
 
-			file_path.make_preferred();
+			file_path = file_path.lexically_normal();
 			self->files_.emplace_back( std::move( file_path ) );
 		}
 	}
@@ -118,7 +144,7 @@ void Project::GCLObjectCallback( GCL::Object object, void* user )
 			if( !file_path.is_absolute() )
 				file_path = *self / file_path;
 
-			file_path.make_preferred();
+			file_path = file_path.lexically_normal();
 			self->includes_.emplace_back( std::move( file_path ) );
 		}
 	}

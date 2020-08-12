@@ -128,11 +128,15 @@ void WorkspaceWidget::Show( bool* p_open )
 				{
 					ImGui::CloseCurrentPopup();
 
-					std::filesystem::remove( workspace->location_ );
-					workspace->location_.remove_filename();
-					workspace->location_.append( popup_text_ + ".gwks");
+					std::filesystem::path old_path = ( workspace->location_ / workspace->name_ ).replace_extension( Workspace::ext );
+
+					if( std::filesystem::exists( old_path ) )
+					{
+						std::filesystem::path new_path = ( workspace->location_ / popup_text_ ).replace_extension( Workspace::ext );
+						std::filesystem::rename( old_path, new_path );
+					}
+
 					workspace->name_ = std::move( popup_text_ );
-					workspace->Serialize();
 				}
 
 				ImGui::SameLine();
@@ -173,10 +177,15 @@ void WorkspaceWidget::Show( bool* p_open )
 
 					if( Project* prj = workspace->ProjectByName( selected_project_ ) )
 					{
-						std::filesystem::remove( prj->location_ );
-						prj->location_.append( popup_text_ + ".gprj" );
+						std::filesystem::path old_path = ( prj->location_ / prj->name_ ).replace_extension( Project::ext );
+
+						if( std::filesystem::exists( old_path ) )
+						{
+							std::filesystem::path new_path = ( prj->location_ / popup_text_ ).replace_extension( Project::ext );
+							std::filesystem::rename( old_path, new_path );
+						}
+
 						prj->name_ = std::move( popup_text_ );
-						workspace->Serialize();
 					}
 
 					popup_text_.clear();

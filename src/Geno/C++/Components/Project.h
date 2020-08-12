@@ -27,13 +27,17 @@ class Project
 {
 public:
 
+	static constexpr std::string_view ext = ".gprj";
+
+public:
+
 	explicit Project( const std::filesystem::path& location );
 
 public:
 
 	void Build      ( void );
-	void Serialize  ( void );
-	void Deserialize( void );
+	bool Serialize  ( void );
+	bool Deserialize( void );
 
 public:
 

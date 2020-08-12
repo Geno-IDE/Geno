@@ -47,7 +47,7 @@ LocalAppData::LocalAppData( void )
 		return;
 
 	path_.assign( std::begin( buf ), std::begin( buf ) + wcsnlen( buf, std::size( buf ) ) );
-	path_.make_preferred();
+	path_ = path_.lexically_normal();
 
 #elif defined( __linux__ ) // _WIN32
 
@@ -79,7 +79,7 @@ LocalAppData::LocalAppData( void )
 		return;
 
 	path_.assign( std::begin( buf ), std::begin( buf ) + strnlen( buf, std::size( buf ) ) );
-	path_.make_preferred();
+	path_ = path_.lexically_normal();
 
 #else // __linux__
 
@@ -91,7 +91,7 @@ LocalAppData::LocalAppData( void )
 std::string LocalAppData::operator/( std::string_view relative_path ) const
 {
 	std::filesystem::path abs_path = ( path_ / relative_path );
-	abs_path.make_preferred();
+	abs_path = abs_path.lexically_normal();
 
 	return abs_path.string();
 }
@@ -99,7 +99,7 @@ std::string LocalAppData::operator/( std::string_view relative_path ) const
 std::wstring LocalAppData::operator/( std::wstring_view relative_path ) const
 {
 	std::filesystem::path abs_path = ( path_ / relative_path );
-	abs_path.make_preferred();
+	abs_path = abs_path.lexically_normal();
 
 	return abs_path.wstring();
 }

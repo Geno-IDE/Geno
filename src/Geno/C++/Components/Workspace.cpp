@@ -36,71 +36,79 @@ void Workspace::Build( void )
 	}
 }
 
-void Workspace::Serialize( void )
+bool Workspace::Serialize( void )
 {
-	if( !location_.empty() )
+	if( location_.empty() )
+		return false;
+
+	GCL::Serializer serializer( ( location_ / name_ ).replace_extension( ext ) );
+	if( !serializer.IsOpen() )
+		return false;
+
+	// Name string
 	{
-		GCL::Serializer serializer( location_ );
+		GCL::Object name( "Name" );
+		name.SetString( name_ );
 
-		// Name string
-		{
-			GCL::Object name( "Name" );
-			name.SetString( name_ );
-
-			serializer.WriteObject( name );
-		}
-
-		// Matrix table
-		{
-			GCL::Object matrix( "Matrix", std::in_place_type< GCL::Object::TableType > );
-			for( BuildMatrix::Column& column : build_matrix_.columns_ )
-			{
-				GCL::Object child( column.name, std::in_place_type< GCL::Object::ArrayType > );
-
-				for( const std::string& cfg : column.configurations )
-					child.AddArrayItem( cfg );
-
-				matrix.AddChild( std::move( child ) );
-			}
-
-			serializer.WriteObject( matrix );
-		}
-
-		// Projects array
-		{
-			GCL::Object              projects( "Projects", std::in_place_type< GCL::Object::ArrayType > );
-			std::list< std::string > relative_project_path_strings; // GCL Arrays store its elements as std::string_view which means the string needs to live until we call WriteObject
-			for( Project& prj : projects_ )
-			{
-				std::filesystem::path relative_project_path        = prj.location_.lexically_relative( location_.parent_path() );
-				std::string&          relative_project_path_string = relative_project_path_strings.emplace_back( relative_project_path.string() );
-
-				projects.AddArrayItem( relative_project_path_string );
-
-				prj.Serialize();
-			}
-
-			serializer.WriteObject( projects );
-		}
+		serializer.WriteObject( name );
 	}
+
+	// Matrix table
+	{
+		GCL::Object matrix( "Matrix", std::in_place_type< GCL::Object::TableType > );
+		for( BuildMatrix::Column& column : build_matrix_.columns_ )
+		{
+			GCL::Object child( column.name, std::in_place_type< GCL::Object::ArrayType > );
+
+			for( const std::string& cfg : column.configurations )
+				child.AddArrayItem( cfg );
+
+			matrix.AddChild( std::move( child ) );
+		}
+
+		serializer.WriteObject( matrix );
+	}
+
+	// Projects array
+	{
+		GCL::Object              projects( "Projects", std::in_place_type< GCL::Object::ArrayType > );
+		std::list< std::string > relative_project_path_strings; // GCL Arrays store its elements as std::string_view which means the string needs to live until we call WriteObject
+		for( Project& prj : projects_ )
+		{
+			std::filesystem::path relative_project_path        = prj.location_.lexically_relative( location_ ) / prj.name_;
+			std::string&          relative_project_path_string = relative_project_path_strings.emplace_back( relative_project_path.string() );
+
+			projects.AddArrayItem( relative_project_path_string );
+
+			prj.Serialize();
+		}
+
+		serializer.WriteObject( projects );
+	}
+
+	return true;
 }
 
-void Workspace::Deserialize( void )
+bool Workspace::Deserialize( void )
 {
-	if( !location_.empty() )
-	{
-		GCL::Deserializer serializer( location_ );
+	if( location_.empty() )
+		return false;
 
-		serializer.Objects( GCLObjectCallback, this );
-	}
+	GCL::Deserializer serializer( ( location_ / name_ ).replace_extension( ext ) );
+	if( !serializer.IsOpen() )
+		return false;
+
+	serializer.Objects( GCLObjectCallback, this );
+
+	return true;
 }
 
 std::filesystem::path Workspace::operator/( const std::filesystem::path& path ) const
 {
 	if( path.is_absolute() )
-		return ( path.lexically_relative( location_.parent_path() ) );
+		return ( path.lexically_relative( location_ ) );
 	else
-		return ( location_.parent_path() / path );
+		return ( location_ / path );
 }
 
 Project* Workspace::ProjectByName( std::string_view name )
@@ -149,15 +157,13 @@ void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 			if( !prj_path.is_absolute() )
 				prj_path = *self / prj_path;
 
-			if( !prj_path.has_extension() )
-				prj_path += ".gprj";
+			prj_path = prj_path.lexically_normal();
 
-			prj_path.make_preferred();
+			Project prj( prj_path.parent_path() );
+			prj.name_ = prj_path.filename().string();
 
-			Project prj( prj_path );
-			prj.Deserialize();
-
-			self->projects_.emplace_back( std::move( prj ) );
+			if( prj.Deserialize() )
+				self->projects_.emplace_back( std::move( prj ) );
 		}
 	}
 }

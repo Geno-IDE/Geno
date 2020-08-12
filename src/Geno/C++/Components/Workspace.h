@@ -29,13 +29,17 @@ class Workspace
 {
 public:
 
+	static constexpr std::string_view ext = ".gwks";
+
+public:
+
 	explicit Workspace( const std::filesystem::path& location );
 
 public:
 
 	void Build      ( void );
-	void Serialize  ( void );
-	void Deserialize( void );
+	bool Serialize  ( void );
+	bool Deserialize( void );
 
 public:
 
