@@ -179,14 +179,17 @@ void MainMenuBar::Show( void )
 
 void MainMenuBar::ActionFileNewWorkspace( void )
 {
-	std::wstring random_workspace_name = L"MyWorkspace.gwks";
-
-	Application::Instance().NewWorkspace( LocalAppData::Instance() / random_workspace_name );
+	OpenFileModal::Instance().RequestDirectory( "New Workspace Location", this,
+		[]( const std::filesystem::path& path, void* /*user*/ )
+		{
+			Application::Instance().NewWorkspace( path );
+		}
+	);
 }
 
 void MainMenuBar::ActionFileOpenWorkspace( void )
 {
-	OpenFileModal::Instance().Present( this,
+	OpenFileModal::Instance().RequestFile( "Open Workspace", this,
 		[]( const std::filesystem::path& path, void* /*user*/ )
 		{
 			Application::Instance().LoadWorkspace( path );

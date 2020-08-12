@@ -19,9 +19,8 @@
 
 #include "Components/Project.h"
 #include "GUI/Widgets/TextEditWidget.h"
+#include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Application.h"
-
-#include <Common/LocalAppData.h>
 
 #include <fstream>
 
@@ -155,8 +154,17 @@ void WorkspaceWidget::Show( bool* p_open )
 				{
 					ImGui::CloseCurrentPopup();
 
-					Project& prj = workspace->projects_.emplace_back( LocalAppData::Instance() / popup_text_ + ".gprj" );
-					prj.name_    = std::move( popup_text_ );
+					OpenFileModal::Instance().RequestDirectory( "New Project Location", this,
+						[]( const std::filesystem::path& path, void* user )
+						{
+							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+							{
+								WorkspaceWidget* self = static_cast< WorkspaceWidget* >( user );
+								Project&         prj  = workspace->projects_.emplace_back( path );
+								prj.name_             = std::move( self->popup_text_ );
+							}
+						}
+					);
 				}
 
 				ImGui::SameLine();

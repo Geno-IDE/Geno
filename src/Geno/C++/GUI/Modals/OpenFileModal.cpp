@@ -44,24 +44,40 @@ OpenFileModal::OpenFileModal( void )
 	current_directory_ = RootDirectory();
 }
 
-void OpenFileModal::Present( void* user, Callback callback )
+void OpenFileModal::RequestFile( std::string_view title, void* user, Callback callback )
 {
 	if( user_ || callback_ )
 		return;
 
-	user_     = user;
-	callback_ = callback;
-	open_     = true;
+	user_                = user;
+	callback_            = callback;
+	open_                = true;
+	directory_requested_ = false;
+	title_               = title;
+}
+
+void OpenFileModal::RequestDirectory( std::string_view title, void* user, Callback callback )
+{
+	if( user_ || callback_ )
+		return;
+
+	user_                = user;
+	callback_            = callback;
+	open_                = true;
+	directory_requested_ = true;
+	title_               = title;
 }
 
 void OpenFileModal::Update( void )
 {
+	const std::string popup_id = title_ + "##OpenFile";
+
 	if( open_ && !ImGui::IsPopupOpen( "OpenFile" ) )
 	{
-		ImGui::OpenPopup( "OpenFile" );
+		ImGui::OpenPopup( popup_id.c_str() );
 	}
 
-	if( ImGui::BeginPopupModal( "OpenFile" ) )
+	if( ImGui::BeginPopupModal( popup_id.c_str() ) )
 	{
 		if( ImGui::BeginChild( 1 , ImVec2( 0, -24 ) ) )
 		{
@@ -100,7 +116,7 @@ void OpenFileModal::Update( void )
 						change_edit_focus_      = true;
 					}
 
-					if( ImGui::Button( "New File" ) )
+					if( !directory_requested_ && ImGui::Button( "New File" ) )
 					{
 						editing_path_           = current_directory_ / "New File.txt";
 						editing_path_is_folder_ = false;
@@ -184,22 +200,40 @@ void OpenFileModal::Update( void )
 				{
 					std::string filename = directory_entry.filename().string();
 
-					if( ImGui::Selectable( filename.c_str() ) )
+					if( directory_requested_ )
 					{
-						current_directory_ = directory_entry;
+						bool selected = selected_path_ == directory_entry;
+
+						if( ImGui::Selectable( filename.c_str(), &selected, ImGuiSelectableFlags_AllowDoubleClick ) )
+						{
+							const bool double_clicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
+
+							if( double_clicked ) current_directory_ = directory_entry;
+							else                 selected_path_     = directory_entry;
+						}
+					}
+					else
+					{
+						if( ImGui::Selectable( filename.c_str() ) )
+						{
+							current_directory_ = directory_entry;
+						}
 					}
 				}
 
-				ImGui::Separator();
-
-				for( const std::filesystem::path& file_path : file_paths )
+				if( !directory_requested_ )
 				{
-					std::string filename = file_path.filename().string();
-					bool        selected = file_path == selected_file_;
+					ImGui::Separator();
 
-					if( ImGui::Selectable( filename.c_str(), &selected ) )
+					for( const std::filesystem::path& file_path : file_paths )
 					{
-						selected_file_ = file_path;
+						std::string filename = file_path.filename().string();
+						bool        selected = file_path == selected_path_;
+
+						if( ImGui::Selectable( filename.c_str(), &selected ) )
+						{
+							selected_path_ = file_path;
+						}
 					}
 				}
 			}
@@ -211,7 +245,7 @@ void OpenFileModal::Update( void )
 
 		if( ImGui::BeginChild( 4 , ImVec2( 0, 20 ) ) )
 		{
-			bool disable_ok_button = selected_file_.empty() || !std::filesystem::exists( selected_file_ );
+			bool disable_ok_button = selected_path_.empty() || !std::filesystem::exists( selected_path_ );
 
 			if( disable_ok_button )
 			{
@@ -222,7 +256,7 @@ void OpenFileModal::Update( void )
 			if( ImGui::Button( "OK", ImVec2( 80, 0 ) ) )
 			{
 				if( callback_ )
-					callback_( selected_file_, user_ );
+					callback_( selected_path_, user_ );
 
 				Close();
 			}
@@ -239,9 +273,9 @@ void OpenFileModal::Update( void )
 				Close();
 			}
 
-			std::string selected_file_string = selected_file_.string();
+			std::string selected_path_string = selected_path_.string();
 			ImGui::SameLine();
-			ImGui::Text( selected_file_string.c_str() );
+			ImGui::Text( selected_path_string.c_str() );
 		}
 		ImGui::EndChild();
 
@@ -251,9 +285,10 @@ void OpenFileModal::Update( void )
 
 void OpenFileModal::Close( void )
 {
-	callback_ = nullptr;
-	user_     = nullptr;
-	open_     = false;
+	callback_            = nullptr;
+	user_                = nullptr;
+	open_                = false;
+	directory_requested_ = false;
 
 	ImGui::CloseCurrentPopup();
 }

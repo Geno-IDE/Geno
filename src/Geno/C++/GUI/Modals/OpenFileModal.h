@@ -31,8 +31,9 @@ public:
 
 public:
 
-	void Present( void* user, Callback callback );
-	void Update ( void );
+	void RequestFile     ( std::string_view title, void* user, Callback callback );
+	void RequestDirectory( std::string_view title, void* user, Callback callback );
+	void Update          ( void );
 
 private:
 
@@ -42,14 +43,16 @@ private:
 private:
 
 	std::filesystem::path current_directory_;
-	std::filesystem::path selected_file_;
+	std::filesystem::path selected_path_;
 	std::filesystem::path editing_path_;
 	bool                  editing_path_is_folder_ = false;
 	bool                  change_edit_focus_      = false;
 
-	Callback callback_ = nullptr;
-	void*    user_     = nullptr;
-	bool     open_     = false;
+	Callback    callback_            = nullptr;
+	void*       user_                = nullptr;
+	bool        open_                = false;
+	bool        directory_requested_ = false;
+	std::string title_;
 
 #if defined( _WIN32 )
 	std::unique_ptr< char[] > drives_buffer_;
