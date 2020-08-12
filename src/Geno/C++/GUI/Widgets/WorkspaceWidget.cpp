@@ -52,8 +52,7 @@ void WorkspaceWidget::Show( bool* p_open )
 
 						for( std::filesystem::path& file : prj.files_ )
 						{
-							std::filesystem::path relative_file_path = workspace->location_ / file;
-							std::string           file_string        = relative_file_path.string();
+							std::string file_string = file.filename().string();
 
 							if( ImGui::Selectable( file_string.c_str() ) )
 							{
