@@ -116,4 +116,9 @@ namespace GCL
 				WriteObject( child, indent_level + 1 );
 		}
 	}
+
+	bool Serializer::IsOpen( void ) const
+	{
+		return ( file_descriptor_ >= 0 );
+	}
 }

@@ -80,6 +80,11 @@ namespace GCL
 		}
 	}
 
+	bool Deserializer::IsOpen( void ) const
+	{
+		return ( ( file_buf_ != nullptr ) && ( file_size_ > 0 ) );
+	}
+
 	bool Deserializer::ParseLine( std::string_view line, int indent_level, std::string_view* unparsed, ObjectCallback callback, void* user )
 	{
 		if( !LineStartsWithIndent( line, indent_level ) )

@@ -40,6 +40,10 @@ namespace GCL
 
 		void Objects( ObjectCallback callback, void* user );
 
+	public:
+
+		bool IsOpen( void ) const;
+
 	private:
 
 		bool ParseLine( std::string_view line, int indent_level, std::string_view* unparsed, ObjectCallback callback, void* user );

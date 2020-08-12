@@ -33,6 +33,10 @@ namespace GCL
 
 		void WriteObject( const Object& object, int indent_level = 0 );
 
+	public:
+
+		bool IsOpen( void ) const;
+
 	private:
 
 		int file_descriptor_ = -1;
