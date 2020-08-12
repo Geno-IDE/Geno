@@ -49,6 +49,10 @@ void OpenFileModal::RequestFile( std::string_view title, void* user, Callback ca
 	if( user_ || callback_ )
 		return;
 
+	// Make sure we don't have a pre-selected directory from last popup
+	if( directory_requested_ )
+		selected_path_.clear();
+
 	user_                = user;
 	callback_            = callback;
 	open_                = true;
@@ -60,6 +64,10 @@ void OpenFileModal::RequestDirectory( std::string_view title, void* user, Callba
 {
 	if( user_ || callback_ )
 		return;
+
+	// Make sure we don't have a pre-selected file from last popup
+	if( !directory_requested_ )
+		selected_path_ = current_directory_;
 
 	user_                = user;
 	callback_            = callback;
@@ -285,10 +293,9 @@ void OpenFileModal::Update( void )
 
 void OpenFileModal::Close( void )
 {
-	callback_            = nullptr;
-	user_                = nullptr;
-	open_                = false;
-	directory_requested_ = false;
+	callback_ = nullptr;
+	user_     = nullptr;
+	open_     = false;
 
 	ImGui::CloseCurrentPopup();
 }
