@@ -29,14 +29,26 @@
 // Universal macros
 
 #define GENO_DISABLE_COPY( CLASS )             \
+public:                                        \
     CLASS( const CLASS& )            = delete; \
     CLASS& operator=( const CLASS& ) = delete
 
 #define GENO_DISABLE_COPY_AND_MOVE( CLASS )    \
+public:                                        \
     CLASS( const CLASS& )            = delete; \
     CLASS( CLASS&& )                 = delete; \
     CLASS& operator=( CLASS&& )      = delete; \
     CLASS& operator=( const CLASS& ) = delete
+
+#define GENO_DEFAULT_COPY( CLASS )              \
+public:                                         \
+    CLASS( const CLASS& )            = default; \
+    CLASS& operator=( const CLASS& ) = default
+
+#define GENO_DEFAULT_MOVE( CLASS )         \
+public:                                    \
+    CLASS( CLASS&& )            = default; \
+    CLASS& operator=( CLASS&& ) = default
 
 #define GENO_SINGLETON( CLASS )                                  \
 public:                                                          \
