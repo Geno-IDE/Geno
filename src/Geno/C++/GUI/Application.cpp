@@ -17,6 +17,7 @@
 
 #include "Application.h"
 
+#include "GUI/Modals/IModal.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
 #include "Misc/Settings.h"
@@ -30,6 +31,10 @@ int Application::Run( void )
 	while( MainWindow::Instance().BeginFrame() )
 	{
 		MainMenuBar::Instance().Show();
+
+		// This will update all modals recursively
+		if( !modal_stack_.empty() )
+			modal_stack_.front()->Update();
 
 		MainWindow::Instance().EndFrame();
 	}
@@ -59,6 +64,29 @@ void Application::CloseWorkspace( void )
 		current_workspace_->Serialize();
 
 	current_workspace_.reset();
+}
+
+void Application::PushModal( IModal* modal )
+{
+	modal_stack_.push_back( modal );
+}
+
+void Application::PopModal( void )
+{
+	modal_stack_.pop_back();
+}
+
+IModal* Application::NextModal( IModal* previous )
+{
+	if( auto it = std::find( modal_stack_.begin(), modal_stack_.end(), previous ); it != modal_stack_.end() )
+	{
+		if( ++it == modal_stack_.end() )
+			return nullptr;
+
+		return *it;
+	}
+
+	return nullptr;
 }
 
 Workspace* Application::CurrentWorkspace( void )

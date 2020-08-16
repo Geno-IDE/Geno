@@ -17,6 +17,8 @@
 
 #include "IModal.h"
 
+#include "GUI/Application.h"
+
 #include <imgui.h>
 
 void IModal::Update( void )
@@ -32,6 +34,9 @@ void IModal::Update( void )
 	{
 		UpdateDerived();
 
+		if( IModal* next = Application::Instance().NextModal( this ) )
+			next->Update();
+
 		ImGui::EndPopup();
 	}
 }
@@ -42,14 +47,18 @@ void IModal::Close( void )
 
 	ImGui::CloseCurrentPopup();
 
+	Application::Instance().PopModal();
+
 	OnClose();
 }
 
 bool IModal::Open( void )
 {
-	// Make sure no popup is already open when trying to open this one.
-	if( ImGui::IsPopupOpen( nullptr, ImGuiPopupFlags_AnyPopup ) )
+	// Make sure this popup is not already opened
+	if( open_ )
 		return false;
+
+	Application::Instance().PushModal( this );
 
 	open_ = true;
 

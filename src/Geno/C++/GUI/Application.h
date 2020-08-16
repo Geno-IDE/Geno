@@ -19,8 +19,11 @@
 #include "Components/Workspace.h"
 
 #include <optional>
+#include <vector>
 
 #include <Common/Macros.h>
+
+class IModal;
 
 class Application
 {
@@ -28,10 +31,13 @@ class Application
 
 public:
 
-	int  Run           ( void );
-	void NewWorkspace  ( const std::filesystem::path& where );
-	void LoadWorkspace ( const std::filesystem::path& path );
-	void CloseWorkspace( void );
+	int     Run            ( void );
+	void    NewWorkspace   ( const std::filesystem::path& where );
+	void    LoadWorkspace  ( const std::filesystem::path& path );
+	void    CloseWorkspace ( void );
+	void    PushModal      ( IModal* modal );
+	void    PopModal       ( void );
+	IModal* NextModal      ( IModal* previous );
 
 public:
 
@@ -40,5 +46,6 @@ public:
 private:
 
 	std::optional< Workspace > current_workspace_;
+	std::vector< IModal* >     modal_stack_;
 
 };
