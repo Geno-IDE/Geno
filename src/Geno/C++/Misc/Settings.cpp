@@ -73,8 +73,9 @@ void Settings::Save( void )
 
 	if( !mingw_path_.empty() )
 	{
+		std::string mingw_path_string = mingw_path_.lexically_normal().string();
 		GCL::Object obj( "MinGW-Path" );
-		obj.SetString( mingw_path_.lexically_normal().string() );
+		obj.SetString( mingw_path_string );
 		serializer.WriteObject( obj );
 	}
 #endif // _WIN32
