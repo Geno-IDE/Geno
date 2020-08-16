@@ -67,7 +67,7 @@ namespace GCL
 		free( file_buf_ );
 	}
 
-	void Deserializer::Objects( ObjectCallback callback, void* user )
+	void Deserializer::Objects( void* user, ObjectCallback callback )
 	{
 		std::string_view unparsed( file_buf_, file_size_ );
 

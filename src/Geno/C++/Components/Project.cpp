@@ -99,7 +99,7 @@ bool Project::Deserialize( void )
 	if( !deserializer.IsOpen() )
 		return false;
 
-	deserializer.Objects( GCLObjectCallback, this );
+	deserializer.Objects( this, GCLObjectCallback );
 
 	return true;
 }

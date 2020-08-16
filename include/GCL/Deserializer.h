@@ -38,7 +38,7 @@ namespace GCL
 
 	public:
 
-		void Objects( ObjectCallback callback, void* user );
+		void Objects( void* user, ObjectCallback callback );
 
 	public:
 

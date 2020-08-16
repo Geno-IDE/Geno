@@ -98,7 +98,7 @@ bool Workspace::Deserialize( void )
 	if( !serializer.IsOpen() )
 		return false;
 
-	serializer.Objects( GCLObjectCallback, this );
+	serializer.Objects( this, GCLObjectCallback );
 
 	return true;
 }
