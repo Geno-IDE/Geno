@@ -24,8 +24,8 @@
 
 #include <iostream>
 
-Project::Project( const std::filesystem::path& location )
-	: location_( location )
+Project::Project( std::filesystem::path location )
+	: location_( std::move( location ) )
 	, name_    ( "MyProject" )
 {
 }

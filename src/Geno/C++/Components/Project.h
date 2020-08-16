@@ -33,7 +33,7 @@ public:
 
 public:
 
-	explicit Project( const std::filesystem::path& location );
+	explicit Project( std::filesystem::path location );
 
 public:
 
