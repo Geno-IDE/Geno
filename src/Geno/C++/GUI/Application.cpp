@@ -42,14 +42,6 @@ int Application::Run( void )
 	return 0;
 }
 
-void Application::NewWorkspace( const std::filesystem::path& where )
-{
-	CloseWorkspace();
-
-	Workspace& workspace = current_workspace_.emplace( where );
-	workspace.name_      = where.filename().replace_extension().string();
-}
-
 void Application::NewWorkspace( const std::filesystem::path& where, std::string_view name )
 {
 	CloseWorkspace();
@@ -61,7 +53,7 @@ void Application::NewWorkspace( const std::filesystem::path& where, std::string_
 void Application::LoadWorkspace( const std::filesystem::path& path )
 {
 	CloseWorkspace();
-	NewWorkspace( path );
+	NewWorkspace( path.parent_path(), path.filename().replace_extension().string() );
 
 	current_workspace_->Deserialize();
 }
