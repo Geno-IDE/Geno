@@ -19,6 +19,7 @@
 
 #include "Components/Project.h"
 #include "GUI/Widgets/TextEditWidget.h"
+#include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Application.h"
 
@@ -80,9 +81,7 @@ void WorkspaceWidget::Show( bool* p_open )
 
 			// ImGUI seeds the popup IDs by the ID of the last item on the stack, which would be the context menu below
 			bool open_workspace_rename_popup = false;
-			bool open_new_project_popup      = false;
 			bool open_project_rename_popup   = false;
-			bool open_new_file_popup         = false;
 
 			if( ImGui::IsMouseReleased( ImGuiMouseButton_Right ) )
 			{
@@ -101,22 +100,54 @@ void WorkspaceWidget::Show( bool* p_open )
 			if( ImGui::BeginPopup( "WorkspaceContextMenu", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings ) )
 			{
 				if( ImGui::MenuItem( "Rename" ) )      open_workspace_rename_popup = true;
-				if( ImGui::MenuItem( "New Project" ) ) open_new_project_popup      = true;
+				if( ImGui::MenuItem( "New Project" ) )
+				{
+					NewItemModal::Instance().Request( "New Project", this,
+						[]( std::string_view name, std::filesystem::path location, void* /*user*/ )
+						{
+							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+							{
+								Project& prj = workspace->projects_.emplace_back( std::move( location ) );
+								prj.name_    = name;
+							}
+						}
+					);
+				}
 
 				ImGui::EndPopup();
 			}
 			else if( ImGui::BeginPopup( "ProjectContextMenu", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings ) )
 			{
 				if( ImGui::MenuItem( "Rename" ) )   open_project_rename_popup = true;
-				if( ImGui::MenuItem( "New File" ) ) open_new_file_popup       = true;
+				if( ImGui::MenuItem( "New File" ) )
+				{
+					NewItemModal::Instance().Request( "New File", this,
+						[]( std::string_view name, std::filesystem::path location, void* user )
+						{
+							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+							{
+								WorkspaceWidget* self = static_cast< WorkspaceWidget* >( user );
+
+								if( Project* prj = workspace->ProjectByName( self->selected_project_ ) )
+								{
+									std::filesystem::path file_path = location / name;
+									std::ofstream         ofs = std::ofstream( file_path, std::ios::binary | std::ios::trunc );
+
+									if( ofs.is_open() )
+									{
+										prj->files_.emplace_back( std::move( file_path ) );
+									}
+								}
+							}
+						}
+					);
+				}
 
 				ImGui::EndPopup();
 			}
 
 			if( open_workspace_rename_popup )    ImGui::OpenPopup( "Rename Workspace" );
-			else if( open_new_project_popup )    ImGui::OpenPopup( "New Project" );
 			else if( open_project_rename_popup ) ImGui::OpenPopup( "Rename Project" );
-			else if( open_new_file_popup )       ImGui::OpenPopup( "New File" );
 
 			if( ImGui::BeginPopupModal( "Rename Workspace" ) )
 			{
@@ -135,35 +166,6 @@ void WorkspaceWidget::Show( bool* p_open )
 					}
 
 					workspace->name_ = std::move( popup_text_ );
-				}
-
-				ImGui::SameLine();
-				if( ImGui::Button( "Cancel", ImVec2( 100, 0 ) ) )
-				{
-					ImGui::CloseCurrentPopup();
-				}
-
-				ImGui::EndPopup();
-			}
-			else if( ImGui::BeginPopupModal( "New Project" ) )
-			{
-				ImGui::InputTextWithHint( "##Name", "Project Name", &popup_text_ );
-
-				if( ImGui::Button( "Create", ImVec2( 100, 0 ) ) )
-				{
-					ImGui::CloseCurrentPopup();
-
-					OpenFileModal::Instance().RequestDirectory( "New Project Location", this,
-						[]( const std::filesystem::path& path, void* user )
-						{
-							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
-							{
-								WorkspaceWidget* self = static_cast< WorkspaceWidget* >( user );
-								Project&         prj  = workspace->projects_.emplace_back( path );
-								prj.name_             = std::move( self->popup_text_ );
-							}
-						}
-					);
 				}
 
 				ImGui::SameLine();
