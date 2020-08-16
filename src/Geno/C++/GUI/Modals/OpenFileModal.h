@@ -16,12 +16,14 @@
  */
 
 #pragma once
-#include <Common/Macros.h>
+#include "GUI/Modals/IModal.h"
 
 #include <filesystem>
 #include <memory>
 
-class OpenFileModal
+#include <Common/Macros.h>
+
+class OpenFileModal : public IModal
 {
 	GENO_SINGLETON( OpenFileModal );
 
@@ -33,31 +35,36 @@ public:
 
 	void RequestFile     ( std::string_view title, void* user, Callback callback );
 	void RequestDirectory( std::string_view title, void* user, Callback callback );
-	void Update          ( void );
 
 private:
 
-	void                  Close        ( void );
+	std::string PopupID      ( void ) override { return "OpenFile"; }
+	std::string Title        ( void ) override { return title_; }
+	void        UpdateDerived( void ) override;
+	void        OnClose      ( void ) override;
+
+private:
+
 	std::filesystem::path RootDirectory( void );
 
 private:
 
-	std::filesystem::path current_directory_;
-	std::filesystem::path selected_path_;
-	std::filesystem::path editing_path_;
-	bool                  editing_path_is_folder_ = false;
-	bool                  change_edit_focus_      = false;
-
-	Callback    callback_            = nullptr;
-	void*       user_                = nullptr;
-	bool        open_                = false;
-	bool        directory_requested_ = false;
-	std::string title_;
+	std::string               title_;
+	std::filesystem::path     current_directory_;
+	std::filesystem::path     selected_path_;
+	std::filesystem::path     editing_path_;
+	Callback                  callback_               = nullptr;
+	void*                     user_                   = nullptr;
+	bool                      editing_path_is_folder_ = false;
+	bool                      change_edit_focus_      = false;
+	bool                      directory_requested_    = false;
 
 #if defined( _WIN32 )
+
 	std::unique_ptr< char[] > drives_buffer_;
-	size_t                    drives_buffer_size_  = 0;
-	size_t                    current_drive_index_ = 0;
+	size_t                    drives_buffer_size_     = 0;
+	size_t                    current_drive_index_    = 0;
+
 #endif // _WIN32
 
 };
