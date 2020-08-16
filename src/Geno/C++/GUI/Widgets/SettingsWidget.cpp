@@ -18,8 +18,9 @@
 #include "SettingsWidget.h"
 
 #include "Common/LocalAppData.h"
-#include "Compilers/Compiler.h"
+#include "Compilers/ICompiler.h"
 #include "GUI/MainWindow.h"
+#include "Misc/Settings.h"
 
 #include <array>
 #include <fstream>
@@ -27,34 +28,22 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-SettingsWidget::SettingsWidget( void )
+enum Category
 {
-#if defined( _WIN32 )
+	CategoryCompiler,
+	CategoryTheme,
+	NumCategories
+};
 
-	if( std::ifstream ifs( LocalAppData::Instance() / "mingw-path.txt" ); ifs.good() )
+constexpr const char* CategoryString( Category category )
+{
+	switch( category )
 	{
-		ifs >> mingw_path_;
+		case CategoryCompiler: return "Compiler";
+		case CategoryTheme:    return "Theme";
 
-		Compiler::Instance().SetPath( mingw_path_.native() );
-	}
-
-#elif defined( __linux__ ) // _WIN32
-	
-	if( std::ifstream ifs( LocalAppData::Instance() / "llvm-path.txt" ); ifs.good() )
-	{
-		ifs >> llvm_path_;
-
-		Compiler::Instance().SetPath( llvm_path_.native() );
-	}
-
-#endif // __linux__
-
-	if( std::ifstream ifs( LocalAppData::Instance() / "theme.txt" ); ifs.good() )
-	{
-		// #TODO: This should be a string. Otherwise it's going to load the wrong theme if we add a new one with an index lower than the saved theme.
-		ifs >> current_theme_;
-
-		UpdateTheme();
+		case NumCategories:
+		default:               return nullptr;
 	}
 }
 
@@ -62,18 +51,19 @@ void SettingsWidget::Show( bool* p_open )
 {
 	if( ImGui::Begin( "Settings", p_open ) )
 	{
-		constexpr float       list_width   = 120.f;
-		constexpr const char* list_items[] = { "Compiler", "Theme" };
+		constexpr float list_width = 120.f;
 
 		MainWindow::Instance().PushHorizontalLayout();
 
 		if( ImGui::BeginChild( 1, ImVec2( list_width, 0.f ) ) )
 		{
-			for( size_t i = 0; i < std::size( list_items ); ++i )
+			for( int i = 0; i < NumCategories; ++i )
 			{
-				if( ImGui::Selectable( list_items[ i ], current_panel_item_ == ( int )i ) )
+				Category category = static_cast< Category >( i );
+
+				if( ImGui::Selectable( CategoryString( category ), current_category_ == category ) )
 				{
-					current_panel_item_ = ( int )i;
+					current_category_ = category;
 				}
 			}
 		}
@@ -81,61 +71,41 @@ void SettingsWidget::Show( bool* p_open )
 
 		if( ImGui::BeginChild( 2 ) )
 		{
-			switch( current_panel_item_ )
+			Settings& settings = Settings::Instance();
+
+			switch( current_category_ )
 			{
-				case 0:
+				case CategoryCompiler:
 				{
 
-			#if defined( _WIN32 )
+				#if defined( _WIN32 )
 
 					char mingw_path_buf[ FILENAME_MAX + 1 ] = { };
 
-					for( size_t i = 0; i < mingw_path_.native().size(); ++i )
+					for( size_t i = 0; i < settings.mingw_path_.native().size(); ++i )
 					{
-						mingw_path_buf[ i ] = ( char )mingw_path_.native().at( i );
+						mingw_path_buf[ i ] = static_cast< char >( settings.mingw_path_.native().at( i ) );
 					}
 
 					if( ImGui::InputText( "MinGW Path", &mingw_path_buf[ 0 ], std::size( mingw_path_buf ) ) )
 					{
-						mingw_path_ = mingw_path_buf;
-
-						Compiler::Instance().SetPath( mingw_path_.native() );
-
-						std::ofstream ofs( LocalAppData::Instance() / "mingw-path.txt", std::ios::binary | std::ios::trunc );
-						ofs << mingw_path_;
+						settings.mingw_path_ = mingw_path_buf;
 					}
 
-			#elif defined( __linux__ ) // _WIN32
-
-					char llvm_path_buf[ FILENAME_MAX + 1 ] = { };
-
-					for( size_t i = 0; i < llvm_path_.native().size(); ++i )
-					{
-						llvm_path_buf[ i ] = ( char )llvm_path_.native().at( i );
-					}
-
-					if( ImGui::InputText( "LLVM Path", &llvm_path_buf[ 0 ], std::size( llvm_path_buf ) ) )
-					{
-						llvm_path_ = llvm_path_buf;
-
-						Compiler::Instance().SetPath( llvm_path_.native() );
-
-						std::ofstream ofs( LocalAppData::Instance() / "llvm-path.txt", std::ios::binary | std::ios::trunc );
-						ofs << llvm_path_;
-					}
-
-			#endif // __linux__
+				#endif // _WIN32
 
 				} break;
 
-				case 1:
+				case CategoryTheme:
 				{
-					if( ImGui::Combo( "Theme", &current_theme_, "Classic\0Light\0Dark\0" ) )
-					{
-						UpdateTheme();
+					const std::array theme_names   = { "Classic", "Light", "Dark" };
+					auto             current_theme = std::find( theme_names.begin(), theme_names.end(), settings.theme_ );
+					int              current_item  = ( current_theme == theme_names.end() ) ? -1 : static_cast< int >( std::distance( theme_names.begin(), current_theme ) );
 
-						std::ofstream ofs( LocalAppData::Instance() / "theme.txt", std::ios::binary | std::ios::trunc );
-						ofs << current_theme_;
+					if( ImGui::Combo( "Theme", &current_item, theme_names.data(), static_cast< int >( theme_names.size() ) ) )
+					{
+						settings.theme_ = theme_names[ current_item ];
+						settings.UpdateTheme();
 					}
 
 				} break;
@@ -146,14 +116,4 @@ void SettingsWidget::Show( bool* p_open )
 		MainWindow::Instance().PopHorizontalLayout();
 	}
 	ImGui::End();
-}
-
-void SettingsWidget::UpdateTheme( void )
-{
-	switch( current_theme_ )
-	{
-		case 0: { ImGui::StyleColorsClassic(); } break;
-		case 1: { ImGui::StyleColorsLight();   } break;
-		case 2: { ImGui::StyleColorsDark();    } break;
-	}
 }

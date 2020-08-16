@@ -21,6 +21,7 @@
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/PrimaryMonitor.h"
+#include "Misc/Settings.h"
 #include "ThirdParty/GLEW.h"
 
 #include <examples/imgui_impl_glfw.h>
@@ -79,6 +80,9 @@ void MainWindow::Init( void )
 
 		ImGui_ImplGlfw_InitForOpenGL( window_, true );
 		ImGui_ImplOpenGL3_Init( "#version 130" );
+
+		// Load settings
+		Settings::Instance();
 	}
 }
 

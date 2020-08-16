@@ -16,21 +16,30 @@
  */
 
 #pragma once
-#include "Common/Macros.h"
+#include <Common/Macros.h>
 
 #include <filesystem>
 
-class SettingsWidget
+class Settings
 {
-	GENO_SINGLETON( SettingsWidget ) = default;
+	GENO_SINGLETON( Settings );
 
 public:
 
-	void Show( bool* p_open );
+	~Settings( void );
 
-private:
+public:
 
-	int  current_category_;
-	bool open_;
+	void Load       ( void );
+	void Save       ( void );
+	void UpdateTheme( void );
+
+public:
+
+	std::string theme_;
+
+#if defined( _WIN32 )
+	std::filesystem::path mingw_path_;
+#endif // _WIN32
 
 };
