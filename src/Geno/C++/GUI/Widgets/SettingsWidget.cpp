@@ -57,6 +57,7 @@ void SettingsWidget::Show( bool* p_open )
 
 		MainWindow::Instance().PushHorizontalLayout();
 
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImGui::GetStyleColorVec4( ImGuiCol_FrameBg ) );
 		if( ImGui::BeginChild( 1, ImVec2( list_width, 0.f ) ) )
 		{
 			for( int i = 0; i < NumCategories; ++i )
@@ -70,6 +71,7 @@ void SettingsWidget::Show( bool* p_open )
 			}
 		}
 		ImGui::EndChild();
+		ImGui::PopStyleColor();
 
 		if( ImGui::BeginChild( 2 ) )
 		{
