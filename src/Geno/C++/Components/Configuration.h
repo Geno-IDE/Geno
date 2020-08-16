@@ -16,16 +16,31 @@
  */
 
 #pragma once
+#include "Compilers/ICompiler.h"
+
 #include <filesystem>
+#include <memory>
+#include <string>
+#include <string_view>
+
+class ICompiler;
 
 class Configuration
 {
+	GENO_DISABLE_COPY( Configuration );
+	GENO_DEFAULT_MOVE( Configuration );
+
 public:
 
-	Configuration( void );
+	Configuration( void ) = default;
+
+public:
+
+	void CombineWith( const Configuration& other );
 
 public:
 
 	std::vector< std::filesystem::path > files_;
+	std::unique_ptr< ICompiler >         compiler_; // #TODO: Should be per-fileconfig
 
 };

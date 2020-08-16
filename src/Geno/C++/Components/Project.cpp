@@ -17,7 +17,7 @@
 
 #include "Project.h"
 
-#include "Compilers/Compiler.h"
+#include "Compilers/ICompiler.h"
 
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
@@ -30,11 +30,11 @@ Project::Project( const std::filesystem::path& location )
 {
 }
 
-void Project::Build( void )
+void Project::Build( ICompiler& compiler )
 {
 	for( const std::filesystem::path& cpp : files_ )
 	{
-		Compiler::Instance().Compile( cpp );
+		compiler.Compile( cpp );
 	}
 }
 

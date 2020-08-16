@@ -17,36 +17,77 @@
 
 #include "BuildMatrix.h"
 
-#include "Common/Intrinsics.h"
+#include <Common/Intrinsics.h>
 
-void BuildMatrix::AddColumn( std::string_view name )
+void BuildMatrix::NewColumn( std::string name )
 {
 	Column column;
-	column.name = name;
+	column.name = std::move( name );
 
 	columns_.emplace_back( std::move( column ) );
 }
 
-void BuildMatrix::AddConfiguration( std::string_view which_column, std::string_view configuration )
+void BuildMatrix::NewConfiguration( std::string_view which_column, std::string configuration )
 {
 	for( Column& column : columns_ )
 	{
 		if( column.name == which_column )
 		{
-			column.configurations.emplace_back( configuration );
+			column.configurations.push_back( { std::move( configuration ) } );
 			return;
 		}
 	}
 }
 
+Configuration BuildMatrix::CurrentConfiguration( void ) const
+{
+	Configuration result;
+
+	// Combine the values of all current configurations in each column
+	for( const Column& column : columns_ )
+	{
+		if( column.current_configuration.empty() )
+			continue;
+
+		// Find the current configuration
+		auto it = std::find_if( column.configurations.begin(), column.configurations.end(),
+			[ &column ]( const NamedConfiguration& cfg )
+			{
+				return cfg.name == column.current_configuration;
+			}
+		);
+
+		if( it == column.configurations.end() )
+			continue;
+
+		result.CombineWith( it->configuration );
+	}
+
+	return result;
+}
+
 BuildMatrix BuildMatrix::PlatformDefault( void )
 {
 	BuildMatrix matrix;
-	matrix.columns_ =
-	{
-		{ "Platform",      { ( std::string )Intrinsics::TargetMachine() } },
-		{ "Configuration", { "Debug", "Release" } },
-	};
+
+	Column platform_column;
+	platform_column.name = "Platform";
+	platform_column.configurations.push_back( { ( std::string )Intrinsics::TargetMachine() } );
+	matrix.columns_.emplace_back( std::move( platform_column ) );
+
+	Column optimization_column;
+	optimization_column.name = "Optimization";
+	optimization_column.configurations.push_back( { "Full" } );
+	optimization_column.configurations.push_back( { "Favor Size" } );
+	optimization_column.configurations.push_back( { "Favor Speed" } );
+	optimization_column.configurations.push_back( { "Off" } );
+	matrix.columns_.emplace_back( std::move( optimization_column ) );
+
+	Column symbols_column;
+	symbols_column.name = "Symbols";
+	symbols_column.configurations.push_back( { "On" } );
+	symbols_column.configurations.push_back( { "Off" } );
+	matrix.columns_.emplace_back( std::move( symbols_column ) );
 
 	return matrix;
 }

@@ -16,20 +16,30 @@
  */
 
 #pragma once
+#include "Components/Configuration.h"
+
 #include <map>
 #include <string>
 #include <vector>
 
 class BuildMatrix
 {
+	GENO_DISABLE_COPY( BuildMatrix );
+	GENO_DEFAULT_MOVE( BuildMatrix );
+
 public:
+
+	struct NamedConfiguration
+	{
+		std::string   name;
+		Configuration configuration;
+	};
 
 	struct Column
 	{
-		std::string                name;
-		std::vector< std::string > configurations;
-
-		int current_row = -1;
+		std::string                       name;
+		std::vector< NamedConfiguration > configurations;
+		std::string                       current_configuration;
 	};
 
 	using ColumnVector = std::vector< Column >;
@@ -40,8 +50,9 @@ public:
 
 public:
 
-	void AddColumn       ( std::string_view name );
-	void AddConfiguration( std::string_view which_column, std::string_view configuration );
+	void          NewColumn           ( std::string name );
+	void          NewConfiguration    ( std::string_view which_column, std::string configuration );
+	Configuration CurrentConfiguration( void ) const;
 
 public:
 

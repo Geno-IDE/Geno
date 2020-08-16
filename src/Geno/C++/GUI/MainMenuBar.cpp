@@ -17,7 +17,7 @@
 
 #include "MainMenuBar.h"
 
-#include "Compilers/Compiler.h"
+#include "Compilers/ICompiler.h"
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Widgets/OutputWidget.h"
 #include "GUI/Widgets/SettingsWidget.h"
@@ -36,11 +36,6 @@
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
-
-MainMenuBar::MainMenuBar( void )
-{
-	Compiler::Instance() <<= OnCompilerDone;
-}
 
 void MainMenuBar::Show( void )
 {
@@ -96,24 +91,44 @@ void MainMenuBar::Show( void )
 		{
 			for( BuildMatrix::Column& column : workspace->build_matrix_.columns_ )
 			{
-				size_t cfg_accumulated_length = AccumulateContainerSizes( column.configurations );
-				char*  items_string           = static_cast< char* >( calloc( cfg_accumulated_length + column.configurations.size() + 1, sizeof( char ) ) );
-				size_t off                    = 0;
+				size_t cfg_accumulated_length = 0;
 
-				for( const std::string& cfg : column.configurations )
+				for( auto& cfg : column.configurations )
+					cfg_accumulated_length += cfg.name.size();
+
+				if( cfg_accumulated_length == 0 )
+					continue;
+
+				char*  items_string = static_cast< char* >( calloc( cfg_accumulated_length + column.configurations.size() + 1, sizeof( char ) ) );
+				size_t off          = 0;
+				auto   current_cfg  = column.current_configuration.empty() ? column.configurations.end() : std::find_if( column.configurations.begin(), column.configurations.end(),
+					[ &column ]( const BuildMatrix::NamedConfiguration& cfg )
+					{
+						return cfg.name == column.current_configuration;
+					}
+				);
+				int    current_item = ( current_cfg == column.configurations.end() ) ? -1 : static_cast< int >( std::distance( column.configurations.begin(), current_cfg ) );
+
+				for( auto& cfg : column.configurations )
 				{
-					size_t cfg_true_length = cfg.size() + 1;
+					size_t cfg_true_length = cfg.name.size() + 1;
 
-					memcpy( items_string + off, cfg.c_str(), cfg_true_length );
+					memcpy( items_string + off, cfg.name.c_str(), cfg_true_length );
 					off += cfg_true_length;
 				}
 
 				ImGui::Spacing();
-
 				ImGui::SetNextItemWidth( 120.0f );
-				if( ImGui::Combo( ( "##" + column.name ).c_str(), &column.current_row, items_string ) )
+
+				if( ImGui::Combo( ( "##" + column.name ).c_str(), &current_item, items_string ) )
 				{
+					auto cfg = column.configurations.begin();
+					std::advance( cfg, current_item );
+
+					column.current_configuration = cfg->name;
 				}
+
+				free( items_string );
 			}
 		}
 
@@ -247,17 +262,4 @@ void MainMenuBar::ActionHelpDemo( void )
 void MainMenuBar::ActionHelpAbout( void )
 {
 	show_about_window_ ^= 1;
-}
-
-void MainMenuBar::OnCompilerDone( const CompilationDone& e )
-{
-	if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
-	{
-		std::filesystem::path relative_path = workspace->location_ / e.path;
-
-		if( e.exit_code == 0 )
-			std::cerr << ":" << relative_path.string() << "\n";
-		else
-			std::cerr << "!" << relative_path.string() << " (exit code:" << e.exit_code << ")\n";
-	}
 }

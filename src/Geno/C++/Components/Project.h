@@ -23,6 +23,8 @@
 #include <filesystem>
 #include <vector>
 
+class ICompiler;
+
 class Project
 {
 public:
@@ -35,7 +37,7 @@ public:
 
 public:
 
-	void Build      ( void );
+	void Build      ( ICompiler& compiler );
 	bool Serialize  ( void );
 	bool Deserialize( void );
 

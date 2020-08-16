@@ -17,6 +17,7 @@
 
 #include "Configuration.h"
 
-Configuration::Configuration( void )
+void Configuration::CombineWith( const Configuration& other )
 {
+	files_.insert( files_.end(), other.files_.begin(), other.files_.end() );
 }

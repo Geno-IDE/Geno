@@ -19,6 +19,7 @@
 
 #include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
+#include "Misc/Settings.h"
 
 #include <iostream>
 
@@ -46,6 +47,7 @@ void Application::NewWorkspace( const std::filesystem::path& where )
 
 void Application::LoadWorkspace( const std::filesystem::path& path )
 {
+	CloseWorkspace();
 	NewWorkspace( path );
 
 	current_workspace_->Deserialize();

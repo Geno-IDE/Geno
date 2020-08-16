@@ -22,10 +22,11 @@
 #include <vector>
 
 struct CompilationDone;
+struct WorkspaceOpened;
 
 class MainMenuBar
 {
-	GENO_SINGLETON( MainMenuBar );
+	GENO_SINGLETON( MainMenuBar ) = default;
 
 public:
 
@@ -48,10 +49,6 @@ private:
 	void ActionViewOutput        ( void );
 	void ActionHelpDemo          ( void );
 	void ActionHelpAbout         ( void );
-
-private:
-
-	static void OnCompilerDone( const CompilationDone& e );
 
 private:
 

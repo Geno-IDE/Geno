@@ -30,9 +30,14 @@ Workspace::Workspace( const std::filesystem::path& location )
 
 void Workspace::Build( void )
 {
-	for( Project& prj : projects_ )
+	Configuration cfg = build_matrix_.CurrentConfiguration();
+
+	if( cfg.compiler_ )
 	{
-		prj.Build();
+		for( Project& prj : projects_ )
+		{
+			prj.Build( *cfg.compiler_ );
+		}
 	}
 }
 
@@ -56,12 +61,13 @@ bool Workspace::Serialize( void )
 	// Matrix table
 	{
 		GCL::Object matrix( "Matrix", std::in_place_type< GCL::Object::TableType > );
-		for( BuildMatrix::Column& column : build_matrix_.columns_ )
+
+		for( const BuildMatrix::Column& column : build_matrix_.columns_ )
 		{
 			GCL::Object child( column.name, std::in_place_type< GCL::Object::ArrayType > );
 
-			for( const std::string& cfg : column.configurations )
-				child.AddArrayItem( cfg );
+			for( auto& cfg : column.configurations )
+				child.AddArrayItem( cfg.name );
 
 			matrix.AddChild( std::move( child ) );
 		}
@@ -73,6 +79,7 @@ bool Workspace::Serialize( void )
 	{
 		GCL::Object              projects( "Projects", std::in_place_type< GCL::Object::ArrayType > );
 		std::list< std::string > relative_project_path_strings; // GCL Arrays store its elements as std::string_view which means the string needs to live until we call WriteObject
+
 		for( Project& prj : projects_ )
 		{
 			std::filesystem::path relative_project_path        = prj.location_.lexically_relative( location_ ) / prj.name_;
@@ -130,13 +137,15 @@ void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 
 		for( const GCL::Object& column : object.Table() )
 		{
-			self->build_matrix_.AddColumn( column.Key() );
+			std::string_view key = column.Key();
+
+			self->build_matrix_.NewColumn( static_cast< std::string >( key ) );
 
 			for( std::string_view cfg : column.Array() )
 			{
-				self->build_matrix_.AddConfiguration( column.Key(), cfg );
+				self->build_matrix_.NewConfiguration( key, static_cast< std::string >( cfg ) );
 
-				std::cout << "Configuration: " << column.Key() << "|" << cfg << "\n";
+				std::cout << "Configuration: " << key << "|" << cfg << "\n";
 			}
 		}
 	}

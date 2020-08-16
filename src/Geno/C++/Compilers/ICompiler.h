@@ -33,32 +33,31 @@ struct CompilationDone
 	int exit_code;
 };
 
-class Compiler : public EventDispatcher< Compiler, CompilationDone >
+class ICompiler : public EventDispatcher< ICompiler, CompilationDone >
 {
-	GENO_SINGLETON( Compiler ) = default;
+public:
+
+	GENO_DISABLE_COPY( ICompiler );
+
+public:
+
+	         ICompiler( void ) = default;
+	virtual ~ICompiler( void ) = default;
 
 public:
 
 	void Compile( const std::filesystem::path& path );
-	void SetPath( path_view path );
+
+protected:
+
+	virtual std::wstring MakeCommandLineString( const std::filesystem::path& path ) = 0;
 
 private:
 
-	struct Args
-	{
-		std::filesystem::path input;
-		std::filesystem::path output;
-	};
+	void AsyncCB( std::filesystem::path path );
 
 private:
 
-	std::wstring MakeCommandLine( const Args& args );
-	void         AsyncCB        ( Args args );
-
-private:
-
-	std::mutex                         path_mutex_;
-	std::filesystem::path              path_;
-	std::vector< std::future< void > > build_futures_;
+	std::vector< std::future< void > > futures_;
 
 };

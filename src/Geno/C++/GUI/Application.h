@@ -16,10 +16,11 @@
  */
 
 #pragma once
-#include "Common/Macros.h"
 #include "Components/Workspace.h"
 
 #include <optional>
+
+#include <Common/Macros.h>
 
 class Application
 {

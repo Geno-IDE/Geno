@@ -15,7 +15,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Compiler.h"
+#include "ICompiler.h"
 
 #include "Common/Platform/Windows/Win32Error.h"
 #include "Common/Platform/Windows/Win32ProcessInfo.h"
@@ -31,7 +31,7 @@
 #include <Windows.h>
 #endif // _WIN32
 
-void Compiler::Compile( const std::filesystem::path& path )
+void ICompiler::Compile( const std::filesystem::path& path )
 {
 	if( !std::filesystem::exists( path ) )
 	{
@@ -41,48 +41,16 @@ void Compiler::Compile( const std::filesystem::path& path )
 
 //////////////////////////////////////////////////////////////////////////
 
-	Args args;
-	args.input  = path;
-	args.output = path;
-	args.output.replace_extension( "exe" );
+	std::future future = std::async( &ICompiler::AsyncCB, this, path );
 
-	std::future future = std::async( &Compiler::AsyncCB, this, std::move( args ) );
-
-	build_futures_.emplace_back( std::move( future ) );
+	futures_.emplace_back( std::move( future ) );
 }
 
-void Compiler::SetPath( path_view path )
-{
-	std::scoped_lock lock( path_mutex_ );
-	path_ = path;
-}
-
-std::wstring Compiler::MakeCommandLine( const Args& args )
-{
-	std::wstring string;
-	string.reserve( 128 );
-
-	// GCC. Must be added first.
-	{
-		std::scoped_lock lock( path_mutex_ );
-		string += ( path_ / L"bin" / L"g++" ) += L" ";
-	}
-
-	// Output file. Must be added last
-	string += L" -o \"" + args.output.wstring() + L"\"";
-
-	// Input file. Must be added last
-	string += L" \"" + args.input.wstring() +  L"\"";
-
-	return string;
-}
-
-void Compiler::AsyncCB( Args args )
+void ICompiler::AsyncCB( std::filesystem::path path )
 {
 #if defined( _WIN32 )
 
-	std::wstring     command_line = MakeCommandLine( args );
-	path_string      cd           = LocalAppData::Instance().Path();
+	std::wstring     command_line = MakeCommandLineString( path );
 	STARTUPINFO      startup_info = { };
 	int              fd_in        = _fileno( stdin );
 	int              fd_out       = _fileno( stdout );
@@ -112,7 +80,7 @@ void Compiler::AsyncCB( Args args )
 	if( result )
 	{
 		CompilationDone e;
-		e.path      = args.input;
+		e.path      = path;
 		e.exit_code = ( int )exit_code;
 
 		Publish( e );
