@@ -46,8 +46,16 @@ void Application::NewWorkspace( const std::filesystem::path& where )
 {
 	CloseWorkspace();
 
-	Workspace& workspace = current_workspace_.emplace( where.parent_path() );
+	Workspace& workspace = current_workspace_.emplace( where );
 	workspace.name_      = where.filename().replace_extension().string();
+}
+
+void Application::NewWorkspace( const std::filesystem::path& where, std::string_view name )
+{
+	CloseWorkspace();
+
+	Workspace& workspace = current_workspace_.emplace( where );
+	workspace.name_      = name;
 }
 
 void Application::LoadWorkspace( const std::filesystem::path& path )

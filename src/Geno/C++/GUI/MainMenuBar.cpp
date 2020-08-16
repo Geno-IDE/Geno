@@ -18,6 +18,7 @@
 #include "MainMenuBar.h"
 
 #include "Compilers/ICompiler.h"
+#include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Widgets/OutputWidget.h"
 #include "GUI/Widgets/SettingsWidget.h"
@@ -194,10 +195,10 @@ void MainMenuBar::Show( void )
 
 void MainMenuBar::ActionFileNewWorkspace( void )
 {
-	OpenFileModal::Instance().RequestDirectory( "New Workspace Location", this,
-		[]( const std::filesystem::path& path, void* /*user*/ )
+	NewItemModal::Instance().Request( "New Workspace Location", this,
+		[]( std::string_view name, std::filesystem::path location, void* /*user*/ )
 		{
-			Application::Instance().NewWorkspace( path );
+			Application::Instance().NewWorkspace( location, name );
 		}
 	);
 }

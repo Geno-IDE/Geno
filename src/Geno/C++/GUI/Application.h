@@ -33,6 +33,7 @@ public:
 
 	int     Run            ( void );
 	void    NewWorkspace   ( const std::filesystem::path& where );
+	void    NewWorkspace   ( const std::filesystem::path& where, std::string_view name );
 	void    LoadWorkspace  ( const std::filesystem::path& path );
 	void    CloseWorkspace ( void );
 	void    PushModal      ( IModal* modal );
