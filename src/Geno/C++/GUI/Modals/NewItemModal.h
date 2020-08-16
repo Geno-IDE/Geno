@@ -37,6 +37,7 @@ private:
 	std::string PopupID      ( void ) override { return "NewItem"; };
 	std::string Title        ( void ) override { return title_; };
 	void        UpdateDerived( void ) override;
+	void        OnClose      ( void ) override;
 
 private:
 

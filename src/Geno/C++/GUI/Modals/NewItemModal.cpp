@@ -79,3 +79,13 @@ void NewItemModal::UpdateDerived( void )
 		Close();
 	}
 }
+
+void NewItemModal::OnClose( void )
+{
+	title_.clear();
+	name_.clear();
+	location_.clear();
+
+	callback_ = nullptr;
+	user_     = nullptr;
+}
