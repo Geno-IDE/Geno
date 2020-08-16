@@ -19,6 +19,7 @@
 
 #include "Common/LocalAppData.h"
 #include "Compilers/ICompiler.h"
+#include "GUI/Modals/OpenFileModal.h"
 #include "GUI/MainWindow.h"
 #include "Misc/Settings.h"
 
@@ -27,6 +28,7 @@
 
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 enum Category
 {
@@ -80,16 +82,26 @@ void SettingsWidget::Show( bool* p_open )
 
 				#if defined( _WIN32 )
 
-					char mingw_path_buf[ FILENAME_MAX + 1 ] = { };
+					std::string mingw_path_buf = settings.mingw_path_.string();
 
-					for( size_t i = 0; i < settings.mingw_path_.native().size(); ++i )
-					{
-						mingw_path_buf[ i ] = static_cast< char >( settings.mingw_path_.native().at( i ) );
-					}
+					ImGui::TextUnformatted( "MinGW Path" );
 
-					if( ImGui::InputText( "MinGW Path", &mingw_path_buf[ 0 ], std::size( mingw_path_buf ) ) )
+					ImGui::SetNextItemWidth( -60.0f );
+					if( ImGui::InputText( "##MinGW Path", &mingw_path_buf ) )
 					{
 						settings.mingw_path_ = mingw_path_buf;
+					}
+
+					ImGui::SameLine();
+					ImGui::SetNextItemWidth( 50.0f );
+					if( ImGui::Button( "Browse" ) )
+					{
+						OpenFileModal::Instance().RequestDirectory( "Locate MinGW Directory", this,
+							[]( const std::filesystem::path& path, void* /*user*/ )
+							{
+								Settings::Instance().mingw_path_ = path;
+							}
+						);
 					}
 
 				#endif // _WIN32
@@ -102,7 +114,10 @@ void SettingsWidget::Show( bool* p_open )
 					auto             current_theme = std::find( theme_names.begin(), theme_names.end(), settings.theme_ );
 					int              current_item  = ( current_theme == theme_names.end() ) ? -1 : static_cast< int >( std::distance( theme_names.begin(), current_theme ) );
 
-					if( ImGui::Combo( "Theme", &current_item, theme_names.data(), static_cast< int >( theme_names.size() ) ) )
+					ImGui::TextUnformatted( "Theme" );
+
+					ImGui::SetNextItemWidth( -5.0f );
+					if( ImGui::Combo( "##Theme", &current_item, theme_names.data(), static_cast< int >( theme_names.size() ) ) )
 					{
 						settings.theme_ = theme_names[ current_item ];
 						settings.UpdateTheme();
