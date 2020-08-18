@@ -58,7 +58,6 @@ private:
 	bool show_about_window_ = false;
 	bool show_text_edit_    = true;
 	bool show_workspace_    = true;
-	bool show_settings_     = false;
 	bool show_output_       = false;
 
 };

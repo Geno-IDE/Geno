@@ -16,21 +16,28 @@
  */
 
 #pragma once
-#include "Common/Macros.h"
+#include "GUI/Modals/IModal.h"
 
 #include <filesystem>
 
-class SettingsWidget
+#include <Common/Macros.h>
+
+class SettingsModal : public IModal
 {
-	GENO_SINGLETON( SettingsWidget ) = default;
+	GENO_SINGLETON( SettingsModal ) = default;
 
 public:
 
-	void Show( bool* p_open );
+	void Show( void );
 
 private:
 
-	int  current_category_;
-	bool open_;
+	std::string PopupID      ( void ) override { return "Settings"; }
+	std::string Title        ( void ) override { return "Settings"; }
+	void        UpdateDerived( void ) override;
+
+private:
+
+	int current_category_;
 
 };

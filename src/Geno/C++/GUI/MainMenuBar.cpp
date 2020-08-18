@@ -20,8 +20,8 @@
 #include "Compilers/ICompiler.h"
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
+#include "GUI/Modals/SettingsModal.h"
 #include "GUI/Widgets/OutputWidget.h"
-#include "GUI/Widgets/SettingsWidget.h"
 #include "GUI/Widgets/TextEditWidget.h"
 #include "GUI/Widgets/WorkspaceWidget.h"
 #include "GUI/Application.h"
@@ -41,7 +41,6 @@
 void MainMenuBar::Show( void )
 {
 	// Initialize windows before user requests it be shown
-	SettingsWidget::Instance();
 	OutputWidget::Instance();
 	TextEditWidget::Instance();
 	WorkspaceWidget::Instance();
@@ -182,11 +181,6 @@ void MainMenuBar::Show( void )
 		WorkspaceWidget::Instance().Show( &show_workspace_ );
 	}
 
-	if( show_settings_ )
-	{
-		SettingsWidget::Instance().Show( &show_settings_ );
-	}
-
 	if( show_output_ )
 	{
 		OutputWidget::Instance().Show( &show_output_ );
@@ -247,7 +241,7 @@ void MainMenuBar::ActionViewWorkspace( void )
 
 void MainMenuBar::ActionViewSettings( void )
 {
-	show_settings_ ^= 1;
+	SettingsModal::Instance().Show();
 }
 
 void MainMenuBar::ActionViewOutput( void )
