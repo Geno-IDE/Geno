@@ -26,6 +26,7 @@
 #include "GUI/Widgets/WorkspaceWidget.h"
 #include "GUI/Application.h"
 #include "GUI/MainWindow.h"
+#include "Misc/Settings.h"
 
 #include <functional>
 #include <iostream>
@@ -241,7 +242,9 @@ void MainMenuBar::ActionViewWorkspace( void )
 
 void MainMenuBar::ActionViewSettings( void )
 {
-	SettingsModal::Instance().Show();
+	Settings& settings = Settings::Instance();
+
+	SettingsModal::Instance().Show( &settings.object_ );
 }
 
 void MainMenuBar::ActionViewOutput( void )

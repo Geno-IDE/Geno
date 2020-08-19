@@ -16,9 +16,10 @@
  */
 
 #pragma once
-#include <Common/Macros.h>
-
 #include <filesystem>
+
+#include <Common/Macros.h>
+#include <GCL/Object.h>
 
 class Settings
 {
@@ -36,10 +37,6 @@ public:
 
 public:
 
-	std::string theme_;
-
-#if defined( _WIN32 )
-	std::filesystem::path mingw_path_;
-#endif // _WIN32
+	GCL::Object object_;
 
 };

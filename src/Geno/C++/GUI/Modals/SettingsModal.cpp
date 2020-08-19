@@ -23,9 +23,10 @@
 #include "Misc/Settings.h"
 
 #include <array>
-#include <fstream>
+#include <iostream>
 
 #include <Common/LocalAppData.h>
+#include <GCL/Object.h>
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -51,91 +52,123 @@ constexpr const char* CategoryString( Category category )
 	}
 }
 
-void SettingsModal::Show( void )
+void SettingsModal::Show( GCL::Object* object )
 {
+	if( !object->IsTable() )
+	{
+		std::cerr << "SettingsModal error: Trying to edit non-table object\n";
+		return;
+	}
+
+	if( object->Empty() )
+	{
+		std::cerr << "SettingsModal error: Trying to edit empty table\n";
+		return;
+	}
+
 	if( Open() )
 	{
+		current_category_ = -1;
+		edited_object_    = object;
 	}
 }
 
 void SettingsModal::UpdateDerived( void )
 {
-	constexpr float list_width = 120.f;
-
-	MainWindow::Instance().PushHorizontalLayout();
-
-	ImGui::PushStyleColor( ImGuiCol_ChildBg, ImGui::GetStyleColorVec4( ImGuiCol_FrameBg ) );
-	if( ImGui::BeginChild( 1, ImVec2( list_width, 0.f ) ) )
+	if( ImGui::BeginChild( 1, ImVec2( 0, -30 ) ) )
 	{
-		for( int i = 0; i < NumCategories; ++i )
-		{
-			Category category = static_cast< Category >( i );
+		MainWindow::Instance().PushHorizontalLayout();
 
-			if( ImGui::Selectable( CategoryString( category ), current_category_ == category ) )
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImGui::GetStyleColorVec4( ImGuiCol_FrameBg ) );
+		if( ImGui::BeginChild( 1, ImVec2( 120, 0 ) ) )
+		{
+			for( int i = 0; i < NumCategories; ++i )
 			{
-				current_category_ = category;
+				Category category = static_cast< Category >( i );
+
+				if( ImGui::Selectable( CategoryString( category ), current_category_ == category ) )
+				{
+					current_category_ = category;
+				}
 			}
 		}
-	}
-	ImGui::EndChild();
-	ImGui::PopStyleColor();
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
 
-	if( ImGui::BeginChild( 2 ) )
-	{
-		Settings& settings = Settings::Instance();
-
-		switch( current_category_ )
+		if( ImGui::BeginChild( 2 ) )
 		{
-			case CategoryCompiler:
+			Settings& settings = Settings::Instance();
+
+			switch( current_category_ )
 			{
-
-			#if defined( _WIN32 )
-
-				std::string mingw_path_buf = settings.mingw_path_.string();
-
-				ImGui::TextUnformatted( "MinGW Path" );
-
-				ImGui::SetNextItemWidth( -60.0f );
-				if( ImGui::InputText( "##MinGW Path", &mingw_path_buf ) )
+				case CategoryCompiler:
 				{
-					settings.mingw_path_ = mingw_path_buf;
-				}
 
-				ImGui::SameLine();
-				ImGui::SetNextItemWidth( 50.0f );
-				if( ImGui::Button( "Browse" ) )
+				#if defined( _WIN32 )
+
+					GCL::Object& mingw_path     = settings.object_[ "MinGW-Path" ];
+					std::string  mingw_path_buf = mingw_path.IsString() ? mingw_path.String() : std::string();
+
+					ImGui::TextUnformatted( "MinGW Path" );
+
+					ImGui::SetNextItemWidth( -60.0f );
+					if( ImGui::InputText( "##MinGW Path", &mingw_path_buf ) )
+					{
+						mingw_path.SetString( mingw_path_buf );
+					}
+
+					ImGui::SameLine();
+					ImGui::SetNextItemWidth( 50.0f );
+					if( ImGui::Button( "Browse" ) )
+					{
+						OpenFileModal::Instance().RequestDirectory( "Locate MinGW Directory", this,
+							[]( const std::filesystem::path& path, void* /*user*/ )
+							{
+								Settings& settings = Settings::Instance();
+
+								settings.object_[ "MinGW-Path" ] = path.string();
+							}
+						);
+					}
+
+				#endif // _WIN32
+
+				} break;
+
+				case CategoryTheme:
 				{
-					OpenFileModal::Instance().RequestDirectory( "Locate MinGW Directory", this,
-						[]( const std::filesystem::path& path, void* /*user*/ )
-						{
-							Settings::Instance().mingw_path_ = path;
-						}
-					);
-				}
+					const std::array theme_names   = { "Classic", "Light", "Dark" };
+					GCL::Object&     theme         = settings.object_[ "Theme" ];
+					auto             current_theme = theme.IsString() ? std::find( theme_names.begin(), theme_names.end(), theme.String() ) : theme_names.end();
+					int              current_item  = ( current_theme == theme_names.end() ) ? -1 : static_cast< int >( std::distance( theme_names.begin(), current_theme ) );
 
-			#endif // _WIN32
+					ImGui::TextUnformatted( "Theme" );
 
-			} break;
+					ImGui::SetNextItemWidth( -5.0f );
+					if( ImGui::Combo( "##Theme", &current_item, theme_names.data(), static_cast< int >( theme_names.size() ) ) )
+					{
+						theme = theme_names[ current_item ];
+						settings.UpdateTheme();
+					}
 
-			case CategoryTheme:
-			{
-				const std::array theme_names   = { "Classic", "Light", "Dark" };
-				auto             current_theme = std::find( theme_names.begin(), theme_names.end(), settings.theme_ );
-				int              current_item  = ( current_theme == theme_names.end() ) ? -1 : static_cast< int >( std::distance( theme_names.begin(), current_theme ) );
-
-				ImGui::TextUnformatted( "Theme" );
-
-				ImGui::SetNextItemWidth( -5.0f );
-				if( ImGui::Combo( "##Theme", &current_item, theme_names.data(), static_cast< int >( theme_names.size() ) ) )
-				{
-					settings.theme_ = theme_names[ current_item ];
-					settings.UpdateTheme();
-				}
-
-			} break;
+				} break;
+			}
 		}
+		ImGui::EndChild();
+
+		MainWindow::Instance().PopHorizontalLayout();
 	}
 	ImGui::EndChild();
 
-	MainWindow::Instance().PopHorizontalLayout();
+	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + 4 );
+	if( ImGui::Button( "Close", ImVec2( 80, 0 ) ) )
+	{
+		Close();
+	}
+}
+
+void SettingsModal::OnClose( void )
+{
+	current_category_ = 0;
+	edited_object_    = nullptr;
 }

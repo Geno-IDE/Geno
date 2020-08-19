@@ -41,15 +41,14 @@ void Settings::Load( void )
 	if( !deserializer.IsOpen() )
 		return;
 
+	object_ = GCL::Object();
+
 	deserializer.Objects( this,
 		[]( GCL::Object object, void* user )
 		{
 			Settings* self = static_cast< Settings* >( user );
 
-			/**/ if( object.Key() == "Theme" )      self->theme_      = object.String();
-		#if defined( _WIN32 )
-			else if( object.Key() == "MinGW-Path" ) self->mingw_path_ = object.String();
-		#endif // _WIN32
+			self->object_.AddChild( std::move( object ) );
 		}
 	);
 
@@ -62,29 +61,15 @@ void Settings::Save( void )
 	if( !serializer.IsOpen() )
 		return;
 
-	if( !theme_.empty() )
-	{
-		GCL::Object obj( "Theme" );
-		obj.SetString( theme_ );
-		serializer.WriteObject( obj );
-	}
-
-#if defined( _WIN32 )
-
-	if( !mingw_path_.empty() )
-	{
-		std::string mingw_path_string = mingw_path_.lexically_normal().string();
-		GCL::Object obj( "MinGW-Path" );
-		obj.SetString( mingw_path_string );
-		serializer.WriteObject( obj );
-	}
-#endif // _WIN32
-
+	for( auto& child : object_.Table() )
+		serializer.WriteObject( child );
 }
 
 void Settings::UpdateTheme( void )
 {
-	/**/ if( theme_ == "Classic" ) ImGui::StyleColorsClassic();
-	else if( theme_ == "Light" )   ImGui::StyleColorsLight();
-	else if( theme_ == "Dark" )    ImGui::StyleColorsDark();
+	GCL::Object& theme = object_[ "Theme" ];
+
+	/**/ if( theme == "Classic" ) ImGui::StyleColorsClassic();
+	else if( theme == "Light" )   ImGui::StyleColorsLight();
+	else if( theme == "Dark" )    ImGui::StyleColorsDark();
 }

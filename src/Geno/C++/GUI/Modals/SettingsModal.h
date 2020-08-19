@@ -22,22 +22,29 @@
 
 #include <Common/Macros.h>
 
+namespace GCL
+{
+	class Object;
+}
+
 class SettingsModal : public IModal
 {
 	GENO_SINGLETON( SettingsModal ) = default;
 
 public:
 
-	void Show( void );
+	void Show( GCL::Object* object );
 
 private:
 
 	std::string PopupID      ( void ) override { return "Settings"; }
 	std::string Title        ( void ) override { return "Settings"; }
 	void        UpdateDerived( void ) override;
+	void        OnClose      ( void ) override;
 
 private:
 
-	int current_category_;
+	int          current_category_ = -1;
+	GCL::Object* edited_object_    = nullptr;
 
 };
