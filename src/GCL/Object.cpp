@@ -18,6 +18,7 @@
 #include "GCL/Object.h"
 
 #include <Common/Macros.h>
+#include <Common/TypeTraits.h>
 
 namespace GCL
 {
@@ -33,62 +34,83 @@ namespace GCL
 
 	Object& Object::operator=( Object&& other )
 	{
-		key_ = other.key_;
+		key_ = std::move( other.key_ );
 		value_.swap( other.value_ );
-
-		other.key_ = std::string_view();
 
 		return *this;
 	}
 
 	void Object::SetString( std::string_view string )
 	{
-		StringType& underlying_string = value_.index() == 0 ? value_.emplace< StringType >() : std::get< StringType >( value_ );
-
-		underlying_string = string;
+		if( IsString() ) std::get< StringType >( value_ ).assign( string );
+		else             value_.emplace< StringType >( string );
 	}
 
 	void Object::AddArrayItem( std::string_view item )
 	{
-		ArrayType& underlying_array = value_.index() == 0 ? value_.emplace< ArrayType >() : std::get< ArrayType >( value_ );
+		ArrayType& underlying_array = IsArray() ? std::get< ArrayType >( value_ ) : value_.emplace< ArrayType >();
 
-		underlying_array.push_back( item );
+		underlying_array.emplace_back( item );
 	}
 
 	void Object::AddChild( Object child )
 	{
-		TableType& underlying_table_vector = value_.index() == 0 ? value_.emplace< TableType >() : std::get< TableType >( value_ );
+		TableType& underlying_table_vector = IsTable() ? std::get< TableType >( value_ ) : value_.emplace< TableType >();
 
 		underlying_table_vector.emplace_back( std::move( child ) );
 	}
 
-	Object::StringType Object::String( void ) const
+	const Object::StringType& Object::String( void ) const
 	{
-		if( IsNull() )
-			return std::string_view();
-
 		return std::get< StringType >( value_ );
 	}
 
 	const Object::ArrayType& Object::Array( void ) const
 	{
-		if( IsNull() )
-		{
-			thread_local Object::ArrayType empty_dummy;
-			return empty_dummy;
-		}
-
 		return std::get< ArrayType >( value_ );
 	}
 
 	const Object::TableType& Object::Table( void ) const
 	{
-		if( IsNull() )
+		return std::get< TableType >( value_ );
+	}
+
+	bool Object::Empty( void ) const
+	{
+		switch( value_.index() )
 		{
-			thread_local Object::TableType empty_dummy;
-			return empty_dummy;
+			case( unique_index_v< StringType, Variant > ): return std::get< StringType >( value_ ).empty();
+			case( unique_index_v< ArrayType,  Variant > ): return std::get< ArrayType  >( value_ ).empty();
+			case( unique_index_v< TableType,  Variant > ): return std::get< TableType  >( value_ ).empty();
+			default:                                       return true;
+		}
+	}
+
+	Object& Object::operator[]( std::string_view key )
+	{
+		TableType& table = std::get< TableType >( value_ );
+
+		for( Object& value : table )
+		{
+			if( value.key_ == key )
+				return value;
 		}
 
-		return std::get< TableType >( value_ );
+		return table.emplace_back( key );
+	}
+
+	Object& Object::operator=( std::string_view string )
+	{
+		SetString( string );
+
+		return *this;
+	}
+
+	bool Object::operator==( std::string_view string ) const
+	{
+		if( IsString() )
+			return std::get< StringType >( value_ ).compare( string ) == 0;
+
+		return false;
 	}
 }

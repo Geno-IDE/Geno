@@ -25,19 +25,18 @@ namespace GCL
 {
 	class Object
 	{
-	public:
-
 		GENO_DISABLE_COPY( Object );
 
 	public:
 
-		using StringType = std::string_view;
-		using ArrayType  = std::vector< std::string_view >;
+		using StringType = std::string;
+		using ArrayType  = std::vector< std::string >;
 		using TableType  = std::vector< Object >;
 		using Variant    = std::variant< std::monostate, StringType, ArrayType, TableType >;
 
 	public:
 	
+		         Object( void ) = default;
 		explicit Object( std::string_view key );
 		         Object( Object&& other );
 
@@ -66,14 +65,24 @@ namespace GCL
 
 	public:
 
-		StringType       String( void ) const;
-		const ArrayType& Array ( void ) const;
-		const TableType& Table ( void ) const;
+		const StringType& String( void ) const;
+		const ArrayType&  Array ( void ) const;
+		const TableType&  Table ( void ) const;
+		bool              Empty ( void ) const;
+
+	public:
+
+		Object& operator[]( std::string_view key );
+		Object& operator= ( std::string_view string );
+
+	public:
+
+		bool operator==( std::string_view string ) const;
 
 	private:
 
-		std::string_view key_;
-		Variant          value_;
+		std::string key_;
+		Variant     value_;
 	
 	};
 }
