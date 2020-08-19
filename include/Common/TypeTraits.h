@@ -17,6 +17,7 @@
 
 #pragma once
 #include <type_traits>
+#include <variant>
 
 // Function argument type deduction by courtesy of https://stackoverflow.com/a/35348334
 
@@ -34,3 +35,22 @@ constexpr decltype( _FirstArgumentHelper( &F::operator() ) ) _FirstArgumentHelpe
 
 template< typename T >
 using FirstArgumentType = decltype( _FirstArgumentHelper( std::declval< T >() ) );
+
+// Get type index within variant by courtesy of https://stackoverflow.com/a/52303687
+
+template< typename >
+struct Tag { };
+
+template< typename T, typename... Ts >
+constexpr size_t variant_index_v = std::variant< Tag< Ts >... >( Tag< T >{ } ).index();
+
+template< typename T, typename Variant >
+struct UniqueIndex;
+
+template< typename T, typename... Ts >
+struct UniqueIndex< T, std::variant< Ts... > > : std::integral_constant< size_t, variant_index_v< T, Ts... > >
+{
+};
+
+template< typename T, typename... Ts >
+constexpr auto unique_index_v = UniqueIndex< T, Ts... >::value;
