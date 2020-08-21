@@ -21,6 +21,7 @@
 #include "GUI/Widgets/TextEditWidget.h"
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
+#include "GUI/Modals/ProjectSettingsModal.h"
 #include "GUI/Application.h"
 
 #include <fstream>
@@ -141,6 +142,11 @@ void WorkspaceWidget::Show( bool* p_open )
 							}
 						}
 					);
+				}
+				ImGui::Separator();
+				if( ImGui::MenuItem( "Settings" ) )
+				{
+					ProjectSettingsModal::Instance().Show( selected_project_ );
 				}
 
 				ImGui::EndPopup();
