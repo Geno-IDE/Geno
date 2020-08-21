@@ -40,14 +40,12 @@ enum Category
 	NumCategories
 };
 
-constexpr const char* CategoryString( Category category )
+static constexpr const char* CategoryString( Category category )
 {
 	switch( category )
 	{
 		case CategoryCompiler: return "Compiler";
 		case CategoryTheme:    return "Theme";
-
-		case NumCategories:
 		default:               return nullptr;
 	}
 }
