@@ -117,7 +117,8 @@ namespace GCL
 
 			while( !unparsed->empty() && ParseLine( unparsed->substr( 0, unparsed->find( '\n' ) ), indent_level + 1, unparsed, add_child_callback, &object ) );
 
-			callback( std::move( object ), user );
+			if( !object.IsNull() )
+				callback( std::move( object ), user );
 		}
 
 		return true;
