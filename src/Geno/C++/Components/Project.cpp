@@ -63,6 +63,13 @@ bool Project::Serialize( void )
 		serializer.WriteObject( name );
 	}
 
+	// Kind
+	{
+		GCL::Object kind( "Kind" );
+		kind.SetString( ProjectKindToString( kind_ ) );
+		serializer.WriteObject( kind );
+	}
+
 	// Files
 	{
 		GCL::Object              files( "Files", std::in_place_type< GCL::Object::ArrayType > );
@@ -113,6 +120,10 @@ void Project::GCLObjectCallback( GCL::Object object, void* user )
 		self->name_ = object.String();
 
 		std::cout << "Project: " << self->name_ << "\n";
+	}
+	else if( object.Key() == "Kind" )
+	{
+		self->kind_ = ProjectKindFromString( object.String() );
 	}
 	else if( object.Key() == "Files" )
 	{

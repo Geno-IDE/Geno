@@ -16,44 +16,31 @@
  */
 
 #pragma once
-#include "Components/Enums/ProjectKind.h"
-#include "Components/Configuration.h"
+#include <string_view>
 
-#include <GCL/Object.h>
-
-#include <filesystem>
-#include <vector>
-
-class ICompiler;
-
-class Project
+enum class ProjectKind
 {
-public:
-
-	static constexpr std::string_view ext = ".gprj";
-
-public:
-
-	explicit Project( std::filesystem::path location );
-
-public:
-
-	void Build      ( ICompiler& compiler );
-	bool Serialize  ( void );
-	bool Deserialize( void );
-
-public:
-
-	ProjectKind                          kind_ = ProjectKind::Unknown;
-
-	std::filesystem::path                location_;
-	std::string                          name_;
-	std::vector< std::filesystem::path > files_;
-	std::vector< std::filesystem::path > includes_;
-	std::vector< Configuration >         configrations_;
-
-private:
-
-	static void GCLObjectCallback( GCL::Object object, void* user );
-
+	Unknown,
+	Application,
+	StaticLibrary,
+	DynamicLibrary,
 };
+
+inline constexpr std::string_view ProjectKindToString( ProjectKind kind )
+{
+	switch( kind )
+	{
+		case ProjectKind::Application:    return "Application";
+		case ProjectKind::StaticLibrary:  return "StaticLibrary";
+		case ProjectKind::DynamicLibrary: return "DynamicLibrary";
+		default:                          return std::string_view();
+	}
+}
+
+inline constexpr ProjectKind ProjectKindFromString( std::string_view kind )
+{
+	/**/ if( kind == "Application" )    return ProjectKind::Application;
+	else if( kind == "StaticLibrary" )  return ProjectKind::StaticLibrary;
+	else if( kind == "DynamicLibrary" ) return ProjectKind::DynamicLibrary;
+	else                                return ProjectKind::Unknown;
+}
