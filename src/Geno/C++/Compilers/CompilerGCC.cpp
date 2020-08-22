@@ -17,11 +17,27 @@
 
 #include "CompilerGCC.h"
 
+#include "Misc/Settings.h"
+
+static std::filesystem::path FindGCCLocation( void )
+{
+#if defined( _WIN32 )
+
+	Settings& settings = Settings::Instance();
+
+	if( GCL::Object& mingw_path = settings.object_[ "MinGW-Path" ]; mingw_path.IsString() )
+		return mingw_path.String();
+
+#endif
+
+	return std::filesystem::path();
+}
+
 std::wstring CompilerGCC::MakeCommandLineString( const std::filesystem::path& path, const Options& options )
 {
 	std::wstring cmd;
 	cmd.reserve( 1024 );
-	cmd += L"g++";
+	cmd += ( FindGCCLocation() / L"bin/g++" );
 
 	// Language
 	switch( options.language )
