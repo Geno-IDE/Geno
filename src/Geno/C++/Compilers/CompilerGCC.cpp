@@ -56,7 +56,7 @@ std::wstring CompilerGCC::MakeCommandLineString( const std::filesystem::path& pa
 	{
 		cmd += L" -Wa";
 
-		if( options.assembler_flags & Options::AssemblerFlagsReduceMemoryOverheads ) { cmd += L",--reduce-memory-overheads"; }
+		if( options.assembler_flags & Options::AssemblerFlagReduceMemoryOverheads ) { cmd += L",--reduce-memory-overheads"; }
 	}
 
 	// Preprocessor options
@@ -64,7 +64,7 @@ std::wstring CompilerGCC::MakeCommandLineString( const std::filesystem::path& pa
 	{
 		cmd += L" -Wp";
 
-		if( options.preprocessor_flags & Options::PreprocessorFlagsUndefineSystemMacros ) { cmd += L",-undef"; }
+		if( options.preprocessor_flags & Options::PreprocessorFlagUndefineSystemMacros ) { cmd += L",-undef"; }
 	}
 
 	// Linker options
@@ -72,7 +72,7 @@ std::wstring CompilerGCC::MakeCommandLineString( const std::filesystem::path& pa
 	{
 		cmd += L" -Wl";
 
-		if( options.linker_flags & Options::LinkerFlagsNoDefaultLibs ) { cmd += L",-nodefaultlibs"; }
+		if( options.linker_flags & Options::LinkerFlagNoDefaultLibs ) { cmd += L",-nodefaultlibs"; }
 	}
 
 	// Set output file

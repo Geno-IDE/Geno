@@ -61,17 +61,17 @@ public:
 
 		enum AssemblerFlags
 		{
-			AssemblerFlagsReduceMemoryOverheads = 0x01,
+			AssemblerFlagReduceMemoryOverheads = 0x01,
 		};
 
 		enum PreprocessorFlags
 		{
-			PreprocessorFlagsUndefineSystemMacros = 0x01,
+			PreprocessorFlagUndefineSystemMacros = 0x01,
 		};
 
 		enum LinkerFlags
 		{
-			LinkerFlagsNoDefaultLibs = 0x01,
+			LinkerFlagNoDefaultLibs = 0x01,
 		};
 
 		path     output_file_path     = "output";
