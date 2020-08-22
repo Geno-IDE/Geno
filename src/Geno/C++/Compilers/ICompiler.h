@@ -16,15 +16,17 @@
  */
 
 #pragma once
-#include "Common/Aliases.h"
-#include "Common/EventDispatcher.h"
-#include "Common/Macros.h"
+#include "Components/Enums/ProjectKind.h"
 
 #include <atomic>
 #include <filesystem>
 #include <future>
 #include <string_view>
 #include <string>
+
+#include <Common/Aliases.h>
+#include <Common/EventDispatcher.h>
+#include <Common/Macros.h>
 
 struct CompilationDone
 {
@@ -74,16 +76,17 @@ public:
 			LinkerFlagNoDefaultLibs = 0x01,
 		};
 
-		path     output_file_path     = "output";
+		path        output_file_path   = "output";
 
-		Language language             = Language::Unspecified;
-		Action   action               = Action::All;
+		Language    language           = Language::Unspecified;
+		Action      action             = Action::All;
+		ProjectKind kind               = ProjectKind::Unknown;
 
-		uint32_t assembler_flags      = 0;
-		uint32_t preprocessor_flags   = 0;
-		uint32_t linker_flags         = 0;
+		uint32_t    assembler_flags    = 0;
+		uint32_t    preprocessor_flags = 0;
+		uint32_t    linker_flags       = 0;
 
-		bool     verbose              = false;
+		bool        verbose            = false;
 
 	};
 

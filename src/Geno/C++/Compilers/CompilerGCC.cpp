@@ -51,6 +51,10 @@ std::wstring CompilerGCC::MakeCommandLineString( const std::filesystem::path& pa
 		default:                                                     break;
 	}
 
+	// Create a shared library
+	if( options.kind == ProjectKind::DynamicLibrary )
+		cmd += L" -shared";
+
 	// Assembler options
 	if( options.assembler_flags != 0 )
 	{
@@ -77,9 +81,6 @@ std::wstring CompilerGCC::MakeCommandLineString( const std::filesystem::path& pa
 
 	// Set output file
 	cmd += L" -o " + options.output_file_path.lexically_normal().replace_extension( ".o" ).wstring();
-
-	// Create a shared library
-	cmd += L" -shared";
 
 	// Finally, the input source file
 	cmd += L" " + path.lexically_normal().wstring();
