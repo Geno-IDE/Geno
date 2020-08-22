@@ -31,7 +31,7 @@
 #include <Windows.h>
 #endif // _WIN32
 
-void ICompiler::Compile( const std::filesystem::path& path )
+void ICompiler::Compile( const std::filesystem::path& path, const ICompiler::Options& options )
 {
 	if( !std::filesystem::exists( path ) )
 	{
@@ -41,16 +41,16 @@ void ICompiler::Compile( const std::filesystem::path& path )
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::future future = std::async( &ICompiler::AsyncCB, this, path );
+	std::future future = std::async( &ICompiler::AsyncCB, this, path, options );
 
 	futures_.emplace_back( std::move( future ) );
 }
 
-void ICompiler::AsyncCB( std::filesystem::path path )
+void ICompiler::AsyncCB( std::filesystem::path path, ICompiler::Options options )
 {
 #if defined( _WIN32 )
 
-	std::wstring     command_line = MakeCommandLineString( path );
+	std::wstring     command_line = MakeCommandLineString( path, options );
 	STARTUPINFO      startup_info = { };
 	int              fd_in        = _fileno( stdin );
 	int              fd_out       = _fileno( stdout );

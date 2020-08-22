@@ -41,20 +41,68 @@ public:
 
 public:
 
+	struct Options
+	{
+		enum class Language
+		{
+			Unspecified,
+			C,
+			CPlusPlus,
+			Assembler,
+		};
+
+		enum class Action
+		{
+			All,
+			OnlyPreprocess,
+			OnlyCompile,
+			CompileAndAssemble,
+		};
+
+		enum AssemblerFlags
+		{
+			AssemblerFlagsReduceMemoryOverheads = 0x01,
+		};
+
+		enum PreprocessorFlags
+		{
+			PreprocessorFlagsUndefineSystemMacros = 0x01,
+		};
+
+		enum LinkerFlags
+		{
+			LinkerFlagsNoDefaultLibs = 0x01,
+		};
+
+		path     output_file_path     = "output";
+
+		Language language             = Language::Unspecified;
+		Action   action               = Action::All;
+
+		uint32_t assembler_flags      = 0;
+		uint32_t preprocessor_flags   = 0;
+		uint32_t linker_flags         = 0;
+
+		bool     verbose              = false;
+
+	};
+
+public:
+
 	         ICompiler( void ) = default;
 	virtual ~ICompiler( void ) = default;
 
 public:
 
-	void Compile( const std::filesystem::path& path );
+	void Compile( const std::filesystem::path& path, const ICompiler::Options& options );
 
 protected:
 
-	virtual std::wstring MakeCommandLineString( const std::filesystem::path& path ) = 0;
+	virtual std::wstring MakeCommandLineString( const std::filesystem::path& path, const Options& options ) = 0;
 
 private:
 
-	void AsyncCB( std::filesystem::path path );
+	void AsyncCB( std::filesystem::path path, ICompiler::Options options );
 
 private:
 

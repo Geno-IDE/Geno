@@ -30,11 +30,11 @@ Project::Project( std::filesystem::path location )
 {
 }
 
-void Project::Build( ICompiler& compiler )
+void Project::Build( ICompiler& compiler, const ICompiler::Options& options )
 {
 	for( const std::filesystem::path& cpp : files_ )
 	{
-		compiler.Compile( cpp );
+		compiler.Compile( cpp, options );
 	}
 }
 

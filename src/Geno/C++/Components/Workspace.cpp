@@ -30,13 +30,19 @@ Workspace::Workspace( const std::filesystem::path& location )
 
 void Workspace::Build( void )
 {
-	Configuration cfg = build_matrix_.CurrentConfiguration();
+	Configuration      cfg = build_matrix_.CurrentConfiguration();
+	ICompiler::Options options;
+
+	// Test options
+	options.output_file_path = location_ / "output";
+	options.language         = ICompiler::Options::Language::CPlusPlus;
+	options.verbose          = true;
 
 	if( cfg.compiler_ )
 	{
 		for( Project& prj : projects_ )
 		{
-			prj.Build( *cfg.compiler_ );
+			prj.Build( *cfg.compiler_, options );
 		}
 	}
 }
