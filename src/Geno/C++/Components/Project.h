@@ -16,6 +16,7 @@
  */
 
 #pragma once
+#include "Compilers/ICompiler.h"
 #include "Components/Enums/ProjectKind.h"
 #include "Components/Configuration.h"
 
@@ -23,8 +24,6 @@
 
 #include <filesystem>
 #include <vector>
-
-class ICompiler;
 
 class Project
 {
