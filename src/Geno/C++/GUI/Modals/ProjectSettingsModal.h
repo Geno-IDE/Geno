@@ -40,7 +40,7 @@ public:
 private:
 
 	std::string PopupID      ( void ) override { return "ProjectSettings"; }
-	std::string Title        ( void ) override { return "ProjectSettings"; }
+	std::string Title        ( void ) override { return "Project Settings"; }
 	void        UpdateDerived( void ) override;
 	void        OnClose      ( void ) override;
 
