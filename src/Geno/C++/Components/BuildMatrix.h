@@ -29,11 +29,7 @@ class BuildMatrix
 
 public:
 
-	struct NamedConfiguration
-	{
-		std::string   name;
-		Configuration configuration;
-	};
+	struct NamedConfiguration;
 
 	struct Column
 	{
@@ -43,6 +39,13 @@ public:
 	};
 
 	using ColumnVector = std::vector< Column >;
+
+	struct NamedConfiguration
+	{
+		std::string   name;
+		Configuration configuration;
+		ColumnVector  exclusive_columns;
+	};
 
 public:
 
