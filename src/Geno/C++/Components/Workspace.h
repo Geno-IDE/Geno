@@ -22,8 +22,11 @@
 #include <GCL/Deserializer.h>
 
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <vector>
+
+class ICompiler;
 
 class Workspace
 {
@@ -47,11 +50,12 @@ public:
 
 public:
 
-	std::filesystem::path  location_;
-	std::vector< Project > projects_;
-	std::string            name_;
+	std::filesystem::path        location_;
+	std::vector< Project >       projects_;
+	std::string                  name_;
+	std::unique_ptr< ICompiler > compiler_;
 
-	BuildMatrix            build_matrix_;
+	BuildMatrix                  build_matrix_;
 
 private:
 

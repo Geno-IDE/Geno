@@ -16,14 +16,12 @@
  */
 
 #pragma once
-#include "Compilers/ICompiler.h"
+#include <Common/Macros.h>
 
 #include <filesystem>
-#include <memory>
 #include <string>
 #include <string_view>
-
-class ICompiler;
+#include <vector>
 
 class Configuration
 {
@@ -41,6 +39,5 @@ public:
 public:
 
 	std::vector< std::filesystem::path > files_;
-	std::unique_ptr< ICompiler >         compiler_; // #TODO: Should be per-fileconfig
 
 };

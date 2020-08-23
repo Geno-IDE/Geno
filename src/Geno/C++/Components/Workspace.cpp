@@ -17,6 +17,8 @@
 
 #include "Workspace.h"
 
+#include "Compilers/CompilerGCC.h"
+
 #include <iostream>
 
 #include <GCL/Deserializer.h>
@@ -26,6 +28,7 @@ Workspace::Workspace( const std::filesystem::path& location )
 	: location_( location )
 	, name_    ( "MyWorkspace" )
 {
+	compiler_ = std::make_unique< CompilerGCC >();
 }
 
 void Workspace::Build( void )
@@ -38,11 +41,11 @@ void Workspace::Build( void )
 	options.language         = ICompiler::Options::Language::CPlusPlus;
 	options.verbose          = true;
 
-	if( cfg.compiler_ )
+	if( compiler_ )
 	{
 		for( Project& prj : projects_ )
 		{
-			prj.Build( *cfg.compiler_, options );
+			prj.Build( *compiler_, options );
 		}
 	}
 }
