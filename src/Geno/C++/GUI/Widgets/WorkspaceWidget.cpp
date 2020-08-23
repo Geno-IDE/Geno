@@ -22,6 +22,7 @@
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Modals/ProjectSettingsModal.h"
+#include "GUI/Modals/WorkspaceSettingsModal.h"
 #include "GUI/Application.h"
 
 #include <fstream>
@@ -113,6 +114,11 @@ void WorkspaceWidget::Show( bool* p_open )
 							}
 						}
 					);
+				}
+				ImGui::Separator();
+				if( ImGui::MenuItem( "Settings" ) )
+				{
+					WorkspaceSettingsModal::Instance().Show();
 				}
 
 				ImGui::EndPopup();
