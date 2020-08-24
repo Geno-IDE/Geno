@@ -22,13 +22,32 @@
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
 
-void NewItemModal::Request( std::string_view title, void* user, Callback callback )
+enum RequestType
+{
+	None = 0,
+	RequestTypePath,
+	RequestTypeString,
+};
+
+void NewItemModal::RequestPath( std::string_view title, void* user, PathCallback callback )
 {
 	if( Open() )
 	{
-		title_    = title;
-		callback_ = callback;
-		user_     = user;
+		title_        = title;
+		callback_     = callback;
+		user_         = user;
+		request_type_ = RequestTypePath;
+	}
+}
+
+void NewItemModal::RequestString( std::string_view title, void* user, StringCallback callback )
+{
+	if( Open() )
+	{
+		title_        = title;
+		callback_     = callback;
+		user_         = user;
+		request_type_ = RequestTypeString;
 	}
 }
 
@@ -38,25 +57,10 @@ void NewItemModal::UpdateDerived( void )
 	{
 		ImGui::TextUnformatted( "Name" );
 
-		ImGui::SetNextItemWidth( -5.0f );
-		ImGui::InputText( "##Name", &name_ );
-
-		ImGui::TextUnformatted( "Location" );
-
-		ImGui::SetNextItemWidth( -60.0f );
-		ImGui::InputText( "##Location", &location_ );
-
-		ImGui::SameLine();
-		if( ImGui::Button( "Browse" ) )
+		switch( request_type_ )
 		{
-			OpenFileModal::Instance().RequestDirectory( title_ + " Location", this,
-				[]( const std::filesystem::path& path, void* user )
-				{
-					NewItemModal* self = static_cast< NewItemModal* >( user );
-
-					self->location_ = path.lexically_normal().string();
-				}
-			);
+			case RequestTypePath:   { UpdateItem();   } break;
+			case RequestTypeString: { UpdateString(); } break;
 		}
 	}
 	ImGui::EndChild();
@@ -65,9 +69,12 @@ void NewItemModal::UpdateDerived( void )
 	{
 		if( callback_ )
 		{
-			std::filesystem::path location_path = location_;
-
-			callback_( name_, std::move( location_path ), user_ );
+			switch( request_type_ )
+			{
+				case RequestTypePath:   { static_cast< PathCallback   >( callback_ )( name_, location_, user_ ); } break;
+				case RequestTypeString: { static_cast< StringCallback >( callback_ )( name_, user_ );            } break;
+				default:                { GENO_ASSERT( false ); /* Request type was corrupted */                 } break;
+			}
 		}
 
 		Close();
@@ -86,6 +93,37 @@ void NewItemModal::OnClose( void )
 	name_.clear();
 	location_.clear();
 
-	callback_ = nullptr;
-	user_     = nullptr;
+	callback_     = nullptr;
+	user_         = nullptr;
+	request_type_ = -1;
+}
+
+void NewItemModal::UpdateItem( void )
+{
+	ImGui::SetNextItemWidth( -5.0f );
+	ImGui::InputText( "##Name", &name_ );
+
+	ImGui::TextUnformatted( "Location" );
+
+	ImGui::SetNextItemWidth( -60.0f );
+	ImGui::InputText( "##Location", &location_ );
+
+	ImGui::SameLine();
+	if( ImGui::Button( "Browse" ) )
+	{
+		OpenFileModal::Instance().RequestDirectory( title_ + " Location", this,
+			[]( const std::filesystem::path& path, void* user )
+			{
+				NewItemModal* self = static_cast< NewItemModal* >( user );
+
+				self->location_ = path.lexically_normal().string();
+			}
+		);
+	}
+}
+
+void NewItemModal::UpdateString( void )
+{
+	ImGui::SetNextItemWidth( -5.0f );
+	ImGui::InputText( "##Name", &name_ );
 }

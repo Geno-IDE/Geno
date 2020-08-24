@@ -26,11 +26,13 @@ class NewItemModal : public IModal
 
 public:
 
-	using Callback = void( * )( std::string_view name, std::filesystem::path location, void* user );
+	using PathCallback   = void( * )( std::string_view name, std::filesystem::path location, void* user );
+	using StringCallback = void( * )( std::string_view string, void* user );
 
 public:
 
-	void Request( std::string_view title, void* user, Callback callback );
+	void RequestPath  ( std::string_view title, void* user, PathCallback callback );
+	void RequestString( std::string_view title, void* user, StringCallback callback );
 
 private:
 
@@ -41,10 +43,17 @@ private:
 
 private:
 
+	void UpdateItem  ( void );
+	void UpdateString( void );
+
+private:
+
 	std::string title_;
 	std::string name_;
 	std::string location_;
-	Callback    callback_;
-	void*       user_;
+
+	void*       callback_     = nullptr;
+	void*       user_         = nullptr;
+	int         request_type_ = -1;
 
 };
