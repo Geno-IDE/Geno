@@ -24,6 +24,12 @@
 
 #include <iostream>
 
+Application::~Application( void )
+{
+	// Save workspace on exit
+	CloseWorkspace();
+}
+
 int Application::Run( void )
 {
 	MainWindow::Instance().Init();

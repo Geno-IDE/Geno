@@ -31,6 +31,10 @@ class Application
 
 public:
 
+	~Application( void );
+
+public:
+
 	int     Run           ( void );
 	void    NewWorkspace  ( const std::filesystem::path& where, std::string_view name );
 	void    LoadWorkspace ( const std::filesystem::path& path );
