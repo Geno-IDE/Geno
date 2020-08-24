@@ -90,46 +90,11 @@ void MainMenuBar::Show( void )
 
 		if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 		{
-			for( BuildMatrix::Column& column : workspace->build_matrix_.columns_ )
+			ImGui::Separator();
+
+			for( auto& column : workspace->build_matrix_.columns_ )
 			{
-				size_t cfg_accumulated_length = 0;
-
-				for( auto& cfg : column.configurations )
-					cfg_accumulated_length += cfg.name.size();
-
-				if( cfg_accumulated_length == 0 )
-					continue;
-
-				char*  items_string = static_cast< char* >( calloc( cfg_accumulated_length + column.configurations.size() + 1, sizeof( char ) ) );
-				size_t off          = 0;
-				auto   current_cfg  = column.current_configuration.empty() ? column.configurations.end() : std::find_if( column.configurations.begin(), column.configurations.end(),
-					[ &column ]( const BuildMatrix::NamedConfiguration& cfg )
-					{
-						return cfg.name == column.current_configuration;
-					}
-				);
-				int    current_item = ( current_cfg == column.configurations.end() ) ? -1 : static_cast< int >( std::distance( column.configurations.begin(), current_cfg ) );
-
-				for( auto& cfg : column.configurations )
-				{
-					size_t cfg_true_length = cfg.name.size() + 1;
-
-					memcpy( items_string + off, cfg.name.c_str(), cfg_true_length );
-					off += cfg_true_length;
-				}
-
-				ImGui::Spacing();
-				ImGui::SetNextItemWidth( 120.0f );
-
-				if( ImGui::Combo( ( "##" + column.name ).c_str(), &current_item, items_string ) )
-				{
-					auto cfg = column.configurations.begin();
-					std::advance( cfg, current_item );
-
-					column.current_configuration = cfg->name;
-				}
-
-				free( items_string );
+				AddBuildMatrixColumn( column );
 			}
 		}
 
@@ -260,4 +225,37 @@ void MainMenuBar::ActionHelpDemo( void )
 void MainMenuBar::ActionHelpAbout( void )
 {
 	show_about_window_ ^= 1;
+}
+
+void MainMenuBar::AddBuildMatrixColumn( BuildMatrix::Column& column )
+{
+	ImGui::Spacing();
+	ImGui::Text( "%s:", column.name.c_str() );
+
+	const std::string label = "##" + column.name;
+
+	// Add combo for this column
+	ImGui::SetNextItemWidth( 100.0f );
+	if( ImGui::BeginCombo( label.c_str(), column.current_configuration.c_str() ) )
+	{
+		for( auto& cfg : column.configurations )
+		{
+			if( ImGui::Selectable( cfg.name.c_str() ) )
+				column.current_configuration = cfg.name;
+		}
+
+		ImGui::EndCombo();
+	}
+
+	// Add combos for exclusive categories for the selected configuration
+	for( auto& cfg : column.configurations )
+	{
+		if( cfg.name == column.current_configuration )
+		{
+			for( auto& exclusive : cfg.exclusive_columns )
+				AddBuildMatrixColumn( exclusive );
+
+			break;
+		}
+	}
 }

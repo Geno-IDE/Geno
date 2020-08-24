@@ -16,10 +16,12 @@
  */
 
 #pragma once
-#include "Common/Macros.h"
+#include "Components/BuildMatrix.h"
 
 #include <string_view>
 #include <vector>
+
+#include <Common/Macros.h>
 
 struct CompilationDone;
 struct WorkspaceOpened;
@@ -49,6 +51,7 @@ private:
 	void ActionViewOutput        ( void );
 	void ActionHelpDemo          ( void );
 	void ActionHelpAbout         ( void );
+	void AddBuildMatrixColumn    ( BuildMatrix::Column& column );
 
 private:
 
