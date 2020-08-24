@@ -26,6 +26,7 @@
 #include <imgui.h>
 
 Settings::Settings( void )
+	: object_( "Settings", std::in_place_type< GCL::Object::TableType > )
 {
 	Load();
 }
