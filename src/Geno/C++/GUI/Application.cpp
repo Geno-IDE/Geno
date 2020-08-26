@@ -48,12 +48,12 @@ int Application::Run( void )
 	return 0;
 }
 
-void Application::NewWorkspace( const std::filesystem::path& where, std::string_view name )
+void Application::NewWorkspace( std::filesystem::path location, std::string name )
 {
 	CloseWorkspace();
 
-	Workspace& workspace = current_workspace_.emplace( where );
-	workspace.name_      = name;
+	Workspace& workspace = current_workspace_.emplace( std::move( location ) );
+	workspace.name_      = std::move( name );
 }
 
 void Application::LoadWorkspace( const std::filesystem::path& path )

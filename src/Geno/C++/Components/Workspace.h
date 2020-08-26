@@ -16,6 +16,7 @@
  */
 
 #pragma once
+#include "Compilers/ICompiler.h"
 #include "Components/BuildMatrix.h"
 #include "Components/Project.h"
 
@@ -26,17 +27,18 @@
 #include <string>
 #include <vector>
 
-class ICompiler;
-
 class Workspace
 {
+	GENO_DISABLE_COPY( Workspace );
+	GENO_DEFAULT_MOVE( Workspace );
+
 public:
 
 	static constexpr std::string_view ext = ".gwks";
 
 public:
 
-	explicit Workspace( const std::filesystem::path& location );
+	explicit Workspace( std::filesystem::path location );
 
 public:
 
@@ -46,14 +48,17 @@ public:
 
 public:
 
+	Project& NewProject   ( std::filesystem::path location, std::string name );
 	Project* ProjectByName( std::string_view name );
 
 public:
 
 	std::filesystem::path        location_;
-	std::vector< Project >       projects_;
 	std::string                  name_;
+	std::vector< Project >       projects_;
 	std::unique_ptr< ICompiler > compiler_;
+
+	std::vector< std::string >   projects_left_to_build_;
 
 	BuildMatrix                  build_matrix_;
 
@@ -63,6 +68,8 @@ private:
 
 private:
 
+	void BuildNextProject            ( void );
+	void OnBuildFinished             ( void );
 	void SerializeBuildMatrixColumn  ( GCL::Object& object, const BuildMatrix::Column& column );
 	void DeserializeBuildMatrixColumn( BuildMatrix::Column& column, const GCL::Object& object );
 

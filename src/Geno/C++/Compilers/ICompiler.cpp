@@ -64,6 +64,8 @@ void ICompiler::AsyncCB( std::filesystem::path path, ICompiler::Options options 
 	startup_info.hStdOutput  = ( ( fd_out > 0 ) ? ( HANDLE )_get_osfhandle( fd_out ) : GetStdHandle( STD_OUTPUT_HANDLE ) );
 	startup_info.hStdError   = ( ( fd_err > 0 ) ? ( HANDLE )_get_osfhandle( fd_err ) : GetStdHandle( STD_ERROR_HANDLE ) );
 
+	std::cout << ":" << path.string() << "\n";
+
 	if( !WIN32_CALL( CreateProcessW( nullptr, &command_line[ 0 ], nullptr, nullptr, TRUE, 0, nullptr, nullptr, &startup_info, &process_info ) ) )
 		return;
 

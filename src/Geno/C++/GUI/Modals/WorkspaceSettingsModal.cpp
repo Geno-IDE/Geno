@@ -89,10 +89,10 @@ void WorkspaceSettingsModal::UpdateDerived( void )
 					if( ImGui::SmallButton( "+##NewColumn" ) )
 					{
 						NewItemModal::Instance().RequestString( "New Column", nullptr,
-							[]( std::string_view string, void* /*user*/ )
+							[]( std::string string, void* /*user*/ )
 							{
 								if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
-									workspace->build_matrix_.NewColumn( std::string( string ) );
+									workspace->build_matrix_.NewColumn( std::move( string ) );
 							}
 						);
 					}
@@ -129,11 +129,11 @@ void WorkspaceSettingsModal::ShowConfigurationColumn( BuildMatrix::Column& colum
 	if( ImGui::SmallButton( ( "+##NewConfiguration_" + id_prefix + column.name ).c_str() ) )
 	{
 		NewItemModal::Instance().RequestString( "New Exclusive Configuration", &column,
-			[]( std::string_view string, void* user )
+			[]( std::string string, void* user )
 			{
 				auto& column = *static_cast< BuildMatrix::Column* >( user );
 				auto& cfg    = column.configurations.emplace_back();
-				cfg.name     = string;
+				cfg.name     = std::move( string );
 			}
 		);
 	}
@@ -147,11 +147,11 @@ void WorkspaceSettingsModal::ShowConfigurationColumn( BuildMatrix::Column& colum
 			if( ImGui::SmallButton( ( cfg.name + "##" + id_prefix + cfg.name ).c_str() ) )
 			{
 				NewItemModal::Instance().RequestString( "New Exclusive Category", &cfg,
-					[]( std::string_view string, void* user )
+					[]( std::string string, void* user )
 					{
 						auto& cfg       = *static_cast< BuildMatrix::NamedConfiguration* >( user );
 						auto& exclusive = cfg.exclusive_columns.emplace_back();
-						exclusive.name  = string;
+						exclusive.name  = std::move( string );
 					}
 				);
 			}

@@ -26,8 +26,8 @@ class NewItemModal : public IModal
 
 public:
 
-	using PathCallback   = void( * )( std::string_view name, std::filesystem::path location, void* user );
-	using StringCallback = void( * )( std::string_view string, void* user );
+	using PathCallback   = void( * )( std::string name, std::filesystem::path location, void* user );
+	using StringCallback = void( * )( std::string string, void* user );
 
 public:
 

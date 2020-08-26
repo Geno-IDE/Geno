@@ -156,9 +156,9 @@ void MainMenuBar::Show( void )
 void MainMenuBar::ActionFileNewWorkspace( void )
 {
 	NewItemModal::Instance().RequestPath( "New Workspace Location", this,
-		[]( std::string_view name, std::filesystem::path location, void* /*user*/ )
+		[]( std::string name, std::filesystem::path location, void* /*user*/ )
 		{
-			Application::Instance().NewWorkspace( location, name );
+			Application::Instance().NewWorkspace( location, std::move( name ) );
 		}
 	);
 }
@@ -188,8 +188,6 @@ void MainMenuBar::ActionBuildBuild( void )
 	if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 	{
 		OutputWidget::Instance().ClearCapture();
-
-		std::cout << "Building " << workspace->name_ << "..\n";
 
 		workspace->Build();
 	}

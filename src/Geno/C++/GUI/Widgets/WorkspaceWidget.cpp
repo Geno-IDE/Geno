@@ -105,12 +105,11 @@ void WorkspaceWidget::Show( bool* p_open )
 				if( ImGui::MenuItem( "New Project" ) )
 				{
 					NewItemModal::Instance().RequestPath( "New Project", this,
-						[]( std::string_view name, std::filesystem::path location, void* /*user*/ )
+						[]( std::string name, std::filesystem::path location, void* /*user*/ )
 						{
 							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 							{
-								Project& prj = workspace->projects_.emplace_back( std::move( location ) );
-								prj.name_    = name;
+								workspace->NewProject( std::move( location ), std::move( name ) );
 							}
 						}
 					);
@@ -129,7 +128,7 @@ void WorkspaceWidget::Show( bool* p_open )
 				if( ImGui::MenuItem( "New File" ) )
 				{
 					NewItemModal::Instance().RequestPath( "New File", this,
-						[]( std::string_view name, std::filesystem::path location, void* user )
+						[]( std::string name, std::filesystem::path location, void* user )
 						{
 							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 							{

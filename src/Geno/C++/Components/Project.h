@@ -16,17 +16,28 @@
  */
 
 #pragma once
-#include "Compilers/ICompiler.h"
 #include "Components/Enums/ProjectKind.h"
 #include "Components/Configuration.h"
 
+#include <Common/EventDispatcher.h>
 #include <GCL/Object.h>
 
 #include <filesystem>
 #include <vector>
 
-class Project
+class ICompiler;
+class Project;
+
+struct ProjectBuildFinished
 {
+	Project* project;
+	bool     success;
+};
+
+class Project : public EventDispatcher< Project, ProjectBuildFinished >
+{
+	GENO_DISABLE_COPY( Project );
+
 public:
 
 	static constexpr std::string_view ext = ".gprj";
@@ -34,10 +45,13 @@ public:
 public:
 
 	explicit Project( std::filesystem::path location );
+	Project( Project&& other );
+
+	Project& operator=( Project&& other );
 
 public:
 
-	void Build      ( ICompiler& compiler, const ICompiler::Options& default_options );
+	void Build      ( ICompiler& compiler );
 	bool Serialize  ( void );
 	bool Deserialize( void );
 
@@ -50,9 +64,14 @@ public:
 	std::vector< std::filesystem::path > files_;
 	std::vector< std::filesystem::path > includes_;
 	std::vector< Configuration >         configrations_;
+	std::vector< std::filesystem::path > files_left_to_build_;
 
 private:
 
 	static void GCLObjectCallback( GCL::Object object, void* user );
+
+private:
+
+	void BuildNextFile( ICompiler& compiler );
 
 };

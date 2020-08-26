@@ -71,9 +71,9 @@ void NewItemModal::UpdateDerived( void )
 		{
 			switch( request_type_ )
 			{
-				case RequestTypePath:   { static_cast< PathCallback   >( callback_ )( name_, location_, user_ ); } break;
-				case RequestTypeString: { static_cast< StringCallback >( callback_ )( name_, user_ );            } break;
-				default:                { GENO_ASSERT( false ); /* Request type was corrupted */                 } break;
+				case RequestTypePath:   { static_cast< PathCallback   >( callback_ )( std::move( name_ ), std::move( location_ ), user_ ); } break;
+				case RequestTypeString: { static_cast< StringCallback >( callback_ )( std::move( name_ ), user_ );                         } break;
+				default:                { GENO_ASSERT( false ); /* Request type was corrupted */                                           } break;
 			}
 		}
 

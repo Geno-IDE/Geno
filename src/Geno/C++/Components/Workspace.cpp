@@ -24,8 +24,8 @@
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
 
-Workspace::Workspace( const std::filesystem::path& location )
-	: location_( location )
+Workspace::Workspace( std::filesystem::path location )
+	: location_( std::move( location ) )
 	, name_    ( "MyWorkspace" )
 {
 	compiler_ = std::make_unique< CompilerGCC >();
@@ -33,20 +33,17 @@ Workspace::Workspace( const std::filesystem::path& location )
 
 void Workspace::Build( void )
 {
-	Configuration      cfg = build_matrix_.CurrentConfiguration();
-	ICompiler::Options options;
+	Configuration cfg = build_matrix_.CurrentConfiguration();
 
-	// Test options
-	options.output_file_path = location_ / "output";
-	options.language         = ICompiler::Options::Language::CPlusPlus;
-	options.verbose          = true;
-
-	if( compiler_ )
+	if( compiler_ && !projects_.empty() )
 	{
+		projects_left_to_build_.clear();
+
+		// Keep track of which projects need to be built.
 		for( Project& prj : projects_ )
-		{
-			prj.Build( *compiler_, options );
-		}
+			projects_left_to_build_.push_back( prj.name_ );
+
+		BuildNextProject();
 	}
 }
 
@@ -81,15 +78,13 @@ bool Workspace::Serialize( void )
 
 	// Projects array
 	{
-		GCL::Object              projects( "Projects", std::in_place_type< GCL::Object::TableType > );
-		std::list< std::string > relative_project_path_strings; // GCL Arrays store its elements as std::string_view which means the string needs to live until we call WriteObject
+		GCL::Object projects( "Projects", std::in_place_type< GCL::Object::TableType > );
 
 		for( Project& prj : projects_ )
 		{
-			std::filesystem::path relative_project_path        = prj.location_.lexically_relative( location_ ) / prj.name_;
-			std::string&          relative_project_path_string = relative_project_path_strings.emplace_back( relative_project_path.string() );
+			std::filesystem::path relative_project_path = prj.location_.lexically_relative( location_ ) / prj.name_;
 
-			projects.AddChild( GCL::Object( relative_project_path_string ) );
+			projects.AddChild( GCL::Object( relative_project_path.string() ) );
 
 			prj.Serialize();
 		}
@@ -114,6 +109,14 @@ bool Workspace::Deserialize( void )
 	return true;
 }
 
+Project& Workspace::NewProject( std::filesystem::path location, std::string name )
+{
+	Project& project = projects_.emplace_back( std::move( location ) );
+	project.name_    = std::move( name );
+
+	return project;
+}
+
 Project* Workspace::ProjectByName( std::string_view name )
 {
 	for( Project& prj : projects_ )
@@ -133,8 +136,6 @@ void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 	if( name == "Name" )
 	{
 		self->name_ = object.String();
-
-		std::cout << "Workspace: " << self->name_ << "\n";
 	}
 	else if( name == "Matrix" )
 	{
@@ -152,20 +153,67 @@ void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 	{
 		for( auto& prj_path_string : object.Table() )
 		{
-			std::filesystem::path prj_path = prj_path_string.String();
+			std::filesystem::path project_path = prj_path_string.String();
 
-			if( !prj_path.is_absolute() )
-				prj_path = self->location_ / prj_path;
+			if( !project_path.is_absolute() )
+				project_path = self->location_ / project_path;
 
-			prj_path = prj_path.lexically_normal();
+			project_path = project_path.lexically_normal();
 
-			Project prj( prj_path.parent_path() );
-			prj.name_ = prj_path.filename().string();
-
-			if( prj.Deserialize() )
-				self->projects_.emplace_back( std::move( prj ) );
+			Project& project = self->NewProject( project_path.parent_path(), project_path.filename().string() );
+			project.Deserialize();
 		}
 	}
+}
+
+void Workspace::BuildNextProject( void )
+{
+	if( projects_left_to_build_.empty() )
+		return;
+
+	// Find the next project to build
+	auto it = std::find_if( projects_.begin(), projects_.end(),
+		[ this ]( Project& prj )
+		{
+			return ( prj.name_ == projects_left_to_build_.back() );
+		}
+	);
+
+	if( it == projects_.end() )
+	{
+		// If next project was not found, remove it from the queue and try again
+		projects_left_to_build_.pop_back();
+		BuildNextProject();
+	}
+	else
+	{
+		std::cout << "=== Started building " << it->name_ << " ===\n";
+
+		*it ^= [ this ]( const ProjectBuildFinished& e )
+		{
+			if( e.success ) std::cout << "=== " << e.project->name_ << " finished successfully ===\n";
+			else            std::cerr << "=== " << e.project->name_ << " finished with errors ===\n";
+
+			auto it = std::find( projects_left_to_build_.begin(), projects_left_to_build_.end(), e.project->name_ );
+			if( it != projects_left_to_build_.end() )
+			{
+				projects_left_to_build_.erase( it );
+
+				if( projects_left_to_build_.empty() ) OnBuildFinished();
+				else                                  BuildNextProject();
+			}
+			else
+			{
+				std::cerr << "Project was preemptively popped from list\n";
+			}
+		};
+
+		it->Build( *compiler_ );
+	}
+}
+
+void Workspace::OnBuildFinished( void )
+{
 }
 
 void Workspace::SerializeBuildMatrixColumn( GCL::Object& object, const BuildMatrix::Column& column )

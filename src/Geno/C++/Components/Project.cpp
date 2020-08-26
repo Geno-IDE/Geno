@@ -30,15 +30,38 @@ Project::Project( std::filesystem::path location )
 {
 }
 
-void Project::Build( ICompiler& compiler, const ICompiler::Options& default_options )
+Project::Project( Project&& other )
 {
-	ICompiler::Options options = default_options;
-	options.kind               = kind_;
+	*this = std::move( other );
+}
+
+Project& Project::operator=( Project&& other )
+{
+	kind_                = other.kind_; other.kind_ = ProjectKind::Unknown;
+	location_            = std::move( other.location_ );
+	name_                = std::move( other.name_ );
+	files_               = std::move( other.files_ );
+	includes_            = std::move( other.includes_ );
+	configrations_       = std::move( other.configrations_ );
+	files_left_to_build_ = std::move( other.files_left_to_build_ );
+
+	return *this;
+}
+
+void Project::Build( ICompiler& compiler )
+{
+	files_left_to_build_.clear();
+
+	if( files_.empty() )
+		return;
 
 	for( const std::filesystem::path& cpp : files_ )
 	{
-		compiler.Compile( cpp, options );
+		// Keep track of which files are currently building
+		files_left_to_build_.push_back( cpp );
 	}
+
+	BuildNextFile( compiler );
 }
 
 bool Project::Serialize( void )
@@ -122,8 +145,6 @@ void Project::GCLObjectCallback( GCL::Object object, void* user )
 	if( name == "Name" )
 	{
 		self->name_ = object.String();
-
-		std::cout << "Project: " << self->name_ << "\n";
 	}
 	else if( name == "Kind" )
 	{
@@ -154,5 +175,62 @@ void Project::GCLObjectCallback( GCL::Object object, void* user )
 			file_path = file_path.lexically_normal();
 			self->includes_.emplace_back( std::move( file_path ) );
 		}
+	}
+}
+
+void Project::BuildNextFile( ICompiler& compiler )
+{
+	if( files_left_to_build_.empty() )
+	{
+		ProjectBuildFinished build_finished;
+		build_finished.project = this;
+		build_finished.success = true;
+
+		Publish( build_finished );
+
+		return;
+	}
+
+//////////////////////////////////////////////////////////////////////////
+
+	auto it = std::find( files_.begin(), files_.end(), files_left_to_build_.back() );
+
+	if( it == files_.end() )
+	{
+		// If the file was not found, remove it from the queue and try again
+		files_left_to_build_.pop_back();
+		BuildNextFile( compiler );
+	}
+	else
+	{
+		// Listen to every file compilation to check if we're 
+		compiler ^= [ this, &compiler ]( const CompilationDone& e )
+		{
+			const std::string filename = e.path.filename().string();
+
+			// Cancel build if a file failed to build
+			if( e.exit_code != 0 )
+			{
+				ProjectBuildFinished build_finished;
+				build_finished.project = this;
+				build_finished.success = false;
+
+				Publish( build_finished );
+			}
+			else if( auto it = std::find( files_left_to_build_.begin(), files_left_to_build_.end(), e.path ); it != files_left_to_build_.end() )
+			{
+				files_left_to_build_.erase( it );
+				BuildNextFile( compiler );
+			}
+		};
+
+		ICompiler::Options options;
+		options.output_file_path = location_ / it->filename().replace_extension().string();
+		options.language         = ICompiler::Options::Language::CPlusPlus;
+		options.action           = ICompiler::Options::Action::CompileAndAssemble;
+		options.kind             = kind_;
+
+		// Compile the file
+		compiler.Compile( *it, options );
 	}
 }
