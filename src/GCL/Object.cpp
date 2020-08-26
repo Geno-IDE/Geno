@@ -22,8 +22,8 @@
 
 namespace GCL
 {
-	Object::Object( std::string_view key )
-		: key_( key )
+	Object::Object( std::string_view name )
+		: name_( name )
 	{
 	}
 
@@ -34,7 +34,7 @@ namespace GCL
 
 	Object& Object::operator=( Object&& other )
 	{
-		key_ = std::move( other.key_ );
+		name_ = std::move( other.name_ );
 		value_.swap( other.value_ );
 
 		return *this;
@@ -42,32 +42,30 @@ namespace GCL
 
 	void Object::SetString( std::string_view string )
 	{
-		if( IsString() ) std::get< StringType >( value_ ).assign( string );
-		else             value_.emplace< StringType >( string );
+		if( IsString() )
+			std::get< StringType >( value_ ).assign( string );
+		else
+			value_.emplace< StringType >( string );
 	}
 
-	void Object::AddArrayItem( std::string_view item )
+	void Object::SetTable( void )
 	{
-		ArrayType& underlying_array = IsArray() ? std::get< ArrayType >( value_ ) : value_.emplace< ArrayType >();
-
-		underlying_array.emplace_back( item );
+		if( !IsTable() )
+			value_.emplace< TableType >();
 	}
 
 	void Object::AddChild( Object child )
 	{
-		TableType& underlying_table_vector = IsTable() ? std::get< TableType >( value_ ) : value_.emplace< TableType >();
+		TableType& table = std::get< TableType >( value_ );
 
-		underlying_table_vector.emplace_back( std::move( child ) );
+		table.emplace_back( std::move( child ) );
 	}
 
 	const Object::StringType& Object::String( void ) const
 	{
-		return std::get< StringType >( value_ );
-	}
-
-	const Object::ArrayType& Object::Array( void ) const
-	{
-		return std::get< ArrayType >( value_ );
+		// Valueless objects can be considered strings in some sense
+		if( IsNull() ) return name_;
+		else           return std::get< StringType >( value_ );
 	}
 
 	const Object::TableType& Object::Table( void ) const
@@ -80,23 +78,22 @@ namespace GCL
 		switch( value_.index() )
 		{
 			case( unique_index_v< StringType, Variant > ): return std::get< StringType >( value_ ).empty();
-			case( unique_index_v< ArrayType,  Variant > ): return std::get< ArrayType  >( value_ ).empty();
 			case( unique_index_v< TableType,  Variant > ): return std::get< TableType  >( value_ ).empty();
 			default:                                       return true;
 		}
 	}
 
-	Object& Object::operator[]( std::string_view key )
+	Object& Object::operator[]( std::string_view name )
 	{
 		TableType& table = std::get< TableType >( value_ );
 
 		for( Object& value : table )
 		{
-			if( value.key_ == key )
+			if( value.name_ == name )
 				return value;
 		}
 
-		return table.emplace_back( key );
+		return table.emplace_back( name );
 	}
 
 	Object& Object::operator=( std::string_view string )

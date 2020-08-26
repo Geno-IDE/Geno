@@ -72,14 +72,14 @@ bool Project::Serialize( void )
 
 	// Files
 	{
-		GCL::Object              files( "Files", std::in_place_type< GCL::Object::ArrayType > );
+		GCL::Object              files( "Files", std::in_place_type< GCL::Object::TableType > );
 		std::list< std::string > relative_file_path_strings;
 		for( const std::filesystem::path& file : files_ )
 		{
 			std::filesystem::path relative_file_path        = file.lexically_relative( location_ );
 			std::string&          relative_file_path_string = relative_file_path_strings.emplace_back( relative_file_path.string() );
 
-			files.AddArrayItem( relative_file_path_string );
+			files.AddChild( GCL::Object( relative_file_path_string ) );
 		}
 
 		serializer.WriteObject( files );
@@ -113,23 +113,24 @@ bool Project::Deserialize( void )
 
 void Project::GCLObjectCallback( GCL::Object object, void* user )
 {
-	Project* self = static_cast< Project* >( user );
+	Project*         self = static_cast< Project* >( user );
+	std::string_view name = object.Name();
 
-	if( object.Key() == "Name" )
+	if( name == "Name" )
 	{
 		self->name_ = object.String();
 
 		std::cout << "Project: " << self->name_ << "\n";
 	}
-	else if( object.Key() == "Kind" )
+	else if( name == "Kind" )
 	{
 		self->kind_ = ProjectKindFromString( object.String() );
 	}
-	else if( object.Key() == "Files" )
+	else if( name == "Files" )
 	{
-		for( std::string_view file_path_string : object.Array() )
+		for( auto& file_path_string : object.Table() )
 		{
-			std::filesystem::path file_path = file_path_string;
+			std::filesystem::path file_path = file_path_string.String();
 
 			if( !file_path.is_absolute() )
 				file_path = self->location_ / file_path;
@@ -138,11 +139,11 @@ void Project::GCLObjectCallback( GCL::Object object, void* user )
 			self->files_.emplace_back( std::move( file_path ) );
 		}
 	}
-	else if( object.Key() == "Includes" )
+	else if( name == "Includes" )
 	{
-		for( std::string_view file_path_string : object.Array() )
+		for( auto& file_path_string : object.Table() )
 		{
-			std::filesystem::path file_path = file_path_string;
+			std::filesystem::path file_path = file_path_string.String();
 
 			if( !file_path.is_absolute() )
 				file_path = self->location_ / file_path;

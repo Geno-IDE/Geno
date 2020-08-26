@@ -61,4 +61,9 @@ private:
 
 	static void GCLObjectCallback( GCL::Object object, void* user );
 
+private:
+
+	void SerializeBuildMatrixColumn  ( GCL::Object& object, const BuildMatrix::Column& column );
+	void DeserializeBuildMatrixColumn( BuildMatrix::Column& column, const GCL::Object& object );
+
 };

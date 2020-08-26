@@ -73,12 +73,7 @@ bool Workspace::Serialize( void )
 
 		for( const BuildMatrix::Column& column : build_matrix_.columns_ )
 		{
-			GCL::Object child( column.name, std::in_place_type< GCL::Object::ArrayType > );
-
-			for( auto& cfg : column.configurations )
-				child.AddArrayItem( cfg.name );
-
-			matrix.AddChild( std::move( child ) );
+			SerializeBuildMatrixColumn( matrix, column );
 		}
 
 		serializer.WriteObject( matrix );
@@ -86,7 +81,7 @@ bool Workspace::Serialize( void )
 
 	// Projects array
 	{
-		GCL::Object              projects( "Projects", std::in_place_type< GCL::Object::ArrayType > );
+		GCL::Object              projects( "Projects", std::in_place_type< GCL::Object::TableType > );
 		std::list< std::string > relative_project_path_strings; // GCL Arrays store its elements as std::string_view which means the string needs to live until we call WriteObject
 
 		for( Project& prj : projects_ )
@@ -94,7 +89,7 @@ bool Workspace::Serialize( void )
 			std::filesystem::path relative_project_path        = prj.location_.lexically_relative( location_ ) / prj.name_;
 			std::string&          relative_project_path_string = relative_project_path_strings.emplace_back( relative_project_path.string() );
 
-			projects.AddArrayItem( relative_project_path_string );
+			projects.AddChild( GCL::Object( relative_project_path_string ) );
 
 			prj.Serialize();
 		}
@@ -132,37 +127,32 @@ Project* Workspace::ProjectByName( std::string_view name )
 
 void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 {
-	Workspace* self = ( Workspace* )user;
+	Workspace*       self = ( Workspace* )user;
+	std::string_view name = object.Name();
 
-	if( object.Key() == "Name" )
+	if( name == "Name" )
 	{
 		self->name_ = object.String();
 
 		std::cout << "Workspace: " << self->name_ << "\n";
 	}
-	else if( object.Key() == "Matrix" )
+	else if( name == "Matrix" )
 	{
 		self->build_matrix_ = BuildMatrix();
 
 		for( const GCL::Object& column : object.Table() )
 		{
-			std::string_view key = column.Key();
+			std::string_view column_name = column.Name();
 
-			self->build_matrix_.NewColumn( static_cast< std::string >( key ) );
-
-			for( std::string_view cfg : column.Array() )
-			{
-				self->build_matrix_.NewConfiguration( key, static_cast< std::string >( cfg ) );
-
-				std::cout << "Configuration: " << key << "|" << cfg << "\n";
-			}
+			self->build_matrix_.NewColumn( std::string( column_name ) );
+			self->DeserializeBuildMatrixColumn( self->build_matrix_.columns_.back(), column );
 		}
 	}
-	else if( object.Key() == "Projects" )
+	else if( name == "Projects" )
 	{
-		for( std::string_view prj_path_string : object.Array() )
+		for( auto& prj_path_string : object.Table() )
 		{
-			std::filesystem::path prj_path = prj_path_string;
+			std::filesystem::path prj_path = prj_path_string.String();
 
 			if( !prj_path.is_absolute() )
 				prj_path = self->location_ / prj_path;
@@ -175,5 +165,53 @@ void Workspace::GCLObjectCallback( GCL::Object object, void* user )
 			if( prj.Deserialize() )
 				self->projects_.emplace_back( std::move( prj ) );
 		}
+	}
+}
+
+void Workspace::SerializeBuildMatrixColumn( GCL::Object& object, const BuildMatrix::Column& column )
+{
+	GCL::Object column_object( column.name, std::in_place_type< GCL::Object::TableType > );
+
+	for( auto& cfg : column.configurations )
+	{
+		GCL::Object cfg_object( cfg.name );
+
+		if( !cfg.exclusive_columns.empty() )
+		{
+			cfg_object.SetTable();
+
+			for( auto& exclusive : cfg.exclusive_columns )
+			{
+				SerializeBuildMatrixColumn( cfg_object, exclusive );
+			}
+		}
+
+		column_object.AddChild( std::move( cfg_object ) );
+	}
+
+	object.AddChild( std::move( column_object ) );
+}
+
+void Workspace::DeserializeBuildMatrixColumn( BuildMatrix::Column& column, const GCL::Object& object )
+{
+	for( auto& cfg : object.Table() )
+	{
+		BuildMatrix::NamedConfiguration new_cfg;
+		new_cfg.name = cfg.Name();
+
+		if( cfg.IsTable() )
+		{
+			for( auto& exclusive : cfg.Table() )
+			{
+				BuildMatrix::Column exclusive_column;
+				exclusive_column.name = exclusive.Name();
+
+				DeserializeBuildMatrixColumn( exclusive_column, exclusive );
+
+				new_cfg.exclusive_columns.emplace_back( std::move( exclusive_column ) );
+			}
+		}
+
+		column.configurations.emplace_back( std::move( new_cfg ) );
 	}
 }

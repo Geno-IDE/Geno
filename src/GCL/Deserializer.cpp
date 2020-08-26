@@ -97,28 +97,30 @@ namespace GCL
 		std::string_view unindented_line = line.substr( indent_level );
 		size_t           colon_index     = unindented_line.find_first_of( ':' );
 
-		if( colon_index == std::string_view::npos )
+		if( colon_index == std::string_view::npos ) // No colon found
 		{
 			Object* parent_object = static_cast< Object* >( user );
+			Object  child( unindented_line );
 
-			parent_object->AddArrayItem( unindented_line );
+			parent_object->AddChild( std::move( child ) );
 		}
-		else if( ( colon_index + 1 ) < unindented_line.size() )
+		else if( ( colon_index + 1 ) < unindented_line.size() ) // Something comes after the colon
 		{
 			Object object( unindented_line.substr( 0, colon_index ) );
 			object.SetString( unindented_line.substr( colon_index + 1 ) );
 
 			callback( std::move( object ), user );
 		}
-		else
+		else // Colon is at the end of the line, signifying the start of a table
 		{
-			Object object             = Object( unindented_line.substr( 0, colon_index ) );
-			auto   add_child_callback = []( Object child, void* parent ) { static_cast< Object* >( parent )->AddChild( std::move( child ) ); };
+			std::string_view name               = unindented_line.substr( 0, colon_index );
+			Object           object             = Object( name, std::in_place_type< Object::TableType > );
+			auto             add_child_callback = []( Object child, void* parent ) { static_cast< Object* >( parent )->AddChild( std::move( child ) ); };
 
+			// Parse remaining lines recursively until the indent level changes
 			while( !unparsed->empty() && ParseLine( unparsed->substr( 0, unparsed->find( '\n' ) ), indent_level + 1, unparsed, add_child_callback, &object ) );
 
-			if( !object.IsNull() )
-				callback( std::move( object ), user );
+			callback( std::move( object ), user );
 		}
 
 		return true;

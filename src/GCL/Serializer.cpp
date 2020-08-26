@@ -56,58 +56,30 @@ namespace GCL
 
 	void Serializer::WriteObject( const Object& object, int indent_level )
 	{
-		if( object.IsNull() )
-			return;
-
-		std::string_view key = object.Key();
+		std::string_view name = object.Name();
 
 		for( int i = 0; i < indent_level; ++i )
 			_write( file_descriptor_, "\t", 1 );
 
-		_write( file_descriptor_, key.data(), static_cast< uint32_t >( key.size() ) );
-		_write( file_descriptor_, ":", 1 );
+		_write( file_descriptor_, name.data(), static_cast< uint32_t >( name.size() ) );
 
+		if( object.IsNull() )
+		{
+			_write( file_descriptor_, "\n", 1 );
+		}
 		if( object.IsString() )
 		{
-			/*
-			String:Value
-			*/
 			Object::StringType string = object.String();
 
+			_write( file_descriptor_, ":", 1 );
 			_write( file_descriptor_, string.data(), static_cast< uint32_t >( string.size() ) );
 			_write( file_descriptor_, "\n", 1 );
 		}
-		else if( object.IsArray() )
-		{
-			/*
-			Array:
-				Foo
-				Bar
-			*/
-			const Object::ArrayType& array = object.Array();
-
-			_write( file_descriptor_, "\n", 1 );
-
-			for( std::string_view elem : array )
-			{
-				for( int i = 0; i < ( indent_level + 1 ); ++i )
-					_write( file_descriptor_, "\t", 1 );
-
-				_write( file_descriptor_, elem.data(), static_cast< uint32_t >( elem.size() ) );
-				_write( file_descriptor_, "\n", 1 );
-			}
-		}
 		else if( object.IsTable() )
 		{
-			/*
-			Table:
-				Key:Value
-				Array:
-					Foo
-					Bar
-			*/
 			const Object::TableType& table = object.Table();
 
+			_write( file_descriptor_, ":", 1 );
 			_write( file_descriptor_, "\n", 1 );
 
 			for( const Object& child : table )

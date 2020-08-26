@@ -26,7 +26,6 @@
 #include <imgui.h>
 
 Settings::Settings( void )
-	: object_( "Settings", std::in_place_type< GCL::Object::TableType > )
 {
 	Load();
 }
@@ -38,11 +37,11 @@ Settings::~Settings( void )
 
 void Settings::Load( void )
 {
+	object_ = GCL::Object( "Settings", std::in_place_type< GCL::Object::TableType > );
+
 	GCL::Deserializer deserializer( LocalAppData::Instance() / "settings.gcl" );
 	if( !deserializer.IsOpen() )
 		return;
-
-	object_ = GCL::Object();
 
 	deserializer.Objects( this,
 		[]( GCL::Object object, void* user )

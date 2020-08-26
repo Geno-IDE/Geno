@@ -30,19 +30,18 @@ namespace GCL
 	public:
 
 		using StringType = std::string;
-		using ArrayType  = std::vector< std::string >;
 		using TableType  = std::vector< Object >;
-		using Variant    = std::variant< std::monostate, StringType, ArrayType, TableType >;
+		using Variant    = std::variant< std::monostate, StringType, TableType >;
 
 	public:
 	
 		         Object( void ) = default;
-		explicit Object( std::string_view key );
+		explicit Object( std::string_view name );
 		         Object( Object&& other );
 
 		template< typename T >
-		Object( std::string_view key, std::in_place_type_t< T > )
-			: key_  ( key )
+		Object( std::string_view name, std::in_place_type_t< T > )
+			: name_ ( name )
 			, value_( std::in_place_type< T > )
 		{
 		}
@@ -51,28 +50,26 @@ namespace GCL
 
 	public:
 
-		void SetString   ( std::string_view string );
-		void AddArrayItem( std::string_view item );
-		void AddChild    ( Object child );
+		void SetString( std::string_view string );
+		void SetTable ( void );
+		void AddChild ( Object child );
 
 	public:
 
-		std::string_view Key     ( void ) const { return key_; }
+		std::string_view Name    ( void ) const { return name_; }
 		bool             IsNull  ( void ) const { return value_.index() == 0; }
 		bool             IsString( void ) const { return value_.index() == 1; }
-		bool             IsArray ( void ) const { return value_.index() == 2; }
-		bool             IsTable ( void ) const { return value_.index() == 3; }
+		bool             IsTable ( void ) const { return value_.index() == 2; }
 
 	public:
 
 		const StringType& String( void ) const;
-		const ArrayType&  Array ( void ) const;
 		const TableType&  Table ( void ) const;
 		bool              Empty ( void ) const;
 
 	public:
 
-		Object& operator[]( std::string_view key );
+		Object& operator[]( std::string_view name );
 		Object& operator= ( std::string_view string );
 
 	public:
@@ -81,7 +78,7 @@ namespace GCL
 
 	private:
 
-		std::string key_;
+		std::string name_;
 		Variant     value_;
 	
 	};
