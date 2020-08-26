@@ -37,7 +37,9 @@ std::wstring CompilerGCC::MakeCommandLineString( const std::filesystem::path& pa
 {
 	std::wstring cmd;
 	cmd.reserve( 1024 );
-	cmd += ( FindGCCLocation() / L"bin/g++" );
+
+	// Start with GCC executable
+	cmd += ( FindGCCLocation() / L"bin/g++" ).lexically_normal();
 
 	// Language
 	switch( options.language )
