@@ -30,8 +30,11 @@ Project::Project( std::filesystem::path location )
 {
 }
 
-void Project::Build( ICompiler& compiler, const ICompiler::Options& options )
+void Project::Build( ICompiler& compiler, const ICompiler::Options& default_options )
 {
+	ICompiler::Options options = default_options;
+	options.kind               = kind_;
+
 	for( const std::filesystem::path& cpp : files_ )
 	{
 		compiler.Compile( cpp, options );

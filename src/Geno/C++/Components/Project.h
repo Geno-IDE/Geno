@@ -37,7 +37,7 @@ public:
 
 public:
 
-	void Build      ( ICompiler& compiler, const ICompiler::Options& options );
+	void Build      ( ICompiler& compiler, const ICompiler::Options& default_options );
 	bool Serialize  ( void );
 	bool Deserialize( void );
 

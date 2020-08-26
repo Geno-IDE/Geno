@@ -97,8 +97,23 @@ std::wstring CompilerGCC::MakeCommandLineString( const std::filesystem::path& pa
 		if( options.linker_flags & Options::LinkerFlagNoDefaultLibs ) { cmd += L",-nodefaultlibs"; }
 	}
 
+	// Get output file extension
+	std::filesystem::path output_extension = ".o";
+	switch( options.kind )
+	{
+	#if defined( _WIN32 )
+		case ProjectKind::Application:    { output_extension = ".exe"; } break;
+		case ProjectKind::StaticLibrary:  { output_extension = ".lib"; } break;
+		case ProjectKind::DynamicLibrary: { output_extension = ".dll"; } break;
+	#else
+		case ProjectKind::Application:    { output_extension.clear(); } break;
+		case ProjectKind::StaticLibrary:  { output_extension = ".a";  } break;
+		case ProjectKind::DynamicLibrary: { output_extension = ".so"; } break;
+	#endif // _WIN32
+	}
+
 	// Set output file
-	cmd += L" -o " + options.output_file_path.lexically_normal().replace_extension( ".o" ).wstring();
+	cmd += L" -o " + options.output_file_path.lexically_normal().replace_extension( output_extension ).wstring();
 
 	// Finally, the input source file
 	cmd += L" " + path.lexically_normal().wstring();
