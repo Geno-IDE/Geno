@@ -63,6 +63,7 @@ public:
 	std::string                          name_;
 	std::vector< std::filesystem::path > files_;
 	std::vector< std::filesystem::path > includes_;
+	std::vector< std::filesystem::path > libraries_;
 	std::vector< Configuration >         configrations_;
 	std::vector< std::filesystem::path > files_left_to_build_;
 	std::vector< std::filesystem::path > files_to_link_;

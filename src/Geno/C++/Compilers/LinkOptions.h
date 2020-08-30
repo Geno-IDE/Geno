@@ -25,9 +25,11 @@ struct LinkOptions
 	enum Flags
 	{
 		LinkerFlagNoDefaultLibs = 0x01,
+		LinkerFlagNoSymbolTable = 0x02,
 	};
 
 	std::vector< std::filesystem::path > input_files;
+	std::vector< std::filesystem::path > linked_libraries;
 	std::filesystem::path                output_file;
 	ProjectKind                          kind  = ProjectKind::Unknown;
 	uint32_t                             flags = 0;

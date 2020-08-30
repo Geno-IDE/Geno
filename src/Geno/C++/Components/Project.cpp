@@ -42,6 +42,7 @@ Project& Project::operator=( Project&& other )
 	name_                = std::move( other.name_ );
 	files_               = std::move( other.files_ );
 	includes_            = std::move( other.includes_ );
+	libraries_           = std::move( other.libraries_ );
 	configrations_       = std::move( other.configrations_ );
 	files_left_to_build_ = std::move( other.files_left_to_build_ );
 	files_to_link_       = std::move( other.files_to_link_ );
@@ -104,17 +105,30 @@ bool Project::Serialize( void )
 
 	// Files
 	{
-		GCL::Object              files( "Files", std::in_place_type< GCL::Object::TableType > );
-		std::list< std::string > relative_file_path_strings;
+		GCL::Object files( "Files", std::in_place_type< GCL::Object::TableType > );
+
 		for( const std::filesystem::path& file : files_ )
 		{
-			std::filesystem::path relative_file_path        = file.lexically_relative( location_ );
-			std::string&          relative_file_path_string = relative_file_path_strings.emplace_back( relative_file_path.string() );
+			const std::filesystem::path relative_path = file.lexically_relative( location_ );
 
-			files.AddChild( GCL::Object( relative_file_path_string ) );
+			files.AddChild( GCL::Object( relative_path.string() ) );
 		}
 
 		serializer.WriteObject( files );
+	}
+
+	// Libraries
+	{
+		GCL::Object libraries( "Libraries", std::in_place_type< GCL::Object::TableType > );
+
+		for( const std::filesystem::path& library : libraries_ )
+		{
+			const std::filesystem::path relative_path = library.lexically_relative( location_ );
+
+			libraries.AddChild( GCL::Object( relative_path.string() ) );
+		}
+
+		serializer.WriteObject( libraries );
 	}
 
 	return true;
@@ -180,6 +194,19 @@ void Project::GCLObjectCallback( GCL::Object object, void* user )
 
 			file_path = file_path.lexically_normal();
 			self->includes_.emplace_back( std::move( file_path ) );
+		}
+	}
+	else if( name == "Libraries" )
+	{
+		for( auto& library : object.Table() )
+		{
+			std::filesystem::path path = library.String();
+
+			if( !path.is_absolute() )
+				path = self->location_ / path;
+
+			path = path.lexically_normal();
+			self->libraries_.emplace_back( std::move( path ) );
 		}
 	}
 }
@@ -249,10 +276,11 @@ void Project::Link( ICompiler& compiler )
 	};
 
 	LinkOptions options;
-	options.input_files = std::move( files_to_link_ );
-	options.kind        = kind_;
-	options.output_file = location_ / name_;
+	options.input_files      = std::move( files_to_link_ );
+	options.linked_libraries = libraries_;
+	options.output_file      = location_ / name_;
 	options.output_file.replace_extension( ProjectKindOutputExtension( kind_ ) );
+	options.kind             = kind_;
 
 	compiler.Link( options );
 }

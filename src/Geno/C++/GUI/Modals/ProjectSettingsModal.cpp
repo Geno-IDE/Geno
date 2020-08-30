@@ -25,10 +25,12 @@
 #include <array>
 
 #include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 enum Category
 {
 	CategoryGeneral,
+	CategoryLinker,
 	NumCategories
 };
 
@@ -37,6 +39,7 @@ static constexpr const char* CategoryString( Category category )
 	switch( category )
 	{
 		case CategoryGeneral: return "General";
+		case CategoryLinker:  return "Linker";
 		default:              return nullptr;
 	}
 }
@@ -102,6 +105,30 @@ void ProjectSettingsModal::UpdateDerived( void )
 					{
 						project->kind_ = static_cast< ProjectKind >( current_item + 1 );
 					}
+
+				} break;
+
+				case CategoryLinker:
+				{
+					if( project->kind_ == ProjectKind::StaticLibrary )
+					{
+						ImGui::TextUnformatted( "There are no linker settings for static libraries!" );
+						break;
+					}
+
+					ImGui::TextUnformatted( "Libraries" );
+
+					for( std::filesystem::path& library : project->libraries_ )
+					{
+						std::string       buf   = library.lexically_relative( project->location_ ).string();
+						const std::string label = "##LIBRARY_" + buf;
+
+						if( ImGui::InputText( label.c_str(), &buf ) )
+							library = ( project->location_ / buf ).lexically_normal();
+					}
+
+					if( ImGui::SmallButton( "+##ADD_LIBRARY" ) )
+						project->libraries_.emplace_back();
 
 				} break;
 			}

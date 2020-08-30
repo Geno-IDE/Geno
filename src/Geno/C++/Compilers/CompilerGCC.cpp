@@ -99,27 +99,85 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& options )
 	std::wstring cmd;
 	cmd.reserve( 256 );
 
-	// Start with GCC executable
-	cmd += ( FindGCCLocation() / L"bin/g++" ).lexically_normal();
-
-	// Create a shared library
-	if( options.kind == ProjectKind::DynamicLibrary )
-		cmd += L" -shared";
-
-	// Linker options
-	if( options.flags != 0 )
+	switch( options.kind )
 	{
-		cmd += L" -Wl";
+		case ProjectKind::Application:
+		case ProjectKind::DynamicLibrary:
+		{
+			// Start with GCC executable
+			cmd += ( FindGCCLocation() / L"bin/g++" ).lexically_normal();
 
-		if( options.flags & LinkOptions::LinkerFlagNoDefaultLibs ) { cmd += L",-nodefaultlibs"; }
+			// Create a shared library
+			if( options.kind == ProjectKind::DynamicLibrary )
+				cmd += L" -shared";
+
+			// Linker options
+			if( options.flags != 0 )
+			{
+				cmd += L" -Wl";
+
+				if( options.flags & LinkOptions::LinkerFlagNoDefaultLibs ) { cmd += L",-nodefaultlibs"; }
+			}
+
+			// Link libraries
+			for( const std::filesystem::path& library : options.linked_libraries )
+			{
+				cmd += L" -L" + library.parent_path().wstring();
+				cmd += L" -l" + library.filename().replace_extension().wstring();
+			}
+
+			// Set output file
+			{
+				std::filesystem::path output_file = options.output_file;
+
+				// Add "lib" prefix for dynamic libraries
+				if( options.kind == ProjectKind::DynamicLibrary )
+					output_file.replace_filename( L"lib" + output_file.filename().wstring() );
+
+				cmd += L" -o " + output_file.wstring();
+			}
+
+			// Finally, set the input files
+			for( const std::filesystem::path& input_file : options.input_files )
+				cmd += L" " + input_file.lexically_normal().wstring();
+
+		} break;
+
+		case ProjectKind::StaticLibrary:
+		{
+			// Start with AR executable
+			cmd += ( FindGCCLocation() / "bin/ar" ).lexically_normal();
+
+			// Command: Replace existing or insert new file(s) into the archive
+			cmd += L" r";
+
+			// Use full path names when matching
+			cmd += L'P';
+
+			// Only replace files that are newer than current archive contents
+			cmd += L'u';
+
+			// Do not warn if the library had to be created
+			cmd += L'c';
+
+			// Create an archive index (cf. ranlib)
+			cmd += L's';
+
+			// Do not build a symbol table
+			if( options.flags & LinkOptions::LinkerFlagNoSymbolTable )
+				cmd += L'S';
+
+			// Set output file with "lib" prefix
+			std::filesystem::path output_file = options.output_file;
+			output_file.replace_filename( L"lib" + output_file.filename().wstring() );
+			cmd += L" " + output_file.wstring();
+
+			// Set input files
+			for( const std::filesystem::path& input_file : options.input_files )
+				cmd += L" " + input_file.wstring();
+
+		} break;
 	}
-
-	// Set output file
-	cmd += L" -o " + options.output_file.wstring();
-
-	// Finally, set the input files
-	for( const std::filesystem::path& input_file : options.input_files )
-		cmd += L" " + input_file.lexically_normal().wstring();
 
 	return cmd;
 }
