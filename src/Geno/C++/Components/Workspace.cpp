@@ -199,7 +199,7 @@ void Workspace::BuildNextProject( void )
 			{
 				projects_left_to_build_.erase( it );
 
-				if( projects_left_to_build_.empty() ) OnBuildFinished();
+				if( projects_left_to_build_.empty() ) OnBuildFinished( e.output, e.success );
 				else                                  BuildNextProject();
 			}
 			else
@@ -212,8 +212,13 @@ void Workspace::BuildNextProject( void )
 	}
 }
 
-void Workspace::OnBuildFinished( void )
+void Workspace::OnBuildFinished( const std::filesystem::path& output, bool success )
 {
+	WorkspaceBuildFinished e;
+	e.workspace = this;
+	e.output    = output;
+	e.success   = success;
+	Publish( e );
 }
 
 void Workspace::SerializeBuildMatrixColumn( GCL::Object& object, const BuildMatrix::Column& column )

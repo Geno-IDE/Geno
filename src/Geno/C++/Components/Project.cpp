@@ -270,6 +270,7 @@ void Project::Link( ICompiler& compiler )
 	{
 		ProjectBuildFinished build_finished;
 		build_finished.project = this;
+		build_finished.output  = e.options.output_file;
 		build_finished.success = e.exit_code == 0;
 
 		Publish( build_finished );

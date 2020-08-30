@@ -30,8 +30,9 @@ class Project;
 
 struct ProjectBuildFinished
 {
-	Project* project;
-	bool     success;
+	Project*              project;
+	std::filesystem::path output;
+	bool                  success;
 };
 
 class Project : public EventDispatcher< Project, ProjectBuildFinished >

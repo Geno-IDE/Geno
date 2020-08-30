@@ -20,6 +20,7 @@
 #include "Components/BuildMatrix.h"
 #include "Components/Project.h"
 
+#include <Common/EventDispatcher.h>
 #include <GCL/Deserializer.h>
 
 #include <filesystem>
@@ -27,7 +28,16 @@
 #include <string>
 #include <vector>
 
-class Workspace
+class Workspace;
+
+struct WorkspaceBuildFinished
+{
+	Workspace*            workspace;
+	std::filesystem::path output;
+	bool                  success;
+};
+
+class Workspace : public EventDispatcher< Workspace, WorkspaceBuildFinished >
 {
 	GENO_DISABLE_COPY( Workspace );
 	GENO_DEFAULT_MOVE( Workspace );
@@ -69,7 +79,7 @@ private:
 private:
 
 	void BuildNextProject            ( void );
-	void OnBuildFinished             ( void );
+	void OnBuildFinished             ( const std::filesystem::path& output, bool success );
 	void SerializeBuildMatrixColumn  ( GCL::Object& object, const BuildMatrix::Column& column );
 	void DeserializeBuildMatrixColumn( BuildMatrix::Column& column, const GCL::Object& object );
 
