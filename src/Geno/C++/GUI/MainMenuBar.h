@@ -44,6 +44,7 @@ private:
 	void ActionFileOpenWorkspace ( void );
 	void ActionFileCloseWorkspace( void );
 	void ActionFileExit          ( void );
+	void ActionBuildBuildAndRun  ( void );
 	void ActionBuildBuild        ( void );
 	void ActionViewTextEdit      ( void );
 	void ActionViewWorkspace     ( void );

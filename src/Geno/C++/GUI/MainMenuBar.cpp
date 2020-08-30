@@ -34,6 +34,7 @@
 #include <string>
 
 #include <Common/LocalAppData.h>
+#include <Common/Process.h>
 #include <Common/STLExtras.h>
 
 #include <GLFW/glfw3.h>
@@ -65,7 +66,8 @@ void MainMenuBar::Show( void )
 
 		if( ImGui::BeginMenu( "Build" ) )
 		{
-			if( ImGui::MenuItem( "Build", "F7" ) ) ActionBuildBuild();
+			if( ImGui::MenuItem( "Build And Run", "F5" ) ) ActionBuildBuildAndRun();
+			if( ImGui::MenuItem( "Build", "F7" ) )         ActionBuildBuild();
 
 			ImGui::EndMenu();
 		}
@@ -122,6 +124,7 @@ void MainMenuBar::Show( void )
 	}
 	else
 	{
+		if( ImGui::IsKeyPressed( GLFW_KEY_F5 ) ) ActionBuildBuildAndRun();
 		if( ImGui::IsKeyPressed( GLFW_KEY_F7 ) ) ActionBuildBuild();
 	}
 
@@ -181,6 +184,25 @@ void MainMenuBar::ActionFileCloseWorkspace( void )
 void MainMenuBar::ActionFileExit( void )
 {
 	exit( 0 );
+}
+
+void MainMenuBar::ActionBuildBuildAndRun( void )
+{
+	if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+	{
+		OutputWidget::Instance().ClearCapture();
+
+		*workspace ^= [ this ]( const WorkspaceBuildFinished& e )
+		{
+			const std::string output_string = e.output.string();
+
+			std::cout << "=== Running " << output_string << "===\n";
+			Process process( e.output.wstring() );
+			std::cout << "=== " << output_string << " finished with exit code " << process.ExitCode() << " ===\n";
+		};
+
+		workspace->Build();
+	}
 }
 
 void MainMenuBar::ActionBuildBuild( void )
