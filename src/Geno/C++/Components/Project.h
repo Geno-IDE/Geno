@@ -65,6 +65,7 @@ public:
 	std::vector< std::filesystem::path > includes_;
 	std::vector< Configuration >         configrations_;
 	std::vector< std::filesystem::path > files_left_to_build_;
+	std::vector< std::filesystem::path > files_to_link_;
 
 private:
 
@@ -72,6 +73,7 @@ private:
 
 private:
 
-	void BuildNextFile( ICompiler& compiler );
+	void BuildNextFile ( ICompiler& compiler );
+	void Link          ( ICompiler& compiler );
 
 };

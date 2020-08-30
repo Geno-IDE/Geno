@@ -16,17 +16,42 @@
  */
 
 #pragma once
-#include "Compilers/ICompiler.h"
+#include <filesystem>
 
-class CompilerGCC : public ICompiler
+struct CompileOptions
 {
-public:
+	enum class Language
+	{
+		Unspecified,
+		C,
+		CPlusPlus,
+		Assembler,
+	};
 
-	CompilerGCC( void ) = default;
+	enum class Action
+	{
+		All,
+		OnlyPreprocess,
+		OnlyCompile,
+		CompileAndAssemble,
+	};
 
-public:
+	enum AssemblerFlags
+	{
+		AssemblerFlagReduceMemoryOverheads = 0x01,
+	};
 
-	std::wstring MakeCommandLineString( const CompileOptions& options ) override;
-	std::wstring MakeCommandLineString( const LinkOptions& options )    override;
+	enum PreprocessorFlags
+	{
+		PreprocessorFlagUndefineSystemMacros = 0x01,
+	};
+
+	std::filesystem::path input_file;
+	std::filesystem::path output_file;
+	Language              language           = Language::Unspecified;
+	Action                action             = Action::All;
+	uint32_t              assembler_flags    = 0;
+	uint32_t              preprocessor_flags = 0;
+	bool                  verbose            = false;
 
 };

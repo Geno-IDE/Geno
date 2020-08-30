@@ -16,17 +16,19 @@
  */
 
 #pragma once
-#include "Compilers/ICompiler.h"
+#include "Components/Enums/ProjectKind.h"
 
-class CompilerGCC : public ICompiler
+#include <filesystem>
+
+struct LinkOptions
 {
-public:
+	enum Flags
+	{
+		LinkerFlagNoDefaultLibs = 0x01,
+	};
 
-	CompilerGCC( void ) = default;
-
-public:
-
-	std::wstring MakeCommandLineString( const CompileOptions& options ) override;
-	std::wstring MakeCommandLineString( const LinkOptions& options )    override;
-
+	std::vector< std::filesystem::path > input_files;
+	std::filesystem::path                output_file;
+	ProjectKind                          kind  = ProjectKind::Unknown;
+	uint32_t                             flags = 0;
 };

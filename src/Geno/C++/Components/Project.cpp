@@ -44,6 +44,7 @@ Project& Project::operator=( Project&& other )
 	includes_            = std::move( other.includes_ );
 	configrations_       = std::move( other.configrations_ );
 	files_left_to_build_ = std::move( other.files_left_to_build_ );
+	files_to_link_       = std::move( other.files_to_link_ );
 
 	return *this;
 }
@@ -51,12 +52,17 @@ Project& Project::operator=( Project&& other )
 void Project::Build( ICompiler& compiler )
 {
 	files_left_to_build_.clear();
+	files_to_link_.clear();
 
 	if( files_.empty() )
 		return;
 
 	for( const std::filesystem::path& cpp : files_ )
 	{
+		// #TODO: Compiler will be per-file so this check is only temporary
+		if( cpp.extension() != ".cpp" )
+			continue;
+
 		// Keep track of which files are currently building
 		files_left_to_build_.push_back( cpp );
 	}
@@ -182,11 +188,7 @@ void Project::BuildNextFile( ICompiler& compiler )
 {
 	if( files_left_to_build_.empty() )
 	{
-		ProjectBuildFinished build_finished;
-		build_finished.project = this;
-		build_finished.success = true;
-
-		Publish( build_finished );
+		Link( compiler );
 
 		return;
 	}
@@ -206,8 +208,6 @@ void Project::BuildNextFile( ICompiler& compiler )
 		// Listen to every file compilation to check if we're 
 		compiler ^= [ this, &compiler ]( const CompilationDone& e )
 		{
-			const std::string filename = e.path.filename().string();
-
 			// Cancel build if a file failed to build
 			if( e.exit_code != 0 )
 			{
@@ -217,20 +217,42 @@ void Project::BuildNextFile( ICompiler& compiler )
 
 				Publish( build_finished );
 			}
-			else if( auto it = std::find( files_left_to_build_.begin(), files_left_to_build_.end(), e.path ); it != files_left_to_build_.end() )
+			else if( auto it = std::find( files_left_to_build_.begin(), files_left_to_build_.end(), e.options.input_file ); it != files_left_to_build_.end() )
 			{
+				files_to_link_.push_back( e.options.output_file );
 				files_left_to_build_.erase( it );
 				BuildNextFile( compiler );
 			}
 		};
 
-		ICompiler::Options options;
-		options.output_file_path = location_ / it->filename().replace_extension().string();
-		options.language         = ICompiler::Options::Language::CPlusPlus;
-		options.action           = ICompiler::Options::Action::CompileAndAssemble;
-		options.kind             = kind_;
+		CompileOptions options;
+		options.input_file  = *it;
+		options.output_file = location_ / it->filename();
+		options.output_file.replace_extension( ".o" );
+		options.language    = CompileOptions::Language::CPlusPlus;
+		options.action      = CompileOptions::Action::CompileAndAssemble;
 
 		// Compile the file
-		compiler.Compile( *it, options );
+		compiler.Compile( options );
 	}
+}
+
+void Project::Link( ICompiler& compiler )
+{
+	compiler ^= [ this ]( const LinkingDone& e )
+	{
+		ProjectBuildFinished build_finished;
+		build_finished.project = this;
+		build_finished.success = e.exit_code == 0;
+
+		Publish( build_finished );
+	};
+
+	LinkOptions options;
+	options.input_files = std::move( files_to_link_ );
+	options.kind        = kind_;
+	options.output_file = location_ / name_;
+	options.output_file.replace_extension( ProjectKindOutputExtension( kind_ ) );
+
+	compiler.Link( options );
 }

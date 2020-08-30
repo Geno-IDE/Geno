@@ -16,6 +16,8 @@
  */
 
 #pragma once
+#include "Compilers/CompileOptions.h"
+#include "Compilers/LinkOptions.h"
 #include "Components/Enums/ProjectKind.h"
 
 #include <atomic>
@@ -30,65 +32,21 @@
 
 struct CompilationDone
 {
-	std::filesystem::path path;
-
-	int exit_code;
+	CompileOptions options;
+	int            exit_code;
 };
 
-class ICompiler : public EventDispatcher< ICompiler, CompilationDone >
+struct LinkingDone
+{
+	LinkOptions options;
+	int         exit_code;
+};
+
+class ICompiler : public EventDispatcher< ICompiler, CompilationDone, LinkingDone >
 {
 public:
 
 	GENO_DISABLE_COPY( ICompiler );
-
-public:
-
-	struct Options
-	{
-		enum class Language
-		{
-			Unspecified,
-			C,
-			CPlusPlus,
-			Assembler,
-		};
-
-		enum class Action
-		{
-			All,
-			OnlyPreprocess,
-			OnlyCompile,
-			CompileAndAssemble,
-		};
-
-		enum AssemblerFlags
-		{
-			AssemblerFlagReduceMemoryOverheads = 0x01,
-		};
-
-		enum PreprocessorFlags
-		{
-			PreprocessorFlagUndefineSystemMacros = 0x01,
-		};
-
-		enum LinkerFlags
-		{
-			LinkerFlagNoDefaultLibs = 0x01,
-		};
-
-		path        output_file_path   = "output";
-
-		Language    language           = Language::Unspecified;
-		Action      action             = Action::All;
-		ProjectKind kind               = ProjectKind::Unknown;
-
-		uint32_t    assembler_flags    = 0;
-		uint32_t    preprocessor_flags = 0;
-		uint32_t    linker_flags       = 0;
-
-		bool        verbose            = false;
-
-	};
 
 public:
 
@@ -97,15 +55,19 @@ public:
 
 public:
 
-	void Compile( const std::filesystem::path& path, const ICompiler::Options& options );
+	void Compile ( const CompileOptions& options );
+	void Link    ( const LinkOptions& options );
 
 protected:
 
-	virtual std::wstring MakeCommandLineString( const std::filesystem::path& path, const Options& options ) = 0;
+	virtual std::wstring MakeCommandLineString( const CompileOptions& options ) = 0;
+	virtual std::wstring MakeCommandLineString( const LinkOptions& options )    = 0;
 
 private:
 
-	void AsyncCB( std::filesystem::path path, ICompiler::Options options );
+	void CompileAsync ( CompileOptions options );
+	void LinkAsync    ( LinkOptions options );
+	int  RunProcess   ( std::wstring_view command_line );
 
 private:
 

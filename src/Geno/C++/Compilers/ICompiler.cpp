@@ -31,26 +31,65 @@
 #include <Windows.h>
 #endif // _WIN32
 
-void ICompiler::Compile( const std::filesystem::path& path, const ICompiler::Options& options )
+void ICompiler::Compile( const CompileOptions& options )
 {
-	if( !std::filesystem::exists( path ) )
+	if( !std::filesystem::exists( options.input_file ) )
 	{
-		std::cerr << "Failed to compile " << path.string() << ". File does not exist.\n";
+		std::cerr << "Failed to compile " << options.input_file.string() << ". File does not exist.\n";
 		return;
 	}
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::future future = std::async( &ICompiler::AsyncCB, this, path, options );
+	std::future future = std::async( &ICompiler::CompileAsync, this, options );
 
 	futures_.emplace_back( std::move( future ) );
 }
 
-void ICompiler::AsyncCB( std::filesystem::path path, ICompiler::Options options )
+void ICompiler::Link( const LinkOptions& options )
+{
+	for( const std::filesystem::path& input_file : options.input_files )
+	{
+		if( !std::filesystem::exists( input_file ) )
+		{
+			std::cerr << "Failed to link " << input_file.string() << ". File does not exist.\n";
+			return;
+		}
+	}
+
+//////////////////////////////////////////////////////////////////////////
+
+	std::future future = std::async( &ICompiler::LinkAsync, this, options );
+
+	futures_.emplace_back( std::move( future ) );
+}
+
+void ICompiler::CompileAsync( CompileOptions options )
+{
+	std::wstring cmd_line  = MakeCommandLineString( options );
+	int          exit_code = RunProcess( cmd_line );
+
+	CompilationDone e;
+	e.options   = options;
+	e.exit_code = exit_code;
+	Publish( e );
+}
+
+void ICompiler::LinkAsync( LinkOptions options )
+{
+	std::wstring cmd_line  = MakeCommandLineString( options );
+	int          exit_code = RunProcess( cmd_line );
+
+	LinkingDone e;
+	e.options   = options;
+	e.exit_code = exit_code;
+	Publish( e );
+}
+
+int ICompiler::RunProcess( std::wstring_view command_line )
 {
 #if defined( _WIN32 )
 
-	std::wstring     command_line = MakeCommandLineString( path, options );
 	STARTUPINFO      startup_info = { };
 	int              fd_in        = _fileno( stdin );
 	int              fd_out       = _fileno( stdout );
@@ -64,10 +103,13 @@ void ICompiler::AsyncCB( std::filesystem::path path, ICompiler::Options options 
 	startup_info.hStdOutput  = ( ( fd_out > 0 ) ? ( HANDLE )_get_osfhandle( fd_out ) : GetStdHandle( STD_OUTPUT_HANDLE ) );
 	startup_info.hStdError   = ( ( fd_err > 0 ) ? ( HANDLE )_get_osfhandle( fd_err ) : GetStdHandle( STD_ERROR_HANDLE ) );
 
-	std::cout << ":" << path.string() << "\n";
+	static std::wstring_convert< std::codecvt_utf8< wchar_t > > convert_utf8;
+	const std::string command_line_utf8 = convert_utf8.to_bytes( command_line.data(), command_line.data() + command_line.size() );
 
-	if( !WIN32_CALL( CreateProcessW( nullptr, &command_line[ 0 ], nullptr, nullptr, TRUE, 0, nullptr, nullptr, &startup_info, &process_info ) ) )
-		return;
+	std::cout << "¤ " << command_line_utf8 << "\n";
+
+	if( !WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( command_line.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &startup_info, &process_info ) ) )
+		return -1;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -79,18 +121,7 @@ void ICompiler::AsyncCB( std::filesystem::path path, ICompiler::Options options 
 		std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
 	}
 
-	if( result )
-	{
-		CompilationDone e;
-		e.path      = path;
-		e.exit_code = ( int )exit_code;
+	return result ? static_cast< int >( exit_code ) : -1;
 
-		Publish( e );
-	}
-
-#else // _WIN32
-
-#error Can not invoke compiler
-
-#endif // else
+#endif // _WIN32
 }

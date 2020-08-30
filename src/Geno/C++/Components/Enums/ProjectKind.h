@@ -44,3 +44,20 @@ inline constexpr ProjectKind ProjectKindFromString( std::string_view kind )
 	else if( kind == "DynamicLibrary" ) return ProjectKind::DynamicLibrary;
 	else                                return ProjectKind::Unknown;
 }
+
+inline constexpr std::string_view ProjectKindOutputExtension( ProjectKind kind )
+{
+	switch( kind )
+	{
+	#if defined( _WIN32 )
+		case ProjectKind::Application:    { return ".exe";              } break;
+		case ProjectKind::StaticLibrary:  { return ".lib";              } break;
+		case ProjectKind::DynamicLibrary: { return ".dll";              } break;
+	#else // _WIN32
+		case ProjectKind::Application:    { return std::string_view();  } break;
+		case ProjectKind::StaticLibrary:  { return ".a";                } break;
+		case ProjectKind::DynamicLibrary: { return ".so";               } break;
+	#endif // else
+		default:                          { return std::string_view();  } break;
+	}
+}

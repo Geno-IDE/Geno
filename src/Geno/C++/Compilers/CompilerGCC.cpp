@@ -33,7 +33,7 @@ static std::filesystem::path FindGCCLocation( void )
 	return std::filesystem::path();
 }
 
-std::wstring CompilerGCC::MakeCommandLineString( const std::filesystem::path& path, const Options& options )
+std::wstring CompilerGCC::MakeCommandLineString( const CompileOptions& options )
 {
 	std::wstring cmd;
 	cmd.reserve( 1024 );
@@ -44,10 +44,10 @@ std::wstring CompilerGCC::MakeCommandLineString( const std::filesystem::path& pa
 	// Language
 	switch( options.language )
 	{
-		case Options::Language::Unspecified: { cmd += L" -x none";      } break;
-		case Options::Language::C:           { cmd += L" -x c";         } break;
-		case Options::Language::CPlusPlus:   { cmd += L" -x c++";       } break;
-		case Options::Language::Assembler:   { cmd += L" -x assembler"; } break;
+		case CompileOptions::Language::Unspecified: { cmd += L" -x none";      } break;
+		case CompileOptions::Language::C:           { cmd += L" -x c";         } break;
+		case CompileOptions::Language::CPlusPlus:   { cmd += L" -x c++";       } break;
+		case CompileOptions::Language::Assembler:   { cmd += L" -x assembler"; } break;
 	}
 
 	// Verbosity
@@ -63,22 +63,18 @@ std::wstring CompilerGCC::MakeCommandLineString( const std::filesystem::path& pa
 	// Actions
 	switch( options.action )
 	{
-		case Options::Action::OnlyPreprocess:     { cmd += L" -E"; } break;
-		case Options::Action::OnlyCompile:        { cmd += L" -S"; } break;
-		case Options::Action::CompileAndAssemble: { cmd += L" -c"; } break;
+		case CompileOptions::Action::OnlyPreprocess:     { cmd += L" -E"; } break;
+		case CompileOptions::Action::OnlyCompile:        { cmd += L" -S"; } break;
+		case CompileOptions::Action::CompileAndAssemble: { cmd += L" -c"; } break;
 		default:                                                     break;
 	}
-
-	// Create a shared library
-	if( options.kind == ProjectKind::DynamicLibrary )
-		cmd += L" -shared";
 
 	// Assembler options
 	if( options.assembler_flags != 0 )
 	{
 		cmd += L" -Wa";
 
-		if( options.assembler_flags & Options::AssemblerFlagReduceMemoryOverheads ) { cmd += L",--reduce-memory-overheads"; }
+		if( options.assembler_flags & CompileOptions::AssemblerFlagReduceMemoryOverheads ) { cmd += L",--reduce-memory-overheads"; }
 	}
 
 	// Preprocessor options
@@ -86,22 +82,44 @@ std::wstring CompilerGCC::MakeCommandLineString( const std::filesystem::path& pa
 	{
 		cmd += L" -Wp";
 
-		if( options.preprocessor_flags & Options::PreprocessorFlagUndefineSystemMacros ) { cmd += L",-undef"; }
-	}
-
-	// Linker options
-	if( options.linker_flags != 0 )
-	{
-		cmd += L" -Wl";
-
-		if( options.linker_flags & Options::LinkerFlagNoDefaultLibs ) { cmd += L",-nodefaultlibs"; }
+		if( options.preprocessor_flags & CompileOptions::PreprocessorFlagUndefineSystemMacros ) { cmd += L",-undef"; }
 	}
 
 	// Set output file
-	cmd += L" -o " + options.output_file_path.lexically_normal().replace_extension( ".o" ).wstring();
+	cmd += L" -o " + options.output_file.wstring();
 
 	// Finally, the input source file
-	cmd += L" " + path.lexically_normal().wstring();
+	cmd += L" " + options.input_file.wstring();
+
+	return cmd;
+}
+
+std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& options )
+{
+	std::wstring cmd;
+	cmd.reserve( 256 );
+
+	// Start with GCC executable
+	cmd += ( FindGCCLocation() / L"bin/g++" ).lexically_normal();
+
+	// Create a shared library
+	if( options.kind == ProjectKind::DynamicLibrary )
+		cmd += L" -shared";
+
+	// Linker options
+	if( options.flags != 0 )
+	{
+		cmd += L" -Wl";
+
+		if( options.flags & LinkOptions::LinkerFlagNoDefaultLibs ) { cmd += L",-nodefaultlibs"; }
+	}
+
+	// Set output file
+	cmd += L" -o " + options.output_file.wstring();
+
+	// Finally, set the input files
+	for( const std::filesystem::path& input_file : options.input_files )
+		cmd += L" " + input_file.lexically_normal().wstring();
 
 	return cmd;
 }
