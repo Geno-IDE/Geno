@@ -104,6 +104,7 @@ bool Project::Serialize( void )
 	}
 
 	// Files
+	if( !files_.empty() )
 	{
 		GCL::Object files( "Files", std::in_place_type< GCL::Object::TableType > );
 
@@ -118,6 +119,7 @@ bool Project::Serialize( void )
 	}
 
 	// Libraries
+	if( !libraries_.empty() )
 	{
 		GCL::Object libraries( "Libraries", std::in_place_type< GCL::Object::TableType > );
 
