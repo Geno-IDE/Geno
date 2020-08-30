@@ -67,7 +67,6 @@ private:
 
 	void CompileAsync ( CompileOptions options );
 	void LinkAsync    ( LinkOptions options );
-	int  RunProcess   ( std::wstring_view command_line );
 
 private:
 
