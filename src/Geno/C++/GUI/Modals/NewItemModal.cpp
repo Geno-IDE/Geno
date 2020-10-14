@@ -29,22 +29,23 @@ enum RequestType
 	RequestTypeString,
 };
 
-void NewItemModal::RequestPath( std::string_view title, void* user, PathCallback callback )
+void NewItemModal::RequestPath( std::string title, std::filesystem::path default_location, void* user, PathCallback callback )
 {
 	if( Open() )
 	{
-		title_        = title;
+		title_        = std::move( title );
+		location_     = std::move( default_location );
 		callback_     = callback;
 		user_         = user;
 		request_type_ = RequestTypePath;
 	}
 }
 
-void NewItemModal::RequestString( std::string_view title, void* user, StringCallback callback )
+void NewItemModal::RequestString( std::string title, void* user, StringCallback callback )
 {
 	if( Open() )
 	{
-		title_        = title;
+		title_        = std::move( title );
 		callback_     = callback;
 		user_         = user;
 		request_type_ = RequestTypeString;
@@ -105,18 +106,25 @@ void NewItemModal::UpdateItem( void )
 
 	ImGui::TextUnformatted( "Location" );
 
+//////////////////////////////////////////////////////////////////////////
+
+	std::string location_buf = location_.string();
+
 	ImGui::SetNextItemWidth( -60.0f );
-	ImGui::InputText( "##Location", &location_ );
+	ImGui::InputText( "##Location", &location_buf );
+
+	location_.assign( std::move( location_buf ) );
 
 	ImGui::SameLine();
 	if( ImGui::Button( "Browse" ) )
 	{
+		OpenFileModal::Instance().SetCurrentDirectory( location_ );
 		OpenFileModal::Instance().RequestDirectory( title_ + " Location", this,
 			[]( const std::filesystem::path& path, void* user )
 			{
 				NewItemModal* self = static_cast< NewItemModal* >( user );
 
-				self->location_ = path.lexically_normal().string();
+				self->location_ = path.lexically_normal();
 			}
 		);
 	}

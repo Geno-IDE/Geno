@@ -31,8 +31,8 @@ public:
 
 public:
 
-	void RequestPath  ( std::string_view title, void* user, PathCallback callback );
-	void RequestString( std::string_view title, void* user, StringCallback callback );
+	void RequestPath  ( std::string title, std::filesystem::path default_location, void* user, PathCallback callback );
+	void RequestString( std::string title, void* user, StringCallback callback );
 
 private:
 
@@ -48,12 +48,12 @@ private:
 
 private:
 
-	std::string title_;
-	std::string name_;
-	std::string location_;
+	std::string           title_;
+	std::string           name_;
+	std::filesystem::path location_;
 
-	void*       callback_     = nullptr;
-	void*       user_         = nullptr;
-	int         request_type_ = -1;
+	void*                 callback_     = nullptr;
+	void*                 user_         = nullptr;
+	int                   request_type_ = -1;
 
 };

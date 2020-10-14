@@ -27,10 +27,6 @@
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
-#if defined( _WIN32 )
-#include <Windows.h>
-#endif // _WIN32
-
 OpenFileModal::OpenFileModal( void )
 {
 #if defined( _WIN32 )
@@ -44,7 +40,12 @@ OpenFileModal::OpenFileModal( void )
 	current_directory_ = RootDirectory();
 }
 
-void OpenFileModal::RequestFile( std::string_view title, void* user, Callback callback )
+void OpenFileModal::SetCurrentDirectory( std::filesystem::path directory )
+{
+	current_directory_ = std::move( directory );
+}
+
+void OpenFileModal::RequestFile( std::string title, void* user, Callback callback )
 {
 	if( Open() )
 	{
@@ -55,11 +56,11 @@ void OpenFileModal::RequestFile( std::string_view title, void* user, Callback ca
 		user_                = user;
 		callback_            = callback;
 		directory_requested_ = false;
-		title_               = title;
+		title_               = std::move( title );
 	}
 }
 
-void OpenFileModal::RequestDirectory( std::string_view title, void* user, Callback callback )
+void OpenFileModal::RequestDirectory( std::string title, void* user, Callback callback )
 {
 	if( Open() )
 	{
@@ -70,7 +71,7 @@ void OpenFileModal::RequestDirectory( std::string_view title, void* user, Callba
 		user_                = user;
 		callback_            = callback;
 		directory_requested_ = true;
-		title_               = title;
+		title_               = std::move( title );
 	}
 }
 

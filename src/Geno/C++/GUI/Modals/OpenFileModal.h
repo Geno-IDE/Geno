@@ -23,6 +23,11 @@
 
 #include <Common/Macros.h>
 
+#if defined( _WIN32 )
+#include <Windows.h>
+#undef SetCurrentDirectory
+#endif // _WIN32
+
 class OpenFileModal : public IModal
 {
 	GENO_SINGLETON( OpenFileModal );
@@ -33,8 +38,9 @@ public:
 
 public:
 
-	void RequestFile     ( std::string_view title, void* user, Callback callback );
-	void RequestDirectory( std::string_view title, void* user, Callback callback );
+	void SetCurrentDirectory ( std::filesystem::path directory );
+	void RequestFile         ( std::string title, void* user, Callback callback );
+	void RequestDirectory    ( std::string title, void* user, Callback callback );
 
 private:
 

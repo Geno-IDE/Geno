@@ -104,9 +104,11 @@ void WorkspaceWidget::Show( bool* p_open )
 				if( ImGui::MenuItem( "Rename" ) )      open_workspace_rename_popup = true;
 				if( ImGui::MenuItem( "New Project" ) )
 				{
-					NewItemModal::Instance().RequestPath( "New Project", this,
-						[]( std::string name, std::filesystem::path location, void* /*user*/ )
+					NewItemModal::Instance().RequestPath( "New Project", workspace->location_, this,
+						[]( std::string name, std::filesystem::path location, void* user )
 						{
+							WorkspaceWidget* self = static_cast< WorkspaceWidget* >( user );
+
 							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 							{
 								workspace->NewProject( std::move( location ), std::move( name ) );
@@ -127,7 +129,9 @@ void WorkspaceWidget::Show( bool* p_open )
 				if( ImGui::MenuItem( "Rename" ) )   open_project_rename_popup = true;
 				if( ImGui::MenuItem( "New File" ) )
 				{
-					NewItemModal::Instance().RequestPath( "New File", this,
+					Project* prj = workspace->ProjectByName( selected_project_ );
+
+					NewItemModal::Instance().RequestPath( "New File", prj->location_, this,
 						[]( std::string name, std::filesystem::path location, void* user )
 						{
 							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )

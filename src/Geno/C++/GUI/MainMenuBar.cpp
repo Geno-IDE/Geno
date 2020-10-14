@@ -158,7 +158,7 @@ void MainMenuBar::Show( void )
 
 void MainMenuBar::ActionFileNewWorkspace( void )
 {
-	NewItemModal::Instance().RequestPath( "New Workspace Location", this,
+	NewItemModal::Instance().RequestPath( "New Workspace Location", std::filesystem::current_path(), this,
 		[]( std::string name, std::filesystem::path location, void* /*user*/ )
 		{
 			Application::Instance().NewWorkspace( location, std::move( name ) );
