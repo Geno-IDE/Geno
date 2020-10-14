@@ -134,10 +134,10 @@ void WorkspaceWidget::Show( bool* p_open )
 					NewItemModal::Instance().RequestPath( "New File", prj->location_, this,
 						[]( std::string name, std::filesystem::path location, void* user )
 						{
+							WorkspaceWidget* self = static_cast< WorkspaceWidget* >( user );
+
 							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 							{
-								WorkspaceWidget* self = static_cast< WorkspaceWidget* >( user );
-
 								if( Project* prj = workspace->ProjectByName( self->selected_project_ ) )
 								{
 									std::filesystem::path file_path = location / name;
@@ -149,6 +149,9 @@ void WorkspaceWidget::Show( bool* p_open )
 									}
 								}
 							}
+
+							self->project_node_to_be_expanded_ = self->selected_project_;
+							self->popup_text_.clear();
 						}
 					);
 				}
@@ -214,47 +217,6 @@ void WorkspaceWidget::Show( bool* p_open )
 
 					popup_text_.clear();
 					selected_project_.clear();
-				}
-
-				ImGui::SameLine();
-				if( ImGui::Button( "Cancel", ImVec2( 100, 0 ) ) )
-				{
-					ImGui::CloseCurrentPopup();
-				}
-
-				ImGui::EndPopup();
-			}
-			else if( ImGui::BeginPopupModal( "New File" ) )
-			{
-				ImGui::InputTextWithHint( "##Name", "File Name", &popup_text_ );
-
-				if( ImGui::Button( "Create", ImVec2( 100, 0 ) ) )
-				{
-					ImGui::CloseCurrentPopup();
-
-					OpenFileModal::Instance().RequestDirectory( "New File Location", this,
-						[]( const std::filesystem::path& path, void* user )
-						{
-							WorkspaceWidget* self = static_cast< WorkspaceWidget* >( user );
-
-							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
-							{
-								if( Project* prj = workspace->ProjectByName( self->selected_project_ ) )
-								{
-									std::filesystem::path file_path = path / std::move( self->popup_text_ );
-									std::ofstream         ofs = std::ofstream( file_path, std::ios::binary | std::ios::trunc );
-
-									if( ofs.is_open() )
-									{
-										prj->files_.emplace_back( std::move( file_path ) );
-									}
-								}
-							}
-
-							self->popup_text_.clear();
-							self->selected_project_.clear();
-						}
-					);
 				}
 
 				ImGui::SameLine();
