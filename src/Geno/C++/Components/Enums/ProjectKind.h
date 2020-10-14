@@ -33,7 +33,7 @@ inline constexpr std::string_view ProjectKindToString( ProjectKind kind )
 		case ProjectKind::Application:    return "Application";
 		case ProjectKind::StaticLibrary:  return "StaticLibrary";
 		case ProjectKind::DynamicLibrary: return "DynamicLibrary";
-		default:                          return std::string_view();
+		default:                          return "Unknown";
 	}
 }
 
