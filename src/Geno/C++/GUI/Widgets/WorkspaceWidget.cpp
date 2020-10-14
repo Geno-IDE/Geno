@@ -40,6 +40,12 @@ void WorkspaceWidget::Show( bool* p_open )
 			bool              workspace_item_hovered = false;
 			Project*          project_hovered        = nullptr;
 
+			if( expand_workspace_node_ )
+			{
+				ImGui::SetNextItemOpen( true );
+				expand_workspace_node_ = false;
+			}
+
 			if( ImGui::TreeNode( workspace_id_string.c_str() ) )
 			{
 				workspace_item_hovered = ImGui::IsItemHovered();
@@ -47,6 +53,12 @@ void WorkspaceWidget::Show( bool* p_open )
 				for( Project& prj : workspace->projects_ )
 				{
 					const std::string project_id_string = prj.name_ + "##PRJ_" + prj.name_;
+
+					if( project_node_to_be_expanded_ == prj.name_ )
+					{
+						ImGui::SetNextItemOpen( true );
+						project_node_to_be_expanded_.clear();
+					}
 
 					if( ImGui::TreeNode( project_id_string.c_str() ) )
 					{
@@ -111,6 +123,9 @@ void WorkspaceWidget::Show( bool* p_open )
 
 							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 							{
+								// Automatically expand tree if adding an item for the first time
+								self->expand_workspace_node_ = true;
+
 								workspace->NewProject( std::move( location ), std::move( name ) );
 							}
 						}
@@ -126,7 +141,9 @@ void WorkspaceWidget::Show( bool* p_open )
 			}
 			else if( ImGui::BeginPopup( "ProjectContextMenu", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings ) )
 			{
-				if( ImGui::MenuItem( "Rename" ) )   open_project_rename_popup = true;
+				if( ImGui::MenuItem( "Rename" ) )
+					open_project_rename_popup = true;
+
 				if( ImGui::MenuItem( "New File" ) )
 				{
 					Project* prj = workspace->ProjectByName( selected_project_ );

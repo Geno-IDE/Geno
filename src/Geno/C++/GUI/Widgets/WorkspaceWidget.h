@@ -30,5 +30,7 @@ private:
 
 	std::string popup_text_;
 	std::string selected_project_;
+	bool        expand_workspace_node_ = false;
+	std::string project_node_to_be_expanded_;
 
 };
