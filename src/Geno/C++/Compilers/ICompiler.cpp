@@ -17,8 +17,8 @@
 
 #include "ICompiler.h"
 
-#include "Common/Platform/Windows/Win32Error.h"
-#include "Common/Platform/Windows/Win32ProcessInfo.h"
+#include "Common/Platform/Win32/Win32Error.h"
+#include "Common/Platform/Win32/Win32ProcessInfo.h"
 #include "Common/LocalAppData.h"
 #include "Common/Process.h"
 

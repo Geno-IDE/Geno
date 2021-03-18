@@ -16,7 +16,7 @@
  */
 
 #if defined( _WIN32 )
-#include "Common/Platform/Windows/Win32Error.h"
+#include "Common/Platform/Win32/Win32Error.h"
 
 #include <iostream>
 
