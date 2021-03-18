@@ -16,7 +16,7 @@
  */
 
 #if defined( _WIN32 )
-#include "Common/Platform/Windows/Win32ProcessInfo.h"
+#include "Common/Platform/Win32/Win32ProcessInfo.h"
 
 Win32ProcessInfo::Win32ProcessInfo( void )
 	: underlying_data_{ }

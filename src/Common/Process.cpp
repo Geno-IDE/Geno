@@ -17,8 +17,8 @@
 
 #include "Common/Process.h"
 
-#include "Common/Platform/Windows/Win32Error.h"
-#include "Common/Platform/Windows/Win32ProcessInfo.h"
+#include "Common/Platform/Win32/Win32Error.h"
+#include "Common/Platform/Win32/Win32ProcessInfo.h"
 
 #include <chrono>
 #include <codecvt>
