@@ -15,13 +15,21 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Common/Platform/Win32/Win32DropTarget.h"
+#include "GUI/Platform/Win32/Win32DropTarget.h"
+
+#include "GUI/MainWindow.h"
+
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 
 #include <ShlObj.h>
 
-Win32DropTarget::Win32DropTarget( HWND hwnd )
-	: hwnd_( hwnd )
+Win32DropTarget::Win32DropTarget( void )
 {
+	GLFWwindow* window = glfwGetCurrentContext();
+	HWND        hwnd   = glfwGetWin32Window( window );
+
 	OleInitialize( nullptr );
 	CoLockObjectExternal( this, true, false );
 	RegisterDragDrop( hwnd, this );
@@ -29,8 +37,11 @@ Win32DropTarget::Win32DropTarget( HWND hwnd )
 
 Win32DropTarget::~Win32DropTarget( void )
 {
-	RevokeDragDrop( hwnd_ );
+	GLFWwindow* window = glfwGetCurrentContext();
+	HWND        hwnd   = glfwGetWin32Window( window );
+
 	CoLockObjectExternal( this, false, false );
+	RevokeDragDrop( hwnd );
 	OleUninitialize();
 }
 
@@ -82,18 +93,14 @@ HRESULT STDMETHODCALLTYPE Win32DropTarget::DragEnter( IDataObject* data_obj, DWO
 			LPDROPFILES dropfiles = static_cast< LPDROPFILES >( data );
 			LPWSTR      files     = reinterpret_cast< LPWSTR >( static_cast< LPBYTE >( data ) + dropfiles->pFiles );
 
-			OutputDebugStringW( L"Enter:" );
-
 			size_t length;
 			while( ( length = wcslen( files ) ) > 0 )
 			{
-				OutputDebugStringW( L" " );
-				OutputDebugStringW( files );
+				std::wstring_view file_path( files, length );
+				MainWindow::Instance().DragEnter( file_path, point.x, point.y );
 
 				++files += length;
 			}
-
-			OutputDebugStringW( L"\r\n" );
 
 			GlobalUnlock( stgmedium.hGlobal );
 		}
@@ -104,16 +111,14 @@ HRESULT STDMETHODCALLTYPE Win32DropTarget::DragEnter( IDataObject* data_obj, DWO
 
 HRESULT STDMETHODCALLTYPE Win32DropTarget::DragOver( DWORD /*key_state*/, POINTL point, DWORD* /*effect*/ )
 {
-	( void )point;
-
-	OutputDebugStringW( L"DragOver\r\n" );
+	MainWindow::Instance().DragOver( point.x, point.y );
 
 	return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE Win32DropTarget::DragLeave( void )
 {
-	OutputDebugStringW( L"DragLeave\r\n" );
+	MainWindow::Instance().DragLeave();
 
 	return S_OK;
 }
@@ -137,18 +142,14 @@ HRESULT STDMETHODCALLTYPE Win32DropTarget::Drop( IDataObject* data_obj, DWORD /*
 			LPDROPFILES dropfiles = static_cast< LPDROPFILES >( data );
 			LPWSTR      files     = reinterpret_cast< LPWSTR >( static_cast< LPBYTE >( data ) + dropfiles->pFiles );
 
-			OutputDebugStringW( L"Drop:" );
-
 			size_t length;
 			while( ( length = wcslen( files ) ) > 0 )
 			{
-				OutputDebugStringW( L" " );
-				OutputDebugStringW( files );
+				std::wstring_view file_path( files, length );
+				MainWindow::Instance().DragDrop( file_path, point.x, point.y );
 
 				++files += length;
 			}
-
-			OutputDebugStringW( L"\r\n" );
 
 			GlobalUnlock( stgmedium.hGlobal );
 		}

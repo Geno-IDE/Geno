@@ -156,6 +156,14 @@ void MainMenuBar::Show( void )
 	}
 }
 
+void MainMenuBar::OnDragDrop( const std::filesystem::path& path, int x, int y )
+{
+	if( show_text_edit_ )
+	{
+		TextEditWidget::Instance().OnDragDrop( path, x, y );
+	}
+}
+
 void MainMenuBar::ActionFileNewWorkspace( void )
 {
 	NewItemModal::Instance().RequestPath( "New Workspace Location", std::filesystem::current_path(), this,

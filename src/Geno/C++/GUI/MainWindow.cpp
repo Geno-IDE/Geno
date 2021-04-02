@@ -17,8 +17,8 @@
 
 #include "MainWindow.h"
 
-#include "Common/Platform/Win32/Win32DropTarget.h"
 #include "Common/LocalAppData.h"
+#include "GUI/Platform/Win32/Win32DropTarget.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/PrimaryMonitor.h"
 #include "Misc/Settings.h"
@@ -54,7 +54,7 @@ MainWindow::MainWindow( void )
 #if defined( _WIN32 )
 
 	// Create drop target
-	drop_target_ = new Win32DropTarget( glfwGetWin32Window( window_ ) );
+	drop_target_ = new Win32DropTarget();
 
 #endif // _WIN32
 
@@ -156,6 +156,37 @@ void MainWindow::PopHorizontalLayout( void )
 {
 	if( --layout_stack_counter_ == 0 )
 		im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Vertical;
+}
+
+void MainWindow::DragEnter( std::wstring_view file_path, int x, int y )
+{
+	dragged_files_.emplace_back( file_path.begin(), file_path.end() );
+	drag_pos_x_ = x;
+	drag_pos_y_ = y;
+}
+
+void MainWindow::DragOver( int x, int y )
+{
+	drag_pos_x_ = x;
+	drag_pos_y_ = y;
+}
+
+void MainWindow::DragLeave( void )
+{
+	dragged_files_.clear();
+}
+
+void MainWindow::DragDrop( std::wstring_view file_path, int x, int y )
+{
+	drag_pos_x_ = x;
+	drag_pos_y_ = y;
+
+	if( auto it = std::find( dragged_files_.begin(), dragged_files_.end(), file_path ); it != dragged_files_.end() )
+	{
+		MainMenuBar::Instance().OnDragDrop( *it, x, y );
+
+		dragged_files_.erase( it );
+	}
 }
 
 void MainWindow::GLFWSizeCB( GLFWwindow* window, int width, int height )
