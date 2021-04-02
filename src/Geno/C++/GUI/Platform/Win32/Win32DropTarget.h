@@ -23,7 +23,7 @@ class Win32DropTarget : public IDropTarget
 {
 public:
 
-	 Win32DropTarget( HWND hwnd );
+	 Win32DropTarget( void );
 	~Win32DropTarget( void );
 
 public:
@@ -38,7 +38,6 @@ public:
 
 private:
 
-	HWND hwnd_      = NULL;
 	LONG ref_count_ = 1;
 
 };
