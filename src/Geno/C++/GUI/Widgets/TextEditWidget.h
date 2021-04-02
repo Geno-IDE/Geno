@@ -40,11 +40,9 @@ public:
 
 public:
 
-	void Show( bool* p_open );
-
-public:
-
-	void AddFile( const std::filesystem::path& path );
+	void Show      ( bool* p_open );
+	void AddFile   ( const std::filesystem::path& path );
+	void OnDragDrop( const std::filesystem::path& path, int x, int y );
 
 private:
 

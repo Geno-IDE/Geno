@@ -29,9 +29,29 @@
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
+const char* WINDOW_NAME = "Text Edit";
+
 void TextEditWidget::Show( bool* p_open )
 {
-	if( ImGui::Begin( "Text Edit", p_open ) )
+	ImGuiStyle& style    = ImGui::GetStyle();
+	ImVec4      bg_color = style.Colors[ ImGuiCol_WindowBg ];
+
+	// Use a brighter background color if the widget is being drag-hovered
+	if( MainWindow::Instance().HasDraggedFiles() )
+	{
+		if( ImGuiWindow* window = ImGui::FindWindowByName( WINDOW_NAME ) )
+		{
+			const float x = static_cast< float >( MainWindow::Instance().GetDragPosX() );
+			const float y = static_cast< float >( MainWindow::Instance().GetDragPosY() );
+
+			if( window->Rect().Contains( ImVec2( x, y ) ) )
+				bg_color = bg_color + ImVec4( 0.1f, 0.1f, 0.1f, 0.1f );
+		}
+	}
+
+	ImGui::PushStyleColor( ImGuiCol_WindowBg, bg_color );
+
+	if( ImGui::Begin( WINDOW_NAME, p_open ) )
 	{
 		const int tab_bar_flags = ( 0
 			| ImGuiTabBarFlags_Reorderable
@@ -40,32 +60,29 @@ void TextEditWidget::Show( bool* p_open )
 
 		if( ImGui::BeginTabBar( "TextEditTabBar", tab_bar_flags ) )
 		{
-			if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+			for( File& file : files_ )
 			{
-				for( File& file : files_ )
-				{
-					std::string file_string = file.path.filename().string();
+				std::string file_string = file.path.filename().string();
 
-					if( ImGui::BeginTabItem( file_string.c_str(), &file.open ) )
+				if( ImGui::BeginTabItem( file_string.c_str(), &file.open ) )
+				{
+					const int input_text_flags = ImGuiInputTextFlags_AllowTabInput;
+
+					if( ImGui::InputTextMultiline( "##TextEditor", &file.text, ImVec2( -0.01f, -0.01f ), input_text_flags ) )
 					{
-						const int input_text_flags = ImGuiInputTextFlags_AllowTabInput;
-
-						if( ImGui::InputTextMultiline( "##TextEditor", &file.text, ImVec2( -0.01f, -0.01f ), input_text_flags ) )
-						{
-							std::ofstream ofs( file.path, std::ios::binary | std::ios::trunc );
-							ofs << file.text;
-						}
-
-						ImGui::EndTabItem();
+						std::ofstream ofs( file.path, std::ios::binary | std::ios::trunc );
+						ofs << file.text;
 					}
-				}
 
-				// Clear closed files from list
-				for( auto it = files_.begin(); it != files_.end(); )
-				{
-					if( it->open ) it++;
-					else           it = files_.erase( it );
+					ImGui::EndTabItem();
 				}
+			}
+
+			// Clear closed files from list
+			for( auto it = files_.begin(); it != files_.end(); )
+			{
+				if( it->open ) it++;
+				else           it = files_.erase( it );
 			}
 
 			// #TODO: Add manually opened files here
@@ -74,6 +91,7 @@ void TextEditWidget::Show( bool* p_open )
 		}
 	}
 	ImGui::End();
+	ImGui::PopStyleColor();
 }
 
 void TextEditWidget::AddFile( const std::filesystem::path& path )
@@ -105,4 +123,14 @@ void TextEditWidget::AddFile( const std::filesystem::path& path )
 	file.text = text;
 
 	files_.emplace_back( std::move( file ) );
+}
+
+void TextEditWidget::OnDragDrop( const std::filesystem::path& path, int x, int y )
+{
+	ImGuiWindow* window = ImGui::FindWindowByName( WINDOW_NAME );
+
+	if( window && window->Rect().Contains( ImVec2( static_cast< float >( x ), static_cast< float >( y ) ) ) )
+	{
+		AddFile( path );
+	}
 }

@@ -32,7 +32,8 @@ class MainMenuBar
 
 public:
 
-	void Show( void );
+	void Show      ( void );
+	void OnDragDrop( const std::filesystem::path& path, int x, int y );
 
 public:
 

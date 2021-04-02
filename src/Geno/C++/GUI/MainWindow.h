@@ -18,7 +18,9 @@
 #pragma once
 #include "Common/Macros.h"
 
+#include <filesystem>
 #include <string>
+#include <vector>
 
 #include <imgui.h>
 
@@ -42,6 +44,16 @@ public:
 	void EndFrame            ( void );
 	void PushHorizontalLayout( void );
 	void PopHorizontalLayout ( void );
+	void DragEnter           ( std::wstring_view file_path, int x, int y );
+	void DragOver            ( int x, int y );
+	void DragLeave           ( void );
+	void DragDrop            ( std::wstring_view file_path, int x, int y );
+
+public:
+
+	bool HasDraggedFiles( void ) const { return !dragged_files_.empty(); }
+	int  GetDragPosX    ( void ) const { return drag_pos_x_; }
+	int  GetDragPosY    ( void ) const { return drag_pos_y_; }
 
 private:
 
@@ -52,11 +64,14 @@ private:
 	GLFWwindow*   window_         = nullptr;
 	ImGuiContext* im_gui_context_ = nullptr;
 
-	std::string ini_path_;
+	std::vector< std::filesystem::path > dragged_files_;
+	std::string                          ini_path_;
 
 	int width_                = 0;
 	int height_               = 0;
 	int layout_stack_counter_ = 0;
+	int drag_pos_x_           = 0;
+	int drag_pos_y_           = 0;
 
 #if defined( _WIN32 )
 	Win32DropTarget* drop_target_ = nullptr;
