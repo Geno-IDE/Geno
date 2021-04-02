@@ -17,6 +17,7 @@
 
 #include "MainWindow.h"
 
+#include "Common/Platform/Win32/Win32DropTarget.h"
 #include "Common/LocalAppData.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/PrimaryMonitor.h"
@@ -27,6 +28,9 @@
 #include <examples/imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
 #include <imgui_internal.h>
+
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 MainWindow::MainWindow( void )
 {
@@ -46,10 +50,26 @@ MainWindow::MainWindow( void )
 	glfwSetWindowPos( window_, monitor.X() + ( monitor.Width() - width_ ) / 2, monitor.Y() + ( monitor.Height() - height_ ) / 2 );
 	glfwSetWindowSizeCallback( window_, GLFWSizeCB );
 	glfwSwapInterval( 1 );
+
+#if defined( _WIN32 )
+
+	// Create drop target
+	drop_target_ = new Win32DropTarget( glfwGetWin32Window( window_ ) );
+
+#endif // _WIN32
+
 }
 
 MainWindow::~MainWindow( void )
 {
+
+#if defined( _WIN32 )
+
+	// Destroy drop target
+	delete drop_target_;
+
+#endif // _WIN32
+
 	if( im_gui_context_ )
 	{
 		ImGui_ImplGlfw_Shutdown();
