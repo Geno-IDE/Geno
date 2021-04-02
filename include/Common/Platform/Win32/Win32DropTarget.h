@@ -16,50 +16,31 @@
  */
 
 #pragma once
-#include "Common/Macros.h"
+#if defined( _WIN32 )
+#include <Windows.h>
 
-#include <string>
-
-#include <imgui.h>
-
-class  Win32DropTarget;
-struct GLFWwindow;
-struct ImGuiContext;
-
-class MainWindow
+class Win32DropTarget : public IDropTarget
 {
 public:
 
-	GENO_SINGLETON( MainWindow );
-
-	~MainWindow( void );
+	 Win32DropTarget( HWND hwnd );
+	~Win32DropTarget( void );
 
 public:
 
-	void Init                ( void );
-	void MakeCurrent         ( void );
-	bool BeginFrame          ( void );
-	void EndFrame            ( void );
-	void PushHorizontalLayout( void );
-	void PopHorizontalLayout ( void );
+	HRESULT STDMETHODCALLTYPE QueryInterface( REFIID riid, void** object ) override;
+	ULONG   STDMETHODCALLTYPE AddRef        ( void ) override;
+	ULONG   STDMETHODCALLTYPE Release       ( void ) override;
+	HRESULT STDMETHODCALLTYPE DragEnter     ( IDataObject* data_obj, DWORD key_state, POINTL point, DWORD* effect ) override;
+	HRESULT STDMETHODCALLTYPE DragOver      ( DWORD key_state, POINTL point, DWORD* effect ) override;
+	HRESULT STDMETHODCALLTYPE DragLeave     ( void ) override;
+	HRESULT STDMETHODCALLTYPE Drop          ( IDataObject* data_obj, DWORD key_state, POINTL point, DWORD* effect ) override;
 
 private:
 
-	static void GLFWSizeCB( GLFWwindow* window, int width, int height );
-
-private:
-
-	GLFWwindow*   window_         = nullptr;
-	ImGuiContext* im_gui_context_ = nullptr;
-
-	std::string ini_path_;
-
-	int width_                = 0;
-	int height_               = 0;
-	int layout_stack_counter_ = 0;
-
-#if defined( _WIN32 )
-	Win32DropTarget* drop_target_ = nullptr;
-#endif // _WIN32
+	HWND hwnd_      = NULL;
+	LONG ref_count_ = 1;
 
 };
+
+#endif // _WIN32
