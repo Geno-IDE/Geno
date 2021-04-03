@@ -27,10 +27,36 @@
 
 #include <ShlObj.h>
 
+static short FormatPriority( const FORMATETC& format )
+{
+	switch( format.cfFormat )
+	{
+		default:             return 0;
+		// Bitmap
+		case CF_DIBV5:       return 10;
+		case CF_DIB:         return 9;
+		case CF_TIFF:        return 8;
+		case CF_BITMAP:      return 7;
+		// Audio
+		case CF_RIFF:        return 6;
+		case CF_WAVE:        return 5;
+		// Text
+		case CF_UNICODETEXT: return 4;
+		case CF_OEMTEXT:     return 3;
+		case CF_TEXT:        return 2;
+		// Paths
+		case CF_HDROP:       return 1;
+	}
+}
+
+static bool PrioritySortFormatsPred( const FORMATETC& a, const FORMATETC& b )
+{
+	return FormatPriority( a ) > FormatPriority( b );
+}
+
 Win32DropTarget::Win32DropTarget( void )
 {
-	GLFWwindow* window = glfwGetCurrentContext();
-	HWND        hwnd   = glfwGetWin32Window( window );
+	HWND hwnd = glfwGetWin32Window( glfwGetCurrentContext() );
 
 	OleInitialize( nullptr );
 	CoLockObjectExternal( this, true, false );
@@ -39,8 +65,7 @@ Win32DropTarget::Win32DropTarget( void )
 
 Win32DropTarget::~Win32DropTarget( void )
 {
-	GLFWwindow* window = glfwGetCurrentContext();
-	HWND        hwnd   = glfwGetWin32Window( window );
+	HWND hwnd = glfwGetWin32Window( glfwGetCurrentContext() );
 
 	CoLockObjectExternal( this, false, false );
 	RevokeDragDrop( hwnd );
@@ -78,39 +103,10 @@ ULONG STDMETHODCALLTYPE Win32DropTarget::Release( void )
 
 HRESULT STDMETHODCALLTYPE Win32DropTarget::DragEnter( IDataObject* data_obj, DWORD /*key_state*/, POINTL point, DWORD* /*effect*/ )
 {
-	FORMATETC format;
-	format.cfFormat = CF_HDROP;
-	format.ptd      = NULL;
-	format.dwAspect = DVASPECT_CONTENT;
-	format.lindex   = -1;
-	format.tymed    = TYMED_HGLOBAL;
-
-	if( data_obj->QueryGetData( &format ) == S_OK )
+	::Drop drop;
+	if( DropFromDataObject( data_obj, drop ) )
 	{
-		STGMEDIUM stgmedium;
-
-		if( data_obj->GetData( &format, &stgmedium ) == S_OK )
-		{
-			HDROP       hdrop = static_cast< HDROP >( GlobalLock( stgmedium.hGlobal ) );
-			UINT        count = DragQueryFileW( hdrop, 0xFFFFFFFF, nullptr, 0 );
-			Drop::Paths paths;
-
-			for( UINT i = 0; i < count; ++i )
-			{
-				const UINT   length = DragQueryFileW( hdrop, i, nullptr, 0 );
-				std::wstring path   = std::wstring( length, '\0' );
-				DragQueryFileW( hdrop, i, path.data(), static_cast< UINT >( path.size() ) + 1 );
-
-				paths.emplace_back( std::move( path ) );
-			}
-
-			::Drop drop;
-			drop.SetPaths( std::move( paths ) );
-			MainWindow::Instance().DragEnter( drop, point.x, point.y );
-
-			GlobalUnlock( stgmedium.hGlobal );
-			ReleaseStgMedium( &stgmedium );
-		}
+		MainWindow::Instance().DragEnter( std::move( drop ), point.x, point.y );
 	}
 
 	return S_OK;
@@ -132,40 +128,141 @@ HRESULT STDMETHODCALLTYPE Win32DropTarget::DragLeave( void )
 
 HRESULT STDMETHODCALLTYPE Win32DropTarget::Drop( IDataObject* data_obj, DWORD /*key_state*/, POINTL point, DWORD* /*effect*/ )
 {
-	FORMATETC format;
-	format.cfFormat = CF_HDROP;
-	format.ptd      = NULL;
-	format.dwAspect = DVASPECT_CONTENT;
-	format.lindex   = -1;
-	format.tymed    = TYMED_HGLOBAL;
-
-	if( data_obj->QueryGetData( &format ) == S_OK )
+	::Drop drop;
+	if( DropFromDataObject( data_obj, drop ) )
 	{
-		STGMEDIUM stgmedium;
-
-		if( data_obj->GetData( &format, &stgmedium ) == S_OK )
-		{
-			HDROP       hdrop = static_cast< HDROP >( GlobalLock( stgmedium.hGlobal ) );
-			UINT        count = DragQueryFileW( hdrop, 0xFFFFFFFF, nullptr, 0 );
-			Drop::Paths paths;
-
-			for( UINT i = 0; i < count; ++i )
-			{
-				const UINT   length = DragQueryFileW( hdrop, i, nullptr, 0 );
-				std::wstring path   = std::wstring( length, '\0' );
-				DragQueryFileW( hdrop, i, path.data(), static_cast< UINT >( path.size() ) + 1 );
-
-				paths.emplace_back( std::move( path ) );
-			}
-
-			::Drop drop;
-			drop.SetPaths( std::move( paths ) );
-			MainWindow::Instance().DragDrop( drop, point.x, point.y );
-
-			GlobalUnlock( stgmedium.hGlobal );
-			ReleaseStgMedium( &stgmedium );
-		}
+		MainWindow::Instance().DragDrop( drop, point.x, point.y );
 	}
 
 	return S_OK;
+}
+
+bool Win32DropTarget::DropFromDataObject( IDataObject* data_obj, ::Drop& out_drop )
+{
+	std::vector< FORMATETC > supported_formats;
+	IEnumFORMATETC*          format_enumerator;
+	if( data_obj->EnumFormatEtc( DATADIR_GET, &format_enumerator ) == S_OK )
+	{
+		FORMATETC format;
+		while( format_enumerator->Next( 1, &format, nullptr ) == S_OK )
+		{
+			if( format.cfFormat < CF_MAX )
+				supported_formats.push_back( format );
+		}
+
+		std::sort( supported_formats.begin(), supported_formats.end(), PrioritySortFormatsPred );
+	}
+
+	for( FORMATETC& format : supported_formats )
+	{
+		if( data_obj->QueryGetData( &format ) == S_OK )
+		{
+			// STGMEDIUM with garbage collector
+			struct CSTGMEDIUM : STGMEDIUM { ~CSTGMEDIUM() { ReleaseStgMedium( this ); } };
+
+			CSTGMEDIUM medium{ };
+			if( data_obj->GetData( &format, &medium ) == S_OK )
+			{
+				switch( medium.tymed )
+				{
+					case TYMED_HGLOBAL:
+					{
+						LPVOID global_data = GlobalLock( medium.hGlobal );
+						// Unlock HGLOBAL at the end of scope
+						struct GC { HGLOBAL hglobal; ~GC() { GlobalUnlock( hglobal ); } } gc{ medium.hGlobal };
+
+						switch( format.cfFormat )
+						{
+							case CF_DIBV5:
+							{
+								LPBITMAPV5HEADER bitmap_v5_header = static_cast< LPBITMAPV5HEADER >( global_data );
+								HCOLORSPACE      colorspace       = reinterpret_cast< HCOLORSPACE >( bitmap_v5_header + 1 );
+								LPBYTE           bits             = reinterpret_cast< LPBYTE >( colorspace + 1 );
+								Drop::Bitmap     bitmap;
+								bitmap.width                      = bitmap_v5_header->bV5Width;
+								bitmap.height                     = bitmap_v5_header->bV5Height;
+								bitmap.data                       = std::make_unique< uint8_t[] >( bitmap_v5_header->bV5SizeImage );
+
+								std::memcpy( bitmap.data.get(), bits, bitmap_v5_header->bV5SizeImage );
+
+								out_drop.SetBitmap( std::move( bitmap ) );
+
+								return true;
+							}
+
+							case CF_DIB:
+							{
+								LPBITMAPINFO bitmap_info = static_cast< LPBITMAPINFO >( global_data );
+								LPBYTE       bits        = reinterpret_cast< LPBYTE >( bitmap_info + 1 );
+								Drop::Bitmap bitmap;
+								bitmap.width             = bitmap_info->bmiHeader.biWidth;
+								bitmap.height            = bitmap_info->bmiHeader.biHeight;
+								bitmap.data              = std::make_unique< uint8_t[] >( bitmap_info->bmiHeader.biSizeImage );
+
+								std::memcpy( bitmap.data.get(), bits, bitmap_info->bmiHeader.biSizeImage );
+
+								out_drop.SetBitmap( std::move( bitmap ) );
+
+								return true;
+							}
+
+							case CF_UNICODETEXT:
+							{
+								Drop::Text text = static_cast< LPCWSTR >( global_data );
+								out_drop.SetText( std::move( text ) );
+
+								return true;
+							}
+
+							case CF_OEMTEXT:
+							{
+								LPSTR      chars  = static_cast< LPSTR >( global_data );
+								size_t     length = strlen( chars );
+								Drop::Text text   = Drop::Text( length, L'\0' );
+								MultiByteToWideChar( CP_OEMCP, 0, chars, static_cast< int >( length ), text.data(), static_cast< int >( length ) );
+
+								out_drop.SetText( std::move( text ) );
+
+								return true;
+							}
+
+							case CF_TEXT:
+							{
+								LPSTR      chars  = static_cast< LPSTR >( global_data );
+								size_t     length = strlen( chars );
+								Drop::Text text   = Drop::Text( length, L'\0' );
+								MultiByteToWideChar( CP_ACP, 0, chars, static_cast< int >( length ), text.data(), static_cast< int >( length ) );
+
+								out_drop.SetText( std::move( text ) );
+
+								return true;
+							}
+
+							case CF_HDROP:
+							{
+								HDROP       hdrop = static_cast< HDROP >( global_data );
+								UINT        count = DragQueryFileW( hdrop, 0xFFFFFFFF, nullptr, 0 );
+								Drop::Paths paths;
+
+								for( UINT i = 0; i < count; ++i )
+								{
+									const UINT   length = DragQueryFileW( hdrop, i, nullptr, 0 );
+									std::wstring path   = std::wstring( length, '\0' );
+									DragQueryFileW( hdrop, i, path.data(), static_cast< UINT >( path.size() ) + 1 );
+
+									paths.emplace_back( std::move( path ) );
+								}
+
+								out_drop.SetPaths( std::move( paths ) );
+
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return false;
 }

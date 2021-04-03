@@ -38,15 +38,48 @@ void TextEditWidget::Show( bool* p_open )
 	ImVec4      bg_color = style.Colors[ ImGuiCol_WindowBg ];
 
 	// Use a brighter background color if the widget is being drag-hovered
-	if( MainWindow::Instance().GetDraggedDrop() )
+	if( const Drop* drop = MainWindow::Instance().GetDraggedDrop() )
 	{
+		const float x = static_cast< float >( MainWindow::Instance().GetDragPosX() );
+		const float y = static_cast< float >( MainWindow::Instance().GetDragPosY() );
+
 		if( ImGuiWindow* window = ImGui::FindWindowByName( WINDOW_NAME ) )
 		{
-			const float x = static_cast< float >( MainWindow::Instance().GetDragPosX() );
-			const float y = static_cast< float >( MainWindow::Instance().GetDragPosY() );
-
 			if( window->Rect().Contains( ImVec2( x, y ) ) )
+			{
 				bg_color = bg_color + ImVec4( 0.1f, 0.1f, 0.1f, 0.1f );
+
+				switch( drop->GetType() )
+				{
+					case Drop::TypeIndex::Bitmap:
+					{
+						const Drop::Bitmap& bitmap = drop->GetBitmap();
+
+						dragged_bitmap_texture_.SetPixels( GL_RGBA8, bitmap.width, bitmap.height, GL_BGRA, bitmap.data.get() );
+
+						// Adjust image size and ensure that no dimension is bigger than 200px
+						constexpr float image_max_size = 200.0f;
+						ImVec2          image_size;
+						if( bitmap.width > bitmap.height ) image_size = ImVec2( image_max_size, image_max_size * ( bitmap.height / static_cast< float >( bitmap.width ) ) );
+						else                               image_size = ImVec2( image_max_size * ( bitmap.width / static_cast< float >( bitmap.height ) ), image_max_size );
+
+						ImGui::SetNextWindowPos( ImVec2( x, y ) );
+						ImGui::BeginTooltip();
+						ImGui::Image( dragged_bitmap_texture_.GetID(), image_size, ImVec2( 0, 1 ), ImVec2( 1, 0 ) );
+						ImGui::EndTooltip();
+
+					} break;
+
+					case Drop::TypeIndex::Text:
+					{
+						const Drop::Text& text = drop->GetText();
+
+						ImGui::SetNextWindowPos( ImVec2( x, y ) );
+						ImGui::SetTooltip( "%ws", text.c_str() );
+
+					} break;
+				}
+			}
 		}
 	}
 

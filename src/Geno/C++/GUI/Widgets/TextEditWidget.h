@@ -16,7 +16,8 @@
  */
 
 #pragma once
-#include "Common/Macros.h"
+#include <Common/Macros.h>
+#include <Common/Texture2D.h>
 
 #include <filesystem>
 #include <string>
@@ -46,6 +47,8 @@ public:
 	void OnDragDrop( const Drop& drop, int x, int y );
 
 private:
+
+	Texture2D           dragged_bitmap_texture_;
 
 	std::vector< File > files_;
 

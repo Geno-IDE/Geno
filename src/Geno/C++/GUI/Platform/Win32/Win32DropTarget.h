@@ -17,6 +17,8 @@
 
 #pragma once
 #if defined( _WIN32 )
+#include <Common/Drop.h>
+
 #include <Windows.h>
 
 class Win32DropTarget : public IDropTarget
@@ -35,6 +37,10 @@ public:
 	HRESULT STDMETHODCALLTYPE DragOver      ( DWORD key_state, POINTL point, DWORD* effect ) override;
 	HRESULT STDMETHODCALLTYPE DragLeave     ( void ) override;
 	HRESULT STDMETHODCALLTYPE Drop          ( IDataObject* data_obj, DWORD key_state, POINTL point, DWORD* effect ) override;
+
+private:
+
+	bool DropFromDataObject( IDataObject* data_obj, ::Drop& out_drop );
 
 private:
 
