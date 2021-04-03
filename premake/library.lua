@@ -8,6 +8,7 @@ function library( name )
 	appid '%{settings.bundle_namespace}.libs.%{string.lower(prj.name)}'
 	kind 'StaticLib'
 	links( libraries )
+	links( third_party_libraries )
 	location 'build/%{_ACTION}'
 
 	files {
