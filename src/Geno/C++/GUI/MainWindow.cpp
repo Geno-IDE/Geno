@@ -158,11 +158,11 @@ void MainWindow::PopHorizontalLayout( void )
 		im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Vertical;
 }
 
-void MainWindow::DragEnter( std::wstring_view file_path, int x, int y )
+void MainWindow::DragEnter( Drop drop, int x, int y )
 {
-	dragged_files_.emplace_back( file_path.begin(), file_path.end() );
-	drag_pos_x_ = x;
-	drag_pos_y_ = y;
+	dragged_drop_ = std::move( drop );
+	drag_pos_x_   = x;
+	drag_pos_y_   = y;
 }
 
 void MainWindow::DragOver( int x, int y )
@@ -173,20 +173,19 @@ void MainWindow::DragOver( int x, int y )
 
 void MainWindow::DragLeave( void )
 {
-	dragged_files_.clear();
+	dragged_drop_.reset();
 }
 
-void MainWindow::DragDrop( std::wstring_view file_path, int x, int y )
+void MainWindow::DragDrop( const Drop& drop, int x, int y )
 {
 	drag_pos_x_ = x;
 	drag_pos_y_ = y;
 
-	if( auto it = std::find( dragged_files_.begin(), dragged_files_.end(), file_path ); it != dragged_files_.end() )
-	{
-		MainMenuBar::Instance().OnDragDrop( *it, x, y );
+	// NOTE: Here we assume that the provided @drop is the same as @dragged_drop_
 
-		dragged_files_.erase( it );
-	}
+	MainMenuBar::Instance().OnDragDrop( drop, x, y );
+
+	dragged_drop_.reset();
 }
 
 void MainWindow::GLFWSizeCB( GLFWwindow* window, int width, int height )

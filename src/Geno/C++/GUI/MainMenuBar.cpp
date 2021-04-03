@@ -156,11 +156,11 @@ void MainMenuBar::Show( void )
 	}
 }
 
-void MainMenuBar::OnDragDrop( const std::filesystem::path& path, int x, int y )
+void MainMenuBar::OnDragDrop( const Drop& drop, int x, int y )
 {
 	if( show_text_edit_ )
 	{
-		TextEditWidget::Instance().OnDragDrop( path, x, y );
+		TextEditWidget::Instance().OnDragDrop( drop, x, y );
 	}
 }
 
