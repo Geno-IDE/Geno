@@ -73,9 +73,25 @@ void TextEditWidget::Show( bool* p_open )
 					case Drop::TypeIndex::Text:
 					{
 						const Drop::Text& text = drop->GetText();
-
+						
 						ImGui::SetNextWindowPos( ImVec2( x, y ) );
-						ImGui::SetTooltip( "%ws", text.c_str() );
+						ImGui::BeginTooltip();
+						ImGui::Text( "%ws", text.c_str() );
+						ImGui::EndTooltip();
+
+					} break;
+
+					case Drop::TypeIndex::Paths:
+					{
+						const Drop::Paths& paths = drop->GetPaths();
+						
+						ImGui::SetNextWindowPos( ImVec2( x, y ) );
+						ImGui::BeginTooltip();
+
+						for( const std::filesystem::path& path : paths )
+							ImGui::BulletText( "%ws", path.c_str() );
+
+						ImGui::EndTooltip();
 
 					} break;
 				}
