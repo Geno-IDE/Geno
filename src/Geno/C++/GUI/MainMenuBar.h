@@ -23,6 +23,7 @@
 
 #include <Common/Macros.h>
 
+class  Drop;
 struct CompilationDone;
 struct WorkspaceOpened;
 
@@ -33,7 +34,7 @@ class MainMenuBar
 public:
 
 	void Show      ( void );
-	void OnDragDrop( const std::filesystem::path& path, int x, int y );
+	void OnDragDrop( const Drop& drop, int x, int y );
 
 public:
 

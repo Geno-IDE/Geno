@@ -17,6 +17,7 @@
 
 #include "TextEditWidget.h"
 
+#include "Common/Drop.h"
 #include "Common/LocalAppData.h"
 #include "GUI/Application.h"
 #include "GUI/MainMenuBar.h"
@@ -37,7 +38,7 @@ void TextEditWidget::Show( bool* p_open )
 	ImVec4      bg_color = style.Colors[ ImGuiCol_WindowBg ];
 
 	// Use a brighter background color if the widget is being drag-hovered
-	if( MainWindow::Instance().HasDraggedFiles() )
+	if( MainWindow::Instance().GetDraggedDrop() )
 	{
 		if( ImGuiWindow* window = ImGui::FindWindowByName( WINDOW_NAME ) )
 		{
@@ -123,12 +124,22 @@ void TextEditWidget::AddFile( const std::filesystem::path& path )
 	files_.emplace_back( std::move( file ) );
 }
 
-void TextEditWidget::OnDragDrop( const std::filesystem::path& path, int x, int y )
+void TextEditWidget::OnDragDrop( const Drop& drop, int x, int y )
 {
 	ImGuiWindow* window = ImGui::FindWindowByName( WINDOW_NAME );
 
 	if( window && window->Rect().Contains( ImVec2( static_cast< float >( x ), static_cast< float >( y ) ) ) )
 	{
-		AddFile( path );
+		switch( drop.GetType() )
+		{
+			case Drop::TypeIndex::Paths:
+			{
+				const Drop::Paths& paths = drop.GetPaths();
+
+				for( const std::filesystem::path& path : paths )
+					AddFile( path );
+
+			} break;
+		}
 	}
 }

@@ -16,9 +16,11 @@
  */
 
 #pragma once
+#include "Common/Drop.h"
 #include "Common/Macros.h"
 
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -44,16 +46,16 @@ public:
 	void EndFrame            ( void );
 	void PushHorizontalLayout( void );
 	void PopHorizontalLayout ( void );
-	void DragEnter           ( std::wstring_view file_path, int x, int y );
+	void DragEnter           ( Drop drop, int x, int y );
 	void DragOver            ( int x, int y );
 	void DragLeave           ( void );
-	void DragDrop            ( std::wstring_view file_path, int x, int y );
+	void DragDrop            ( const Drop& drop, int x, int y );
 
 public:
 
-	bool HasDraggedFiles( void ) const { return !dragged_files_.empty(); }
-	int  GetDragPosX    ( void ) const { return drag_pos_x_; }
-	int  GetDragPosY    ( void ) const { return drag_pos_y_; }
+	const Drop* GetDraggedDrop( void ) const { return dragged_drop_.has_value() ? &dragged_drop_.value() : nullptr; }
+	int         GetDragPosX   ( void ) const { return drag_pos_x_; }
+	int         GetDragPosY   ( void ) const { return drag_pos_y_; }
 
 private:
 
@@ -64,8 +66,8 @@ private:
 	GLFWwindow*   window_         = nullptr;
 	ImGuiContext* im_gui_context_ = nullptr;
 
-	std::vector< std::filesystem::path > dragged_files_;
-	std::string                          ini_path_;
+	std::string           ini_path_;
+	std::optional< Drop > dragged_drop_;
 
 	int width_                = 0;
 	int height_               = 0;
