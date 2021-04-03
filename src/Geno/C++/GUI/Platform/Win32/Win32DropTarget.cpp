@@ -19,6 +19,8 @@
 
 #include "GUI/MainWindow.h"
 
+#include <Common/Drop.h>
+
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -76,30 +78,35 @@ ULONG STDMETHODCALLTYPE Win32DropTarget::Release( void )
 
 HRESULT STDMETHODCALLTYPE Win32DropTarget::DragEnter( IDataObject* data_obj, DWORD /*key_state*/, POINTL point, DWORD* /*effect*/ )
 {
-	FORMATETC formatetc;
-	formatetc.cfFormat = CF_HDROP;
-	formatetc.ptd      = NULL;
-	formatetc.dwAspect = DVASPECT_CONTENT;
-	formatetc.lindex   = -1;
-	formatetc.tymed    = TYMED_HGLOBAL;
+	FORMATETC format;
+	format.cfFormat = CF_HDROP;
+	format.ptd      = NULL;
+	format.dwAspect = DVASPECT_CONTENT;
+	format.lindex   = -1;
+	format.tymed    = TYMED_HGLOBAL;
 
-	if( data_obj->QueryGetData( &formatetc ) == S_OK )
+	if( data_obj->QueryGetData( &format ) == S_OK )
 	{
 		STGMEDIUM stgmedium;
 
-		if( data_obj->GetData( &formatetc, &stgmedium ) == S_OK )
+		if( data_obj->GetData( &format, &stgmedium ) == S_OK )
 		{
-			HDROP drop  = static_cast< HDROP >( GlobalLock( stgmedium.hGlobal ) );
-			UINT  count = DragQueryFileW( drop, 0xFFFFFFFF, nullptr, 0 );
+			HDROP       hdrop = static_cast< HDROP >( GlobalLock( stgmedium.hGlobal ) );
+			UINT        count = DragQueryFileW( hdrop, 0xFFFFFFFF, nullptr, 0 );
+			Drop::Paths paths;
 
 			for( UINT i = 0; i < count; ++i )
 			{
-				const UINT   length = DragQueryFileW( drop, i, nullptr, 0 );
+				const UINT   length = DragQueryFileW( hdrop, i, nullptr, 0 );
 				std::wstring path   = std::wstring( length, '\0' );
-				DragQueryFileW( drop, i, path.data(), static_cast< UINT >( path.size() ) + 1 );
+				DragQueryFileW( hdrop, i, path.data(), static_cast< UINT >( path.size() ) + 1 );
 
-				MainWindow::Instance().DragEnter( path, point.x, point.y );
+				paths.emplace_back( std::move( path ) );
 			}
+
+			::Drop drop;
+			drop.SetPaths( std::move( paths ) );
+			MainWindow::Instance().DragEnter( drop, point.x, point.y );
 
 			GlobalUnlock( stgmedium.hGlobal );
 			ReleaseStgMedium( &stgmedium );
@@ -125,30 +132,35 @@ HRESULT STDMETHODCALLTYPE Win32DropTarget::DragLeave( void )
 
 HRESULT STDMETHODCALLTYPE Win32DropTarget::Drop( IDataObject* data_obj, DWORD /*key_state*/, POINTL point, DWORD* /*effect*/ )
 {
-	FORMATETC formatetc;
-	formatetc.cfFormat = CF_HDROP;
-	formatetc.ptd      = NULL;
-	formatetc.dwAspect = DVASPECT_CONTENT;
-	formatetc.lindex   = -1;
-	formatetc.tymed    = TYMED_HGLOBAL;
+	FORMATETC format;
+	format.cfFormat = CF_HDROP;
+	format.ptd      = NULL;
+	format.dwAspect = DVASPECT_CONTENT;
+	format.lindex   = -1;
+	format.tymed    = TYMED_HGLOBAL;
 
-	if( data_obj->QueryGetData( &formatetc ) == S_OK )
+	if( data_obj->QueryGetData( &format ) == S_OK )
 	{
 		STGMEDIUM stgmedium;
 
-		if( data_obj->GetData( &formatetc, &stgmedium ) == S_OK )
+		if( data_obj->GetData( &format, &stgmedium ) == S_OK )
 		{
-			HDROP drop  = static_cast< HDROP >( GlobalLock( stgmedium.hGlobal ) );
-			UINT  count = DragQueryFileW( drop, 0xFFFFFFFF, nullptr, 0 );
+			HDROP       hdrop = static_cast< HDROP >( GlobalLock( stgmedium.hGlobal ) );
+			UINT        count = DragQueryFileW( hdrop, 0xFFFFFFFF, nullptr, 0 );
+			Drop::Paths paths;
 
 			for( UINT i = 0; i < count; ++i )
 			{
-				const UINT   length = DragQueryFileW( drop, i, nullptr, 0 );
+				const UINT   length = DragQueryFileW( hdrop, i, nullptr, 0 );
 				std::wstring path   = std::wstring( length, '\0' );
-				DragQueryFileW( drop, i, path.data(), static_cast< UINT >( path.size() ) + 1 );
+				DragQueryFileW( hdrop, i, path.data(), static_cast< UINT >( path.size() ) + 1 );
 
-				MainWindow::Instance().DragDrop( path, point.x, point.y );
+				paths.emplace_back( std::move( path ) );
 			}
+
+			::Drop drop;
+			drop.SetPaths( std::move( paths ) );
+			MainWindow::Instance().DragDrop( drop, point.x, point.y );
 
 			GlobalUnlock( stgmedium.hGlobal );
 			ReleaseStgMedium( &stgmedium );
