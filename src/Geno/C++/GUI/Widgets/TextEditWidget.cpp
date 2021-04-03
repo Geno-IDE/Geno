@@ -85,8 +85,6 @@ void TextEditWidget::Show( bool* p_open )
 				else           it = files_.erase( it );
 			}
 
-			// #TODO: Add manually opened files here
-
 			ImGui::EndTabBar();
 		}
 	}
