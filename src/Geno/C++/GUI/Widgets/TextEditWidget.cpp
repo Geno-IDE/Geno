@@ -108,7 +108,7 @@ void TextEditWidget::Show( bool* p_open )
 			| ImGuiTabBarFlags_FittingPolicyScroll
 		);
 
-		if( ImGui::BeginTabBar( "TextEditTabBar", tab_bar_flags ) )
+		if( !files_.empty() && ImGui::BeginTabBar( "TextEditTabBar", tab_bar_flags ) )
 		{
 			for( File& file : files_ )
 			{
