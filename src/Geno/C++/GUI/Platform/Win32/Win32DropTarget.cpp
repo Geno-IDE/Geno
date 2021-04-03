@@ -89,20 +89,20 @@ HRESULT STDMETHODCALLTYPE Win32DropTarget::DragEnter( IDataObject* data_obj, DWO
 
 		if( data_obj->GetData( &formatetc, &stgmedium ) == S_OK )
 		{
-			LPVOID      data      = GlobalLock( stgmedium.hGlobal );
-			LPDROPFILES dropfiles = static_cast< LPDROPFILES >( data );
-			LPWSTR      files     = reinterpret_cast< LPWSTR >( static_cast< LPBYTE >( data ) + dropfiles->pFiles );
+			HDROP drop  = static_cast< HDROP >( GlobalLock( stgmedium.hGlobal ) );
+			UINT  count = DragQueryFileW( drop, 0xFFFFFFFF, nullptr, 0 );
 
-			size_t length;
-			while( ( length = wcslen( files ) ) > 0 )
+			for( UINT i = 0; i < count; ++i )
 			{
-				std::wstring_view file_path( files, length );
-				MainWindow::Instance().DragEnter( file_path, point.x, point.y );
+				const UINT   length = DragQueryFileW( drop, i, nullptr, 0 );
+				std::wstring path   = std::wstring( length, '\0' );
+				DragQueryFileW( drop, i, path.data(), static_cast< UINT >( path.size() ) + 1 );
 
-				++files += length;
+				MainWindow::Instance().DragEnter( path, point.x, point.y );
 			}
 
 			GlobalUnlock( stgmedium.hGlobal );
+			ReleaseStgMedium( &stgmedium );
 		}
 	}
 
@@ -138,20 +138,20 @@ HRESULT STDMETHODCALLTYPE Win32DropTarget::Drop( IDataObject* data_obj, DWORD /*
 
 		if( data_obj->GetData( &formatetc, &stgmedium ) == S_OK )
 		{
-			LPVOID      data      = GlobalLock( stgmedium.hGlobal );
-			LPDROPFILES dropfiles = static_cast< LPDROPFILES >( data );
-			LPWSTR      files     = reinterpret_cast< LPWSTR >( static_cast< LPBYTE >( data ) + dropfiles->pFiles );
+			HDROP drop  = static_cast< HDROP >( GlobalLock( stgmedium.hGlobal ) );
+			UINT  count = DragQueryFileW( drop, 0xFFFFFFFF, nullptr, 0 );
 
-			size_t length;
-			while( ( length = wcslen( files ) ) > 0 )
+			for( UINT i = 0; i < count; ++i )
 			{
-				std::wstring_view file_path( files, length );
-				MainWindow::Instance().DragDrop( file_path, point.x, point.y );
+				const UINT   length = DragQueryFileW( drop, i, nullptr, 0 );
+				std::wstring path   = std::wstring( length, '\0' );
+				DragQueryFileW( drop, i, path.data(), static_cast< UINT >( path.size() ) + 1 );
 
-				++files += length;
+				MainWindow::Instance().DragDrop( path, point.x, point.y );
 			}
 
 			GlobalUnlock( stgmedium.hGlobal );
+			ReleaseStgMedium( &stgmedium );
 		}
 	}
 
