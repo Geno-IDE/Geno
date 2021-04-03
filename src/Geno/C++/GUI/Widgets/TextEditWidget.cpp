@@ -49,7 +49,7 @@ void TextEditWidget::Show( bool* p_open )
 		}
 	}
 
-	ImGui::PushStyleColor( ImGuiCol_WindowBg, bg_color );
+	ImGui::PushStyleColor( ImGuiCol_ChildBg, bg_color );
 
 	if( ImGui::Begin( WINDOW_NAME, p_open ) )
 	{
