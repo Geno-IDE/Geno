@@ -3,7 +3,6 @@ require 'customizations'
 
 cppdialect 'C++17'
 debugdir '../assets'
-defines { 'GLEW_STATIC', 'IMGUI_IMPL_OPENGL_LOADER_GLEW', 'IMGUI_DEFINE_MATH_OPERATORS' }
 exceptionhandling 'Off'
 flags { 'MultiProcessorCompile' }
 gradleversion( '3.1.4' )
@@ -14,6 +13,13 @@ objdir '../obj'
 rtti 'Off'
 targetdir '../%{iif(prj.kind == "StaticLib" or prj.kind == "SharedLib","lib","bin")}/%{cfg.platform}/%{cfg.buildcfg}'
 warnings 'Extra'
+
+defines {
+	'GLEW_STATIC',
+	'IMGUI_IMPL_OPENGL_LOADER_GLEW',
+	'IMGUI_DEFINE_MATH_OPERATORS',
+	'ImTextureID=unsigned int',
+}
 
 filter 'configurations:Debug'
 	optimize 'Off'

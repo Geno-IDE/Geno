@@ -17,6 +17,7 @@
 
 #pragma once
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <variant>
 #include <vector>
@@ -25,19 +26,26 @@ class Drop
 {
 public:
 
+	struct Bitmap
+	{
+		std::unique_ptr< uint8_t[] > data;
+		uint32_t                     width;
+		uint32_t                     height;
+
+	}; // Bitmap
+
 	enum class TypeIndex
 	{
-		Text,   // CF_TEXT,   CF_OEMTEXT, CF_UNICODETEXT
-		Bitmap, // CF_BITMAP, CF_TIFF,    CF_DIB,        CF_DIBV5
-//		Audio,  // CF_RIFF,   CF_WAVE
-		Paths,  // CF_HDROP
+		Text,
+		Bitmap,
+//		Audio,
+		Paths,
 
 	}; // TypeIndex
 
 //////////////////////////////////////////////////////////////////////////
 
 	using Text    = std::wstring;
-	using Bitmap  = std::vector< uint8_t >;
 //	using Audio   = std::nullptr_t;
 	using Paths   = std::vector< std::filesystem::path >;
 	using Variant = std::variant< Text, Bitmap, /*Audio,*/ Paths >;
