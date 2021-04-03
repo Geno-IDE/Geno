@@ -18,6 +18,10 @@ third_party_library 'glfw'
 third_party_library 'imgui'
 
 library 'Common'
+	sysincludedirs {
+		'third_party/glew/include',
+	}
+
 library 'GCL'
 
 app( settings.workspace_name )
