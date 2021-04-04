@@ -34,49 +34,55 @@ class MainWindow
 {
 public:
 
-	GENO_SINGLETON( MainWindow );
+    GENO_SINGLETON( MainWindow );
 
-	~MainWindow( void );
-
-public:
-
-	void Init                ( void );
-	void MakeCurrent         ( void );
-	bool BeginFrame          ( void );
-	void EndFrame            ( void );
-	void PushHorizontalLayout( void );
-	void PopHorizontalLayout ( void );
-	void DragEnter           ( Drop drop, int x, int y );
-	void DragOver            ( int x, int y );
-	void DragLeave           ( void );
-	void DragDrop            ( const Drop& drop, int x, int y );
+    ~MainWindow( void );
 
 public:
 
-	const Drop* GetDraggedDrop( void ) const { return dragged_drop_.has_value() ? &dragged_drop_.value() : nullptr; }
-	int         GetDragPosX   ( void ) const { return drag_pos_x_; }
-	int         GetDragPosY   ( void ) const { return drag_pos_y_; }
+    void Init                ( void );
+    void MakeCurrent         ( void );
+    bool BeginFrame          ( void );
+    void EndFrame            ( void );
+    void PushHorizontalLayout( void );
+    void PopHorizontalLayout ( void );
+    void DragEnter           ( Drop drop, int x, int y );
+    void DragOver            ( int x, int y );
+    void DragLeave           ( void );
+    void DragDrop            ( const Drop& drop, int x, int y );
+
+public:
+
+    const Drop* GetDraggedDrop( void ) const {
+        return dragged_drop_.has_value() ? &dragged_drop_.value() : nullptr;
+    }
+    int         GetDragPosX   ( void ) const {
+        return drag_pos_x_;
+    }
+    int         GetDragPosY   ( void ) const {
+        return drag_pos_y_;
+    }
 
 private:
 
-	static void GLFWSizeCB( GLFWwindow* window, int width, int height );
+    static void GLFWSizeCB( GLFWwindow* window, int width, int height );
 
 private:
 
-	GLFWwindow*   window_         = nullptr;
-	ImGuiContext* im_gui_context_ = nullptr;
+    GLFWwindow*   window_         = nullptr;
+    ImGuiContext* im_gui_context_ = nullptr;
 
-	std::string           ini_path_;
-	std::optional< Drop > dragged_drop_;
+    std::string           ini_path_;
+    std::optional< Drop > dragged_drop_;
 
-	int width_                = 0;
-	int height_               = 0;
-	int layout_stack_counter_ = 0;
-	int drag_pos_x_           = 0;
-	int drag_pos_y_           = 0;
+    int width_                = 0;
+    int height_               = 0;
+    int layout_stack_counter_ = 0;
+    int drag_pos_x_           = 0;
+    int drag_pos_y_           = 0;
 
 #if defined( _WIN32 )
-	Win32DropTarget* drop_target_ = nullptr;
+    Win32DropTarget* drop_target_ = nullptr;
 #endif // _WIN32
 
 };

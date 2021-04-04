@@ -42,248 +42,248 @@
 
 void MainMenuBar::Show( void )
 {
-	// Initialize windows before user requests it be shown
-	OutputWidget::Instance();
-	TextEditWidget::Instance();
-	WorkspaceWidget::Instance();
+    // Initialize windows before user requests it be shown
+    OutputWidget::Instance();
+    TextEditWidget::Instance();
+    WorkspaceWidget::Instance();
 
-	if( ImGui::BeginMainMenuBar() )
-	{
-		height_ = ImGui::GetWindowHeight();
+    if( ImGui::BeginMainMenuBar() )
+    {
+        height_ = ImGui::GetWindowHeight();
 
-		if( ImGui::BeginMenu( "File" ) )
-		{
-			if( ImGui::MenuItem( "New Workspace", "Ctrl+N" ) )   ActionFileNewWorkspace();
-			if( ImGui::MenuItem( "Open Workspace", "Ctrl+O" ) )  ActionFileOpenWorkspace();
-			if( ImGui::MenuItem( "Close Workspace", "Ctrl+W" ) ) ActionFileCloseWorkspace();
+        if( ImGui::BeginMenu( "File" ) )
+        {
+            if( ImGui::MenuItem( "New Workspace", "Ctrl+N" ) )   ActionFileNewWorkspace();
+            if( ImGui::MenuItem( "Open Workspace", "Ctrl+O" ) )  ActionFileOpenWorkspace();
+            if( ImGui::MenuItem( "Close Workspace", "Ctrl+W" ) ) ActionFileCloseWorkspace();
 
-			ImGui::Separator();
+            ImGui::Separator();
 
-			if( ImGui::MenuItem( "Exit", "Alt+E" ) ) ActionFileExit();
+            if( ImGui::MenuItem( "Exit", "Alt+E" ) ) ActionFileExit();
 
-			ImGui::EndMenu();
-		}
+            ImGui::EndMenu();
+        }
 
-		if( ImGui::BeginMenu( "Build" ) )
-		{
-			if( ImGui::MenuItem( "Build And Run", "F5" ) ) ActionBuildBuildAndRun();
-			if( ImGui::MenuItem( "Build", "F7" ) )         ActionBuildBuild();
+        if( ImGui::BeginMenu( "Build" ) )
+        {
+            if( ImGui::MenuItem( "Build And Run", "F5" ) ) ActionBuildBuildAndRun();
+            if( ImGui::MenuItem( "Build", "F7" ) )         ActionBuildBuild();
 
-			ImGui::EndMenu();
-		}
+            ImGui::EndMenu();
+        }
 
-		if( ImGui::BeginMenu( "View" ) )
-		{
-			if( ImGui::MenuItem( "Text Edit", "Alt+T" ) ) ActionViewTextEdit();
-			if( ImGui::MenuItem( "Workspace", "Alt+W" ) ) ActionViewWorkspace();
-			if( ImGui::MenuItem( "Settings", "Alt+S" ) )  ActionViewSettings();
-			if( ImGui::MenuItem( "Output", "Alt+O" ) )    ActionViewOutput();
+        if( ImGui::BeginMenu( "View" ) )
+        {
+            if( ImGui::MenuItem( "Text Edit", "Alt+T" ) ) ActionViewTextEdit();
+            if( ImGui::MenuItem( "Workspace", "Alt+W" ) ) ActionViewWorkspace();
+            if( ImGui::MenuItem( "Settings", "Alt+S" ) )  ActionViewSettings();
+            if( ImGui::MenuItem( "Output", "Alt+O" ) )    ActionViewOutput();
 
-			ImGui::EndMenu();
-		}
+            ImGui::EndMenu();
+        }
 
-		if( ImGui::BeginMenu( "Help" ) )
-		{
-			if( ImGui::MenuItem( "Demo" ) )  ActionHelpDemo();
-			if( ImGui::MenuItem( "About" ) ) ActionHelpAbout();
+        if( ImGui::BeginMenu( "Help" ) )
+        {
+            if( ImGui::MenuItem( "Demo" ) )  ActionHelpDemo();
+            if( ImGui::MenuItem( "About" ) ) ActionHelpAbout();
 
-			ImGui::EndMenu();
-		}
+            ImGui::EndMenu();
+        }
 
-		if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
-		{
-			ImGui::Separator();
+        if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+        {
+            ImGui::Separator();
 
-			for( auto& column : workspace->build_matrix_.columns_ )
-			{
-				AddBuildMatrixColumn( column );
-			}
-		}
+            for( auto& column : workspace->build_matrix_.columns_ )
+            {
+                AddBuildMatrixColumn( column );
+            }
+        }
 
-		ImGui::EndMainMenuBar();
-	}
+        ImGui::EndMainMenuBar();
+    }
 
-	// Keybinds
+    // Keybinds
 
-	if( ImGui::IsKeyDown( GLFW_KEY_LEFT_SHIFT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_SHIFT ) )
-	{
-	}
-	else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_CONTROL ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_CONTROL ) )
-	{
-		if( ImGui::IsKeyPressed( GLFW_KEY_N ) ) ActionFileNewWorkspace();
-		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionFileOpenWorkspace();
-		if( ImGui::IsKeyPressed( GLFW_KEY_W ) ) ActionFileCloseWorkspace();
-	}
-	else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_ALT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_ALT ) )
-	{
-		if( ImGui::IsKeyPressed( GLFW_KEY_E ) ) ActionFileExit();
-		if( ImGui::IsKeyPressed( GLFW_KEY_T ) ) ActionViewTextEdit();
-		if( ImGui::IsKeyPressed( GLFW_KEY_W ) ) ActionViewWorkspace();
-		if( ImGui::IsKeyPressed( GLFW_KEY_S ) ) ActionViewSettings();
-		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionViewOutput();
-	}
-	else
-	{
-		if( ImGui::IsKeyPressed( GLFW_KEY_F5 ) ) ActionBuildBuildAndRun();
-		if( ImGui::IsKeyPressed( GLFW_KEY_F7 ) ) ActionBuildBuild();
-	}
+    if( ImGui::IsKeyDown( GLFW_KEY_LEFT_SHIFT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_SHIFT ) )
+    {
+    }
+    else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_CONTROL ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_CONTROL ) )
+    {
+        if( ImGui::IsKeyPressed( GLFW_KEY_N ) ) ActionFileNewWorkspace();
+        if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionFileOpenWorkspace();
+        if( ImGui::IsKeyPressed( GLFW_KEY_W ) ) ActionFileCloseWorkspace();
+    }
+    else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_ALT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_ALT ) )
+    {
+        if( ImGui::IsKeyPressed( GLFW_KEY_E ) ) ActionFileExit();
+        if( ImGui::IsKeyPressed( GLFW_KEY_T ) ) ActionViewTextEdit();
+        if( ImGui::IsKeyPressed( GLFW_KEY_W ) ) ActionViewWorkspace();
+        if( ImGui::IsKeyPressed( GLFW_KEY_S ) ) ActionViewSettings();
+        if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionViewOutput();
+    }
+    else
+    {
+        if( ImGui::IsKeyPressed( GLFW_KEY_F5 ) ) ActionBuildBuildAndRun();
+        if( ImGui::IsKeyPressed( GLFW_KEY_F7 ) ) ActionBuildBuild();
+    }
 
-	// Show windows
+    // Show windows
 
-	if( show_demo_window_ )
-	{
-		ImGui::ShowDemoWindow( &show_demo_window_ );
-	}
+    if( show_demo_window_ )
+    {
+        ImGui::ShowDemoWindow( &show_demo_window_ );
+    }
 
-	if( show_about_window_ )
-	{
-		ImGui::ShowAboutWindow( &show_about_window_ );
-	}
+    if( show_about_window_ )
+    {
+        ImGui::ShowAboutWindow( &show_about_window_ );
+    }
 
-	if( show_text_edit_ )
-	{
-		TextEditWidget::Instance().Show( &show_text_edit_ );
-	}
+    if( show_text_edit_ )
+    {
+        TextEditWidget::Instance().Show( &show_text_edit_ );
+    }
 
-	if( show_workspace_ )
-	{
-		WorkspaceWidget::Instance().Show( &show_workspace_ );
-	}
+    if( show_workspace_ )
+    {
+        WorkspaceWidget::Instance().Show( &show_workspace_ );
+    }
 
-	if( show_output_ )
-	{
-		OutputWidget::Instance().Show( &show_output_ );
-	}
+    if( show_output_ )
+    {
+        OutputWidget::Instance().Show( &show_output_ );
+    }
 }
 
 void MainMenuBar::OnDragDrop( const Drop& drop, int x, int y )
 {
-	if( show_text_edit_ )
-	{
-		TextEditWidget::Instance().OnDragDrop( drop, x, y );
-	}
+    if( show_text_edit_ )
+    {
+        TextEditWidget::Instance().OnDragDrop( drop, x, y );
+    }
 }
 
 void MainMenuBar::ActionFileNewWorkspace( void )
 {
-	NewItemModal::Instance().RequestPath( "New Workspace Location", std::filesystem::current_path(), this,
-		[]( std::string name, std::filesystem::path location, void* /*user*/ )
-		{
-			Application::Instance().NewWorkspace( location, std::move( name ) );
-		}
-	);
+    NewItemModal::Instance().RequestPath( "New Workspace Location", std::filesystem::current_path(), this,
+                                          []( std::string name, std::filesystem::path location, void* /*user*/ )
+    {
+        Application::Instance().NewWorkspace( location, std::move( name ) );
+    }
+                                        );
 }
 
 void MainMenuBar::ActionFileOpenWorkspace( void )
 {
-	OpenFileModal::Instance().RequestFile( "Open Workspace", this,
-		[]( const std::filesystem::path& path, void* /*user*/ )
-		{
-			Application::Instance().LoadWorkspace( path );
-		}
-	);
+    OpenFileModal::Instance().RequestFile( "Open Workspace", this,
+                                           []( const std::filesystem::path& path, void* /*user*/ )
+    {
+        Application::Instance().LoadWorkspace( path );
+    }
+                                         );
 }
 
 void MainMenuBar::ActionFileCloseWorkspace( void )
 {
-	Application::Instance().CloseWorkspace();
+    Application::Instance().CloseWorkspace();
 }
 
 void MainMenuBar::ActionFileExit( void )
 {
-	exit( 0 );
+    exit( 0 );
 }
 
 void MainMenuBar::ActionBuildBuildAndRun( void )
 {
-	if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
-	{
-		OutputWidget::Instance().ClearCapture();
+    if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+    {
+        OutputWidget::Instance().ClearCapture();
 
-		*workspace ^= [ this ]( const WorkspaceBuildFinished& e )
-		{
-			const std::string output_string = e.output.string();
+        *workspace ^= [ this ]( const WorkspaceBuildFinished& e )
+        {
+            const std::string output_string = e.output.string();
 
-			std::cout << "=== Running " << output_string << "===\n";
-			Process process( e.output.wstring() );
-			std::cout << "=== " << output_string << " finished with exit code " << process.ExitCode() << " ===\n";
-		};
+            std::cout << "=== Running " << output_string << "===\n";
+            Process process( e.output.wstring() );
+            std::cout << "=== " << output_string << " finished with exit code " << process.ExitCode() << " ===\n";
+        };
 
-		workspace->Build();
-	}
+        workspace->Build();
+    }
 }
 
 void MainMenuBar::ActionBuildBuild( void )
 {
-	if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
-	{
-		OutputWidget::Instance().ClearCapture();
+    if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+    {
+        OutputWidget::Instance().ClearCapture();
 
-		workspace->Build();
-	}
+        workspace->Build();
+    }
 }
 
 void MainMenuBar::ActionViewTextEdit( void )
 {
-	show_text_edit_ ^= 1;
+    show_text_edit_ ^= 1;
 }
 
 void MainMenuBar::ActionViewWorkspace( void )
 {
-	show_workspace_ ^= 1;
+    show_workspace_ ^= 1;
 }
 
 void MainMenuBar::ActionViewSettings( void )
 {
-	Settings& settings = Settings::Instance();
+    Settings& settings = Settings::Instance();
 
-	SettingsModal::Instance().Show( &settings.object_ );
+    SettingsModal::Instance().Show( &settings.object_ );
 }
 
 void MainMenuBar::ActionViewOutput( void )
 {
-	show_output_ ^= 1;
+    show_output_ ^= 1;
 }
 
 void MainMenuBar::ActionHelpDemo( void )
 {
-	show_demo_window_ ^= 1;
+    show_demo_window_ ^= 1;
 }
 
 void MainMenuBar::ActionHelpAbout( void )
 {
-	show_about_window_ ^= 1;
+    show_about_window_ ^= 1;
 }
 
 void MainMenuBar::AddBuildMatrixColumn( BuildMatrix::Column& column )
 {
-	ImGui::Spacing();
-	ImGui::Text( "%s:", column.name.c_str() );
+    ImGui::Spacing();
+    ImGui::Text( "%s:", column.name.c_str() );
 
-	const std::string label = "##" + column.name;
+    const std::string label = "##" + column.name;
 
-	// Add combo for this column
-	ImGui::SetNextItemWidth( 100.0f );
-	if( ImGui::BeginCombo( label.c_str(), column.current_configuration.c_str() ) )
-	{
-		for( auto& cfg : column.configurations )
-		{
-			if( ImGui::Selectable( cfg.name.c_str() ) )
-				column.current_configuration = cfg.name;
-		}
+    // Add combo for this column
+    ImGui::SetNextItemWidth( 100.0f );
+    if( ImGui::BeginCombo( label.c_str(), column.current_configuration.c_str() ) )
+    {
+        for( auto& cfg : column.configurations )
+        {
+            if( ImGui::Selectable( cfg.name.c_str() ) )
+                column.current_configuration = cfg.name;
+        }
 
-		ImGui::EndCombo();
-	}
+        ImGui::EndCombo();
+    }
 
-	// Add combos for exclusive categories for the selected configuration
-	for( auto& cfg : column.configurations )
-	{
-		if( cfg.name == column.current_configuration )
-		{
-			for( auto& exclusive : cfg.exclusive_columns )
-				AddBuildMatrixColumn( exclusive );
+    // Add combos for exclusive categories for the selected configuration
+    for( auto& cfg : column.configurations )
+    {
+        if( cfg.name == column.current_configuration )
+        {
+            for( auto& exclusive : cfg.exclusive_columns )
+                AddBuildMatrixColumn( exclusive );
 
-			break;
-		}
-	}
+            break;
+        }
+    }
 }

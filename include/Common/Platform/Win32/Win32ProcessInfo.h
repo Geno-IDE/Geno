@@ -24,28 +24,36 @@
 class Win32ProcessInfo
 {
 public:
-	
-	GENO_DISABLE_COPY( Win32ProcessInfo );
-	
+
+    GENO_DISABLE_COPY( Win32ProcessInfo );
+
 public:
-	
-	 Win32ProcessInfo( void );
-	 Win32ProcessInfo( Win32ProcessInfo&& other );
-	~Win32ProcessInfo( void );
-	
-	Win32ProcessInfo& operator=( Win32ProcessInfo&& other );
-	
+
+    Win32ProcessInfo( void );
+    Win32ProcessInfo( Win32ProcessInfo&& other );
+    ~Win32ProcessInfo( void );
+
+    Win32ProcessInfo& operator=( Win32ProcessInfo&& other );
+
 public:
-	
-	PROCESS_INFORMATION*       operator& ( void )       { return &underlying_data_; }
-	const PROCESS_INFORMATION* operator& ( void ) const { return &underlying_data_; }
-	PROCESS_INFORMATION*       operator->( void )       { return &underlying_data_; }
-	const PROCESS_INFORMATION* operator->( void ) const { return &underlying_data_; }
-	
+
+    PROCESS_INFORMATION*       operator& ( void )       {
+        return &underlying_data_;
+    }
+    const PROCESS_INFORMATION* operator& ( void ) const {
+        return &underlying_data_;
+    }
+    PROCESS_INFORMATION*       operator->( void )       {
+        return &underlying_data_;
+    }
+    const PROCESS_INFORMATION* operator->( void ) const {
+        return &underlying_data_;
+    }
+
 private:
-	
-	PROCESS_INFORMATION underlying_data_;
-	
+
+    PROCESS_INFORMATION underlying_data_;
+
 };
 
 #endif // _WIN32

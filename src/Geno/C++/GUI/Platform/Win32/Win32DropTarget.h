@@ -25,26 +25,26 @@ class Win32DropTarget : public IDropTarget
 {
 public:
 
-	 Win32DropTarget( void );
-	~Win32DropTarget( void );
+    Win32DropTarget( void );
+    ~Win32DropTarget( void );
 
 public:
 
-	HRESULT STDMETHODCALLTYPE QueryInterface( REFIID riid, void** object ) override;
-	ULONG   STDMETHODCALLTYPE AddRef        ( void ) override;
-	ULONG   STDMETHODCALLTYPE Release       ( void ) override;
-	HRESULT STDMETHODCALLTYPE DragEnter     ( IDataObject* data_obj, DWORD key_state, POINTL point, DWORD* effect ) override;
-	HRESULT STDMETHODCALLTYPE DragOver      ( DWORD key_state, POINTL point, DWORD* effect ) override;
-	HRESULT STDMETHODCALLTYPE DragLeave     ( void ) override;
-	HRESULT STDMETHODCALLTYPE Drop          ( IDataObject* data_obj, DWORD key_state, POINTL point, DWORD* effect ) override;
+    HRESULT STDMETHODCALLTYPE QueryInterface( REFIID riid, void** object ) override;
+    ULONG   STDMETHODCALLTYPE AddRef        ( void ) override;
+    ULONG   STDMETHODCALLTYPE Release       ( void ) override;
+    HRESULT STDMETHODCALLTYPE DragEnter     ( IDataObject* data_obj, DWORD key_state, POINTL point, DWORD* effect ) override;
+    HRESULT STDMETHODCALLTYPE DragOver      ( DWORD key_state, POINTL point, DWORD* effect ) override;
+    HRESULT STDMETHODCALLTYPE DragLeave     ( void ) override;
+    HRESULT STDMETHODCALLTYPE Drop          ( IDataObject* data_obj, DWORD key_state, POINTL point, DWORD* effect ) override;
 
 private:
 
-	bool DropFromDataObject( IDataObject* data_obj, ::Drop& out_drop );
+    bool DropFromDataObject( IDataObject* data_obj, ::Drop& out_drop );
 
 private:
 
-	LONG ref_count_ = 1;
+    LONG ref_count_ = 1;
 
 };
 

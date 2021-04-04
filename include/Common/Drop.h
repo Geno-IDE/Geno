@@ -26,46 +26,60 @@ class Drop
 {
 public:
 
-	struct Bitmap
-	{
-		std::unique_ptr< uint8_t[] > data;
-		uint32_t                     width;
-		uint32_t                     height;
+    struct Bitmap
+    {
+        std::unique_ptr< uint8_t[] > data;
+        uint32_t                     width;
+        uint32_t                     height;
 
-	}; // Bitmap
+    }; // Bitmap
 
-	enum class TypeIndex
-	{
-		Text,
-		Bitmap,
+    enum class TypeIndex
+    {
+        Text,
+        Bitmap,
 //		Audio,
-		Paths,
+        Paths,
 
-	}; // TypeIndex
+    }; // TypeIndex
 
 //////////////////////////////////////////////////////////////////////////
 
-	using Text    = std::wstring;
+    using Text    = std::wstring;
 //	using Audio   = std::nullptr_t;
-	using Paths   = std::vector< std::filesystem::path >;
-	using Variant = std::variant< Text, Bitmap, /*Audio,*/ Paths >;
+    using Paths   = std::vector< std::filesystem::path >;
+    using Variant = std::variant< Text, Bitmap, /*Audio,*/ Paths >;
 
 //////////////////////////////////////////////////////////////////////////
 
-	TypeIndex     GetType  ( void ) const    { return static_cast< TypeIndex >( m_Variant.index() ); }
-	const Text&   GetText  ( void ) const    { return std::get< Text >( m_Variant ); }
-	void          SetText  ( Text Text )     { m_Variant = std::move( Text ); }
-	const Bitmap& GetBitmap( void ) const    { return std::get< Bitmap >( m_Variant ); }
-	void          SetBitmap( Bitmap Bitmap ) { m_Variant = std::move( Bitmap ); }
+    TypeIndex     GetType  ( void ) const    {
+        return static_cast< TypeIndex >( m_Variant.index() );
+    }
+    const Text&   GetText  ( void ) const    {
+        return std::get< Text >( m_Variant );
+    }
+    void          SetText  ( Text Text )     {
+        m_Variant = std::move( Text );
+    }
+    const Bitmap& GetBitmap( void ) const    {
+        return std::get< Bitmap >( m_Variant );
+    }
+    void          SetBitmap( Bitmap Bitmap ) {
+        m_Variant = std::move( Bitmap );
+    }
 //	const Audio&  GetAudio ( void ) const    { return std::get< Audio >( m_Variant ); }
 //	void          SetAudio ( Audio Audio )   { m_Variant = std::move( Audio ); }
-	const Paths&  GetPaths ( void ) const    { return std::get< Paths >( m_Variant ); }
-	void          SetPaths ( Paths Paths )   { m_Variant = std::move( Paths ); }
+    const Paths&  GetPaths ( void ) const    {
+        return std::get< Paths >( m_Variant );
+    }
+    void          SetPaths ( Paths Paths )   {
+        m_Variant = std::move( Paths );
+    }
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
-	Variant m_Variant;
+    Variant m_Variant;
 
 }; // Drop

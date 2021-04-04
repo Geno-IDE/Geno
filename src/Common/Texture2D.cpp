@@ -21,13 +21,13 @@
 
 Texture2D::Texture2D( void )
 {
-	glCreateTextures( GL_TEXTURE_2D, 1, &m_ID );
-	glBindTexture( GL_TEXTURE_2D, m_ID );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	glBindTexture( GL_TEXTURE_2D, 0 );
+    glCreateTextures( GL_TEXTURE_2D, 1, &m_ID );
+    glBindTexture( GL_TEXTURE_2D, m_ID );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+    glBindTexture( GL_TEXTURE_2D, 0 );
 
 } // Texture2D
 
@@ -35,7 +35,7 @@ Texture2D::Texture2D( void )
 
 Texture2D::~Texture2D( void )
 {
-	glDeleteTextures( 1, &m_ID );
+    glDeleteTextures( 1, &m_ID );
 
 } // ~Texture2D
 
@@ -43,9 +43,9 @@ Texture2D::~Texture2D( void )
 
 void Texture2D::SetPixels( GLint internalformat, GLsizei width, GLsizei height, GLenum format, const GLvoid* data )
 {
-	glBindTexture( GL_TEXTURE_2D, m_ID );
-	glTexImage2D( GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, GL_UNSIGNED_BYTE, data );
-	glGenerateMipmap( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, 0 );
+    glBindTexture( GL_TEXTURE_2D, m_ID );
+    glTexImage2D( GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, GL_UNSIGNED_BYTE, data );
+    glGenerateMipmap( GL_TEXTURE_2D );
+    glBindTexture( GL_TEXTURE_2D, 0 );
 
 } // SetPixels

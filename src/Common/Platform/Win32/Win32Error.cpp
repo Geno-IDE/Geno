@@ -24,43 +24,43 @@
 
 bool _Win32HandleResult( DWORD result, std::string_view function, std::string_view file, int line )
 {
-	if( result != S_OK )
-	{
-		constexpr DWORD buf_size      = 256;
-		auto            function_name = function.substr( 0, function.find_first_of( "(", 0 ) );
-		char            buf[ buf_size ];
-	
-		if( FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, result, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), buf, buf_size, NULL ) == 0 )
-			strcpy_s( buf, buf_size, "Unknown error" );
-	
-		std::cerr << file << "(L" << line << ") " << function_name << " failed: " << buf << "\n";
-	
-		return false;
-	}
-	
-	return true;
+    if( result != S_OK )
+    {
+        constexpr DWORD buf_size      = 256;
+        auto            function_name = function.substr( 0, function.find_first_of( "(", 0 ) );
+        char            buf[ buf_size ];
+
+        if( FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, result, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), buf, buf_size, NULL ) == 0 )
+            strcpy_s( buf, buf_size, "Unknown error" );
+
+        std::cerr << file << "(L" << line << ") " << function_name << " failed: " << buf << "\n";
+
+        return false;
+    }
+
+    return true;
 }
-	
+
 bool _Win32HandleResult( HRESULT result, std::string_view function, std::string_view file, int line )
 {
-	if( result != S_OK )
-	{
-		_Win32HandleResult( ( DWORD )result, function, file, line );
-		return false;
-	}
-	
-	return true;
+    if( result != S_OK )
+    {
+        _Win32HandleResult( ( DWORD )result, function, file, line );
+        return false;
+    }
+
+    return true;
 }
-	
+
 bool _Win32HandleResult( BOOL result, std::string_view function, std::string_view file, int line )
 {
-	if( result == FALSE )
-	{
-		_Win32HandleResult( GetLastError(), function, file, line );
-		return false;
-	}
-	
-	return true;
+    if( result == FALSE )
+    {
+        _Win32HandleResult( GetLastError(), function, file, line );
+        return false;
+    }
+
+    return true;
 }
 
 #endif // _WIN32

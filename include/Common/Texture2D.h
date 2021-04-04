@@ -22,21 +22,23 @@ class Texture2D
 {
 public:
 
-	 Texture2D( void );
-	~Texture2D( void );
+    Texture2D( void );
+    ~Texture2D( void );
 
 //////////////////////////////////////////////////////////////////////////
 
-	void SetPixels( GLint internalformat, GLsizei width, GLsizei height, GLenum format, const GLvoid* data );
+    void SetPixels( GLint internalformat, GLsizei width, GLsizei height, GLenum format, const GLvoid* data );
 
 //////////////////////////////////////////////////////////////////////////
 
-	GLuint GetID( void ) const { return m_ID; }
+    GLuint GetID( void ) const {
+        return m_ID;
+    }
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
-	GLuint m_ID = 0;
+    GLuint m_ID = 0;
 
 }; // Texture2D

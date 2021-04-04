@@ -27,55 +27,55 @@
 
 void ICompiler::Compile( const CompileOptions& options )
 {
-	if( !std::filesystem::exists( options.input_file ) )
-	{
-		std::cerr << "Failed to compile " << options.input_file.string() << ". File does not exist.\n";
-		return;
-	}
+    if( !std::filesystem::exists( options.input_file ) )
+    {
+        std::cerr << "Failed to compile " << options.input_file.string() << ". File does not exist.\n";
+        return;
+    }
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::future future = std::async( &ICompiler::CompileAsync, this, options );
+    std::future future = std::async( &ICompiler::CompileAsync, this, options );
 
-	futures_.emplace_back( std::move( future ) );
+    futures_.emplace_back( std::move( future ) );
 }
 
 void ICompiler::Link( const LinkOptions& options )
 {
-	for( const std::filesystem::path& input_file : options.input_files )
-	{
-		if( !std::filesystem::exists( input_file ) )
-		{
-			std::cerr << "Failed to link " << input_file.string() << ". File does not exist.\n";
-			return;
-		}
-	}
+    for( const std::filesystem::path& input_file : options.input_files )
+    {
+        if( !std::filesystem::exists( input_file ) )
+        {
+            std::cerr << "Failed to link " << input_file.string() << ". File does not exist.\n";
+            return;
+        }
+    }
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::future future = std::async( &ICompiler::LinkAsync, this, options );
+    std::future future = std::async( &ICompiler::LinkAsync, this, options );
 
-	futures_.emplace_back( std::move( future ) );
+    futures_.emplace_back( std::move( future ) );
 }
 
 void ICompiler::CompileAsync( CompileOptions options )
 {
-	std::wstring cmd_line  = MakeCommandLineString( options );
-	Process      process( std::move( cmd_line ) );
+    std::wstring cmd_line  = MakeCommandLineString( options );
+    Process      process( std::move( cmd_line ) );
 
-	CompilationDone e;
-	e.options   = options;
-	e.exit_code = process.ExitCode();
-	Publish( e );
+    CompilationDone e;
+    e.options   = options;
+    e.exit_code = process.ExitCode();
+    Publish( e );
 }
 
 void ICompiler::LinkAsync( LinkOptions options )
 {
-	std::wstring cmd_line  = MakeCommandLineString( options );
-	Process      process( std::move( cmd_line ) );
+    std::wstring cmd_line  = MakeCommandLineString( options );
+    Process      process( std::move( cmd_line ) );
 
-	LinkingDone e;
-	e.options   = options;
-	e.exit_code = process.ExitCode();
-	Publish( e );
+    LinkingDone e;
+    e.options   = options;
+    e.exit_code = process.ExitCode();
+    Publish( e );
 }

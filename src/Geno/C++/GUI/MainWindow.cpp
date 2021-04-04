@@ -34,27 +34,27 @@
 
 MainWindow::MainWindow( void )
 {
-	PrimaryMonitor& monitor = PrimaryMonitor::Instance();
+    PrimaryMonitor& monitor = PrimaryMonitor::Instance();
 
-	width_  = 3 * monitor.Width()  / 4;
-	height_ = 3 * monitor.Height() / 4;
+    width_  = 3 * monitor.Width()  / 4;
+    height_ = 3 * monitor.Height() / 4;
 
-	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
-	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 0 );
+    glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
+    glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 0 );
 
-	if( ( window_ = glfwCreateWindow( width_, height_, "Geno", nullptr, nullptr ) ) == nullptr )
-		return;
+    if( ( window_ = glfwCreateWindow( width_, height_, "Geno", nullptr, nullptr ) ) == nullptr )
+        return;
 
-	glfwSetWindowUserPointer( window_, this );
-	glfwMakeContextCurrent( window_ );
-	glfwSetWindowPos( window_, monitor.X() + ( monitor.Width() - width_ ) / 2, monitor.Y() + ( monitor.Height() - height_ ) / 2 );
-	glfwSetWindowSizeCallback( window_, GLFWSizeCB );
-	glfwSwapInterval( 1 );
+    glfwSetWindowUserPointer( window_, this );
+    glfwMakeContextCurrent( window_ );
+    glfwSetWindowPos( window_, monitor.X() + ( monitor.Width() - width_ ) / 2, monitor.Y() + ( monitor.Height() - height_ ) / 2 );
+    glfwSetWindowSizeCallback( window_, GLFWSizeCB );
+    glfwSwapInterval( 1 );
 
 #if defined( _WIN32 )
 
-	// Create drop target
-	drop_target_ = new Win32DropTarget();
+    // Create drop target
+    drop_target_ = new Win32DropTarget();
 
 #endif // _WIN32
 
@@ -65,137 +65,137 @@ MainWindow::~MainWindow( void )
 
 #if defined( _WIN32 )
 
-	// Destroy drop target
-	delete drop_target_;
+    // Destroy drop target
+    delete drop_target_;
 
 #endif // _WIN32
 
-	if( im_gui_context_ )
-	{
-		ImGui_ImplGlfw_Shutdown();
-		ImGui_ImplOpenGL3_Shutdown();
+    if( im_gui_context_ )
+    {
+        ImGui_ImplGlfw_Shutdown();
+        ImGui_ImplOpenGL3_Shutdown();
 
-		ImGui::DestroyContext( im_gui_context_ );
-	}
+        ImGui::DestroyContext( im_gui_context_ );
+    }
 
-	if( window_ )
-	{
-		glfwDestroyWindow( window_ );
-	}
+    if( window_ )
+    {
+        glfwDestroyWindow( window_ );
+    }
 }
 
 void MainWindow::Init( void )
 {
-	if( !im_gui_context_ )
-	{
-		ini_path_       = LocalAppData::Instance() / "imgui.ini";
-		im_gui_context_ = ImGui::CreateContext();
+    if( !im_gui_context_ )
+    {
+        ini_path_       = LocalAppData::Instance() / "imgui.ini";
+        im_gui_context_ = ImGui::CreateContext();
 
-		// Configure interface
-		ImGuiIO& io                     = ImGui::GetIO();
-		io.IniFilename                  = ini_path_.c_str();
-		io.ConfigFlags                 |= ImGuiConfigFlags_DockingEnable;
-		io.ConfigFlags                 |= ImGuiConfigFlags_ViewportsEnable;
-		io.ConfigViewportsNoTaskBarIcon = true;
+        // Configure interface
+        ImGuiIO& io                     = ImGui::GetIO();
+        io.IniFilename                  = ini_path_.c_str();
+        io.ConfigFlags                 |= ImGuiConfigFlags_DockingEnable;
+        io.ConfigFlags                 |= ImGuiConfigFlags_ViewportsEnable;
+        io.ConfigViewportsNoTaskBarIcon = true;
 
-		// Requires GLEW to be initialized
-		GLEW::Instance();
+        // Requires GLEW to be initialized
+        GLEW::Instance();
 
-		ImGui_ImplGlfw_InitForOpenGL( window_, true );
-		ImGui_ImplOpenGL3_Init( "#version 130" );
+        ImGui_ImplGlfw_InitForOpenGL( window_, true );
+        ImGui_ImplOpenGL3_Init( "#version 130" );
 
-		// Load settings
-		Settings::Instance();
-	}
+        // Load settings
+        Settings::Instance();
+    }
 }
 
 void MainWindow::MakeCurrent( void )
 {
-	glfwMakeContextCurrent( window_ );
+    glfwMakeContextCurrent( window_ );
 }
 
 bool MainWindow::BeginFrame( void )
 {
-	if( glfwWindowShouldClose( window_ ) )
-		return false;
+    if( glfwWindowShouldClose( window_ ) )
+        return false;
 
-	const ImVec4 col = ImGui::GetStyleColorVec4( ImGuiCol_WindowBg );
+    const ImVec4 col = ImGui::GetStyleColorVec4( ImGuiCol_WindowBg );
 
-	glfwPollEvents();
-	glClearColor( col.x, col.y, col.z, 1.0f );
-	glClear( GL_COLOR_BUFFER_BIT );
+    glfwPollEvents();
+    glClearColor( col.x, col.y, col.z, 1.0f );
+    glClear( GL_COLOR_BUFFER_BIT );
 
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
 
-	ImGui::NewFrame();
-	ImGui::DockSpaceOverViewport();
+    ImGui::NewFrame();
+    ImGui::DockSpaceOverViewport();
 
-	return true;
+    return true;
 }
 
 void MainWindow::EndFrame( void )
 {
-	ImGui::Render();
+    ImGui::Render();
 
-	ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
+    ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
 
-	if( ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
-	{
-		ImGui::UpdatePlatformWindows();
-		ImGui::RenderPlatformWindowsDefault();
-		glfwMakeContextCurrent( window_ );
-	}
+    if( ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable )
+    {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+        glfwMakeContextCurrent( window_ );
+    }
 
-	glfwSwapBuffers( window_ );
+    glfwSwapBuffers( window_ );
 }
 
 void MainWindow::PushHorizontalLayout( void )
 {
-	if( layout_stack_counter_++ == 0 )
-		im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Horizontal;
+    if( layout_stack_counter_++ == 0 )
+        im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Horizontal;
 }
 
 void MainWindow::PopHorizontalLayout( void )
 {
-	if( --layout_stack_counter_ == 0 )
-		im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Vertical;
+    if( --layout_stack_counter_ == 0 )
+        im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Vertical;
 }
 
 void MainWindow::DragEnter( Drop drop, int x, int y )
 {
-	dragged_drop_ = std::move( drop );
-	drag_pos_x_   = x;
-	drag_pos_y_   = y;
+    dragged_drop_ = std::move( drop );
+    drag_pos_x_   = x;
+    drag_pos_y_   = y;
 }
 
 void MainWindow::DragOver( int x, int y )
 {
-	drag_pos_x_ = x;
-	drag_pos_y_ = y;
+    drag_pos_x_ = x;
+    drag_pos_y_ = y;
 }
 
 void MainWindow::DragLeave( void )
 {
-	dragged_drop_.reset();
+    dragged_drop_.reset();
 }
 
 void MainWindow::DragDrop( const Drop& drop, int x, int y )
 {
-	drag_pos_x_ = x;
-	drag_pos_y_ = y;
+    drag_pos_x_ = x;
+    drag_pos_y_ = y;
 
-	// NOTE: Here we assume that the provided @drop is the same as @dragged_drop_
+    // NOTE: Here we assume that the provided @drop is the same as @dragged_drop_
 
-	MainMenuBar::Instance().OnDragDrop( drop, x, y );
+    MainMenuBar::Instance().OnDragDrop( drop, x, y );
 
-	dragged_drop_.reset();
+    dragged_drop_.reset();
 }
 
 void MainWindow::GLFWSizeCB( GLFWwindow* window, int width, int height )
 {
-	MainWindow* self = ( MainWindow* )glfwGetWindowUserPointer( window );
+    MainWindow* self = ( MainWindow* )glfwGetWindowUserPointer( window );
 
-	self->width_  = width;
-	self->height_ = height;
+    self->width_  = width;
+    self->height_ = height;
 }

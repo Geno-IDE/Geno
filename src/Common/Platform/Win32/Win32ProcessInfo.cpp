@@ -19,32 +19,32 @@
 #include "Common/Platform/Win32/Win32ProcessInfo.h"
 
 Win32ProcessInfo::Win32ProcessInfo( void )
-	: underlying_data_{ }
+    : underlying_data_{ }
 {
 }
-	
+
 Win32ProcessInfo::Win32ProcessInfo( Win32ProcessInfo&& other )
-	: underlying_data_{ other.underlying_data_ }
+    : underlying_data_{ other.underlying_data_ }
 {
-	ZeroMemory( &other.underlying_data_, sizeof( PROCESS_INFORMATION ) );
+    ZeroMemory( &other.underlying_data_, sizeof( PROCESS_INFORMATION ) );
 }
-	
+
 Win32ProcessInfo::~Win32ProcessInfo( void )
 {
-	if( underlying_data_.hThread )
-		CloseHandle( underlying_data_.hThread );
-	
-	if( underlying_data_.hProcess )
-		CloseHandle( underlying_data_.hProcess );
+    if( underlying_data_.hThread )
+        CloseHandle( underlying_data_.hThread );
+
+    if( underlying_data_.hProcess )
+        CloseHandle( underlying_data_.hProcess );
 }
-	
+
 Win32ProcessInfo& Win32ProcessInfo::operator=( Win32ProcessInfo&& other )
 {
-	underlying_data_ = other.underlying_data_;
-	
-	ZeroMemory( &other.underlying_data_, sizeof( PROCESS_INFORMATION ) );
-	
-	return *this;
+    underlying_data_ = other.underlying_data_;
+
+    ZeroMemory( &other.underlying_data_, sizeof( PROCESS_INFORMATION ) );
+
+    return *this;
 }
 
 #endif // _WIN32

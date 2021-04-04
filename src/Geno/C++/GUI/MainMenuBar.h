@@ -29,41 +29,43 @@ struct WorkspaceOpened;
 
 class MainMenuBar
 {
-	GENO_SINGLETON( MainMenuBar ) = default;
+    GENO_SINGLETON( MainMenuBar ) = default;
 
 public:
 
-	void Show      ( void );
-	void OnDragDrop( const Drop& drop, int x, int y );
+    void Show      ( void );
+    void OnDragDrop( const Drop& drop, int x, int y );
 
 public:
 
-	float Height( void ) const { return height_; }
+    float Height( void ) const {
+        return height_;
+    }
 
 private:
 
-	void ActionFileNewWorkspace  ( void );
-	void ActionFileOpenWorkspace ( void );
-	void ActionFileCloseWorkspace( void );
-	void ActionFileExit          ( void );
-	void ActionBuildBuildAndRun  ( void );
-	void ActionBuildBuild        ( void );
-	void ActionViewTextEdit      ( void );
-	void ActionViewWorkspace     ( void );
-	void ActionViewSettings      ( void );
-	void ActionViewOutput        ( void );
-	void ActionHelpDemo          ( void );
-	void ActionHelpAbout         ( void );
-	void AddBuildMatrixColumn    ( BuildMatrix::Column& column );
+    void ActionFileNewWorkspace  ( void );
+    void ActionFileOpenWorkspace ( void );
+    void ActionFileCloseWorkspace( void );
+    void ActionFileExit          ( void );
+    void ActionBuildBuildAndRun  ( void );
+    void ActionBuildBuild        ( void );
+    void ActionViewTextEdit      ( void );
+    void ActionViewWorkspace     ( void );
+    void ActionViewSettings      ( void );
+    void ActionViewOutput        ( void );
+    void ActionHelpDemo          ( void );
+    void ActionHelpAbout         ( void );
+    void AddBuildMatrixColumn    ( BuildMatrix::Column& column );
 
 private:
 
-	float height_ = 0.f;
+    float height_ = 0.f;
 
-	bool show_demo_window_  = false;
-	bool show_about_window_ = false;
-	bool show_text_edit_    = true;
-	bool show_workspace_    = true;
-	bool show_output_       = false;
+    bool show_demo_window_  = false;
+    bool show_about_window_ = false;
+    bool show_text_edit_    = true;
+    bool show_workspace_    = true;
+    bool show_output_       = false;
 
 };
