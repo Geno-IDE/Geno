@@ -91,8 +91,12 @@ void MainWindow::Init( void )
 		ini_path_       = LocalAppData::Instance() / "imgui.ini";
 		im_gui_context_ = ImGui::CreateContext();
 
-		ImGui::GetIO().IniFilename  = ini_path_.c_str();
-		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
+		// Configure interface
+		ImGuiIO& io                     = ImGui::GetIO();
+		io.IniFilename                  = ini_path_.c_str();
+		io.ConfigFlags                 |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags                 |= ImGuiConfigFlags_ViewportsEnable;
+		io.ConfigViewportsNoTaskBarIcon = true;
 
 		// Requires GLEW to be initialized
 		GLEW::Instance();
