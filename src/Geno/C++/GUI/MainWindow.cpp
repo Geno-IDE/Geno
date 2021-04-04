@@ -29,9 +29,6 @@
 #include <GLFW/glfw3.h>
 #include <imgui_internal.h>
 
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
-
 MainWindow::MainWindow( void )
 {
 	PrimaryMonitor& monitor = PrimaryMonitor::Instance();

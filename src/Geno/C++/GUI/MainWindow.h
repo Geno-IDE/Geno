@@ -19,10 +19,8 @@
 #include "Common/Drop.h"
 #include "Common/Macros.h"
 
-#include <filesystem>
 #include <optional>
 #include <string>
-#include <vector>
 
 #include <imgui.h>
 
