@@ -15,6 +15,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#if defined( _WIN32 )
 #include "GUI/Platform/Win32/Win32DropTarget.h"
 
 #include "GUI/MainWindow.h"
@@ -266,3 +267,5 @@ bool Win32DropTarget::DropFromDataObject( IDataObject* data_obj, ::Drop& out_dro
 
 	return false;
 }
+
+#endif // _WIN32
