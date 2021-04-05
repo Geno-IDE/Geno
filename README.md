@@ -1,30 +1,74 @@
-# 🧬 Geno
-Geno is a WIP lightweight cross-platform IDE for native (C/C++) development.
+<p align="center">
+	<img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/Gaztin/Geno?style=for-the-badge">
+	<img alt="Contributors" src="https://img.shields.io/github/contributors/Gaztin/Geno?style=for-the-badge">
+	<img alt="License" src="https://img.shields.io/github/license/Gaztin/Geno?style=for-the-badge">
+</p>
+<br>
 
-# 🍴 Prerequisites
+<p align="center">
+	<img src="resources/icon.png" alt="Geno" width="80" height="80">
+</p>
+<h3 align="center">Geno</h3>
+<p align="center">
+	Native IDE centered around clean cross-compilation and distribution
+	<br>
+	<a href="https://github.com/Gaztin/Geno/wiki/User-Guide"><strong>User Guide »</strong></a>
+	<br>
+	<br>
+	<br>
+	<a href="https://github.com/Gaztin/Geno/releases">View Releases</a>
+	·
+	<a href="https://github.com/Gaztin/Geno/issues">Report a Bug</a>
+	·
+	<a href="https://github.com/Gaztin/Geno/fork">Fork Geno</a>
+</p>
+<hr noshade>
 
-<u>Windows</u>
+<h3 align="center">Building</h3>
+<p align="center">
+	This project uses <a href="https://premake.github.io/"><img src="https://raw.githubusercontent.com/premake/premake.github.io/4258dd78ca8a237b7f1405606aac341f6bcea727/img/premake-logo.png" width="18" height="18">Premake</a>.
+	<br>
+	<br>
+	<a href="https://premake.github.io/docs/What-Is-Premake">What is Premake?</a>
+	·
+	<a href="https://premake.github.io/download">Download</a>
+	·
+	<a href="https://premake.github.io/docs/Using-Premake">Usage</a>
+	<br>
+	<br>
+</p>
 
-* [MinGW](https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/)
+<h5 align="center">Submodules</h5>
+<p align="center">
+	All third-party libraries used are located in <a href="/third_party">/third_party/</a>.
+	Some of them are stored as git submodules, which means that, unless your submodules are initialized automatically, you need to run: <code>git submodule update --init</code>
+	<br>
+	<br>
+</p>
 
-<u>Unix</u>
+<h5 align="center">Generating the project files</h5>
+<p align="center">
+	To generate the project files, you can simply run the premake executable.
+	<br>
+	However, if premake is located somewhere else on your disk, or you want to use another generator, you can open a terminal in the project root directory and run it like so: <code>premake5 &lt;action&gt;</code> where &lt;action&gt; can be a generator of your choice, or left empty to use the system default
+	<br>
+	<br>
+</p>
 
-* [LLVM](https://releases.llvm.org/download.html)
+<h5 align="center">Linux Prerequisite Packages</h5>
+<p align="center">
+	<code>libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev</code>
+	<br>
+	<br>
+</p>
 
-## <img src="https://premake.github.io/premake-logo.png" width=32 /> Premake
-This project uses Premake for project configuration. ([What is Premake?](https://github.com/premake/premake-core/wiki/What-Is-Premake))</br>
-You can get the latest version [here](https://premake.github.io/download)! Make sure you have it in your PATH or in the project root directory.
+<h5 align="center">Compiling</h5>
+<p align="center">
+	Finally, after generating the project files, the application is ready to be built using the corresponding IDE or build tool.
+</p>
+<hr noshade>
 
-## 🔧 Building
-
-0. Requirements:   
-	* Linux Packages: `libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev`
-1. Open a terminal in the project root directory.
-2. Run `git submodule update --init` to initialize the submodules.
-3. Run premake with the action of your choice. It's as simple as: `premake5 my-favorite-action`.</br>
-  A few examples of actions are: `vs2017`/`vs2019` (Visual Studio), `gmake2` (GNU Make) and `xcode4` (Xcode).</br>
-   [Here is a full list of available actions](https://github.com/premake/premake-core/wiki/Using-Premake).
-
-	*(Psst! There are also a few [third-party premake extensions](https://github.com/premake/premake-core/wiki/Modules#third-party-modules) at your disposal, in case none of the official generators pique your interest)*
-4. Premake will now have generated project files for the action you specified. You should see a workspace file in the project root directory. For Visual Studio this takes the shape of a `.sln` file. For GNU Make; a `Makefile`, etc..</br>
-  This means that you can now build the project using the corresponding build tool on your computer. If you're using GNU Make, for instance, you can now simply call `make`. Otherwise, if you're using an IDE, you should open the workspace file with said IDE and you will be able to build the project.
+<h3 align="center">License</h3>
+<p align="center">
+	Distributed under the zlib/libpng License. See <a href="LICENSE">LICENSE</a> for more information.
+</p>
