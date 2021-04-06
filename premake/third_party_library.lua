@@ -5,7 +5,7 @@ function third_party_library( name )
 	local module_path = path.join( 'third_party', name..'.lua' )
 	local dofunc      = dofile(  module_path )
 
-	group 'ThirdParty'
+	group 'Third Party'
 	project( name )
 
 	kind 'StaticLib'

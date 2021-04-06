@@ -5,7 +5,6 @@ function library( name )
 	group 'Libraries'
 	project( name )
 
-	appid '%{settings.bundle_namespace}.libs.%{string.lower(prj.name)}'
 	kind 'StaticLib'
 	links( libraries )
 	links( third_party_libraries )

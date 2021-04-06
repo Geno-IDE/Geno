@@ -5,10 +5,7 @@ cppdialect 'C++17'
 debugdir '../assets'
 exceptionhandling 'Off'
 flags { 'MultiProcessorCompile' }
-gradleversion( '3.1.4' )
 includedirs { '../include/' }
-maxsdkversion '28'
-minsdkversion '23'
 objdir '../obj'
 rtti 'Off'
 targetdir '../%{iif(prj.kind == "StaticLib" or prj.kind == "SharedLib","lib","bin")}/%{cfg.platform}/%{cfg.buildcfg}'

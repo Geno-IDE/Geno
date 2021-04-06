@@ -1,17 +1,16 @@
-require 'third_party/premake-android-studio'
 require 'premake/app'
 require 'premake/customizations'
 require 'premake/defaults'
 require 'premake/library'
 require 'premake/options'
-require 'premake/settings'
 require 'premake/target'
 require 'premake/third_party_library'
 require 'premake/utils'
 
-workspace( settings.workspace_name )
+workspace( 'Geno' )
 platforms( utils.get_platforms() )
 configurations { 'Debug', 'Release' }
+startproject( 'Geno' )
 
 third_party_library 'glew'
 third_party_library 'glfw'
@@ -24,7 +23,7 @@ library 'Common'
 
 library 'GCL'
 
-app( settings.workspace_name )
+app( 'Geno' )
 	sysincludedirs {
 		'third_party/glew/include',
 		'third_party/glfw/include',
@@ -46,7 +45,3 @@ app( settings.workspace_name )
 			'GL',
 			'X11',
 		}
-
--- Set last app as startup
-workspace( settings.workspace_name )
-startproject( apps[ #apps ] )

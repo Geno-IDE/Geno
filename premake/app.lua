@@ -1,6 +1,5 @@
 
 require 'library'
-require 'settings'
 require 'third_party_library'
 
 apps = { }
@@ -9,17 +8,12 @@ function app( name )
 	group 'Apps'
 	project( name )
 
-	androidmanifest 'src/%{prj.name}/AndroidManifest.xml'
-	appid '%{settings.bundle_namespace}.%{string.lower(prj.name)}'
-	assetdirs { 'src/%{prj.name}/Assets' }
 	debugdir 'src/%{prj.name}/Assets'
 	includedirs { 'src/%{prj.name}/C++' }
-	javadirs { 'src/%{prj.name}/Java' }
 	kind 'WindowedApp'
 	links( libraries )
 	links( third_party_libraries )
 	location 'build/%{_ACTION}'
-	resdirs { 'src/%{prj.name}/Resources' }
 	sysincludedirs { 'include' }
 	xcodebuildresources 'src/%{prj.name}/Assets'
 

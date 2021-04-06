@@ -1,9 +1,4 @@
 
-local p = premake
-
--- Allow us to define the system to be 'android'
-p.api.addAllowed( 'system', 'android' )
-
 -- Set default actions so that we can run premake directly and without arguments
 if( not _ACTION ) then
 	local host = os.host()
