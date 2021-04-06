@@ -16,6 +16,11 @@ function library( name )
 		'src/%{prj.name}/**.h',
 	}
 
+	vpaths {
+		[ 'Source Files/*' ] = 'src/' .. name,
+		[ 'Header Files/*' ] = 'include/' .. name,
+	}
+
 	filter 'system:macosx or ios'
 		files { 'src/%{prj.name}/**.mm' }
 
