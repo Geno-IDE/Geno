@@ -24,10 +24,16 @@
 #include "Misc/Settings.h"
 #include "ThirdParty/GLEW.h"
 
+#define GLFW_EXPOSE_NATIVE_WIN32
 #include <examples/imgui_impl_glfw.h>
 #include <examples/imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 #include <imgui_internal.h>
+
+#if defined( _WIN32 )
+#include "win32-resource.h"
+#endif // _WIN32
 
 MainWindow::MainWindow( void )
 {
@@ -49,6 +55,14 @@ MainWindow::MainWindow( void )
 	glfwSwapInterval( 1 );
 
 #if defined( _WIN32 )
+
+	// Set window icon
+	HWND  hwnd        = glfwGetWin32Window( window_ );
+	HICON hicon_large = LoadIcon( GetModuleHandle( nullptr ), MAKEINTRESOURCE( IDI_ICON_LARGE ) );
+	HICON hicon_small = LoadIcon( GetModuleHandle( nullptr ), MAKEINTRESOURCE( IDI_ICON_SMALL ) );
+
+	SendMessage( hwnd, WM_SETICON, ICON_BIG,   ( LPARAM )hicon_large );
+	SendMessage( hwnd, WM_SETICON, ICON_SMALL, ( LPARAM )hicon_small );
 
 	// Create drop target
 	drop_target_ = new Win32DropTarget();

@@ -1,0 +1,2 @@
+#define IDI_ICON_LARGE 101
+#define IDI_ICON_SMALL 102

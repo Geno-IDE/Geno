@@ -22,6 +22,19 @@ function app( name )
 		'src/%{prj.name}/C++/**.h',
 	}
 
+	vpaths {
+		[ 'Source Files/*' ] = 'src/' .. name .. '/C++',
+	}
+
+	filter 'system:windows'
+		files {
+			'src/%{prj.name}/Resources/win32-icons.rc',
+			'src/%{prj.name}/Resources/win32-resource.h',
+		}
+		vpaths {
+			[ 'Resources/*' ] = 'src/' .. name .. '/Resources',
+		}
+
 	filter 'system:linux'
 		linkoptions { '-Wl,-rpath=\\$$ORIGIN' }
 
