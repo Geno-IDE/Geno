@@ -20,94 +20,126 @@
 #include <Common/Macros.h>
 #include <Common/TypeTraits.h>
 
-namespace GCL
+//////////////////////////////////////////////////////////////////////////
+
+GCL::Object::Object( std::string_view Name )
+	: m_Name( Name )
 {
-	Object::Object( std::string_view name )
-		: name_( name )
+} // Object
+
+//////////////////////////////////////////////////////////////////////////
+
+GCL::Object::Object( Object&& rrOther ) noexcept
+{
+	*this = std::move( rrOther );
+
+} // Object
+
+//////////////////////////////////////////////////////////////////////////
+
+GCL::Object& GCL::Object::operator=( Object&& other ) noexcept
+{
+	m_Name = std::move( other.m_Name );
+	m_Value.swap( other.m_Value );
+
+	return *this;
+
+} // operator=
+
+//////////////////////////////////////////////////////////////////////////
+
+void GCL::Object::SetString( std::string_view String )
+{
+	if( IsString() )
+		std::get< StringType >( m_Value ).assign( String );
+	else
+		m_Value.emplace< StringType >( String );
+
+} // SetString
+
+//////////////////////////////////////////////////////////////////////////
+
+void GCL::Object::SetTable( void )
+{
+	if( !IsTable() )
+		m_Value.emplace< TableType >();
+
+} // SetTable
+
+//////////////////////////////////////////////////////////////////////////
+
+void GCL::Object::AddChild( Object Child )
+{
+	TableType& table = std::get< TableType >( m_Value );
+
+	table.emplace_back( std::move( Child ) );
+
+} // AddChild
+
+//////////////////////////////////////////////////////////////////////////
+
+const GCL::Object::StringType& GCL::Object::String( void ) const
+{
+	// Valueless objects can be considered strings in some sense
+	if( IsNull() ) return m_Name;
+	else           return std::get< StringType >( m_Value );
+
+} // String
+
+//////////////////////////////////////////////////////////////////////////
+
+const GCL::Object::TableType& GCL::Object::Table( void ) const
+{
+	return std::get< TableType >( m_Value );
+
+} // Table
+
+//////////////////////////////////////////////////////////////////////////
+
+bool GCL::Object::Empty( void ) const
+{
+	switch( m_Value.index() )
 	{
+		case( UNIQUE_INDEX< StringType, Variant > ): return std::get< StringType >( m_Value ).empty();
+		case( UNIQUE_INDEX< TableType,  Variant > ): return std::get< TableType  >( m_Value ).empty();
+		default:                                     return true;
 	}
 
-	Object::Object( Object&& other )
+} // Empty
+
+//////////////////////////////////////////////////////////////////////////
+
+GCL::Object& GCL::Object::operator[]( std::string_view Name )
+{
+	TableType& table = std::get< TableType >( m_Value );
+
+	for( Object& value : table )
 	{
-		*this = std::move( other );
+		if( value.m_Name == Name )
+			return value;
 	}
 
-	Object& Object::operator=( Object&& other )
-	{
-		name_ = std::move( other.name_ );
-		value_.swap( other.value_ );
+	return table.emplace_back( Name );
 
-		return *this;
-	}
+} // operator[]
 
-	void Object::SetString( std::string_view string )
-	{
-		if( IsString() )
-			std::get< StringType >( value_ ).assign( string );
-		else
-			value_.emplace< StringType >( string );
-	}
+//////////////////////////////////////////////////////////////////////////
 
-	void Object::SetTable( void )
-	{
-		if( !IsTable() )
-			value_.emplace< TableType >();
-	}
+GCL::Object& GCL::Object::operator=( std::string_view String )
+{
+	SetString( String );
 
-	void Object::AddChild( Object child )
-	{
-		TableType& table = std::get< TableType >( value_ );
+	return *this;
 
-		table.emplace_back( std::move( child ) );
-	}
+} // operator=
 
-	const Object::StringType& Object::String( void ) const
-	{
-		// Valueless objects can be considered strings in some sense
-		if( IsNull() ) return name_;
-		else           return std::get< StringType >( value_ );
-	}
+//////////////////////////////////////////////////////////////////////////
 
-	const Object::TableType& Object::Table( void ) const
-	{
-		return std::get< TableType >( value_ );
-	}
+bool GCL::Object::operator==( std::string_view String ) const
+{
+	if( IsString() )
+		return std::get< StringType >( m_Value ).compare( String ) == 0;
 
-	bool Object::Empty( void ) const
-	{
-		switch( value_.index() )
-		{
-			case( UNIQUE_INDEX< StringType, Variant > ): return std::get< StringType >( value_ ).empty();
-			case( UNIQUE_INDEX< TableType,  Variant > ): return std::get< TableType  >( value_ ).empty();
-			default:                                     return true;
-		}
-	}
+	return false;
 
-	Object& Object::operator[]( std::string_view name )
-	{
-		TableType& table = std::get< TableType >( value_ );
-
-		for( Object& value : table )
-		{
-			if( value.name_ == name )
-				return value;
-		}
-
-		return table.emplace_back( name );
-	}
-
-	Object& Object::operator=( std::string_view string )
-	{
-		SetString( string );
-
-		return *this;
-	}
-
-	bool Object::operator==( std::string_view string ) const
-	{
-		if( IsString() )
-			return std::get< StringType >( value_ ).compare( string ) == 0;
-
-		return false;
-	}
-}
+} // operator==
