@@ -35,6 +35,8 @@
 #include "win32-resource.h"
 #endif // _WIN32
 
+static std::string ini_filename;
+
 MainWindow::MainWindow( void )
 {
 	PrimaryMonitor& monitor = PrimaryMonitor::Instance();
@@ -99,12 +101,13 @@ void MainWindow::Init( void )
 {
 	if( !im_gui_context_ )
 	{
-		ini_path_       = LocalAppData::Instance() / "imgui.ini";
+		ini_path_       = LocalAppData::Instance() / L"imgui.ini";
 		im_gui_context_ = ImGui::CreateContext();
+		ini_filename    = ini_path_.string();
 
 		// Configure interface
 		ImGuiIO& io                     = ImGui::GetIO();
-		io.IniFilename                  = ini_path_.c_str();
+		io.IniFilename                  = ini_filename.c_str();
 		io.ConfigFlags                 |= ImGuiConfigFlags_DockingEnable;
 		io.ConfigFlags                 |= ImGuiConfigFlags_ViewportsEnable;
 		io.ConfigViewportsNoTaskBarIcon = true;

@@ -21,7 +21,6 @@
 #include <string_view>
 #include <string>
 
-using path                 = std::filesystem::path;
-using path_string          = std::basic_string< std::filesystem::path::value_type >;
-using path_view            = std::basic_string_view< std::filesystem::path::value_type >;
-using wstring_convert_utf8 = std::wstring_convert< std::codecvt_utf8< wchar_t > >;
+using PathString     = std::basic_string< std::filesystem::path::value_type >;
+using PathStringView = std::basic_string_view< std::filesystem::path::value_type >;
+using UTF8Converter  = std::wstring_convert< std::codecvt_utf8< wchar_t > >;

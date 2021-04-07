@@ -22,15 +22,20 @@ namespace Intrinsics
 {
 	inline void DebugBreak( void )
 	{
+
 	#if defined( _MSC_VER )
 		__debugbreak();
 	#elif defined( __clang__ ) // _MSC_VER
 		__builtin_debugtrap();
 	#endif // __clang__
-	}
+
+	} // DebugBreak
+
+//////////////////////////////////////////////////////////////////////////
 
 	constexpr std::string_view TargetMachine( void )
 	{
+
 	#if defined( _M_IX86 ) || defined( __i386__ )
 		return "x86";
 	#elif defined( _M_AMD64 ) || defined( __amd64__ ) // _M_IX86 || __i386__
@@ -40,5 +45,7 @@ namespace Intrinsics
 	#elif defined( _M_ARM64  ) || defined( __aarch64__ ) // _M_ARM || __arm__
 		return "ARM64";
 	#endif // _M_ARM64 || __aarch64__
-	}
-}
+
+	} // TargetMachine
+
+} // ::Intrinsics

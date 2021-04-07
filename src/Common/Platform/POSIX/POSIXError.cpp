@@ -21,22 +21,25 @@
 
 #include <string.h>
 
-bool _POSIXHandleErrno( errno_t err, std::string_view function, std::string_view file, int line )
+//////////////////////////////////////////////////////////////////////////
+
+bool _POSIXHandleErrno( errno_t Error, std::string_view Function, std::string_view File, int Line )
 {
-	if( err != 0 )
+	if( Error != 0 )
 	{
+
 	#if defined( _WIN32 )
 
-		auto function_name = function.substr( 0, function.find_first_of( "(", 0 ) );
-		char buf[ 256 ]    = { };
+		std::string_view FunctionName  = Function.substr( 0, Function.find_first_of( "(", 0 ) );
+		char             Buffer[ 256 ] = { };
 
-		strerror_s( buf, std::size( buf ), err );
+		strerror_s( Buffer, std::size( Buffer ), Error );
 
-		std::cerr << file << "(L" << line << ") " << function_name << " failed: " << buf << "\n";
+		std::cerr << File << "(L" << Line << ") " << FunctionName << " failed: " << Buffer << "\n";
 
 	#else // _WIN32
 
-		std::cerr << file << "(L" << line << ") " << function_name << " failed: " << strerror( err ) << "\n";
+		std::cerr << File << "(L" << Line << ") " << FunctionName << " failed: " << strerror( Error ) << "\n";
 
 	#endif // else
 
@@ -44,4 +47,5 @@ bool _POSIXHandleErrno( errno_t err, std::string_view function, std::string_view
 	}
 
 	return true;
-}
+
+} // _POSIXHandleErrno

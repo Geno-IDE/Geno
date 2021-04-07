@@ -35,7 +35,6 @@
 
 #include <Common/LocalAppData.h>
 #include <Common/Process.h>
-#include <Common/STLExtras.h>
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>

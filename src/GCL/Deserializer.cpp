@@ -29,7 +29,7 @@ namespace GCL
 {
 	constexpr bool LineStartsWithIndent( std::string_view line, int indent_level )
 	{
-		for( size_t i = 0; i < indent_level; ++i )
+		for( int i = 0; i < indent_level; ++i )
 		{
 			if( line[ i ] != '\t' )
 				return false;
@@ -53,10 +53,7 @@ namespace GCL
 
 			file_buf_ = ( char* )malloc( file_size_ );
 
-			for( int bytes_read = 0;
-			     bytes_read < file_size_;
-			     bytes_read += _read( fd, file_buf_, static_cast< uint32_t >( file_size_ ) )
-			);
+			for( size_t bytes_read = 0; bytes_read < file_size_; bytes_read += _read( fd, file_buf_, static_cast< uint32_t >( file_size_ ) ) );
 
 			_close( fd );
 		}

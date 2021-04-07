@@ -16,35 +16,43 @@
  */
 
 #if defined( _WIN32 )
+
 #include "Common/Platform/Win32/Win32ProcessInfo.h"
 
-Win32ProcessInfo::Win32ProcessInfo( void )
-	: underlying_data_{ }
-{
-}
-	
+//////////////////////////////////////////////////////////////////////////
+
 Win32ProcessInfo::Win32ProcessInfo( Win32ProcessInfo&& other )
-	: underlying_data_{ other.underlying_data_ }
+	: m_UnderlyingData( other.m_UnderlyingData )
 {
-	ZeroMemory( &other.underlying_data_, sizeof( PROCESS_INFORMATION ) );
-}
-	
+	ZeroMemory( &other.m_UnderlyingData, sizeof( PROCESS_INFORMATION ) );
+
+} // Win32ProcessInfo
+
+//////////////////////////////////////////////////////////////////////////
+
 Win32ProcessInfo::~Win32ProcessInfo( void )
 {
-	if( underlying_data_.hThread )
-		CloseHandle( underlying_data_.hThread );
-	
-	if( underlying_data_.hProcess )
-		CloseHandle( underlying_data_.hProcess );
-}
-	
+	if( m_UnderlyingData.hThread )
+		CloseHandle( m_UnderlyingData.hThread );
+
+	if( m_UnderlyingData.hProcess )
+		CloseHandle( m_UnderlyingData.hProcess );
+
+} // ~Win32ProcessInfo
+
+//////////////////////////////////////////////////////////////////////////
+
 Win32ProcessInfo& Win32ProcessInfo::operator=( Win32ProcessInfo&& other )
 {
-	underlying_data_ = other.underlying_data_;
+	// Close existing handles
+	this->~Win32ProcessInfo();
+
+	m_UnderlyingData = other.m_UnderlyingData;
 	
-	ZeroMemory( &other.underlying_data_, sizeof( PROCESS_INFORMATION ) );
+	ZeroMemory( &other.m_UnderlyingData, sizeof( PROCESS_INFORMATION ) );
 	
 	return *this;
-}
+
+} // operator=
 
 #endif // _WIN32

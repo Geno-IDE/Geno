@@ -17,13 +17,14 @@
 
 #pragma once
 #if defined( _WIN32 )
+
 #include <string_view>
 
 #include <Windows.h>
 
-extern bool _Win32HandleResult( DWORD   result, std::string_view function, std::string_view file, int line );
-extern bool _Win32HandleResult( HRESULT result, std::string_view function, std::string_view file, int line );
-extern bool _Win32HandleResult( BOOL    result, std::string_view function, std::string_view file, int line );
+extern bool _Win32HandleResult( DWORD   Result, std::string_view Function, std::string_view File, int Line );
+extern bool _Win32HandleResult( HRESULT Result, std::string_view Function, std::string_view File, int Line );
+extern bool _Win32HandleResult( BOOL    Result, std::string_view Function, std::string_view File, int Line );
 
 #define WIN32_CALL( X ) ( ::_Win32HandleResult( ( X ), #X, __FILE__, __LINE__ ) )
 

@@ -64,7 +64,7 @@ private:
 	GLFWwindow*   window_         = nullptr;
 	ImGuiContext* im_gui_context_ = nullptr;
 
-	std::string           ini_path_;
+	std::filesystem::path ini_path_;
 	std::optional< Drop > dragged_drop_;
 
 	int width_                = 0;

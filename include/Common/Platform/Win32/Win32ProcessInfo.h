@@ -17,35 +17,38 @@
 
 #pragma once
 #if defined( _WIN32 )
+
 #include "Common/Macros.h"
 
 #include <Windows.h>
 
 class Win32ProcessInfo
 {
-public:
-	
 	GENO_DISABLE_COPY( Win32ProcessInfo );
-	
+
+//////////////////////////////////////////////////////////////////////////
+
 public:
-	
-	 Win32ProcessInfo( void );
+
+	 Win32ProcessInfo( void ) = default;
 	 Win32ProcessInfo( Win32ProcessInfo&& other );
 	~Win32ProcessInfo( void );
-	
+
 	Win32ProcessInfo& operator=( Win32ProcessInfo&& other );
 	
-public:
-	
-	PROCESS_INFORMATION*       operator& ( void )       { return &underlying_data_; }
-	const PROCESS_INFORMATION* operator& ( void ) const { return &underlying_data_; }
-	PROCESS_INFORMATION*       operator->( void )       { return &underlying_data_; }
-	const PROCESS_INFORMATION* operator->( void ) const { return &underlying_data_; }
-	
+//////////////////////////////////////////////////////////////////////////
+
+	PROCESS_INFORMATION*       operator& ( void )       { return &m_UnderlyingData; }
+	const PROCESS_INFORMATION* operator& ( void ) const { return &m_UnderlyingData; }
+	PROCESS_INFORMATION*       operator->( void )       { return &m_UnderlyingData; }
+	const PROCESS_INFORMATION* operator->( void ) const { return &m_UnderlyingData; }
+
+//////////////////////////////////////////////////////////////////////////
+
 private:
+
+	PROCESS_INFORMATION m_UnderlyingData = { };
 	
-	PROCESS_INFORMATION underlying_data_;
-	
-};
+}; // Win32ProcessInfo
 
 #endif // _WIN32

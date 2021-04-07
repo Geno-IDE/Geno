@@ -77,9 +77,9 @@ namespace GCL
 	{
 		switch( value_.index() )
 		{
-			case( unique_index_v< StringType, Variant > ): return std::get< StringType >( value_ ).empty();
-			case( unique_index_v< TableType,  Variant > ): return std::get< TableType  >( value_ ).empty();
-			default:                                       return true;
+			case( UNIQUE_INDEX< StringType, Variant > ): return std::get< StringType >( value_ ).empty();
+			case( UNIQUE_INDEX< TableType,  Variant > ): return std::get< TableType  >( value_ ).empty();
+			default:                                     return true;
 		}
 	}
 

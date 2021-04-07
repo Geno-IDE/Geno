@@ -19,21 +19,17 @@
 #include <optional>
 #include <string_view>
 
-extern bool _POSIXHandleErrno( errno_t err, std::string_view function, std::string_view file, int line );
-
-inline bool _POSIXHandleResult( errno_t result, std::string_view function, std::string_view file, int line )
-{
-	return _POSIXHandleErrno( result, function, file, line );
-}
+extern bool _POSIXHandleErrno( errno_t Error, std::string_view Function, std::string_view File, int Line );
 
 template< typename T >
-inline std::optional< T > _POSIXHandleResultPassthrough( T result, std::string_view function, std::string_view file, int line )
+inline std::optional< T > _POSIXHandleResultPassthrough( T Result, std::string_view Function, std::string_view File, int Line )
 {
-	if( _POSIXHandleErrno( errno, function, file, line ) )
-		return std::make_optional< T >( result );
+	if( _POSIXHandleErrno( errno, Function, File, Line ) )
+		return std::make_optional< T >( Result );
 	else
 		return std::nullopt;
-}
 
-#define POSIX_CALL( X )             ( ::_POSIXHandleResult( ( X ), #X, __FILE__, __LINE__ ) )
+} // _POSIXHandleResultPassthrough
+
+#define POSIX_CALL( X )             ( ::_POSIXHandleErrno( ( X ), #X, __FILE__, __LINE__ ) )
 #define POSIX_CALL_PASSTHROUGH( X ) ( errno = 0, ::_POSIXHandleResultPassthrough( ( X ), #X, __FILE__, __LINE__ ) )

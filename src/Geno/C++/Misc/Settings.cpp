@@ -39,7 +39,7 @@ void Settings::Load( void )
 {
 	object_ = GCL::Object( "Settings", std::in_place_type< GCL::Object::TableType > );
 
-	GCL::Deserializer deserializer( LocalAppData::Instance() / "settings.gcl" );
+	GCL::Deserializer deserializer( LocalAppData::Instance() / L"settings.gcl" );
 	if( !deserializer.IsOpen() )
 		return;
 
@@ -57,7 +57,7 @@ void Settings::Load( void )
 
 void Settings::Save( void )
 {
-	GCL::Serializer serializer( LocalAppData::Instance() / "settings.gcl" );
+	GCL::Serializer serializer( LocalAppData::Instance() / L"settings.gcl" );
 	if( !serializer.IsOpen() )
 		return;
 
