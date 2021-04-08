@@ -28,7 +28,9 @@ struct ImGuiInputTextCallbackData;
 
 class TextEditWidget
 {
-	GENO_SINGLETON( TextEditWidget ) = default;
+	GENO_SINGLETON( TextEditWidget );
+
+	TextEditWidget( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 

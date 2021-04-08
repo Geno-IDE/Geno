@@ -112,7 +112,7 @@ bool Project::Serialize( void )
 	// Kind
 	{
 		GCL::Object Kind( "Kind" );
-		Kind.SetString( StringifyProjectKind( m_Kind ) );
+		Kind.SetString( ( std::string )StringifyProjectKind( m_Kind ) );
 		Serializer.WriteObject( Kind );
 	}
 

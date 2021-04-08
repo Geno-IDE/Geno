@@ -21,10 +21,10 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-Win32ProcessInfo::Win32ProcessInfo( Win32ProcessInfo&& other )
-	: m_UnderlyingData( other.m_UnderlyingData )
+Win32ProcessInfo::Win32ProcessInfo( Win32ProcessInfo&& rrOther ) noexcept
+	: m_UnderlyingData( rrOther.m_UnderlyingData )
 {
-	ZeroMemory( &other.m_UnderlyingData, sizeof( PROCESS_INFORMATION ) );
+	ZeroMemory( &rrOther.m_UnderlyingData, sizeof( PROCESS_INFORMATION ) );
 
 } // Win32ProcessInfo
 
@@ -42,14 +42,14 @@ Win32ProcessInfo::~Win32ProcessInfo( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-Win32ProcessInfo& Win32ProcessInfo::operator=( Win32ProcessInfo&& other )
+Win32ProcessInfo& Win32ProcessInfo::operator=( Win32ProcessInfo&& rrOther ) noexcept
 {
 	// Close existing handles
 	this->~Win32ProcessInfo();
 
-	m_UnderlyingData = other.m_UnderlyingData;
+	m_UnderlyingData = rrOther.m_UnderlyingData;
 	
-	ZeroMemory( &other.m_UnderlyingData, sizeof( PROCESS_INFORMATION ) );
+	ZeroMemory( &rrOther.m_UnderlyingData, sizeof( PROCESS_INFORMATION ) );
 	
 	return *this;
 

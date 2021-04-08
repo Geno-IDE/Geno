@@ -136,10 +136,10 @@ Project& Workspace::NewProject( std::filesystem::path Location, std::string Name
 
 Project* Workspace::ProjectByName( std::string_view Name )
 {
-	for( Project& prj : m_Projects )
+	for( Project& rProject : m_Projects )
 	{
-		if( prj.m_Name == Name )
-			return &prj;
+		if( rProject.m_Name == Name )
+			return &rProject;
 	}
 
 	return nullptr;

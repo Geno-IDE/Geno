@@ -104,29 +104,27 @@ bool GCL::Deserializer::ParseLine( std::string_view Line, int IndentLevel, std::
 
 	*pUnparsed = pUnparsed->substr( Line.size() + ( Line.size() < pUnparsed->size() ) );
 
-//////////////////////////////////////////////////////////////////////////
-
 	std::string_view UnindentedLine = Line.substr( IndentLevel );
 	size_t           ColonIndex     = UnindentedLine.find_first_of( ':' );
 
 	if( ColonIndex == std::string_view::npos ) // No colon found
 	{
 		Object* pParentObject = static_cast< Object* >( pUser );
-		Object  Child( UnindentedLine );
+		Object  Child( ( std::string )UnindentedLine );
 
 		pParentObject->AddChild( std::move( Child ) );
 	}
 	else if( ( ColonIndex + 1 ) < UnindentedLine.size() ) // Something comes after the colon
 	{
-		Object Object( UnindentedLine.substr( 0, ColonIndex ) );
-		Object.SetString( UnindentedLine.substr( ColonIndex + 1 ) );
+		Object Object( ( std::string )UnindentedLine.substr( 0, ColonIndex ) );
+		Object.SetString( ( std::string )UnindentedLine.substr( ColonIndex + 1 ) );
 
 		Callback( std::move( Object ), pUser );
 	}
 	else // Colon is at the end of the line, signifying the start of a table
 	{
-		std::string_view Name               = UnindentedLine.substr( 0, ColonIndex );
-		Object           Object( Name, std::in_place_type< Object::TableType > );
+		std::string_view Name             = UnindentedLine.substr( 0, ColonIndex );
+		Object           Object( ( std::string )Name, std::in_place_type< Object::TableType > );
 		auto             AddChildCallback = []( GCL::Object Child, void* pParent ) { static_cast< GCL::Object* >( pParent )->AddChild( std::move( Child ) ); };
 
 		// Parse remaining lines recursively until the indent level changes

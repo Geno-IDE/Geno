@@ -27,8 +27,10 @@ class IModal;
 
 class Application
 {
-	GENO_SINGLETON( Application ) = default;
-	               ~Application( void );
+	GENO_SINGLETON( Application );
+
+	 Application( void ) = default;
+	~Application( void );
 
 //////////////////////////////////////////////////////////////////////////
 

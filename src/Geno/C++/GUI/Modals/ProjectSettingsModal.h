@@ -31,7 +31,9 @@ class Project;
 
 class ProjectSettingsModal : public IModal
 {
-	GENO_SINGLETON( ProjectSettingsModal ) = default;
+	GENO_SINGLETON( ProjectSettingsModal );
+
+	ProjectSettingsModal( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -22,8 +22,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-GCL::Object::Object( std::string_view Name )
-	: m_Name( Name )
+GCL::Object::Object( std::string Name )
+	: m_Name( std::move( Name ) )
 {
 } // Object
 
@@ -37,10 +37,10 @@ GCL::Object::Object( Object&& rrOther ) noexcept
 
 //////////////////////////////////////////////////////////////////////////
 
-GCL::Object& GCL::Object::operator=( Object&& other ) noexcept
+GCL::Object& GCL::Object::operator=( Object&& rrOther ) noexcept
 {
-	m_Name = std::move( other.m_Name );
-	m_Value.swap( other.m_Value );
+	m_Name = std::move( rrOther.m_Name );
+	m_Value.swap( rrOther.m_Value );
 
 	return *this;
 
@@ -48,12 +48,12 @@ GCL::Object& GCL::Object::operator=( Object&& other ) noexcept
 
 //////////////////////////////////////////////////////////////////////////
 
-void GCL::Object::SetString( std::string_view String )
+void GCL::Object::SetString( std::string String )
 {
 	if( IsString() )
-		std::get< StringType >( m_Value ).assign( String );
+		std::get< StringType >( m_Value ).assign( std::move( String ) );
 	else
-		m_Value.emplace< StringType >( String );
+		m_Value.emplace< StringType >( std::move( String ) );
 
 } // SetString
 
@@ -119,15 +119,15 @@ GCL::Object& GCL::Object::operator[]( std::string_view Name )
 			return value;
 	}
 
-	return table.emplace_back( Name );
+	return table.emplace_back( std::string( Name ) );
 
 } // operator[]
 
 //////////////////////////////////////////////////////////////////////////
 
-GCL::Object& GCL::Object::operator=( std::string_view String )
+GCL::Object& GCL::Object::operator=( std::string String )
 {
-	SetString( String );
+	SetString( std::move( String ) );
 
 	return *this;
 

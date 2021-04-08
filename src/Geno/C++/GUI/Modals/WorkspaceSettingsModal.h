@@ -28,7 +28,9 @@ class Workspace;
 
 class WorkspaceSettingsModal : public IModal
 {
-	GENO_SINGLETON( WorkspaceSettingsModal ) = default;
+	GENO_SINGLETON( WorkspaceSettingsModal );
+
+	WorkspaceSettingsModal( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 

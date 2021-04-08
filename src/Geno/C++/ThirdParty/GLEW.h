@@ -22,4 +22,6 @@ class GLEW
 {
 	GENO_SINGLETON( GLEW );
 
+	GLEW( void );
+
 }; // GLEW

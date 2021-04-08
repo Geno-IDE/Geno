@@ -27,7 +27,9 @@
 class OutputWidget
 {
 	GENO_SINGLETON( OutputWidget );
-	               ~OutputWidget( void );
+
+	 OutputWidget( void );
+	~OutputWidget( void );
 
 //////////////////////////////////////////////////////////////////////////
 

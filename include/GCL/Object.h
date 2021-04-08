@@ -41,15 +41,15 @@ public:
 //////////////////////////////////////////////////////////////////////////
 
 	                       Object( void ) = default;
-	explicit               Object( std::string_view Name );
+	explicit               Object( std::string Name );
 	                       Object( Object&& other ) noexcept;
-	template< typename T > Object( std::string_view Name, std::in_place_type_t< T > );
+	template< typename T > Object( std::string Name, std::in_place_type_t< T > );
 
 	Object& operator=( Object&& rrOther ) noexcept;
 
 //////////////////////////////////////////////////////////////////////////
 
-	void SetString( std::string_view String );
+	void SetString( std::string String );
 	void SetTable ( void );
 	void AddChild ( Object Child );
 
@@ -69,7 +69,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 
 	Object& operator[]( std::string_view Name );
-	Object& operator= ( std::string_view String );
+	Object& operator= ( std::string String );
 	bool    operator==( std::string_view String ) const;
 
 //////////////////////////////////////////////////////////////////////////
@@ -86,8 +86,8 @@ private:
 //////////////////////////////////////////////////////////////////////////
 
 template< typename T >
-GCL::Object::Object( std::string_view Name, std::in_place_type_t< T > )
-	: m_Name ( Name )
+GCL::Object::Object( std::string Name, std::in_place_type_t< T > )
+	: m_Name ( std::move( Name ) )
 	, m_Value( std::in_place_type< T > )
 {
 } // Object

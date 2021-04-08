@@ -32,6 +32,8 @@ class OpenFileModal : public IModal
 {
 	GENO_SINGLETON( OpenFileModal );
 
+	OpenFileModal( void );
+
 //////////////////////////////////////////////////////////////////////////
 
 public:

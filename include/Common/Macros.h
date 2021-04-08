@@ -57,5 +57,4 @@ public:                                                          \
     CLASS( CLASS&& )                 = delete;                   \
     CLASS& operator=( CLASS&& )      = delete;                   \
     CLASS& operator=( const CLASS& ) = delete;                   \
-private:                                                         \
-    CLASS( void )
+private:

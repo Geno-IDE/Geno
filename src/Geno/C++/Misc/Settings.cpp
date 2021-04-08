@@ -47,16 +47,16 @@ void Settings::Load( void )
 {
 	m_Object = GCL::Object( "Settings", std::in_place_type< GCL::Object::TableType > );
 
-	GCL::Deserializer deserializer( LocalAppData::Instance() / L"settings.gcl" );
-	if( !deserializer.IsOpen() )
+	GCL::Deserializer Deserializer( LocalAppData::Instance() / L"settings.gcl" );
+	if( !Deserializer.IsOpen() )
 		return;
 
-	deserializer.Objects( this,
-		[]( GCL::Object object, void* user )
+	Deserializer.Objects( this,
+		[]( GCL::Object Object, void* pUser )
 		{
-			Settings* self = static_cast< Settings* >( user );
+			Settings* pSelf = static_cast< Settings* >( pUser );
 
-			self->m_Object.AddChild( std::move( object ) );
+			pSelf->m_Object.AddChild( std::move( Object ) );
 		}
 	);
 
@@ -68,12 +68,12 @@ void Settings::Load( void )
 
 void Settings::Save( void )
 {
-	GCL::Serializer serializer( LocalAppData::Instance() / L"settings.gcl" );
-	if( !serializer.IsOpen() )
+	GCL::Serializer Serializer( LocalAppData::Instance() / L"settings.gcl" );
+	if( !Serializer.IsOpen() )
 		return;
 
-	for( auto& child : m_Object.Table() )
-		serializer.WriteObject( child );
+	for( const GCL::Object& rChild : m_Object.Table() )
+		Serializer.WriteObject( rChild );
 
 } // Save
 
@@ -81,10 +81,10 @@ void Settings::Save( void )
 
 void Settings::UpdateTheme( void )
 {
-	GCL::Object& theme = m_Object[ "Theme" ];
+	GCL::Object& rTheme = m_Object[ "Theme" ];
 
-	/**/ if( theme == "Classic" ) ImGui::StyleColorsClassic();
-	else if( theme == "Light" )   ImGui::StyleColorsLight();
-	else if( theme == "Dark" )    ImGui::StyleColorsDark();
+	/**/ if( rTheme == "Classic" ) ImGui::StyleColorsClassic();
+	else if( rTheme == "Light" )   ImGui::StyleColorsLight();
+	else if( rTheme == "Dark" )    ImGui::StyleColorsDark();
 
 } // UpdateTheme

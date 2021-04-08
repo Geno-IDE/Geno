@@ -22,7 +22,9 @@
 
 class NewItemModal : public IModal
 {
-	GENO_SINGLETON( NewItemModal ) = default;
+	GENO_SINGLETON( NewItemModal );
+
+	NewItemModal( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 

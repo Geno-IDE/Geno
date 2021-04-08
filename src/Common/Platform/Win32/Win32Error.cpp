@@ -29,12 +29,11 @@ bool _Win32HandleResult( DWORD Result, std::string_view Function, std::string_vi
 {
 	if( FAILED( Result ) )
 	{
-		constexpr DWORD        BUFFER_SIZE  = 256;
 		const std::string_view FunctionName = Function.substr( 0, Function.find_first_of( "(", 0 ) );
-		char                   Buffer[ BUFFER_SIZE ];
+		char                   Buffer[ 256 ];
 
-		if( FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, Result, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), Buffer, BUFFER_SIZE, NULL ) == 0 )
-			strcpy_s( Buffer, BUFFER_SIZE, "Unknown error" );
+		if( FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, Result, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), Buffer, std::size( Buffer ), NULL ) == 0 )
+			strcpy_s( Buffer, std::size( Buffer ), "Unknown error" );
 
 		std::cerr << File << "(L" << Line << ") " << FunctionName << " failed: " << Buffer << "\n";
 
@@ -47,11 +46,11 @@ bool _Win32HandleResult( DWORD Result, std::string_view Function, std::string_vi
 
 //////////////////////////////////////////////////////////////////////////
 
-bool _Win32HandleResult( HRESULT result, std::string_view Function, std::string_view file, int line )
+bool _Win32HandleResult( HRESULT Result, std::string_view Function, std::string_view File, int Line )
 {
-	if( FAILED( result ) )
+	if( FAILED( Result ) )
 	{
-		_Win32HandleResult( ( DWORD )result, Function, file, line );
+		_Win32HandleResult( ( DWORD )Result, Function, File, Line );
 		return false;
 	}
 
@@ -61,11 +60,11 @@ bool _Win32HandleResult( HRESULT result, std::string_view Function, std::string_
 
 //////////////////////////////////////////////////////////////////////////
 
-bool _Win32HandleResult( BOOL result, std::string_view Function, std::string_view file, int line )
+bool _Win32HandleResult( BOOL Result, std::string_view Function, std::string_view File, int Line )
 {
-	if( result == FALSE )
+	if( Result == FALSE )
 	{
-		_Win32HandleResult( GetLastError(), Function, file, line );
+		_Win32HandleResult( GetLastError(), Function, File, Line );
 		return false;
 	}
 

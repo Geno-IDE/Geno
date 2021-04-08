@@ -33,8 +33,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-Process::Process( std::wstring command_line )
-	: m_CommandLine( std::move( command_line ) )
+Process::Process( std::wstring CommandLine )
+	: m_CommandLine( std::move( CommandLine ) )
 	, m_ExitCode   ( Run() )
 {
 } // Process

@@ -31,10 +31,10 @@ class Win32ProcessInfo
 public:
 
 	 Win32ProcessInfo( void ) = default;
-	 Win32ProcessInfo( Win32ProcessInfo&& other );
+	 Win32ProcessInfo( Win32ProcessInfo&& rrOther ) noexcept;
 	~Win32ProcessInfo( void );
 
-	Win32ProcessInfo& operator=( Win32ProcessInfo&& other );
+	Win32ProcessInfo& operator=( Win32ProcessInfo&& rrOther ) noexcept;
 	
 //////////////////////////////////////////////////////////////////////////
 

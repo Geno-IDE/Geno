@@ -24,6 +24,8 @@ class PrimaryMonitor
 {
 	GENO_SINGLETON( PrimaryMonitor );
 
+	PrimaryMonitor( void );
+
 //////////////////////////////////////////////////////////////////////////
 
 public:

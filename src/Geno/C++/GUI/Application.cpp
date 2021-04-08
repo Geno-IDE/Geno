@@ -107,12 +107,12 @@ void Application::PopModal( void )
 
 IModal* Application::NextModal( IModal* pPrevious )
 {
-	if( auto it = std::find( m_ModalStack.begin(), m_ModalStack.end(), pPrevious ); it != m_ModalStack.end() )
+	if( auto Modal = std::find( m_ModalStack.begin(), m_ModalStack.end(), pPrevious ); Modal != m_ModalStack.end() )
 	{
-		if( ++it == m_ModalStack.end() )
+		if( ++Modal == m_ModalStack.end() )
 			return nullptr;
 
-		return *it;
+		return *Modal;
 	}
 
 	return nullptr;

@@ -21,7 +21,9 @@
 class GLFW
 {
 	GENO_SINGLETON( GLFW );
-	               ~GLFW( void );
+
+	 GLFW( void );
+	~GLFW( void );
 
 //////////////////////////////////////////////////////////////////////////
 

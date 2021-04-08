@@ -26,6 +26,8 @@ class LocalAppData
 {
 	GENO_SINGLETON( LocalAppData );
 
+	LocalAppData( void );
+
 //////////////////////////////////////////////////////////////////////////
 
 public:

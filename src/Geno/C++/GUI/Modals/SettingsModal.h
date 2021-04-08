@@ -29,7 +29,9 @@ class Object;
 
 class SettingsModal : public IModal
 {
-	GENO_SINGLETON( SettingsModal ) = default;
+	GENO_SINGLETON( SettingsModal );
+
+	SettingsModal( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 

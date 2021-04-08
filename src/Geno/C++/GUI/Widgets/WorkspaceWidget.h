@@ -20,7 +20,9 @@
 
 class WorkspaceWidget
 {
-	GENO_SINGLETON( WorkspaceWidget ) = default;
+	GENO_SINGLETON( WorkspaceWidget );
+
+	WorkspaceWidget( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 

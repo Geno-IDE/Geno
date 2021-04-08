@@ -31,7 +31,9 @@ struct ImGuiContext;
 class MainWindow
 {
 	GENO_SINGLETON( MainWindow );
-	               ~MainWindow( void );
+
+	 MainWindow( void );
+	~MainWindow( void );
 
 //////////////////////////////////////////////////////////////////////////
 

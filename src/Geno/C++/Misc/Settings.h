@@ -24,7 +24,9 @@
 class Settings
 {
 	GENO_SINGLETON( Settings );
-	               ~Settings( void );
+
+	 Settings( void );
+	~Settings( void );
 
 //////////////////////////////////////////////////////////////////////////
 

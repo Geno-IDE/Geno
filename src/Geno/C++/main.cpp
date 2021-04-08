@@ -17,7 +17,11 @@
 
 #include "GUI/Application.h"
 
-//////////////////////////////////////////////////////////////////////////
+#if defined( _WIN32 )
+#include <Windows.h>
+#endif // _WIN32
+
+ //////////////////////////////////////////////////////////////////////////
 
 int main( int /*ArgCount*/, char** /*ppArgs*/ )
 {
@@ -29,9 +33,7 @@ int main( int /*ArgCount*/, char** /*ppArgs*/ )
 
 #if defined( _WIN32 )
 
-#include <Windows.h>
-
-int WINAPI WinMain( HINSTANCE /*Instance*/, HINSTANCE /*PrevInstance*/, LPSTR /*CommandLine*/, int /*CommandShow*/ )
+int WINAPI WinMain( _In_ HINSTANCE /*Instance*/, _In_opt_ HINSTANCE /*PrevInstance*/, _In_ LPSTR /*CmdLine*/, _In_ int /*ShowCmd*/ )
 {
 	return main( __argc, __argv );
 

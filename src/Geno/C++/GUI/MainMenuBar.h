@@ -29,7 +29,9 @@ struct WorkspaceOpened;
 
 class MainMenuBar
 {
-	GENO_SINGLETON( MainMenuBar ) = default;
+	GENO_SINGLETON( MainMenuBar );
+
+	MainMenuBar( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 
