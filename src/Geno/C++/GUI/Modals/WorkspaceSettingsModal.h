@@ -24,20 +24,21 @@
 
 #include <Common/Macros.h>
 
-namespace GCL
-{
-	class Object;
-}
-
 class Workspace;
 
 class WorkspaceSettingsModal : public IModal
 {
-	GENO_SINGLETON( WorkspaceSettingsModal ) = default;
+	GENO_SINGLETON( WorkspaceSettingsModal );
+
+	WorkspaceSettingsModal( void ) = default;
+
+//////////////////////////////////////////////////////////////////////////
 
 public:
 
 	void Show( void );
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
@@ -46,12 +47,12 @@ private:
 	void        UpdateDerived( void ) override;
 	void        OnClose      ( void ) override;
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
 	void ShowConfigurationColumn( BuildMatrix::Column& column, std::string id_prefix );
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
-	int current_category_ = -1;
+	int m_CurrentCategory = -1;
 
-};
+}; // WorkspaceSettingsModal

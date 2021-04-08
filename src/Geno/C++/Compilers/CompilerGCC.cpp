@@ -19,165 +19,175 @@
 
 #include "Misc/Settings.h"
 
+//////////////////////////////////////////////////////////////////////////
+
 static std::filesystem::path FindGCCLocation( void )
 {
+
 #if defined( _WIN32 )
 
-	Settings& settings = Settings::Instance();
+	Settings& rSettings = Settings::Instance();
 
-	if( GCL::Object& mingw_path = settings.object_[ "MinGW-Path" ]; mingw_path.IsString() )
-		return mingw_path.String();
+	if( GCL::Object& rMinGWPath = rSettings.m_Object[ "MinGW-Path" ]; rMinGWPath.IsString() )
+		return rMinGWPath.String();
 
-#endif
+#endif // _WIN32
 
 	return std::filesystem::path();
-}
 
-std::wstring CompilerGCC::MakeCommandLineString( const CompileOptions& options )
+} // FindGCCLocation
+
+//////////////////////////////////////////////////////////////////////////
+
+std::wstring CompilerGCC::MakeCommandLineString( const CompileOptions& rOptions )
 {
-	std::wstring cmd;
-	cmd.reserve( 1024 );
+	std::wstring Command;
+	Command.reserve( 1024 );
 
 	// Start with GCC executable
-	cmd += ( FindGCCLocation() / L"bin/g++" ).lexically_normal();
+	Command += ( FindGCCLocation() / L"bin/g++" ).lexically_normal();
 
 	// Language
-	switch( options.language )
+	switch( rOptions.Language )
 	{
-		case CompileOptions::Language::Unspecified: { cmd += L" -x none";      } break;
-		case CompileOptions::Language::C:           { cmd += L" -x c";         } break;
-		case CompileOptions::Language::CPlusPlus:   { cmd += L" -x c++";       } break;
-		case CompileOptions::Language::Assembler:   { cmd += L" -x assembler"; } break;
+		case CompileOptions::Language::Unspecified: { Command += L" -x none";      } break;
+		case CompileOptions::Language::C:           { Command += L" -x c";         } break;
+		case CompileOptions::Language::CPlusPlus:   { Command += L" -x c++";       } break;
+		case CompileOptions::Language::Assembler:   { Command += L" -x assembler"; } break;
 	}
 
 	// Verbosity
-	if( options.verbose )
+	if( rOptions.Verbose )
 	{
 		// Time the execution of each subprocess
-		cmd += L" -time";
+		Command += L" -time";
 
 		// Verbose logging
-		cmd += L" -v";
+		Command += L" -v";
 	}
 
 	// Actions
-	switch( options.action )
+	switch( rOptions.Action )
 	{
-		case CompileOptions::Action::OnlyPreprocess:     { cmd += L" -E"; } break;
-		case CompileOptions::Action::OnlyCompile:        { cmd += L" -S"; } break;
-		case CompileOptions::Action::CompileAndAssemble: { cmd += L" -c"; } break;
-		default:                                                     break;
+		case CompileOptions::Action::OnlyPreprocess:     { Command += L" -E"; } break;
+		case CompileOptions::Action::OnlyCompile:        { Command += L" -S"; } break;
+		case CompileOptions::Action::CompileAndAssemble: { Command += L" -c"; } break;
+		default:                                                                break;
 	}
 
 	// Assembler options
-	if( options.assembler_flags != 0 )
+	if( rOptions.AssemblerFlags != 0 )
 	{
-		cmd += L" -Wa";
+		Command += L" -Wa";
 
-		if( options.assembler_flags & CompileOptions::AssemblerFlagReduceMemoryOverheads ) { cmd += L",--reduce-memory-overheads"; }
+		if( rOptions.AssemblerFlags & CompileOptions::AssemblerFlagReduceMemoryOverheads ) { Command += L",--reduce-memory-overheads"; }
 	}
 
 	// Preprocessor options
-	if( options.preprocessor_flags != 0 )
+	if( rOptions.PreprocessorFlags != 0 )
 	{
-		cmd += L" -Wp";
+		Command += L" -Wp";
 
-		if( options.preprocessor_flags & CompileOptions::PreprocessorFlagUndefineSystemMacros ) { cmd += L",-undef"; }
+		if( rOptions.PreprocessorFlags & CompileOptions::PreprocessorFlagUndefineSystemMacros ) { Command += L",-undef"; }
 	}
 
 	// Set output file
-	cmd += L" -o " + options.output_file.wstring();
+	Command += L" -o " + rOptions.OutputFile.wstring();
 
 	// Finally, the input source file
-	cmd += L" " + options.input_file.wstring();
+	Command += L" " + rOptions.InputFile.wstring();
 
-	return cmd;
-}
+	return Command;
 
-std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& options )
+} // MakeCommandLineString
+
+//////////////////////////////////////////////////////////////////////////
+
+std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 {
-	std::wstring cmd;
-	cmd.reserve( 256 );
+	std::wstring Command;
+	Command.reserve( 256 );
 
-	switch( options.kind )
+	switch( rOptions.Kind )
 	{
 		case ProjectKind::Application:
 		case ProjectKind::DynamicLibrary:
 		{
 			// Start with GCC executable
-			cmd += ( FindGCCLocation() / L"bin/g++" ).lexically_normal();
+			Command += ( FindGCCLocation() / L"bin/g++" ).lexically_normal();
 
 			// Create a shared library
-			if( options.kind == ProjectKind::DynamicLibrary )
-				cmd += L" -shared";
+			if( rOptions.Kind == ProjectKind::DynamicLibrary )
+				Command += L" -shared";
 
 			// Linker options
-			if( options.flags != 0 )
+			if( rOptions.Flags != 0 )
 			{
-				cmd += L" -Wl";
+				Command += L" -Wl";
 
-				if( options.flags & LinkOptions::LinkerFlagNoDefaultLibs ) { cmd += L",-nodefaultlibs"; }
+				if( rOptions.Flags & LinkOptions::LinkerFlagNoDefaultLibs ) { Command += L",-nodefaultlibs"; }
 			}
 
 			// Link libraries
-			for( const std::filesystem::path& library : options.linked_libraries )
+			for( const std::filesystem::path& rLibrary : rOptions.LinkedLibraries )
 			{
-				cmd += L" -L" + library.parent_path().wstring();
-				cmd += L" -l" + library.filename().replace_extension().wstring();
+				Command += L" -L" + rLibrary.parent_path().wstring();
+				Command += L" -l" + rLibrary.filename().replace_extension().wstring();
 			}
 
 			// Set output file
 			{
-				std::filesystem::path output_file = options.output_file;
+				std::filesystem::path OutputFile = rOptions.OutputFile;
 
 				// Add "lib" prefix for dynamic libraries
-				if( options.kind == ProjectKind::DynamicLibrary )
-					output_file.replace_filename( L"lib" + output_file.filename().wstring() );
+				if( rOptions.Kind == ProjectKind::DynamicLibrary )
+					OutputFile.replace_filename( L"lib" + OutputFile.filename().wstring() );
 
-				cmd += L" -o " + output_file.wstring();
+				Command += L" -o " + OutputFile.wstring();
 			}
 
 			// Finally, set the input files
-			for( const std::filesystem::path& input_file : options.input_files )
-				cmd += L" " + input_file.lexically_normal().wstring();
+			for( const std::filesystem::path& rInputFile : rOptions.InputFiles )
+				Command += L" " + rInputFile.lexically_normal().wstring();
 
 		} break;
 
 		case ProjectKind::StaticLibrary:
 		{
 			// Start with AR executable
-			cmd += ( FindGCCLocation() / "bin/ar" ).lexically_normal();
+			Command += ( FindGCCLocation() / "bin/ar" ).lexically_normal();
 
 			// Command: Replace existing or insert new file(s) into the archive
-			cmd += L" r";
+			Command += L" r";
 
 			// Use full path names when matching
-			cmd += L'P';
+			Command += L'P';
 
 			// Only replace files that are newer than current archive contents
-			cmd += L'u';
+			Command += L'u';
 
 			// Do not warn if the library had to be created
-			cmd += L'c';
+			Command += L'c';
 
 			// Create an archive index (cf. ranlib)
-			cmd += L's';
+			Command += L's';
 
 			// Do not build a symbol table
-			if( options.flags & LinkOptions::LinkerFlagNoSymbolTable )
-				cmd += L'S';
+			if( rOptions.Flags & LinkOptions::LinkerFlagNoSymbolTable )
+				Command += L'S';
 
 			// Set output file with "lib" prefix
-			std::filesystem::path output_file = options.output_file;
-			output_file.replace_filename( L"lib" + output_file.filename().wstring() );
-			cmd += L" " + output_file.wstring();
+			std::filesystem::path OutputFile = rOptions.OutputFile;
+			OutputFile.replace_filename( L"lib" + OutputFile.filename().wstring() );
+			Command += L" " + OutputFile.wstring();
 
 			// Set input files
-			for( const std::filesystem::path& input_file : options.input_files )
-				cmd += L" " + input_file.wstring();
+			for( const std::filesystem::path& input_file : rOptions.InputFiles )
+				Command += L" " + input_file.wstring();
 
 		} break;
 	}
 
-	return cmd;
-}
+	return Command;
+
+} // MakeCommandLineString

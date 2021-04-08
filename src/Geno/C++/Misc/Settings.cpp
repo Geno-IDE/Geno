@@ -25,51 +25,66 @@
 
 #include <imgui.h>
 
+//////////////////////////////////////////////////////////////////////////
+
 Settings::Settings( void )
 {
 	Load();
-}
+
+} // Settings
+
+//////////////////////////////////////////////////////////////////////////
 
 Settings::~Settings( void )
 {
 	Save();
-}
+
+} // ~Settings
+
+//////////////////////////////////////////////////////////////////////////
 
 void Settings::Load( void )
 {
-	object_ = GCL::Object( "Settings", std::in_place_type< GCL::Object::TableType > );
+	m_Object = GCL::Object( "Settings", std::in_place_type< GCL::Object::TableType > );
 
-	GCL::Deserializer deserializer( LocalAppData::Instance() / "settings.gcl" );
-	if( !deserializer.IsOpen() )
+	GCL::Deserializer Deserializer( LocalAppData::Instance() / L"settings.gcl" );
+	if( !Deserializer.IsOpen() )
 		return;
 
-	deserializer.Objects( this,
-		[]( GCL::Object object, void* user )
+	Deserializer.Objects( this,
+		[]( GCL::Object Object, void* pUser )
 		{
-			Settings* self = static_cast< Settings* >( user );
+			Settings* pSelf = static_cast< Settings* >( pUser );
 
-			self->object_.AddChild( std::move( object ) );
+			pSelf->m_Object.AddChild( std::move( Object ) );
 		}
 	);
 
 	UpdateTheme();
-}
+
+} // Load
+
+//////////////////////////////////////////////////////////////////////////
 
 void Settings::Save( void )
 {
-	GCL::Serializer serializer( LocalAppData::Instance() / "settings.gcl" );
-	if( !serializer.IsOpen() )
+	GCL::Serializer Serializer( LocalAppData::Instance() / L"settings.gcl" );
+	if( !Serializer.IsOpen() )
 		return;
 
-	for( auto& child : object_.Table() )
-		serializer.WriteObject( child );
-}
+	for( const GCL::Object& rChild : m_Object.Table() )
+		Serializer.WriteObject( rChild );
+
+} // Save
+
+//////////////////////////////////////////////////////////////////////////
 
 void Settings::UpdateTheme( void )
 {
-	GCL::Object& theme = object_[ "Theme" ];
+	GCL::Object& rTheme = m_Object[ "Theme" ];
 
-	/**/ if( theme == "Classic" ) ImGui::StyleColorsClassic();
-	else if( theme == "Light" )   ImGui::StyleColorsLight();
-	else if( theme == "Dark" )    ImGui::StyleColorsDark();
-}
+	/**/ if( rTheme == "Classic" ) ImGui::StyleColorsClassic();
+	else if( rTheme == "Light" )   ImGui::StyleColorsLight();
+	else if( rTheme == "Dark" )    ImGui::StyleColorsDark();
+
+} // UpdateTheme

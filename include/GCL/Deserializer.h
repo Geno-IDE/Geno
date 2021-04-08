@@ -25,33 +25,37 @@
 
 namespace GCL
 {
-	class Deserializer
-	{
-	public:
 
-		using ObjectCallback = void( * )( Object object, void* user );
+class Deserializer
+{
+public:
 
-	public:
-	
-		explicit Deserializer( const std::filesystem::path& path );
-		        ~Deserializer( void );
+	using ObjectCallback = void( * )( Object Object, void* pUser );
 
-	public:
+//////////////////////////////////////////////////////////////////////////
 
-		void Objects( void* user, ObjectCallback callback );
+	explicit Deserializer( const std::filesystem::path& rPath );
+	        ~Deserializer( void );
 
-	public:
+//////////////////////////////////////////////////////////////////////////
 
-		bool IsOpen( void ) const;
+	void Objects( void* pUser, ObjectCallback Callback );
 
-	private:
+//////////////////////////////////////////////////////////////////////////
 
-		bool ParseLine( std::string_view line, int indent_level, std::string_view* unparsed, ObjectCallback callback, void* user );
+	bool IsOpen( void ) const;
 
-	private:
+//////////////////////////////////////////////////////////////////////////
 
-		char*  file_buf_  = nullptr;
-		size_t file_size_ = 0;
+private:
 
-	};
+	bool ParseLine( std::string_view Line, int IndentLevel, std::string_view* pUnparsed, ObjectCallback Callback, void* pUser );
+
+//////////////////////////////////////////////////////////////////////////
+
+	char*  m_pFileBuffer = nullptr;
+	size_t m_FileSize    = 0;
+
+}; // Deserializer
+
 }

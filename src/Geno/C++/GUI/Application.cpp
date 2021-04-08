@@ -24,11 +24,16 @@
 
 #include <iostream>
 
+//////////////////////////////////////////////////////////////////////////
+
 Application::~Application( void )
 {
 	// Save workspace on exit
 	CloseWorkspace();
-}
+
+} // ~Application
+
+//////////////////////////////////////////////////////////////////////////
 
 int Application::Run( void )
 {
@@ -39,63 +44,85 @@ int Application::Run( void )
 		MainMenuBar::Instance().Show();
 
 		// This will update all modals recursively
-		if( !modal_stack_.empty() )
-			modal_stack_.front()->Update();
+		if( !m_ModalStack.empty() )
+			m_ModalStack.front()->Update();
 
 		MainWindow::Instance().EndFrame();
 	}
 
 	return 0;
-}
 
-void Application::NewWorkspace( std::filesystem::path location, std::string name )
+} // Run
+
+//////////////////////////////////////////////////////////////////////////
+
+void Application::NewWorkspace( std::filesystem::path Location, std::string Name )
 {
 	CloseWorkspace();
 
-	Workspace& workspace = current_workspace_.emplace( std::move( location ) );
-	workspace.name_      = std::move( name );
-}
+	Workspace& rWorkspace = m_CurrentWorkspace.emplace( std::move( Location ) );
+	rWorkspace.m_Name      = std::move( Name );
 
-void Application::LoadWorkspace( const std::filesystem::path& path )
+} // NewWorkspace
+
+//////////////////////////////////////////////////////////////////////////
+
+void Application::LoadWorkspace( const std::filesystem::path& rPath )
 {
 	CloseWorkspace();
-	NewWorkspace( path.parent_path(), path.filename().replace_extension().string() );
+	NewWorkspace( rPath.parent_path(), rPath.filename().replace_extension().string() );
 
-	current_workspace_->Deserialize();
-}
+	m_CurrentWorkspace->Deserialize();
+
+} // LoadWorkspace
+
+//////////////////////////////////////////////////////////////////////////
 
 void Application::CloseWorkspace( void )
 {
-	if( current_workspace_ )
-		current_workspace_->Serialize();
+	if( m_CurrentWorkspace )
+		m_CurrentWorkspace->Serialize();
 
-	current_workspace_.reset();
-}
+	m_CurrentWorkspace.reset();
 
-void Application::PushModal( IModal* modal )
+} // CloseWorkspace
+
+//////////////////////////////////////////////////////////////////////////
+
+void Application::PushModal( IModal* pModal )
 {
-	modal_stack_.push_back( modal );
-}
+	m_ModalStack.push_back( pModal );
+
+} // PushModal
+
+//////////////////////////////////////////////////////////////////////////
 
 void Application::PopModal( void )
 {
-	modal_stack_.pop_back();
-}
+	m_ModalStack.pop_back();
 
-IModal* Application::NextModal( IModal* previous )
+} // PopModal
+
+//////////////////////////////////////////////////////////////////////////
+
+IModal* Application::NextModal( IModal* pPrevious )
 {
-	if( auto it = std::find( modal_stack_.begin(), modal_stack_.end(), previous ); it != modal_stack_.end() )
+	if( auto Modal = std::find( m_ModalStack.begin(), m_ModalStack.end(), pPrevious ); Modal != m_ModalStack.end() )
 	{
-		if( ++it == modal_stack_.end() )
+		if( ++Modal == m_ModalStack.end() )
 			return nullptr;
 
-		return *it;
+		return *Modal;
 	}
 
 	return nullptr;
-}
+
+} // NextModal
+
+//////////////////////////////////////////////////////////////////////////
 
 Workspace* Application::CurrentWorkspace( void )
 {
-	return current_workspace_.has_value() ? &current_workspace_.value() : nullptr;
-}
+	return m_CurrentWorkspace.has_value() ? &m_CurrentWorkspace.value() : nullptr;
+
+} // CurrentWorkspace

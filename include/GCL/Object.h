@@ -23,63 +23,71 @@
 
 namespace GCL
 {
-	class Object
-	{
-		GENO_DISABLE_COPY( Object );
 
-	public:
+class Object
+{
+	GENO_DISABLE_COPY( Object );
 
-		using StringType = std::string;
-		using TableType  = std::vector< Object >;
-		using Variant    = std::variant< std::monostate, StringType, TableType >;
+//////////////////////////////////////////////////////////////////////////
 
-	public:
+public:
+
+//////////////////////////////////////////////////////////////////////////
+
+	using StringType = std::string;
+	using TableType  = std::vector< Object >;
+	using Variant    = std::variant< std::monostate, StringType, TableType >;
+
+//////////////////////////////////////////////////////////////////////////
+
+	                       Object( void ) = default;
+	explicit               Object( std::string Name );
+	                       Object( Object&& other ) noexcept;
+	template< typename T > Object( std::string Name, std::in_place_type_t< T > );
+
+	Object& operator=( Object&& rrOther ) noexcept;
+
+//////////////////////////////////////////////////////////////////////////
+
+	void SetString( std::string String );
+	void SetTable ( void );
+	void AddChild ( Object Child );
+
+//////////////////////////////////////////////////////////////////////////
+
+	const StringType& String( void ) const;
+	const TableType&  Table ( void ) const;
+	bool              Empty ( void ) const;
+
+//////////////////////////////////////////////////////////////////////////
+
+	std::string_view Name    ( void ) const { return m_Name; }
+	bool             IsNull  ( void ) const { return m_Value.index() == 0; }
+	bool             IsString( void ) const { return m_Value.index() == 1; }
+	bool             IsTable ( void ) const { return m_Value.index() == 2; }
+
+//////////////////////////////////////////////////////////////////////////
+
+	Object& operator[]( std::string_view Name );
+	Object& operator= ( std::string String );
+	bool    operator==( std::string_view String ) const;
+
+//////////////////////////////////////////////////////////////////////////
+
+private:
+
+	std::string m_Name;
+	Variant     m_Value;
 	
-		         Object( void ) = default;
-		explicit Object( std::string_view name );
-		         Object( Object&& other );
+}; // Object
 
-		template< typename T >
-		Object( std::string_view name, std::in_place_type_t< T > )
-			: name_ ( name )
-			, value_( std::in_place_type< T > )
-		{
-		}
-
-		Object& operator=( Object&& other );
-
-	public:
-
-		void SetString( std::string_view string );
-		void SetTable ( void );
-		void AddChild ( Object child );
-
-	public:
-
-		std::string_view Name    ( void ) const { return name_; }
-		bool             IsNull  ( void ) const { return value_.index() == 0; }
-		bool             IsString( void ) const { return value_.index() == 1; }
-		bool             IsTable ( void ) const { return value_.index() == 2; }
-
-	public:
-
-		const StringType& String( void ) const;
-		const TableType&  Table ( void ) const;
-		bool              Empty ( void ) const;
-
-	public:
-
-		Object& operator[]( std::string_view name );
-		Object& operator= ( std::string_view string );
-
-	public:
-
-		bool operator==( std::string_view string ) const;
-
-	private:
-
-		std::string name_;
-		Variant     value_;
-	
-	};
 }
+
+//////////////////////////////////////////////////////////////////////////
+
+template< typename T >
+GCL::Object::Object( std::string Name, std::in_place_type_t< T > )
+	: m_Name ( std::move( Name ) )
+	, m_Value( std::in_place_type< T > )
+{
+} // Object

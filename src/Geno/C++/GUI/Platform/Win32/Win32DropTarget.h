@@ -17,35 +17,43 @@
 
 #pragma once
 #if defined( _WIN32 )
+
 #include <Common/Drop.h>
+#include <Common/Macros.h>
 
 #include <Windows.h>
 
 class Win32DropTarget : public IDropTarget
 {
+	GENO_DISABLE_COPY_AND_MOVE( Win32DropTarget );
+
+//////////////////////////////////////////////////////////////////////////
+
 public:
 
 	 Win32DropTarget( void );
 	~Win32DropTarget( void );
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	HRESULT STDMETHODCALLTYPE QueryInterface( REFIID riid, void** object ) override;
+	HRESULT STDMETHODCALLTYPE QueryInterface( const IID& rIID, void** ppObject ) override;
 	ULONG   STDMETHODCALLTYPE AddRef        ( void ) override;
 	ULONG   STDMETHODCALLTYPE Release       ( void ) override;
-	HRESULT STDMETHODCALLTYPE DragEnter     ( IDataObject* data_obj, DWORD key_state, POINTL point, DWORD* effect ) override;
-	HRESULT STDMETHODCALLTYPE DragOver      ( DWORD key_state, POINTL point, DWORD* effect ) override;
+	HRESULT STDMETHODCALLTYPE DragEnter     ( IDataObject* pDataObject, DWORD KeyState, POINTL Point, DWORD* pEffect ) override;
+	HRESULT STDMETHODCALLTYPE DragOver      ( DWORD KeyState, POINTL Point, DWORD* pEffect ) override;
 	HRESULT STDMETHODCALLTYPE DragLeave     ( void ) override;
-	HRESULT STDMETHODCALLTYPE Drop          ( IDataObject* data_obj, DWORD key_state, POINTL point, DWORD* effect ) override;
+	HRESULT STDMETHODCALLTYPE Drop          ( IDataObject* pDataObject, DWORD KeyState, POINTL Point, DWORD* pEffect ) override;
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
-	bool DropFromDataObject( IDataObject* data_obj, ::Drop& out_drop );
+	bool DropFromDataObject( IDataObject* pDataObject, ::Drop& rOutDrop );
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
-	LONG ref_count_ = 1;
+	LONG m_RefCount = 1;
 
-};
+}; // Win32DropTarget
 
 #endif // _WIN32

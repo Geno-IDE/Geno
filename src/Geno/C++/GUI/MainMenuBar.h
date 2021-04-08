@@ -29,16 +29,22 @@ struct WorkspaceOpened;
 
 class MainMenuBar
 {
-	GENO_SINGLETON( MainMenuBar ) = default;
+	GENO_SINGLETON( MainMenuBar );
+
+	MainMenuBar( void ) = default;
+
+//////////////////////////////////////////////////////////////////////////
 
 public:
 
 	void Show      ( void );
-	void OnDragDrop( const Drop& drop, int x, int y );
+	void OnDragDrop( const Drop& rDrop, int X, int Y );
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	float Height( void ) const { return height_; }
+	float Height( void ) const { return m_Height; }
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
@@ -54,16 +60,15 @@ private:
 	void ActionViewOutput        ( void );
 	void ActionHelpDemo          ( void );
 	void ActionHelpAbout         ( void );
-	void AddBuildMatrixColumn    ( BuildMatrix::Column& column );
+	void AddBuildMatrixColumn    ( BuildMatrix::Column& rColumn );
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
-	float height_ = 0.f;
+	float m_Height          = 0.0f;
+	bool  m_ShowDemoWindow  = false;
+	bool  m_ShowAboutWindow = false;
+	bool  m_ShowTextEdit    = true;
+	bool  m_ShowWorkspace   = true;
+	bool  m_ShowOutput      = false;
 
-	bool show_demo_window_  = false;
-	bool show_about_window_ = false;
-	bool show_text_edit_    = true;
-	bool show_workspace_    = true;
-	bool show_output_       = false;
-
-};
+}; // MainMenuBar

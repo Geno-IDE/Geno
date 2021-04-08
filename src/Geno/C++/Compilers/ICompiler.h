@@ -33,43 +33,49 @@
 struct CompilationDone
 {
 	CompileOptions options;
-	int            exit_code;
-};
+	int            exit_code = -1;
+
+}; // CompilationDone
 
 struct LinkingDone
 {
 	LinkOptions options;
-	int         exit_code;
-};
+	int         exit_code = -1;
+
+}; // LinkingDone
 
 class ICompiler : public EventDispatcher< ICompiler, CompilationDone, LinkingDone >
 {
-public:
-
 	GENO_DISABLE_COPY( ICompiler );
+
+//////////////////////////////////////////////////////////////////////////
 
 public:
 
 	         ICompiler( void ) = default;
 	virtual ~ICompiler( void ) = default;
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	void Compile ( const CompileOptions& options );
-	void Link    ( const LinkOptions& options );
+	void Compile( const CompileOptions& rOptions );
+	void Link   ( const LinkOptions& rOptions );
+
+//////////////////////////////////////////////////////////////////////////
 
 protected:
 
-	virtual std::wstring MakeCommandLineString( const CompileOptions& options ) = 0;
-	virtual std::wstring MakeCommandLineString( const LinkOptions& options )    = 0;
+	virtual std::wstring MakeCommandLineString( const CompileOptions& rOptions ) = 0;
+	virtual std::wstring MakeCommandLineString( const LinkOptions& rOptions )    = 0;
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
-	void CompileAsync ( CompileOptions options );
-	void LinkAsync    ( LinkOptions options );
+	void CompileAsync( CompileOptions rOptions );
+	void LinkAsync   ( LinkOptions rOptions );
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
-	std::vector< std::future< void > > futures_;
+	std::vector< std::future< void > > m_Futures;
 
-};
+}; // ICompiler

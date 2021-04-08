@@ -23,8 +23,8 @@
 #if defined( DEBUG )
 #define GENO_ASSERT( ... ) do { if( !( __VA_ARGS__ ) ) ::Intrinsics::DebugBreak(); } while( false )
 #else // DEBUG
-#define GENO_ASSERT( ... ) ( __VA_ARGS__ )
-#endif // else
+#define GENO_ASSERT( ... ) do { ( __VA_ARGS__ ); } while( false )
+#endif // DEBUG
 
 // Universal macros
 
@@ -57,5 +57,4 @@ public:                                                          \
     CLASS( CLASS&& )                 = delete;                   \
     CLASS& operator=( CLASS&& )      = delete;                   \
     CLASS& operator=( const CLASS& ) = delete;                   \
-private:                                                         \
-    CLASS( void )
+private:

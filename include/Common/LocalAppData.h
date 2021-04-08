@@ -25,18 +25,23 @@
 class LocalAppData
 {
 	GENO_SINGLETON( LocalAppData );
-	
+
+	LocalAppData( void );
+
+//////////////////////////////////////////////////////////////////////////
+
 public:
-	
-	std::string  operator/( std::string_view relative_path )  const;
-	std::wstring operator/( std::wstring_view relative_path ) const;
-	
-public:
-	
-	path_string Path( void ) const { return path_; }
-	
+
+	std::filesystem::path operator/( PathStringView RelativePath ) const;
+
+//////////////////////////////////////////////////////////////////////////
+
+	const std::filesystem::path& Path( void ) const { return m_Path; }
+
+//////////////////////////////////////////////////////////////////////////
+
 private:
 	
-	std::filesystem::path path_;
+	std::filesystem::path m_Path;
 	
-};
+}; // LocalAppData

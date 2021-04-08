@@ -27,59 +27,77 @@
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
+//////////////////////////////////////////////////////////////////////////
+
 OpenFileModal::OpenFileModal( void )
 {
+
 #if defined( _WIN32 )
 
-	drives_buffer_size_ = GetLogicalDriveStringsA( 0, nullptr );
-	drives_buffer_      = std::unique_ptr< char[] >( new char[ drives_buffer_size_ ] );
-	drives_buffer_size_ = GetLogicalDriveStringsA( static_cast< DWORD >( drives_buffer_size_ ), &drives_buffer_[ 0 ] );
+	m_DrivesBufferSize = GetLogicalDriveStringsA( 0, nullptr );
+	m_DrivesBuffer      = std::unique_ptr< char[] >( new char[ m_DrivesBufferSize ] );
+	m_DrivesBufferSize = GetLogicalDriveStringsA( static_cast< DWORD >( m_DrivesBufferSize ), &m_DrivesBuffer[ 0 ] );
 
 #endif // _WIN32
 
-	current_directory_ = RootDirectory();
-}
+	m_CurrentDirectory = RootDirectory();
 
-void OpenFileModal::SetCurrentDirectory( std::filesystem::path directory )
+} // OpenFileModal
+
+//////////////////////////////////////////////////////////////////////////
+
+void OpenFileModal::SetCurrentDirectory( std::filesystem::path Directory )
 {
-	current_directory_ = std::move( directory );
-}
+	m_CurrentDirectory = std::move( Directory );
 
-void OpenFileModal::RequestFile( std::string title, void* user, Callback callback )
+} // SetCurrentDirectory
+
+//////////////////////////////////////////////////////////////////////////
+
+void OpenFileModal::RequestFile( std::string Title, void* pUser, Callback Callback )
 {
 	if( Open() )
 	{
 		// Make sure we don't have a pre-selected directory from last popup
-		if( directory_requested_ )
-			selected_path_.clear();
+		if( m_DirectoryRequested )
+			m_SelectedPath.clear();
 
-		user_                = user;
-		callback_            = callback;
-		directory_requested_ = false;
-		title_               = std::move( title );
+		m_pUser              = pUser;
+		m_Callback           = Callback;
+		m_DirectoryRequested = false;
+		m_Title              = std::move( Title );
 	}
-}
 
-void OpenFileModal::RequestDirectory( std::string title, void* user, Callback callback )
+} // RequestFile
+
+//////////////////////////////////////////////////////////////////////////
+
+void OpenFileModal::RequestDirectory( std::string Title, void* pUser, Callback Callback )
 {
 	if( Open() )
 	{
 		// Make sure we don't have a pre-selected file from last popup
-		if( !directory_requested_ )
-			selected_path_ = current_directory_;
+		if( !m_DirectoryRequested )
+			m_SelectedPath = m_CurrentDirectory;
 
-		user_                = user;
-		callback_            = callback;
-		directory_requested_ = true;
-		title_               = std::move( title );
+		m_pUser              = pUser;
+		m_Callback           = Callback;
+		m_DirectoryRequested = true;
+		m_Title              = std::move( Title );
 	}
-}
+
+} // RequestDirectory
+
+//////////////////////////////////////////////////////////////////////////
 
 void OpenFileModal::OnClose( void )
 {
-	callback_ = nullptr;
-	user_     = nullptr;
-}
+	m_Callback = nullptr;
+	m_pUser    = nullptr;
+
+} // OnClose
+
+//////////////////////////////////////////////////////////////////////////
 
 void OpenFileModal::UpdateDerived( void )
 {
@@ -91,19 +109,19 @@ void OpenFileModal::UpdateDerived( void )
 
 		if( ImGui::BeginChild( 2, ImVec2( 100, 0 ) ) )
 		{
-			size_t i = 0;
-			for( char* it = &drives_buffer_[ 0 ]; it < &drives_buffer_[ drives_buffer_size_ ]; it += ( strlen( it ) + 1 ), ++i )
+			size_t Index = 0;
+			for( char* pIt = &m_DrivesBuffer[ 0 ]; pIt < &m_DrivesBuffer[ m_DrivesBufferSize ]; pIt += ( strlen( pIt ) + 1 ), ++Index )
 			{
-				bool selected = ( current_drive_index_ == i );
+				bool selected = ( m_CurrentDriveIndex == Index );
 
-				if( ImGui::Selectable( it, &selected ) )
+				if( ImGui::Selectable( pIt, &selected ) )
 				{
-					current_drive_index_ = i;
-					current_directory_   = RootDirectory();
+					m_CurrentDriveIndex = Index;
+					m_CurrentDirectory   = RootDirectory();
 				}
 			}
-		}
-		ImGui::EndChild();
+
+		} ImGui::EndChild();
 
 	#endif // _WIN32
 
@@ -115,143 +133,141 @@ void OpenFileModal::UpdateDerived( void )
 			{
 				if( ImGui::Button( "New Folder" ) )
 				{
-					editing_path_           = current_directory_ / "New Folder";
-					editing_path_is_folder_ = true;
-					change_edit_focus_      = true;
+					m_EditingPath           = m_CurrentDirectory / "New Folder";
+					m_EditingPathIsFolder = true;
+					m_ChangeEditFocus      = true;
 				}
 
-				if( !directory_requested_ && ImGui::Button( "New File" ) )
+				if( !m_DirectoryRequested && ImGui::Button( "New File" ) )
 				{
-					editing_path_           = current_directory_ / "New File.txt";
-					editing_path_is_folder_ = false;
-					change_edit_focus_      = true;
+					m_EditingPath           = m_CurrentDirectory / "New File.txt";
+					m_EditingPathIsFolder = false;
+					m_ChangeEditFocus      = true;
 				}
 
-				if( !editing_path_.empty() )
+				if( !m_EditingPath.empty() )
 				{
-					std::string filename = editing_path_.filename().string();
+					std::string FileName = m_EditingPath.filename().string();
 
-					if( change_edit_focus_ )
+					if( m_ChangeEditFocus )
 					{
 						ImGui::SetKeyboardFocusHere();
 
-						if( ImGuiInputTextState* state = ImGui::GetInputTextState( ImGui::GetID( "##NewFileName" ) ) )
+						if( ImGuiInputTextState* pState = ImGui::GetInputTextState( ImGui::GetID( "##NewFileName" ) ) )
 						{
-							state->ID = 0;
+							pState->ID = 0;
 						}
 
-						change_edit_focus_ = false;
+						m_ChangeEditFocus = false;
 					}
 
-					if( ImGui::InputText( "##NewFileName", &filename, ImGuiInputTextFlags_EnterReturnsTrue ) )
+					if( ImGui::InputText( "##NewFileName", &FileName, ImGuiInputTextFlags_EnterReturnsTrue ) )
 					{
-						std::filesystem::path& new_path = editing_path_.replace_filename( filename );
+						const std::filesystem::path& rNewPath = m_EditingPath.replace_filename( FileName );
 
-						if( std::filesystem::exists( new_path ) )
+						if( std::filesystem::exists( rNewPath ) )
 						{
-							change_edit_focus_ = true;
+							m_ChangeEditFocus = true;
 						}
 						else
 						{
-							if( editing_path_is_folder_ )
+							if( m_EditingPathIsFolder )
 							{
-								if( std::filesystem::create_directory( new_path ) ) editing_path_.clear();
-								else                                                change_edit_focus_ = true;
+								if( std::filesystem::create_directory( rNewPath ) ) m_EditingPath.clear();
+								else                                                m_ChangeEditFocus = true;
 							}
 							else
 							{
-								std::ofstream ofs( new_path );
+								const std::ofstream OutputFileStream( rNewPath );
 
-								if( ofs.is_open() ) editing_path_.clear();
-								else                change_edit_focus_ = true;
+								if( OutputFileStream.is_open() ) m_EditingPath.clear();
+								else                             m_ChangeEditFocus = true;
 							}
 						}
 					}
 					else if( ImGui::IsItemDeactivated() )
 					{
-						editing_path_.clear();
-						change_edit_focus_ = false;
+						m_EditingPath.clear();
+						m_ChangeEditFocus = false;
 					}
-				}
 
-				ImGui::EndMenuBar();
+				} ImGui::EndMenuBar();
 			}
-
 			ImGui::PopStyleColor();
 
 //////////////////////////////////////////////////////////////////////////
 
-			std::filesystem::directory_iterator  root_directory_iterator( current_directory_, std::filesystem::directory_options::skip_permission_denied );
-			std::filesystem::path                parent_directory = current_directory_.parent_path();
-			std::vector< std::filesystem::path > directory_paths;
-			std::vector< std::filesystem::path > file_paths;
+			std::filesystem::directory_iterator  RootDirectoryIterator( m_CurrentDirectory, std::filesystem::directory_options::skip_permission_denied );
+			std::filesystem::path                ParentDirectory = m_CurrentDirectory.parent_path();
+			std::vector< std::filesystem::path > DirectoryPaths;
+			std::vector< std::filesystem::path > FilePaths;
 
-			if( current_directory_ != parent_directory )
+			if( m_CurrentDirectory != ParentDirectory )
 			{
 				if( ImGui::Selectable( ".." ) )
 				{
-					current_directory_ = parent_directory;
+					m_CurrentDirectory = ParentDirectory;
 				}
 			}
 
-			for( const std::filesystem::directory_entry& entry : root_directory_iterator )
+			for( const std::filesystem::directory_entry& rEntry : RootDirectoryIterator )
 			{
-				/**/ if( entry.is_directory() )    directory_paths.push_back( entry );
-				else if( entry.is_regular_file() ) file_paths.push_back( entry );
+				/**/ if( rEntry.is_directory() )    DirectoryPaths.push_back( rEntry );
+				else if( rEntry.is_regular_file() ) FilePaths.push_back( rEntry );
 			}
 
-			for( const std::filesystem::path& directory_entry : directory_paths )
+			for( const std::filesystem::path& rDirectoryEntry : DirectoryPaths )
 			{
-				std::string filename = directory_entry.filename().string();
+				const std::string FileName = rDirectoryEntry.filename().string();
 
-				if( directory_requested_ )
+				if( m_DirectoryRequested )
 				{
-					bool selected = selected_path_ == directory_entry;
+					bool selected = m_SelectedPath == rDirectoryEntry;
 
-					if( ImGui::Selectable( filename.c_str(), &selected, ImGuiSelectableFlags_AllowDoubleClick ) )
+					if( ImGui::Selectable( FileName.c_str(), &selected, ImGuiSelectableFlags_AllowDoubleClick ) )
 					{
-						const bool double_clicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
+						const bool DoubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
 
-						if( double_clicked ) current_directory_ = directory_entry;
-						else                 selected_path_     = directory_entry;
+						if( DoubleClicked ) m_CurrentDirectory = rDirectoryEntry;
+						else                m_SelectedPath     = rDirectoryEntry;
 					}
 				}
 				else
 				{
-					if( ImGui::Selectable( filename.c_str() ) )
+					if( ImGui::Selectable( FileName.c_str() ) )
 					{
-						current_directory_ = directory_entry;
+						m_CurrentDirectory = rDirectoryEntry;
 					}
 				}
 			}
 
-			if( !directory_requested_ )
+			if( !m_DirectoryRequested )
 			{
 				ImGui::Separator();
 
-				for( const std::filesystem::path& file_path : file_paths )
+				for( const std::filesystem::path& rFilePath : FilePaths )
 				{
-					std::string filename = file_path.filename().string();
-					bool        selected = file_path == selected_path_;
+					std::string filename = rFilePath.filename().string();
+					bool        selected = rFilePath == m_SelectedPath;
 
 					if( ImGui::Selectable( filename.c_str(), &selected ) )
 					{
-						selected_path_ = file_path;
+						m_SelectedPath = rFilePath;
 					}
 				}
 			}
-		}
-		ImGui::EndChild();
+
+		} ImGui::EndChild();
 
 		MainWindow::Instance().PopHorizontalLayout();
-	}
-	ImGui::EndChild();
+
+	} ImGui::EndChild();
 
 	if( ImGui::BeginChild( 4 , ImVec2( 0, 20 ) ) )
 	{
-		bool disable_ok_button = selected_path_.empty() || !std::filesystem::exists( selected_path_ );
+		const bool DisableOkButton = m_SelectedPath.empty() || !std::filesystem::exists( m_SelectedPath );
 
-		if( disable_ok_button )
+		if( DisableOkButton )
 		{
 			ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
 			ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
@@ -259,13 +275,13 @@ void OpenFileModal::UpdateDerived( void )
 
 		if( ImGui::Button( "OK", ImVec2( 80, 0 ) ) )
 		{
-			if( callback_ )
-				callback_( selected_path_, user_ );
+			if( m_Callback )
+				m_Callback( m_SelectedPath, m_pUser );
 
 			Close();
 		}
 
-		if( disable_ok_button )
+		if( DisableOkButton )
 		{
 			ImGui::PopStyleVar();
 			ImGui::PopItemFlag();
@@ -277,28 +293,33 @@ void OpenFileModal::UpdateDerived( void )
 			Close();
 		}
 
-		std::string selected_path_string = selected_path_.string();
+		const std::string SelectedPathString = m_SelectedPath.string();
 
 		ImGui::SameLine();
-		ImGui::Text( selected_path_string.c_str() );
-	}
-	ImGui::EndChild();
-}
+		ImGui::Text( SelectedPathString.c_str() );
+
+	} ImGui::EndChild();
+
+} // UpdateDerived
+
+//////////////////////////////////////////////////////////////////////////
 
 std::filesystem::path OpenFileModal::RootDirectory( void )
 {
+
 #if defined( _WIN32 )
 
-	char* drive = &drives_buffer_[ 0 ];
-	char* end   = &drives_buffer_[ drives_buffer_size_ ];
+	char* pDrive = &m_DrivesBuffer[ 0 ];
+	char* pEnd   = &m_DrivesBuffer[ m_DrivesBufferSize ];
 
-	for( size_t i = 0; i < current_drive_index_ && drive < end; drive += ( strlen( drive ) + 1 ), ++i );
+	for( size_t i = 0; i < m_CurrentDriveIndex && pDrive < pEnd; pDrive += ( strlen( pDrive ) + 1 ), ++i );
 
-	return std::filesystem::path( drive, drive + strlen( drive ) );
+	return std::filesystem::path( pDrive, pDrive + strlen( pDrive ) );
 
 #else // _WIN32
 
 	return std::filesystem::path( "/" );
 
-#endif // else
-}
+#endif // _WIN32
+
+} // RootDirectory

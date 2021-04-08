@@ -22,19 +22,21 @@ class Process
 {
 public:
 
-	explicit Process( std::wstring command_line );
+	explicit Process( std::wstring CommandLine );
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	int ExitCode( void ) const { return exit_code_; }
+	int ExitCode( void ) const { return m_ExitCode; }
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
 	int Run( void );
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
-	std::wstring command_line_;
-	int          exit_code_ = -1;
+	std::wstring m_CommandLine;
+	int          m_ExitCode = -1;
 
-};
+}; // Process

@@ -20,21 +20,15 @@
 
 class GLFW
 {
-public:
-
-	GENO_DISABLE_COPY_AND_MOVE( GLFW );
-
-private:
+	GENO_SINGLETON( GLFW );
 
 	 GLFW( void );
 	~GLFW( void );
 
-public:
-
-	static GLFW& Instance( void );
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
-	static void ErrorFunction( int error, const char* description );
+	static void ErrorFunction( int Error, const char* pDescription );
 
-};
+}; // GLFW

@@ -32,45 +32,52 @@ class OpenFileModal : public IModal
 {
 	GENO_SINGLETON( OpenFileModal );
 
+	OpenFileModal( void );
+
+//////////////////////////////////////////////////////////////////////////
+
 public:
 
 	using Callback = void( * )( const std::filesystem::path& path, void* user );
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	void SetCurrentDirectory ( std::filesystem::path directory );
-	void RequestFile         ( std::string title, void* user, Callback callback );
-	void RequestDirectory    ( std::string title, void* user, Callback callback );
+	void SetCurrentDirectory ( std::filesystem::path Directory );
+	void RequestFile         ( std::string Title, void* pUser, Callback Callback );
+	void RequestDirectory    ( std::string Title, void* pUser, Callback Callback );
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
 	std::string PopupID      ( void ) override { return "OpenFile"; }
-	std::string Title        ( void ) override { return title_; }
+	std::string Title        ( void ) override { return m_Title; }
 	void        UpdateDerived( void ) override;
 	void        OnClose      ( void ) override;
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
 	std::filesystem::path RootDirectory( void );
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
-	std::string               title_;
-	std::filesystem::path     current_directory_;
-	std::filesystem::path     selected_path_;
-	std::filesystem::path     editing_path_;
-	Callback                  callback_               = nullptr;
-	void*                     user_                   = nullptr;
-	bool                      editing_path_is_folder_ = false;
-	bool                      change_edit_focus_      = false;
-	bool                      directory_requested_    = false;
+	std::string               m_Title;
+	std::filesystem::path     m_CurrentDirectory;
+	std::filesystem::path     m_SelectedPath;
+	std::filesystem::path     m_EditingPath;
+
+	Callback                  m_Callback            = nullptr;
+	void*                     m_pUser               = nullptr;
+	bool                      m_EditingPathIsFolder = false;
+	bool                      m_ChangeEditFocus     = false;
+	bool                      m_DirectoryRequested  = false;
 
 #if defined( _WIN32 )
 
-	std::unique_ptr< char[] > drives_buffer_;
-	size_t                    drives_buffer_size_     = 0;
-	size_t                    current_drive_index_    = 0;
+	std::unique_ptr< char[] > m_DrivesBuffer;
+	size_t                    m_DrivesBufferSize    = 0;
+	size_t                    m_CurrentDriveIndex   = 0;
 
 #endif // _WIN32
 
-};
+}; // OpenFileModal

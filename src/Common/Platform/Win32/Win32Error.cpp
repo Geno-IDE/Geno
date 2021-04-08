@@ -16,51 +16,60 @@
  */
 
 #if defined( _WIN32 )
+
 #include "Common/Platform/Win32/Win32Error.h"
 
 #include <iostream>
 
 #include <comdef.h>
 
-bool _Win32HandleResult( DWORD result, std::string_view function, std::string_view file, int line )
+//////////////////////////////////////////////////////////////////////////
+
+bool _Win32HandleResult( DWORD Result, std::string_view Function, std::string_view File, int Line )
 {
-	if( result != S_OK )
+	if( FAILED( Result ) )
 	{
-		constexpr DWORD buf_size      = 256;
-		auto            function_name = function.substr( 0, function.find_first_of( "(", 0 ) );
-		char            buf[ buf_size ];
-	
-		if( FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, result, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), buf, buf_size, NULL ) == 0 )
-			strcpy_s( buf, buf_size, "Unknown error" );
-	
-		std::cerr << file << "(L" << line << ") " << function_name << " failed: " << buf << "\n";
-	
+		const std::string_view FunctionName = Function.substr( 0, Function.find_first_of( "(", 0 ) );
+		char                   Buffer[ 256 ];
+
+		if( FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, Result, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), Buffer, std::size( Buffer ), NULL ) == 0 )
+			strcpy_s( Buffer, std::size( Buffer ), "Unknown error" );
+
+		std::cerr << File << "(L" << Line << ") " << FunctionName << " failed: " << Buffer << "\n";
+
 		return false;
 	}
-	
+
 	return true;
-}
-	
-bool _Win32HandleResult( HRESULT result, std::string_view function, std::string_view file, int line )
+
+} // _Win32HandleResult
+
+//////////////////////////////////////////////////////////////////////////
+
+bool _Win32HandleResult( HRESULT Result, std::string_view Function, std::string_view File, int Line )
 {
-	if( result != S_OK )
+	if( FAILED( Result ) )
 	{
-		_Win32HandleResult( ( DWORD )result, function, file, line );
+		_Win32HandleResult( ( DWORD )Result, Function, File, Line );
 		return false;
 	}
-	
+
 	return true;
-}
-	
-bool _Win32HandleResult( BOOL result, std::string_view function, std::string_view file, int line )
+
+} // _Win32HandleResult
+
+//////////////////////////////////////////////////////////////////////////
+
+bool _Win32HandleResult( BOOL Result, std::string_view Function, std::string_view File, int Line )
 {
-	if( result == FALSE )
+	if( Result == FALSE )
 	{
-		_Win32HandleResult( GetLastError(), function, file, line );
+		_Win32HandleResult( GetLastError(), Function, File, Line );
 		return false;
 	}
-	
+
 	return true;
-}
+
+} // _Win32HandleResult
 
 #endif // _WIN32

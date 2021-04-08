@@ -17,7 +17,6 @@
 
 #include "OutputWidget.h"
 
-#include <cassert>
 #include <filesystem>
 
 #include <fcntl.h>
@@ -31,97 +30,114 @@ enum
 	WRITE,
 };
 
-constexpr uint32_t pipe_size = 65536;
+constexpr uint32_t pipe_size = 64 * 1024;
+
+//////////////////////////////////////////////////////////////////////////
 
 OutputWidget::OutputWidget( void )
 {
-	RedirectOutputStream( &stdout_, stdout );
-	RedirectOutputStream( &stderr_, stderr );
+	RedirectOutputStream( &m_StdOut, stdout );
+	RedirectOutputStream( &m_StdErr, stderr );
 
 	// Need stdout and stderr
-	assert( stdout_ > 0 );
-	assert( stderr_ > 0 );
+	GENO_ASSERT( m_StdOut > 0 );
+	GENO_ASSERT( m_StdErr > 0 );
 
 	// Make stdout and stderr unbuffered so that we don't need to fflush before and after capture
 	GENO_ASSERT( setvbuf( stdout, nullptr, _IONBF, 0 ) == 0 );
 	GENO_ASSERT( setvbuf( stderr, nullptr, _IONBF, 0 ) == 0 );
 
 	// Duplicate stdout and stderr
-	GENO_ASSERT( ( old_stdout_ = _dup( stdout_ ) ) > 0 );
-	GENO_ASSERT( ( old_stderr_ = _dup( stderr_ ) ) > 0 );
+	GENO_ASSERT( ( m_OldStdOut = _dup( m_StdOut ) ) > 0 );
+	GENO_ASSERT( ( m_OldStdErr = _dup( m_StdErr ) ) > 0 );
 
-	GENO_ASSERT( _pipe( pipe_, pipe_size, O_BINARY ) != -1 );
+	GENO_ASSERT( _pipe( m_Pipe, pipe_size, O_BINARY ) != -1 );
 
 	// Associate stdout and stderr with the output pipe
-	GENO_ASSERT( _dup2( pipe_[ WRITE ], stdout_ ) == 0 );
-	GENO_ASSERT( _dup2( pipe_[ WRITE ], stderr_ ) == 0 );
-}
+	GENO_ASSERT( _dup2( m_Pipe[ WRITE ], m_StdOut ) == 0 );
+	GENO_ASSERT( _dup2( m_Pipe[ WRITE ], m_StdErr ) == 0 );
+
+} // OutputWidget
+
+//////////////////////////////////////////////////////////////////////////
 
 OutputWidget::~OutputWidget( void )
 {
-	GENO_ASSERT( _dup2( old_stdout_, stdout_ ) == 0 );
-	GENO_ASSERT( _dup2( old_stderr_, stderr_ ) == 0 );
+	GENO_ASSERT( _dup2( m_OldStdOut, m_StdOut ) == 0 );
+	GENO_ASSERT( _dup2( m_OldStdErr, m_StdErr ) == 0 );
 
-	if( old_stdout_ > 0 ) _close( old_stdout_ );
-	if( old_stderr_ > 0 ) _close( old_stderr_ );
+	if( m_OldStdOut > 0 ) _close( m_OldStdOut );
+	if( m_OldStdErr > 0 ) _close( m_OldStdErr );
 
-	if( pipe_[ READ ] > 0 )  _close( pipe_[ READ ] );
-	if( pipe_[ WRITE ] > 0 ) _close( pipe_[ WRITE ] );
-}
+	if( m_Pipe[ READ ] > 0 )  _close( m_Pipe[ READ ] );
+	if( m_Pipe[ WRITE ] > 0 ) _close( m_Pipe[ WRITE ] );
 
-void OutputWidget::Show( bool* p_open )
+} // ~OutputWidget
+
+//////////////////////////////////////////////////////////////////////////
+
+void OutputWidget::Show( bool* pOpen )
 {
-	if( ImGui::Begin( "Output", p_open ) )
+	if( ImGui::Begin( "Output", pOpen ) )
 	{
 		Capture();
 
-		ImGui::TextUnformatted( captured_.c_str(), captured_.c_str() + captured_.size() );
-	}
-	ImGui::End();
-}
+		ImGui::TextUnformatted( m_Captured.c_str(), m_Captured.c_str() + m_Captured.size() );
+
+	} ImGui::End();
+
+} // Show
+
+//////////////////////////////////////////////////////////////////////////
 
 void OutputWidget::ClearCapture( void )
 {
-	captured_.clear();
-}
+	m_Captured.clear();
 
-void OutputWidget::RedirectOutputStream( int* fd, FILE* stream )
+} // ClearCapture
+
+//////////////////////////////////////////////////////////////////////////
+
+void OutputWidget::RedirectOutputStream( int* pFileDescriptor, FILE* pFileStream )
 {
-	if( ( *fd = _fileno( stream ) ) < 0 )
+	if( ( *pFileDescriptor = _fileno( pFileStream ) ) < 0 )
 	{
+
 	#if defined( _WIN32 )
 
-		if( FILE* f; freopen_s( &f, "CONOUT$", "w", stream ) == 0 )
-			*fd = _fileno( f );
-		else if( freopen_s( &f, "NUL", "w", stream ) == 0 )
-			*fd = _fileno( f );
+		if( FILE* f; freopen_s( &f, "CONOUT$", "w", pFileStream ) == 0 )
+			*pFileDescriptor = _fileno( f );
+		else if( freopen_s( &f, "NUL", "w", pFileStream ) == 0 )
+			*pFileDescriptor = _fileno( f );
 
 	#else // _WIN32
 
-		if( FILE* f = freopen( "/dev/null", "w", stream ); f != nullptr )
-			*fd = _fileno( f );
+		if( FILE* f = freopen( "/dev/null", "w", pFileStream ); f != nullptr )
+			*pFileDescriptor = _fileno( f );
 
-	#endif // else
+	#endif // _WIN32
+
 	}
 
-	GENO_ASSERT( *fd > 0 );
-}
+	GENO_ASSERT( *pFileDescriptor > 0 );
+
+} // RedirectOutputStream
+
+//////////////////////////////////////////////////////////////////////////
 
 void OutputWidget::Capture( void )
 {
-	if( !_eof( pipe_[ READ ] ) )
+	if( !_eof( m_Pipe[ READ ] ) )
 	{
-		int64_t starting_offset = _telli64( pipe_[ READ ] );
-		size_t  bytes_in_front  = ( size_t )_lseeki64( pipe_[ READ ], 0, SEEK_END );
-		size_t  old_size        = captured_.size();
+		int64_t StartingOffset = _telli64( m_Pipe[ READ ] );
+		size_t  BytesInFront   = ( size_t )_lseeki64( m_Pipe[ READ ], 0, SEEK_END );
+		size_t  OldSize        = m_Captured.size();
 
-		_lseeki64( pipe_[ READ ], starting_offset, SEEK_SET );
+		_lseeki64( m_Pipe[ READ ], StartingOffset, SEEK_SET );
 
-		captured_.resize( old_size + bytes_in_front );
+		m_Captured.resize( OldSize + BytesInFront );
 
-		for( size_t bytes_read = 0;
-		     bytes_read < bytes_in_front;
-			 bytes_read += _read( pipe_[ READ ], &captured_[ old_size + bytes_read ], ( uint32_t )( bytes_in_front - bytes_read ) )
-		);
+		for( size_t bytes_read = 0; bytes_read < BytesInFront; bytes_read += _read( m_Pipe[ READ ], &m_Captured[ OldSize + bytes_read ], ( uint32_t )( BytesInFront - bytes_read ) ) );
 	}
-}
+
+} // Capture

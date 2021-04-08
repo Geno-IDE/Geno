@@ -20,16 +20,8 @@
 
 class GLEW
 {
-public:
-
-	GENO_DISABLE_COPY_AND_MOVE( GLEW );
-
-private:
+	GENO_SINGLETON( GLEW );
 
 	GLEW( void );
 
-public:
-
-	static GLEW& Instance( void );
-
-};
+}; // GLEW

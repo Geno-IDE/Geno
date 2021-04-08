@@ -27,7 +27,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	void SetPixels( GLint internalformat, GLsizei width, GLsizei height, GLenum format, const GLvoid* data );
+	void SetPixels( GLint InternalFormat, GLsizei Width, GLsizei Height, GLenum Format, const GLvoid* pData );
 
 //////////////////////////////////////////////////////////////////////////
 

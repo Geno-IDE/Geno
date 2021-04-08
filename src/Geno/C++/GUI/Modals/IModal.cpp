@@ -21,16 +21,18 @@
 
 #include <imgui.h>
 
+//////////////////////////////////////////////////////////////////////////
+
 void IModal::Update( void )
 {
-	const std::string popup_id = Title() + "##" + PopupID();
+	const std::string PopupID = Title() + "##" + this->PopupID();
 
-	if( open_ && !ImGui::IsPopupOpen( popup_id.c_str() ) )
+	if( m_Open && !ImGui::IsPopupOpen( PopupID.c_str() ) )
 	{
-		ImGui::OpenPopup( popup_id.c_str() );
+		ImGui::OpenPopup( PopupID.c_str() );
 	}
 
-	if( ImGui::BeginPopupModal( popup_id.c_str() ) )
+	if( ImGui::BeginPopupModal( PopupID.c_str() ) )
 	{
 		UpdateDerived();
 
@@ -39,28 +41,35 @@ void IModal::Update( void )
 
 		ImGui::EndPopup();
 	}
-}
+
+} // Update
+
+//////////////////////////////////////////////////////////////////////////
 
 void IModal::Close( void )
 {
-	open_ = false;
+	m_Open = false;
 
 	ImGui::CloseCurrentPopup();
 
 	Application::Instance().PopModal();
 
 	OnClose();
-}
+
+} // Close
+
+//////////////////////////////////////////////////////////////////////////
 
 bool IModal::Open( void )
 {
 	// Make sure this popup is not already opened
-	if( open_ )
+	if( m_Open )
 		return false;
 
 	Application::Instance().PushModal( this );
 
-	open_ = true;
+	m_Open = true;
 
 	return true;
-}
+
+} // Open

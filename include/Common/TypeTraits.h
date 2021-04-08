@@ -22,35 +22,40 @@
 // Function argument type deduction by courtesy of https://stackoverflow.com/a/35348334
 
 template< typename Ret, typename Arg, typename... Rest >
-constexpr Arg _FirstArgumentHelper( Ret( * )( Arg, Rest... ) );
+constexpr Arg FirstArgumentHelper( Ret( * )( Arg, Rest... ) );
 
 template< typename Ret, typename F, typename Arg, typename... Rest >
-constexpr Arg _FirstArgumentHelper( Ret( F::* )( Arg, Rest... ) );
+constexpr Arg FirstArgumentHelper( Ret( F::* )( Arg, Rest... ) );
 
 template< typename Ret, typename F, typename Arg, typename... Rest >
-constexpr Arg _FirstArgumentHelper( Ret( F::* )( Arg, Rest... ) const );
+constexpr Arg FirstArgumentHelper( Ret( F::* )( Arg, Rest... ) const );
 
 template< typename F >
-constexpr decltype( _FirstArgumentHelper( &F::operator() ) ) _FirstArgumentHelper( F );
+constexpr decltype( FirstArgumentHelper( &F::operator() ) ) FirstArgumentHelper( F );
 
 template< typename T >
-using FirstArgumentType = decltype( _FirstArgumentHelper( std::declval< T >() ) );
+using FirstArgumentType = decltype( FirstArgumentHelper( std::declval< T >() ) );
+
+template< typename F, typename T >
+constexpr bool IS_FIRST_ARGUMENT_SAME_AS = std::is_same_v< T, std::remove_cv_t< std::remove_reference_t< FirstArgumentType< F > > > >;
 
 // Get type index within variant by courtesy of https://stackoverflow.com/a/52303687
 
 template< typename >
-struct Tag { };
+struct Tag
+{
+}; // Tag
 
 template< typename T, typename... Ts >
-constexpr size_t variant_index_v = std::variant< Tag< Ts >... >( Tag< T >{ } ).index();
+constexpr size_t VARIANT_INDEX = std::variant< Tag< Ts >... >( Tag< T >{ } ).index();
 
 template< typename T, typename Variant >
 struct UniqueIndex;
 
 template< typename T, typename... Ts >
-struct UniqueIndex< T, std::variant< Ts... > > : std::integral_constant< size_t, variant_index_v< T, Ts... > >
+struct UniqueIndex< T, std::variant< Ts... > > : std::integral_constant< size_t, VARIANT_INDEX< T, Ts... > >
 {
-};
+}; // UniqueIndex
 
 template< typename T, typename... Ts >
-constexpr auto unique_index_v = UniqueIndex< T, Ts... >::value;
+constexpr auto UNIQUE_INDEX = UniqueIndex< T, Ts... >::value;

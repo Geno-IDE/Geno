@@ -28,28 +28,35 @@ struct ImGuiInputTextCallbackData;
 
 class TextEditWidget
 {
-	GENO_SINGLETON( TextEditWidget ) = default;
+	GENO_SINGLETON( TextEditWidget );
+
+	TextEditWidget( void ) = default;
+
+//////////////////////////////////////////////////////////////////////////
 
 public:
 
 	struct File
 	{
-		std::filesystem::path path;
-		std::string           text;
+		std::filesystem::path Path;
+		std::string           Text;
 
-		bool open = true;
-	};
+		bool                  Open = true;
 
-public:
+	}; // File
 
-	void Show      ( bool* p_open );
-	void AddFile   ( const std::filesystem::path& path );
-	void OnDragDrop( const Drop& drop, int x, int y );
+//////////////////////////////////////////////////////////////////////////
+
+	void Show      ( bool* pOpen );
+	void AddFile   ( const std::filesystem::path& rPath );
+	void OnDragDrop( const Drop& rDrop, int X, int Y );
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
-	Texture2D           dragged_bitmap_texture_;
+	Texture2D           m_DraggedBitmapTexture;
 
-	std::vector< File > files_;
+	std::vector< File > m_Files;
 
-};
+}; // TextEditWidget

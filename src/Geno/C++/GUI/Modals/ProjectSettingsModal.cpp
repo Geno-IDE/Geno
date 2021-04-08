@@ -34,38 +34,46 @@ enum Category
 	NumCategories
 };
 
-static constexpr const char* CategoryString( Category category )
+//////////////////////////////////////////////////////////////////////////
+
+static constexpr const char* StringifyCategory( Category Category )
 {
-	switch( category )
+	switch( Category )
 	{
 		case CategoryGeneral: return "General";
 		case CategoryLinker:  return "Linker";
 		default:              return nullptr;
 	}
-}
 
-void ProjectSettingsModal::Show( std::string project )
+} // StringifyCategory
+
+//////////////////////////////////////////////////////////////////////////
+
+void ProjectSettingsModal::Show( std::string Project )
 {
 	if( Open() )
 	{
-		current_category_ = -1;
-		edited_project_   = std::move( project );
+		m_CurrentCategory = -1;
+		m_EditedProject   = std::move( Project );
 	}
-}
+
+} // Show
+
+//////////////////////////////////////////////////////////////////////////
 
 void ProjectSettingsModal::UpdateDerived( void )
 {
-	Workspace* workspace = Application::Instance().CurrentWorkspace();
-	if( !workspace )
+	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
+	if( !pWorkspace )
 	{
 		ImGui::TextUnformatted( "No active workspace" );
 		return;
 	}
 
-	Project* project = workspace->ProjectByName( edited_project_ );
-	if( !project )
+	Project* pProject = pWorkspace->ProjectByName( m_EditedProject );
+	if( !pProject )
 	{
-		ImGui::Text( "No project found by the name '%s'", edited_project_.c_str() );
+		ImGui::Text( "No project found by the name '%s'", m_EditedProject.c_str() );
 		return;
 	}
 
@@ -78,39 +86,39 @@ void ProjectSettingsModal::UpdateDerived( void )
 		{
 			for( int i = 0; i < NumCategories; ++i )
 			{
-				Category category = static_cast< Category >( i );
+				Category Category = static_cast< ::Category >( i );
 
-				if( ImGui::Selectable( CategoryString( category ), current_category_ == category ) )
+				if( ImGui::Selectable( StringifyCategory( Category ), m_CurrentCategory == Category ) )
 				{
-					current_category_ = category;
+					m_CurrentCategory = Category;
 				}
 			}
-		}
-		ImGui::EndChild();
+
+		} ImGui::EndChild();
 		ImGui::PopStyleColor();
 
 		if( ImGui::BeginChild( 2 ) )
 		{
-			switch( current_category_ )
+			switch( m_CurrentCategory )
 			{
 				case CategoryGeneral:
 				{
-					const std::array kind_names   = { "Application", "Static Library", "Dynamic Library" };
-					int              current_item = static_cast< int >( project->kind_ ) - 1;
+					const std::array KindNames   = { "Application", "Static Library", "Dynamic Library" };
+					int              CurrentItem = static_cast< int >( pProject->m_Kind ) - 1;
 
 					ImGui::TextUnformatted( "Kind" );
 
 					ImGui::SetNextItemWidth( -5.0f );
-					if( ImGui::Combo( "##Kind", &current_item, kind_names.data(), static_cast< int >( kind_names.size() ) ) )
+					if( ImGui::Combo( "##Kind", &CurrentItem, KindNames.data(), static_cast< int >( KindNames.size() ) ) )
 					{
-						project->kind_ = static_cast< ProjectKind >( current_item + 1 );
+						pProject->m_Kind = static_cast< ProjectKind >( CurrentItem + 1 );
 					}
 
 				} break;
 
 				case CategoryLinker:
 				{
-					if( project->kind_ == ProjectKind::StaticLibrary )
+					if( pProject->m_Kind == ProjectKind::StaticLibrary )
 					{
 						ImGui::TextUnformatted( "There are no linker settings for static libraries!" );
 						break;
@@ -118,36 +126,40 @@ void ProjectSettingsModal::UpdateDerived( void )
 
 					ImGui::TextUnformatted( "Libraries" );
 
-					for( std::filesystem::path& library : project->libraries_ )
+					for( std::filesystem::path& rLibrary : pProject->m_Libraries )
 					{
-						std::string       buf   = library.lexically_relative( project->location_ ).string();
-						const std::string label = "##LIBRARY_" + buf;
+						std::string       Buffer = rLibrary.lexically_relative( pProject->m_Location ).string();
+						const std::string Label  = "##LIBRARY_" + Buffer;
 
-						if( ImGui::InputText( label.c_str(), &buf ) )
-							library = ( project->location_ / buf ).lexically_normal();
+						if( ImGui::InputText( Label.c_str(), &Buffer ) )
+							rLibrary = ( pProject->m_Location / Buffer ).lexically_normal();
 					}
 
 					if( ImGui::SmallButton( "+##ADD_LIBRARY" ) )
-						project->libraries_.emplace_back();
+						pProject->m_Libraries.emplace_back();
 
 				} break;
 			}
-		}
-		ImGui::EndChild();
+
+		} ImGui::EndChild();
 
 		MainWindow::Instance().PopHorizontalLayout();
-	}
-	ImGui::EndChild();
+
+	} ImGui::EndChild();
 
 	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + 4 );
 	if( ImGui::Button( "Close", ImVec2( 80, 0 ) ) )
 	{
 		Close();
 	}
-}
+
+} // UpdateDerived
+
+//////////////////////////////////////////////////////////////////////////
 
 void ProjectSettingsModal::OnClose( void )
 {
-	current_category_ = -1;
-	edited_project_.clear();
-}
+	m_CurrentCategory = -1;
+	m_EditedProject.clear();
+
+} // OnClose

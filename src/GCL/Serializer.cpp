@@ -27,68 +27,79 @@
 #include <io.h>
 #include <string.h>
 
-namespace GCL
+//////////////////////////////////////////////////////////////////////////
+
+GCL::Serializer::Serializer( const std::filesystem::path& rPath )
 {
-	Serializer::Serializer( const std::filesystem::path& path )
-	{
-		constexpr int open_flags       = O_WRONLY | O_BINARY | O_TRUNC | O_CREAT;
-		constexpr int share_flags      = SH_DENYNO;
-		constexpr int permission_flags = S_IREAD | S_IWRITE;
+	constexpr int OPEN_FLAGS       = O_WRONLY | O_BINARY | O_TRUNC | O_CREAT;
+	constexpr int SHARE_FLAGS      = SH_DENYNO;
+	constexpr int PERMISSION_FLAGS = S_IREAD | S_IWRITE;
 
-	#if defined( _WIN32 )
-		POSIX_CALL( _wsopen_s( &file_descriptor_, path.c_str(), open_flags, share_flags, permission_flags ) );
-	#else // _WIN32
-		POSIX_CALL( file_descriptor_ = open( path.c_str(), ofstream, share_flags, permission_flags ) );
-	#endif // else
+#if defined( _WIN32 )
+	POSIX_CALL( _wsopen_s( &m_FileDescriptor, rPath.c_str(), OPEN_FLAGS, SHARE_FLAGS, PERMISSION_FLAGS ) );
+#else // _WIN32
+	POSIX_CALL( m_FileDescriptor = open( rPath.c_str(), ofstream, SHARE_FLAGS, PERMISSION_FLAGS ) );
+#endif // _WIN32
+
+} // Serializer
+
+//////////////////////////////////////////////////////////////////////////
+
+GCL::Serializer::~Serializer( void )
+{
+	if( m_FileDescriptor >= 0 )
+	{
+
+#if defined( _WIN32 )
+		_close( m_FileDescriptor );
+#else // _WIN32
+		close( m_FileDescriptor );
+#endif // else
+
 	}
 
-	Serializer::~Serializer( void )
+} // ~Serializer
+
+//////////////////////////////////////////////////////////////////////////
+
+void GCL::Serializer::WriteObject( const Object& rObject, int IndentLevel )
+{
+	std::string_view name = rObject.Name();
+
+	for( int i = 0; i < IndentLevel; ++i )
+		_write( m_FileDescriptor, "\t", 1 );
+
+	_write( m_FileDescriptor, name.data(), static_cast< uint32_t >( name.size() ) );
+
+	if( rObject.IsNull() )
 	{
-		if( file_descriptor_ >= 0 )
-		{
-	#if defined( _WIN32 )
-			_close( file_descriptor_ );
-	#else // _WIN32
-			close( file_descriptor_ );
-	#endif // else
-		}
+		_write( m_FileDescriptor, "\n", 1 );
+	}
+	if( rObject.IsString() )
+	{
+		Object::StringType string = rObject.String();
+
+		_write( m_FileDescriptor, ":", 1 );
+		_write( m_FileDescriptor, string.data(), static_cast< uint32_t >( string.size() ) );
+		_write( m_FileDescriptor, "\n", 1 );
+	}
+	else if( rObject.IsTable() )
+	{
+		const Object::TableType& table = rObject.Table();
+
+		_write( m_FileDescriptor, ":", 1 );
+		_write( m_FileDescriptor, "\n", 1 );
+
+		for( const Object& child : table )
+			WriteObject( child, IndentLevel + 1 );
 	}
 
-	void Serializer::WriteObject( const Object& object, int indent_level )
-	{
-		std::string_view name = object.Name();
+} // WriteObject
 
-		for( int i = 0; i < indent_level; ++i )
-			_write( file_descriptor_, "\t", 1 );
+//////////////////////////////////////////////////////////////////////////
 
-		_write( file_descriptor_, name.data(), static_cast< uint32_t >( name.size() ) );
+bool GCL::Serializer::IsOpen( void ) const
+{
+	return ( m_FileDescriptor >= 0 );
 
-		if( object.IsNull() )
-		{
-			_write( file_descriptor_, "\n", 1 );
-		}
-		if( object.IsString() )
-		{
-			Object::StringType string = object.String();
-
-			_write( file_descriptor_, ":", 1 );
-			_write( file_descriptor_, string.data(), static_cast< uint32_t >( string.size() ) );
-			_write( file_descriptor_, "\n", 1 );
-		}
-		else if( object.IsTable() )
-		{
-			const Object::TableType& table = object.Table();
-
-			_write( file_descriptor_, ":", 1 );
-			_write( file_descriptor_, "\n", 1 );
-
-			for( const Object& child : table )
-				WriteObject( child, indent_level + 1 );
-		}
-	}
-
-	bool Serializer::IsOpen( void ) const
-	{
-		return ( file_descriptor_ >= 0 );
-	}
-}
+} // IsOpen

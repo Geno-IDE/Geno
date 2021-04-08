@@ -27,42 +27,46 @@ class BuildMatrix
 	GENO_DISABLE_COPY( BuildMatrix );
 	GENO_DEFAULT_MOVE( BuildMatrix );
 
+//////////////////////////////////////////////////////////////////////////
+
 public:
 
 	struct NamedConfiguration;
 
 	struct Column
 	{
-		std::string                       name;
-		std::vector< NamedConfiguration > configurations;
-		std::string                       current_configuration;
-	};
+		std::string                       Name;
+		std::vector< NamedConfiguration > Configurations;
+		std::string                       CurrentConfiguration;
+
+	}; // Column
 
 	using ColumnVector = std::vector< Column >;
 
 	struct NamedConfiguration
 	{
-		std::string   name;
-		Configuration configuration;
-		ColumnVector  exclusive_columns;
-	};
+		std::string   Name;
+		Configuration Configuration;
+		ColumnVector  ExclusiveColumns;
 
-public:
+	}; // NamedConfiguration
+
+//////////////////////////////////////////////////////////////////////////
 
 	BuildMatrix( void ) = default;
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	void          NewColumn           ( std::string name );
-	void          NewConfiguration    ( std::string_view which_column, std::string configuration );
+	void          NewColumn           ( std::string Name );
+	void          NewConfiguration    ( std::string_view WhichColumn, std::string Configuration );
 	Configuration CurrentConfiguration( void ) const;
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
 	static BuildMatrix PlatformDefault( void );
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	ColumnVector columns_;
+	ColumnVector m_Columns;
 
-};
+}; // BuildMatrix

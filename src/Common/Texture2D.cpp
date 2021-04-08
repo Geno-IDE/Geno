@@ -41,10 +41,10 @@ Texture2D::~Texture2D( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void Texture2D::SetPixels( GLint internalformat, GLsizei width, GLsizei height, GLenum format, const GLvoid* data )
+void Texture2D::SetPixels( GLint InternalFormat, GLsizei Width, GLsizei Height, GLenum Format, const GLvoid* pData )
 {
 	glBindTexture( GL_TEXTURE_2D, m_ID );
-	glTexImage2D( GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, GL_UNSIGNED_BYTE, data );
+	glTexImage2D( GL_TEXTURE_2D, 0, InternalFormat, Width, Height, 0, Format, GL_UNSIGNED_BYTE, pData );
 	glGenerateMipmap( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, 0 );
 

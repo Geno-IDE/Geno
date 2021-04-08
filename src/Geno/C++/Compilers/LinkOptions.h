@@ -26,11 +26,15 @@ struct LinkOptions
 	{
 		LinkerFlagNoDefaultLibs = 0x01,
 		LinkerFlagNoSymbolTable = 0x02,
-	};
 
-	std::vector< std::filesystem::path > input_files;
-	std::vector< std::filesystem::path > linked_libraries;
-	std::filesystem::path                output_file;
-	ProjectKind                          kind  = ProjectKind::Unknown;
-	uint32_t                             flags = 0;
-};
+	}; // Flags
+
+//////////////////////////////////////////////////////////////////////////
+
+	std::vector< std::filesystem::path > InputFiles;
+	std::vector< std::filesystem::path > LinkedLibraries;
+	std::filesystem::path                OutputFile;
+	ProjectKind                          Kind  = ProjectKind::Unknown;
+	uint32_t                             Flags = 0;
+
+}; // LinkOptions

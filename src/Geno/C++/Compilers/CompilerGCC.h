@@ -24,9 +24,11 @@ public:
 
 	CompilerGCC( void ) = default;
 
+//////////////////////////////////////////////////////////////////////////
+
 public:
 
-	std::wstring MakeCommandLineString( const CompileOptions& options ) override;
-	std::wstring MakeCommandLineString( const LinkOptions& options )    override;
+	std::wstring MakeCommandLineString( const CompileOptions& rOptions ) override;
+	std::wstring MakeCommandLineString( const LinkOptions& rOptions ) override;
 
-};
+}; // CompilerGCC

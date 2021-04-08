@@ -27,30 +27,39 @@ enum RequestType
 	None = 0,
 	RequestTypePath,
 	RequestTypeString,
-};
 
-void NewItemModal::RequestPath( std::string title, std::filesystem::path default_location, void* user, PathCallback callback )
+}; // RequestType
+
+//////////////////////////////////////////////////////////////////////////
+
+void NewItemModal::RequestPath( std::string Title, std::filesystem::path DefaultLocation, void* pUser, PathCallback Callback )
 {
 	if( Open() )
 	{
-		title_        = std::move( title );
-		location_     = std::move( default_location );
-		callback_     = callback;
-		user_         = user;
-		request_type_ = RequestTypePath;
+		m_Title       = std::move( Title );
+		m_Location    = std::move( DefaultLocation );
+		m_Callback    = Callback;
+		m_pUser       = pUser;
+		m_RequestType = RequestTypePath;
 	}
-}
 
-void NewItemModal::RequestString( std::string title, void* user, StringCallback callback )
+} // RequestPath
+
+//////////////////////////////////////////////////////////////////////////
+
+void NewItemModal::RequestString( std::string Title, void* pUser, StringCallback Callback )
 {
 	if( Open() )
 	{
-		title_        = std::move( title );
-		callback_     = callback;
-		user_         = user;
-		request_type_ = RequestTypeString;
+		m_Title       = std::move( Title );
+		m_Callback    = Callback;
+		m_pUser       = pUser;
+		m_RequestType = RequestTypeString;
 	}
-}
+
+} // RequestString
+
+//////////////////////////////////////////////////////////////////////////
 
 void NewItemModal::UpdateDerived( void )
 {
@@ -58,23 +67,23 @@ void NewItemModal::UpdateDerived( void )
 	{
 		ImGui::TextUnformatted( "Name" );
 
-		switch( request_type_ )
+		switch( m_RequestType )
 		{
 			case RequestTypePath:   { UpdateItem();   } break;
 			case RequestTypeString: { UpdateString(); } break;
 		}
-	}
-	ImGui::EndChild();
+
+	} ImGui::EndChild();
 
 	if( ImGui::Button( "OK", ImVec2( 80, 0 ) ) )
 	{
-		if( callback_ )
+		if( m_Callback )
 		{
-			switch( request_type_ )
+			switch( m_RequestType )
 			{
-				case RequestTypePath:   { static_cast< PathCallback   >( callback_ )( std::move( name_ ), std::move( location_ ), user_ ); } break;
-				case RequestTypeString: { static_cast< StringCallback >( callback_ )( std::move( name_ ), user_ );                         } break;
-				default:                { GENO_ASSERT( false ); /* Request type was corrupted */                                           } break;
+				case RequestTypePath:   { static_cast< PathCallback   >( m_Callback )( std::move( m_Name ), std::move( m_Location ), m_pUser ); } break;
+				case RequestTypeString: { static_cast< StringCallback >( m_Callback )( std::move( m_Name ), m_pUser );                          } break;
+				default:                { GENO_ASSERT( false ); /* Request type was corrupted */                                                } break;
 			}
 		}
 
@@ -86,52 +95,60 @@ void NewItemModal::UpdateDerived( void )
 	{
 		Close();
 	}
-}
+
+} // UpdateDerived
+
+//////////////////////////////////////////////////////////////////////////
 
 void NewItemModal::OnClose( void )
 {
-	title_.clear();
-	name_.clear();
-	location_.clear();
+	m_Title   .clear();
+	m_Name    .clear();
+	m_Location.clear();
 
-	callback_     = nullptr;
-	user_         = nullptr;
-	request_type_ = -1;
-}
+	m_Callback    = nullptr;
+	m_pUser       = nullptr;
+	m_RequestType = -1;
+
+} // OnClose
+
+//////////////////////////////////////////////////////////////////////////
 
 void NewItemModal::UpdateItem( void )
 {
 	ImGui::SetNextItemWidth( -5.0f );
-	ImGui::InputText( "##Name", &name_ );
+	ImGui::InputText( "##Name", &m_Name );
 
 	ImGui::TextUnformatted( "Location" );
 
-//////////////////////////////////////////////////////////////////////////
-
-	std::string location_buf = location_.string();
+	std::string LocationBuffer = m_Location.string();
 
 	ImGui::SetNextItemWidth( -60.0f );
-	ImGui::InputText( "##Location", &location_buf );
+	ImGui::InputText( "##Location", &LocationBuffer );
 
-	location_.assign( std::move( location_buf ) );
+	m_Location.assign( std::move( LocationBuffer ) );
 
 	ImGui::SameLine();
 	if( ImGui::Button( "Browse" ) )
 	{
-		OpenFileModal::Instance().SetCurrentDirectory( location_ );
-		OpenFileModal::Instance().RequestDirectory( title_ + " Location", this,
+		OpenFileModal::Instance().SetCurrentDirectory( m_Location );
+		OpenFileModal::Instance().RequestDirectory( m_Title + " Location", this,
 			[]( const std::filesystem::path& path, void* user )
 			{
-				NewItemModal* self = static_cast< NewItemModal* >( user );
+				NewItemModal* pSelf = static_cast< NewItemModal* >( user );
 
-				self->location_ = path.lexically_normal();
+				pSelf->m_Location = path.lexically_normal();
 			}
 		);
 	}
-}
+
+} // UpdateItem
+
+//////////////////////////////////////////////////////////////////////////
 
 void NewItemModal::UpdateString( void )
 {
 	ImGui::SetNextItemWidth( -5.0f );
-	ImGui::InputText( "##Name", &name_ );
-}
+	ImGui::InputText( "##Name", &m_Name );
+
+} // UpdateString

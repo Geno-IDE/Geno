@@ -20,17 +20,24 @@
 
 class WorkspaceWidget
 {
-	GENO_SINGLETON( WorkspaceWidget ) = default;
+	GENO_SINGLETON( WorkspaceWidget );
+
+	WorkspaceWidget( void ) = default;
+
+//////////////////////////////////////////////////////////////////////////
 
 public:
 
-	void Show( bool* p_open );
+	void Show( bool* pOpen );
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
-	std::string popup_text_;
-	std::string selected_project_;
-	bool        expand_workspace_node_ = false;
-	std::string project_node_to_be_expanded_;
+	std::string m_PopupText;
+	std::string m_SelectedProjectName;
+	std::string m_ProjectNodeToBeExpanded;
 
-};
+	bool        m_ExpandWorkspaceNode = false;
+
+}; // WorkspaceWidget

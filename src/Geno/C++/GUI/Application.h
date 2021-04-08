@@ -27,29 +27,29 @@ class IModal;
 
 class Application
 {
-	GENO_SINGLETON( Application ) = default;
+	GENO_SINGLETON( Application );
 
-public:
-
+	 Application( void ) = default;
 	~Application( void );
 
-public:
-
-	int     Run           ( void );
-	void    NewWorkspace  ( std::filesystem::path location, std::string name );
-	void    LoadWorkspace ( const std::filesystem::path& path );
-	void    CloseWorkspace( void );
-	void    PushModal     ( IModal* modal );
-	void    PopModal      ( void );
-	IModal* NextModal     ( IModal* previous );
+//////////////////////////////////////////////////////////////////////////
 
 public:
 
+	int        Run             ( void );
+	void       NewWorkspace    ( std::filesystem::path Location, std::string Name );
+	void       LoadWorkspace   ( const std::filesystem::path& rPath );
+	void       CloseWorkspace  ( void );
+	void       PushModal       ( IModal* pModal );
+	void       PopModal        ( void );
+	IModal*    NextModal       ( IModal* pPrevious );
 	Workspace* CurrentWorkspace( void );
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
-	std::optional< Workspace > current_workspace_;
-	std::vector< IModal* >     modal_stack_;
+	std::optional< Workspace > m_CurrentWorkspace;
+	std::vector< IModal* >     m_ModalStack;
 
-};
+}; // Application

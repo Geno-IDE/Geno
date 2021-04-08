@@ -32,64 +32,66 @@
 
 const char* WINDOW_NAME = "Text Edit";
 
-void TextEditWidget::Show( bool* p_open )
+//////////////////////////////////////////////////////////////////////////
+
+void TextEditWidget::Show( bool* pOpen )
 {
-	ImGuiStyle& style    = ImGui::GetStyle();
-	ImVec4      bg_color = style.Colors[ ImGuiCol_WindowBg ];
+	ImGuiStyle& rStyle          = ImGui::GetStyle();
+	ImVec4      BackgroundColor = rStyle.Colors[ ImGuiCol_WindowBg ];
 
 	// Use a brighter background color if the widget is being drag-hovered
-	if( const Drop* drop = MainWindow::Instance().GetDraggedDrop() )
+	if( const Drop* pDrop = MainWindow::Instance().GetDraggedDrop() )
 	{
-		const float x = static_cast< float >( MainWindow::Instance().GetDragPosX() );
-		const float y = static_cast< float >( MainWindow::Instance().GetDragPosY() );
+		const float DragX = static_cast< float >( MainWindow::Instance().GetDragPosX() );
+		const float DragY = static_cast< float >( MainWindow::Instance().GetDragPosY() );
 
-		if( ImGuiWindow* window = ImGui::FindWindowByName( WINDOW_NAME ) )
+		if( ImGuiWindow* pWindow = ImGui::FindWindowByName( WINDOW_NAME ) )
 		{
-			if( window->Rect().Contains( ImVec2( x, y ) ) )
+			if( pWindow->Rect().Contains( ImVec2( DragX, DragY ) ) )
 			{
-				bg_color = bg_color + ImVec4( 0.1f, 0.1f, 0.1f, 0.1f );
+				BackgroundColor = BackgroundColor + ImVec4( 0.1f, 0.1f, 0.1f, 0.1f );
 
-				switch( drop->GetType() )
+				switch( pDrop->GetType() )
 				{
 					case Drop::TypeIndex::Bitmap:
 					{
-						const Drop::Bitmap& bitmap = drop->GetBitmap();
+						const Drop::Bitmap& rBitmap = pDrop->GetBitmap();
 
-						dragged_bitmap_texture_.SetPixels( GL_RGBA8, bitmap.width, bitmap.height, GL_BGRA, bitmap.data.get() );
+						m_DraggedBitmapTexture.SetPixels( GL_RGBA8, rBitmap.width, rBitmap.height, GL_BGRA, rBitmap.data.get() );
 
 						// Adjust image size and ensure that no dimension is bigger than 200px
-						constexpr float image_max_size = 200.0f;
-						ImVec2          image_size;
-						if( bitmap.width > bitmap.height ) image_size = ImVec2( image_max_size, image_max_size * ( bitmap.height / static_cast< float >( bitmap.width ) ) );
-						else                               image_size = ImVec2( image_max_size * ( bitmap.width / static_cast< float >( bitmap.height ) ), image_max_size );
+						constexpr float ImageMaxSize = 200.0f;
+						ImVec2          ImageSize;
+						if( rBitmap.width > rBitmap.height ) ImageSize = ImVec2( ImageMaxSize, ImageMaxSize * ( rBitmap.height / static_cast< float >( rBitmap.width ) ) );
+						else                                 ImageSize = ImVec2( ImageMaxSize * ( rBitmap.width / static_cast< float >( rBitmap.height ) ), ImageMaxSize );
 
-						ImGui::SetNextWindowPos( ImVec2( x, y ) );
+						ImGui::SetNextWindowPos( ImVec2( DragX, DragY ) );
 						ImGui::BeginTooltip();
-						ImGui::Image( dragged_bitmap_texture_.GetID(), image_size, ImVec2( 0, 1 ), ImVec2( 1, 0 ) );
+						ImGui::Image( m_DraggedBitmapTexture.GetID(), ImageSize, ImVec2( 0, 1 ), ImVec2( 1, 0 ) );
 						ImGui::EndTooltip();
 
 					} break;
 
 					case Drop::TypeIndex::Text:
 					{
-						const Drop::Text& text = drop->GetText();
+						const Drop::Text& rText = pDrop->GetText();
 						
-						ImGui::SetNextWindowPos( ImVec2( x, y ) );
+						ImGui::SetNextWindowPos( ImVec2( DragX, DragY ) );
 						ImGui::BeginTooltip();
-						ImGui::Text( "%ws", text.c_str() );
+						ImGui::Text( "%ws", rText.c_str() );
 						ImGui::EndTooltip();
 
 					} break;
 
 					case Drop::TypeIndex::Paths:
 					{
-						const Drop::Paths& paths = drop->GetPaths();
+						const Drop::Paths& rPaths = pDrop->GetPaths();
 						
-						ImGui::SetNextWindowPos( ImVec2( x, y ) );
+						ImGui::SetNextWindowPos( ImVec2( DragX, DragY ) );
 						ImGui::BeginTooltip();
 
-						for( const std::filesystem::path& path : paths )
-							ImGui::BulletText( "%ws", path.c_str() );
+						for( const std::filesystem::path& rPath : rPaths )
+							ImGui::BulletText( "%ws", rPath.c_str() );
 
 						ImGui::EndTooltip();
 
@@ -99,29 +101,26 @@ void TextEditWidget::Show( bool* p_open )
 		}
 	}
 
-	ImGui::PushStyleColor( ImGuiCol_ChildBg, bg_color );
+	ImGui::PushStyleColor( ImGuiCol_ChildBg, BackgroundColor );
 
-	if( ImGui::Begin( WINDOW_NAME, p_open ) )
+	if( ImGui::Begin( WINDOW_NAME, pOpen ) )
 	{
-		const int tab_bar_flags = ( 0
-			| ImGuiTabBarFlags_Reorderable
-			| ImGuiTabBarFlags_FittingPolicyScroll
-		);
+		const int TabBarFlags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_FittingPolicyScroll;
 
-		if( !files_.empty() && ImGui::BeginTabBar( "TextEditTabBar", tab_bar_flags ) )
+		if( !m_Files.empty() && ImGui::BeginTabBar( "TextEditTabBar", TabBarFlags ) )
 		{
-			for( File& file : files_ )
+			for( File& rFile : m_Files )
 			{
-				std::string file_string = file.path.filename().string();
+				const std::string FileString = rFile.Path.filename().string();
 
-				if( ImGui::BeginTabItem( file_string.c_str(), &file.open ) )
+				if( ImGui::BeginTabItem( FileString.c_str(), &rFile.Open ) )
 				{
-					const int input_text_flags = ImGuiInputTextFlags_AllowTabInput;
+					const int InputTextFlags = ImGuiInputTextFlags_AllowTabInput;
 
-					if( ImGui::InputTextMultiline( "##TextEditor", &file.text, ImVec2( -0.01f, -0.01f ), input_text_flags ) )
+					if( ImGui::InputTextMultiline( "##TextEditor", &rFile.Text, ImVec2( -0.01f, -0.01f ), InputTextFlags ) )
 					{
-						std::ofstream ofs( file.path, std::ios::binary | std::ios::trunc );
-						ofs << file.text;
+						std::ofstream ofs( rFile.Path, std::ios::binary | std::ios::trunc );
+						ofs << rFile.Text;
 					}
 
 					ImGui::EndTabItem();
@@ -129,10 +128,10 @@ void TextEditWidget::Show( bool* p_open )
 			}
 
 			// Clear closed files from list
-			for( auto it = files_.begin(); it != files_.end(); )
+			for( auto It = m_Files.begin(); It != m_Files.end(); )
 			{
-				if( it->open ) it++;
-				else           it = files_.erase( it );
+				if( It->Open ) It++;
+				else           It = m_Files.erase( It );
 			}
 
 			ImGui::EndTabBar();
@@ -140,55 +139,62 @@ void TextEditWidget::Show( bool* p_open )
 	}
 	ImGui::End();
 	ImGui::PopStyleColor();
-}
 
-void TextEditWidget::AddFile( const std::filesystem::path& path )
+} // Show
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEditWidget::AddFile( const std::filesystem::path& rPath )
 {
-	if( !std::filesystem::exists( path ) )
+	if( !std::filesystem::exists( rPath ) )
 	{
-		std::cerr << "Failed to add '" << path << "' to text-edit. File does not exist.\n";
+		std::cerr << "Failed to add '" << rPath << "' to text-edit. File does not exist.\n";
 		return;
 	}
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::ifstream ifs  = std::ifstream( path, std::ios::binary );
-	std::string   text = std::string( ( std::istreambuf_iterator< char >( ifs ) ), std::istreambuf_iterator< char >() );
+	std::ifstream     InputFileStream( rPath, std::ios::binary );
+	const std::string Text( ( std::istreambuf_iterator< char >( InputFileStream ) ), std::istreambuf_iterator< char >() );
 
-	for( File& file : files_ )
+	for( File& rFile : m_Files )
 	{
 		// Do not need to add file to vector if it already exists
-		if( file.path == path )
+		if( rFile.Path == rPath )
 		{
 			// Update text in case file changed externally
-			file.text = text;
+			rFile.Text = Text;
 			return;
 		}
 	}
 
-	File file;
-	file.path = path;
-	file.text = text;
+	File File;
+	File.Path = rPath;
+	File.Text = Text;
 
-	files_.emplace_back( std::move( file ) );
-}
+	m_Files.emplace_back( std::move( File ) );
 
-void TextEditWidget::OnDragDrop( const Drop& drop, int x, int y )
+} // AddFile
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEditWidget::OnDragDrop( const Drop& rDrop, int X, int Y )
 {
-	ImGuiWindow* window = ImGui::FindWindowByName( WINDOW_NAME );
+	ImGuiWindow* pWindow = ImGui::FindWindowByName( WINDOW_NAME );
 
-	if( window && window->Rect().Contains( ImVec2( static_cast< float >( x ), static_cast< float >( y ) ) ) )
+	if( pWindow && pWindow->Rect().Contains( ImVec2( static_cast< float >( X ), static_cast< float >( Y ) ) ) )
 	{
-		switch( drop.GetType() )
+		switch( rDrop.GetType() )
 		{
 			case Drop::TypeIndex::Paths:
 			{
-				const Drop::Paths& paths = drop.GetPaths();
+				const Drop::Paths& rPaths = rDrop.GetPaths();
 
-				for( const std::filesystem::path& path : paths )
-					AddFile( path );
+				for( const std::filesystem::path& rPath : rPaths )
+					AddFile( rPath );
 
 			} break;
 		}
 	}
-}
+
+} // OnDragDrop

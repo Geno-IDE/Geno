@@ -24,24 +24,30 @@ class PrimaryMonitor
 {
 	GENO_SINGLETON( PrimaryMonitor );
 
+	PrimaryMonitor( void );
+
+//////////////////////////////////////////////////////////////////////////
+
 public:
 
-	int X     ( void ) const { return x_; }
-	int Y     ( void ) const { return y_; }
-	int Width ( void ) const { return width_; }
-	int Height( void ) const { return height_; }
+	int X     ( void ) const { return m_X; }
+	int Y     ( void ) const { return m_Y; }
+	int Width ( void ) const { return m_Width; }
+	int Height( void ) const { return m_Height; }
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
-	static void MonitorFunction( GLFWmonitor* monitor, int event );
+	static void MonitorFunction( GLFWmonitor* pMonitor, int Event );
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
-	GLFWmonitor* monitor_;
+	GLFWmonitor* m_pMonitor = nullptr;
 
-	int x_;
-	int y_;
-	int width_;
-	int height_;
+	int          m_X        = 0;
+	int          m_Y        = 0;
+	int          m_Width    = 0;
+	int          m_Height   = 0;
 
-};
+}; // PrimaryMonitor

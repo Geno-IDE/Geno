@@ -22,6 +22,10 @@ function app( name )
 		'src/%{prj.name}/C++/**.h',
 	}
 
+	includedirs {
+		'src/%{prj.name}/Resources',
+	}
+
 	vpaths {
 		[ 'Source Files/*' ] = 'src/' .. name .. '/C++',
 	}

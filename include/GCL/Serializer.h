@@ -20,26 +20,30 @@
 
 namespace GCL
 {
-	class Object;
 
-	class Serializer
-	{
-	public:
+class Object;
+
+class Serializer
+{
+public:
 	
-		explicit Serializer( const std::filesystem::path& path );
-		        ~Serializer( void );
+	explicit Serializer( const std::filesystem::path& rPath );
+		    ~Serializer( void );
 
-	public:
+//////////////////////////////////////////////////////////////////////////
 
-		void WriteObject( const Object& object, int indent_level = 0 );
+	void WriteObject( const Object& rObject, int IndentLevel = 0 );
 
-	public:
+//////////////////////////////////////////////////////////////////////////
 
-		bool IsOpen( void ) const;
+	bool IsOpen( void ) const;
 
-	private:
+//////////////////////////////////////////////////////////////////////////
 
-		int file_descriptor_ = -1;
+private:
 
-	};
+	int m_FileDescriptor = -1;
+
+}; // Serializer
+
 }
