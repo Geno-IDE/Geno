@@ -30,27 +30,35 @@ enum Category
 	NumCategories
 };
 
-static constexpr const char* CategoryString( Category category )
+//////////////////////////////////////////////////////////////////////////
+
+static constexpr const char* StringifyCategory( Category Category )
 {
-	switch( category )
+	switch( Category )
 	{
 		case CategoryBuildMatrix: return "Build Matrix";
 		default:                  return nullptr;
 	}
-}
+
+} // CategoryString
+
+//////////////////////////////////////////////////////////////////////////
 
 void WorkspaceSettingsModal::Show( void )
 {
 	if( Open() )
 	{
-		current_category_ = -1;
+		m_CurrentCategory = -1;
 	}
-}
+
+} // Show
+
+//////////////////////////////////////////////////////////////////////////
 
 void WorkspaceSettingsModal::UpdateDerived( void )
 {
-	Workspace* workspace = Application::Instance().CurrentWorkspace();
-	if( !workspace )
+	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
+	if( !pWorkspace )
 	{
 		ImGui::TextUnformatted( "No active workspace" );
 		return;
@@ -65,103 +73,109 @@ void WorkspaceSettingsModal::UpdateDerived( void )
 		{
 			for( int i = 0; i < NumCategories; ++i )
 			{
-				Category category = static_cast< Category >( i );
+				Category Category = static_cast< ::Category >( i );
 
-				if( ImGui::Selectable( CategoryString( category ), current_category_ == category ) )
+				if( ImGui::Selectable( StringifyCategory( Category ), m_CurrentCategory == Category ) )
 				{
-					current_category_ = category;
+					m_CurrentCategory = Category;
 				}
 			}
-		}
-		ImGui::EndChild();
+
+		} ImGui::EndChild();
 		ImGui::PopStyleColor();
 
 		if( ImGui::BeginChild( 2 ) )
 		{
-			switch( current_category_ )
+			switch( m_CurrentCategory )
 			{
 				case CategoryBuildMatrix:
 				{
 					// Show build matrix configurations
-					for( auto& column : workspace->build_matrix_.columns_ )
-						ShowConfigurationColumn( column, std::string() );
+					for( BuildMatrix::Column& rColumn : pWorkspace->m_BuildMatrix.m_Columns )
+						ShowConfigurationColumn( rColumn, std::string() );
 
 					if( ImGui::SmallButton( "+##NewColumn" ) )
 					{
 						NewItemModal::Instance().RequestString( "New Column", nullptr,
-							[]( std::string string, void* /*user*/ )
+							[]( std::string String, void* /*pUser*/ )
 							{
-								if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
-									workspace->build_matrix_.NewColumn( std::move( string ) );
+								if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
+									pWorkspace->m_BuildMatrix.NewColumn( std::move( String ) );
 							}
 						);
 					}
 
 				} break;
 			}
-		}
-		ImGui::EndChild();
+
+		} ImGui::EndChild();
 
 		MainWindow::Instance().PopHorizontalLayout();
-	}
-	ImGui::EndChild();
+
+	} ImGui::EndChild();
 
 	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + 4 );
 	if( ImGui::Button( "Close", ImVec2( 80, 0 ) ) )
 	{
 		Close();
 	}
-}
+
+} // UpdateDerived
+
+//////////////////////////////////////////////////////////////////////////
 
 void WorkspaceSettingsModal::OnClose( void )
 {
-	current_category_ = -1;
-}
+	m_CurrentCategory = -1;
 
-void WorkspaceSettingsModal::ShowConfigurationColumn( BuildMatrix::Column& column, std::string id_prefix )
+} // OnClose
+
+//////////////////////////////////////////////////////////////////////////
+
+void WorkspaceSettingsModal::ShowConfigurationColumn( BuildMatrix::Column& rColumn, std::string IDPrefix )
 {
-	id_prefix += column.name;
-	id_prefix += '_';
+	IDPrefix += rColumn.Name;
+	IDPrefix += '_';
 
 	ImGui::PushStyleVar( ImGuiStyleVar_FrameRounding, 4.0f );
-	ImGui::Text( "%s:", column.name.c_str() );
+	ImGui::Text( "%s:", rColumn.Name.c_str() );
 	ImGui::SameLine();
-	if( ImGui::SmallButton( ( "+##NewConfiguration_" + id_prefix + column.name ).c_str() ) )
+	if( ImGui::SmallButton( ( "+##NewConfiguration_" + IDPrefix + rColumn.Name ).c_str() ) )
 	{
-		NewItemModal::Instance().RequestString( "New Exclusive Configuration", &column,
-			[]( std::string string, void* user )
+		NewItemModal::Instance().RequestString( "New Exclusive Configuration", &rColumn,
+			[]( std::string String, void* pUser )
 			{
-				auto& column = *static_cast< BuildMatrix::Column* >( user );
-				auto& cfg    = column.configurations.emplace_back();
-				cfg.name     = std::move( string );
+				BuildMatrix::Column&             rColumn        = *static_cast< BuildMatrix::Column* >( pUser );
+				BuildMatrix::NamedConfiguration& rConfiguration = rColumn.Configurations.emplace_back();
+				rConfiguration.Name                             = std::move( String );
 			}
 		);
 	}
 
-	if( !column.configurations.empty() )
+	if( !rColumn.Configurations.empty() )
 	{
 		ImGui::Indent();
 
-		for( auto& cfg : column.configurations )
+		for( BuildMatrix::NamedConfiguration& rConfiguration : rColumn.Configurations )
 		{
-			if( ImGui::SmallButton( ( cfg.name + "##" + id_prefix + cfg.name ).c_str() ) )
+			if( ImGui::SmallButton( ( rConfiguration.Name + "##" + IDPrefix + rConfiguration.Name ).c_str() ) )
 			{
-				NewItemModal::Instance().RequestString( "New Exclusive Category", &cfg,
+				NewItemModal::Instance().RequestString( "New Exclusive Category", &rConfiguration,
 					[]( std::string string, void* user )
 					{
-						auto& cfg       = *static_cast< BuildMatrix::NamedConfiguration* >( user );
-						auto& exclusive = cfg.exclusive_columns.emplace_back();
-						exclusive.name  = std::move( string );
+						BuildMatrix::NamedConfiguration& rConfiguration   = *static_cast< BuildMatrix::NamedConfiguration* >( user );
+						BuildMatrix::Column&             rExclusiveColumn = rConfiguration.ExclusiveColumns.emplace_back();
+						rExclusiveColumn.Name                             = std::move( string );
 					}
 				);
 			}
 
-			if( !cfg.exclusive_columns.empty() )
+			if( !rConfiguration.ExclusiveColumns.empty() )
 			{
 				ImGui::Indent();
 
-				for( auto& exclusive : cfg.exclusive_columns )
-					ShowConfigurationColumn( exclusive, id_prefix );
+				for( BuildMatrix::Column& rExclusiveColumn : rConfiguration.ExclusiveColumns )
+					ShowConfigurationColumn( rExclusiveColumn, IDPrefix );
 
 				ImGui::Unindent();
 			}
@@ -171,4 +185,5 @@ void WorkspaceSettingsModal::ShowConfigurationColumn( BuildMatrix::Column& colum
 	}
 
 	ImGui::PopStyleVar();
-}
+
+} // ShowConfigurationColumn

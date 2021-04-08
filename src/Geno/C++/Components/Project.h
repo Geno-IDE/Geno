@@ -30,52 +30,59 @@ class Project;
 
 struct ProjectBuildFinished
 {
-	Project*              project;
-	std::filesystem::path output;
-	bool                  success;
-};
+	Project*              pProject;
+	std::filesystem::path Output;
+	bool                  Success = false;
+
+}; // ProjectBuildFinished
 
 class Project : public EventDispatcher< Project, ProjectBuildFinished >
 {
 	GENO_DISABLE_COPY( Project );
 
-public:
-
-	static constexpr std::string_view ext = ".gprj";
+//////////////////////////////////////////////////////////////////////////
 
 public:
 
-	explicit Project( std::filesystem::path location );
-	Project( Project&& other );
+	static constexpr std::string_view EXTENSION = ".gprj";
 
-	Project& operator=( Project&& other );
+//////////////////////////////////////////////////////////////////////////
 
-public:
+	explicit Project( std::filesystem::path Location );
+	         Project( Project&& rrOther );
 
-	void Build      ( ICompiler& compiler );
+	Project& operator=( Project&& rrOther );
+
+//////////////////////////////////////////////////////////////////////////
+
+	void Build      ( ICompiler& rCompiler );
 	bool Serialize  ( void );
 	bool Deserialize( void );
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	ProjectKind                          kind_ = ProjectKind::Unknown;
+	ProjectKind                          m_Kind = ProjectKind::Unknown;
 
-	std::filesystem::path                location_;
-	std::string                          name_;
-	std::vector< std::filesystem::path > files_;
-	std::vector< std::filesystem::path > includes_;
-	std::vector< std::filesystem::path > libraries_;
-	std::vector< Configuration >         configrations_;
-	std::vector< std::filesystem::path > files_left_to_build_;
-	std::vector< std::filesystem::path > files_to_link_;
+	std::filesystem::path                m_Location;
+	std::string                          m_Name;
+	std::vector< std::filesystem::path > m_Files;
+	std::vector< std::filesystem::path > m_Includes;
+	std::vector< std::filesystem::path > m_Libraries;
+	std::vector< Configuration >         m_Configurations;
+	std::vector< std::filesystem::path > m_FilesLeftToBuild;
+	std::vector< std::filesystem::path > m_FilesToLink;
 
-private:
-
-	static void GCLObjectCallback( GCL::Object object, void* user );
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
-	void BuildNextFile ( ICompiler& compiler );
-	void Link          ( ICompiler& compiler );
+	static void GCLObjectCallback( GCL::Object Object, void* pUser );
 
-};
+//////////////////////////////////////////////////////////////////////////
+
+private:
+
+	void BuildNextFile( ICompiler& rCompiler );
+	void Link         ( ICompiler& rCompiler );
+
+}; // Project

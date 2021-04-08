@@ -24,40 +24,50 @@ enum class ProjectKind
 	Application,
 	StaticLibrary,
 	DynamicLibrary,
-};
 
-inline constexpr std::string_view ProjectKindToString( ProjectKind kind )
+}; // ProjectKind
+
+//////////////////////////////////////////////////////////////////////////
+
+constexpr std::string_view StringifyProjectKind( ProjectKind Kind )
 {
-	switch( kind )
+	switch( Kind )
 	{
 		case ProjectKind::Application:    return "Application";
 		case ProjectKind::StaticLibrary:  return "StaticLibrary";
 		case ProjectKind::DynamicLibrary: return "DynamicLibrary";
 		default:                          return "Unknown";
 	}
-}
 
-inline constexpr ProjectKind ProjectKindFromString( std::string_view kind )
+} // StringifyProjectKind
+
+//////////////////////////////////////////////////////////////////////////
+
+constexpr ProjectKind ProjectKindFromString( std::string_view Kind )
 {
-	/**/ if( kind == "Application" )    return ProjectKind::Application;
-	else if( kind == "StaticLibrary" )  return ProjectKind::StaticLibrary;
-	else if( kind == "DynamicLibrary" ) return ProjectKind::DynamicLibrary;
+	/**/ if( Kind == "Application" )    return ProjectKind::Application;
+	else if( Kind == "StaticLibrary" )  return ProjectKind::StaticLibrary;
+	else if( Kind == "DynamicLibrary" ) return ProjectKind::DynamicLibrary;
 	else                                return ProjectKind::Unknown;
-}
 
-inline constexpr std::string_view ProjectKindOutputExtension( ProjectKind kind )
+} // ProjectKindFromString
+
+//////////////////////////////////////////////////////////////////////////
+
+constexpr std::string_view ProjectKindOutputExtension( ProjectKind Kind )
 {
-	switch( kind )
+	switch( Kind )
 	{
 	#if defined( _WIN32 )
-		case ProjectKind::Application:    { return ".exe";              } break;
-		case ProjectKind::StaticLibrary:  { return ".lib";              } break;
-		case ProjectKind::DynamicLibrary: { return ".dll";              } break;
+		case ProjectKind::Application:    { return ".exe"; } break;
+		case ProjectKind::StaticLibrary:  { return ".lib"; } break;
+		case ProjectKind::DynamicLibrary: { return ".dll"; } break;
 	#else // _WIN32
-		case ProjectKind::Application:    { return std::string_view();  } break;
-		case ProjectKind::StaticLibrary:  { return ".a";                } break;
-		case ProjectKind::DynamicLibrary: { return ".so";               } break;
-	#endif // else
-		default:                          { return std::string_view();  } break;
+		case ProjectKind::Application:    { return "";     } break;
+		case ProjectKind::StaticLibrary:  { return ".a";   } break;
+		case ProjectKind::DynamicLibrary: { return ".so";  } break;
+	#endif // _WIN32
+		default:                          { return "";     } break;
 	}
-}
+
+} // ProjectKindOutputExtension

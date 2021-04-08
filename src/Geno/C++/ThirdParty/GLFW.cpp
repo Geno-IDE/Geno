@@ -21,26 +21,29 @@
 
 #include <GLFW/glfw3.h>
 
+//////////////////////////////////////////////////////////////////////////
+
 GLFW::GLFW( void )
 {
 	glfwSetErrorCallback( ErrorFunction );
 
 	if( !glfwInit() )
 		return;
-}
+
+} // GLFW
+
+//////////////////////////////////////////////////////////////////////////
 
 GLFW::~GLFW( void )
 {
 	glfwTerminate();
-}
 
-GLFW& GLFW::Instance( void )
-{
-	static GLFW instance;
-	return instance;
-}
+} // ~GLFW
 
-void GLFW::ErrorFunction( int error, const char* description )
+//////////////////////////////////////////////////////////////////////////
+
+void GLFW::ErrorFunction( int Error, const char* pDescription )
 {
-	std::cerr << "GLFW Error: (" << error << ") " << description << "\n";
-}
+	std::cerr << "GLFW Error: (" << Error << ") " << pDescription << "\n";
+
+} // ErrorFunction

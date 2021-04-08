@@ -24,183 +24,200 @@
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
 
-Workspace::Workspace( std::filesystem::path location )
-	: location_( std::move( location ) )
-	, name_    ( "MyWorkspace" )
+//////////////////////////////////////////////////////////////////////////
+
+Workspace::Workspace( std::filesystem::path Location )
+	: m_Location( std::move( Location ) )
+	, m_Name    ( "MyWorkspace" )
 {
-	compiler_ = std::make_unique< CompilerGCC >();
-}
+	m_Compiler = std::make_unique< CompilerGCC >();
+
+} // Workspace
+
+//////////////////////////////////////////////////////////////////////////
 
 void Workspace::Build( void )
 {
-	Configuration cfg = build_matrix_.CurrentConfiguration();
+	Configuration Configuration = m_BuildMatrix.CurrentConfiguration();
 
-	if( compiler_ && !projects_.empty() )
+	if( m_Compiler && !m_Projects.empty() )
 	{
-		projects_left_to_build_.clear();
+		m_ProjectsLeftToBuild.clear();
 
 		// Keep track of which projects need to be built.
-		for( Project& prj : projects_ )
-			projects_left_to_build_.push_back( prj.name_ );
+		for( Project& prj : m_Projects )
+			m_ProjectsLeftToBuild.push_back( prj.m_Name );
 
 		BuildNextProject();
 	}
-}
+
+} // Build
+
+//////////////////////////////////////////////////////////////////////////
 
 bool Workspace::Serialize( void )
 {
-	if( location_.empty() )
+	if( m_Location.empty() )
 		return false;
 
-	GCL::Serializer serializer( ( location_ / name_ ).replace_extension( ext ) );
-	if( !serializer.IsOpen() )
+	GCL::Serializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
+	if( !Serializer.IsOpen() )
 		return false;
 
 	// Name string
 	{
-		GCL::Object name( "Name" );
-		name.SetString( name_ );
+		GCL::Object Name( "Name" );
+		Name.SetString( m_Name );
 
-		serializer.WriteObject( name );
+		Serializer.WriteObject( Name );
 	}
 
 	// Matrix table
 	{
-		GCL::Object matrix( "Matrix", std::in_place_type< GCL::Object::TableType > );
+		GCL::Object Matrix( "Matrix", std::in_place_type< GCL::Object::TableType > );
 
-		for( const BuildMatrix::Column& column : build_matrix_.columns_ )
+		for( const BuildMatrix::Column& column : m_BuildMatrix.m_Columns )
 		{
-			SerializeBuildMatrixColumn( matrix, column );
+			SerializeBuildMatrixColumn( Matrix, column );
 		}
 
-		serializer.WriteObject( matrix );
+		Serializer.WriteObject( Matrix );
 	}
 
 	// Projects array
 	{
-		GCL::Object projects( "Projects", std::in_place_type< GCL::Object::TableType > );
+		GCL::Object Projects( "Projects", std::in_place_type< GCL::Object::TableType > );
 
-		for( Project& prj : projects_ )
+		for( Project& rProject : m_Projects )
 		{
-			std::filesystem::path relative_project_path = prj.location_.lexically_relative( location_ ) / prj.name_;
+			std::filesystem::path relative_project_path = rProject.m_Location.lexically_relative( m_Location ) / rProject.m_Name;
 
-			projects.AddChild( GCL::Object( relative_project_path.string() ) );
+			Projects.AddChild( GCL::Object( relative_project_path.string() ) );
 
-			prj.Serialize();
+			rProject.Serialize();
 		}
 
-		serializer.WriteObject( projects );
+		Serializer.WriteObject( Projects );
 	}
 
 	return true;
-}
+
+} // Serialize
+
+//////////////////////////////////////////////////////////////////////////
 
 bool Workspace::Deserialize( void )
 {
-	if( location_.empty() )
+	if( m_Location.empty() )
 		return false;
 
-	GCL::Deserializer serializer( ( location_ / name_ ).replace_extension( ext ) );
-	if( !serializer.IsOpen() )
+	GCL::Deserializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
+	if( !Serializer.IsOpen() )
 		return false;
 
-	serializer.Objects( this, GCLObjectCallback );
+	Serializer.Objects( this, GCLObjectCallback );
 
 	return true;
-}
 
-Project& Workspace::NewProject( std::filesystem::path location, std::string name )
+} // Deserialize
+
+//////////////////////////////////////////////////////////////////////////
+
+Project& Workspace::NewProject( std::filesystem::path Location, std::string Name )
 {
-	Project& project = projects_.emplace_back( std::move( location ) );
-	project.name_    = std::move( name );
+	Project& project = m_Projects.emplace_back( std::move( Location ) );
+	project.m_Name    = std::move( Name );
 
 	return project;
-}
 
-Project* Workspace::ProjectByName( std::string_view name )
+} // NewProject
+
+//////////////////////////////////////////////////////////////////////////
+
+Project* Workspace::ProjectByName( std::string_view Name )
 {
-	for( Project& prj : projects_ )
+	for( Project& prj : m_Projects )
 	{
-		if( prj.name_ == name )
+		if( prj.m_Name == Name )
 			return &prj;
 	}
 
 	return nullptr;
-}
 
-void Workspace::GCLObjectCallback( GCL::Object object, void* user )
+} // ProjectByName
+
+//////////////////////////////////////////////////////////////////////////
+
+void Workspace::GCLObjectCallback( GCL::Object pObject, void* pUser )
 {
-	Workspace*       self = ( Workspace* )user;
-	std::string_view name = object.Name();
+	Workspace*       pSelf = ( Workspace* )pUser;
+	std::string_view Name  = pObject.Name();
 
-	if( name == "Name" )
+	if( Name == "Name" )
 	{
-		self->name_ = object.String();
+		pSelf->m_Name = pObject.String();
 	}
-	else if( name == "Matrix" )
+	else if( Name == "Matrix" )
 	{
-		self->build_matrix_ = BuildMatrix();
+		pSelf->m_BuildMatrix = BuildMatrix();
 
-		for( const GCL::Object& column : object.Table() )
+		for( const GCL::Object& rColumn : pObject.Table() )
 		{
-			std::string_view column_name = column.Name();
+			const std::string_view ColumnName = rColumn.Name();
 
-			self->build_matrix_.NewColumn( std::string( column_name ) );
-			self->DeserializeBuildMatrixColumn( self->build_matrix_.columns_.back(), column );
+			pSelf->m_BuildMatrix.NewColumn( std::string( ColumnName ) );
+			pSelf->DeserializeBuildMatrixColumn( pSelf->m_BuildMatrix.m_Columns.back(), rColumn );
 		}
 	}
-	else if( name == "Projects" )
+	else if( Name == "Projects" )
 	{
-		for( auto& prj_path_string : object.Table() )
+		for( const GCL::Object& rProjectPathObj : pObject.Table() )
 		{
-			std::filesystem::path project_path = prj_path_string.String();
+			std::filesystem::path ProjectPath = rProjectPathObj.String();
 
-			if( !project_path.is_absolute() )
-				project_path = self->location_ / project_path;
+			if( !ProjectPath.is_absolute() )
+				ProjectPath = pSelf->m_Location / ProjectPath;
 
-			project_path = project_path.lexically_normal();
+			ProjectPath = ProjectPath.lexically_normal();
 
-			Project& project = self->NewProject( project_path.parent_path(), project_path.filename().string() );
-			project.Deserialize();
+			Project& rProject = pSelf->NewProject( ProjectPath.parent_path(), ProjectPath.filename().string() );
+			rProject.Deserialize();
 		}
 	}
-}
+
+} // GCLObjectCallback
+
+//////////////////////////////////////////////////////////////////////////
 
 void Workspace::BuildNextProject( void )
 {
-	if( projects_left_to_build_.empty() )
+	if( m_ProjectsLeftToBuild.empty() )
 		return;
 
 	// Find the next project to build
-	auto it = std::find_if( projects_.begin(), projects_.end(),
-		[ this ]( Project& prj )
-		{
-			return ( prj.name_ == projects_left_to_build_.back() );
-		}
-	);
-
-	if( it == projects_.end() )
+	auto Project = std::find_if( m_Projects.begin(), m_Projects.end(), [ this ]( ::Project& rProject ) { return ( rProject.m_Name == m_ProjectsLeftToBuild.back() ); } );
+	if( Project == m_Projects.end() )
 	{
 		// If next project was not found, remove it from the queue and try again
-		projects_left_to_build_.pop_back();
+		m_ProjectsLeftToBuild.pop_back();
 		BuildNextProject();
 	}
 	else
 	{
-		std::cout << "=== Started building " << it->name_ << " ===\n";
+		std::cout << "=== Started building " << Project->m_Name << " ===\n";
 
-		*it ^= [ this ]( const ProjectBuildFinished& e )
+		*Project ^= [ this ]( const ProjectBuildFinished& rEvent )
 		{
-			if( e.success ) std::cout << "=== " << e.project->name_ << " finished successfully ===\n";
-			else            std::cerr << "=== " << e.project->name_ << " finished with errors ===\n";
+			if( rEvent.Success ) std::cout << "=== " << rEvent.pProject->m_Name << " finished successfully ===\n";
+			else                 std::cerr << "=== " << rEvent.pProject->m_Name << " finished with errors ===\n";
 
-			auto it = std::find( projects_left_to_build_.begin(), projects_left_to_build_.end(), e.project->name_ );
-			if( it != projects_left_to_build_.end() )
+			auto NextProject = std::find( m_ProjectsLeftToBuild.begin(), m_ProjectsLeftToBuild.end(), rEvent.pProject->m_Name );
+			if( NextProject != m_ProjectsLeftToBuild.end() )
 			{
-				projects_left_to_build_.erase( it );
+				m_ProjectsLeftToBuild.erase( NextProject );
 
-				if( projects_left_to_build_.empty() ) OnBuildFinished( e.output, e.success );
-				else                                  BuildNextProject();
+				if( m_ProjectsLeftToBuild.empty() ) OnBuildFinished( rEvent.Output, rEvent.Success );
+				else                                BuildNextProject();
 			}
 			else
 			{
@@ -208,63 +225,73 @@ void Workspace::BuildNextProject( void )
 			}
 		};
 
-		it->Build( *compiler_ );
+		Project->Build( *m_Compiler );
 	}
-}
 
-void Workspace::OnBuildFinished( const std::filesystem::path& output, bool success )
+} // BuildNextProject
+
+//////////////////////////////////////////////////////////////////////////
+
+void Workspace::OnBuildFinished( const std::filesystem::path& rOutput, bool Success )
 {
-	WorkspaceBuildFinished e;
-	e.workspace = this;
-	e.output    = output;
-	e.success   = success;
-	Publish( e );
-}
+	WorkspaceBuildFinished Event;
+	Event.pWorkspace = this;
+	Event.Output     = rOutput;
+	Event.Success    = Success;
+	Publish( Event );
 
-void Workspace::SerializeBuildMatrixColumn( GCL::Object& object, const BuildMatrix::Column& column )
+} // OnBuildFinished
+
+//////////////////////////////////////////////////////////////////////////
+
+void Workspace::SerializeBuildMatrixColumn( GCL::Object& rObject, const BuildMatrix::Column& rColumn )
 {
-	GCL::Object column_object( column.name, std::in_place_type< GCL::Object::TableType > );
+	GCL::Object ColumnObj( rColumn.Name, std::in_place_type< GCL::Object::TableType > );
 
-	for( auto& cfg : column.configurations )
+	for( const BuildMatrix::NamedConfiguration& rConfiguration : rColumn.Configurations )
 	{
-		GCL::Object cfg_object( cfg.name );
+		GCL::Object ConfigurationObj( rConfiguration.Name );
 
-		if( !cfg.exclusive_columns.empty() )
+		if( !rConfiguration.ExclusiveColumns.empty() )
 		{
-			cfg_object.SetTable();
+			ConfigurationObj.SetTable();
 
-			for( auto& exclusive : cfg.exclusive_columns )
+			for( const BuildMatrix::Column& rExclusiveColumn : rConfiguration.ExclusiveColumns )
 			{
-				SerializeBuildMatrixColumn( cfg_object, exclusive );
+				SerializeBuildMatrixColumn( ConfigurationObj, rExclusiveColumn );
 			}
 		}
 
-		column_object.AddChild( std::move( cfg_object ) );
+		ColumnObj.AddChild( std::move( ConfigurationObj ) );
 	}
 
-	object.AddChild( std::move( column_object ) );
-}
+	rObject.AddChild( std::move( ColumnObj ) );
 
-void Workspace::DeserializeBuildMatrixColumn( BuildMatrix::Column& column, const GCL::Object& object )
+} // SerializeBuildMatrixColumn
+
+//////////////////////////////////////////////////////////////////////////
+
+void Workspace::DeserializeBuildMatrixColumn( BuildMatrix::Column& rColumn, const GCL::Object& rObject )
 {
-	for( auto& cfg : object.Table() )
+	for( const GCL::Object& rConfigurationObj : rObject.Table() )
 	{
-		BuildMatrix::NamedConfiguration new_cfg;
-		new_cfg.name = cfg.Name();
+		BuildMatrix::NamedConfiguration NewConfiguration;
+		NewConfiguration.Name = rConfigurationObj.Name();
 
-		if( cfg.IsTable() )
+		if( rConfigurationObj.IsTable() )
 		{
-			for( auto& exclusive : cfg.Table() )
+			for( const GCL::Object& rExclusiveColumnObj : rConfigurationObj.Table() )
 			{
-				BuildMatrix::Column exclusive_column;
-				exclusive_column.name = exclusive.Name();
+				BuildMatrix::Column ExclusiveColumn;
+				ExclusiveColumn.Name = rExclusiveColumnObj.Name();
 
-				DeserializeBuildMatrixColumn( exclusive_column, exclusive );
+				DeserializeBuildMatrixColumn( ExclusiveColumn, rExclusiveColumnObj );
 
-				new_cfg.exclusive_columns.emplace_back( std::move( exclusive_column ) );
+				NewConfiguration.ExclusiveColumns.emplace_back( std::move( ExclusiveColumn ) );
 			}
 		}
 
-		column.configurations.emplace_back( std::move( new_cfg ) );
+		rColumn.Configurations.emplace_back( std::move( NewConfiguration ) );
 	}
-}
+
+} // DeserializeBuildMatrixColumn

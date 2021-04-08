@@ -32,55 +32,58 @@ class Workspace;
 
 struct WorkspaceBuildFinished
 {
-	Workspace*            workspace;
-	std::filesystem::path output;
-	bool                  success;
-};
+	Workspace*            pWorkspace;
+	std::filesystem::path Output;
+	bool                  Success = false;
+
+}; // WorkspaceBuildFinished
 
 class Workspace : public EventDispatcher< Workspace, WorkspaceBuildFinished >
 {
 	GENO_DISABLE_COPY( Workspace );
 	GENO_DEFAULT_MOVE( Workspace );
 
-public:
-
-	static constexpr std::string_view ext = ".gwks";
+//////////////////////////////////////////////////////////////////////////
 
 public:
 
-	explicit Workspace( std::filesystem::path location );
+	static constexpr std::string_view EXTENSION = ".gwks";
 
-public:
+//////////////////////////////////////////////////////////////////////////
+
+	explicit Workspace( std::filesystem::path Location );
+
+//////////////////////////////////////////////////////////////////////////
 
 	void Build      ( void );
 	bool Serialize  ( void );
 	bool Deserialize( void );
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	Project& NewProject   ( std::filesystem::path location, std::string name );
-	Project* ProjectByName( std::string_view name );
+	Project& NewProject   ( std::filesystem::path Location, std::string Name );
+	Project* ProjectByName( std::string_view Name );
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	std::filesystem::path        location_;
-	std::string                  name_;
-	std::vector< Project >       projects_;
-	std::unique_ptr< ICompiler > compiler_;
+	BuildMatrix                  m_BuildMatrix;
+	std::filesystem::path        m_Location;
+	std::string                  m_Name;
+	std::vector< Project >       m_Projects;
+	std::unique_ptr< ICompiler > m_Compiler;
+	std::vector< std::string >   m_ProjectsLeftToBuild;
 
-	std::vector< std::string >   projects_left_to_build_;
-
-	BuildMatrix                  build_matrix_;
-
-private:
-
-	static void GCLObjectCallback( GCL::Object object, void* user );
+//////////////////////////////////////////////////////////////////////////
 
 private:
+
+	static void GCLObjectCallback( GCL::Object pObject, void* pUser );
+
+//////////////////////////////////////////////////////////////////////////
 
 	void BuildNextProject            ( void );
-	void OnBuildFinished             ( const std::filesystem::path& output, bool success );
-	void SerializeBuildMatrixColumn  ( GCL::Object& object, const BuildMatrix::Column& column );
-	void DeserializeBuildMatrixColumn( BuildMatrix::Column& column, const GCL::Object& object );
+	void OnBuildFinished             ( const std::filesystem::path& rOutput, bool Success );
+	void SerializeBuildMatrixColumn  ( GCL::Object& rObject, const BuildMatrix::Column& rColumn );
+	void DeserializeBuildMatrixColumn( BuildMatrix::Column& rColumn, const GCL::Object& rObject );
 
-};
+}; // Workspace

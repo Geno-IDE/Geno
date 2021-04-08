@@ -26,7 +26,8 @@ struct CompileOptions
 		C,
 		CPlusPlus,
 		Assembler,
-	};
+
+	}; // Language
 
 	enum class Action
 	{
@@ -34,24 +35,30 @@ struct CompileOptions
 		OnlyPreprocess,
 		OnlyCompile,
 		CompileAndAssemble,
-	};
+
+	}; // Action
 
 	enum AssemblerFlags
 	{
 		AssemblerFlagReduceMemoryOverheads = 0x01,
-	};
+
+	}; // AssemblerFlags
 
 	enum PreprocessorFlags
 	{
 		PreprocessorFlagUndefineSystemMacros = 0x01,
-	};
 
-	std::filesystem::path input_file;
-	std::filesystem::path output_file;
-	Language              language           = Language::Unspecified;
-	Action                action             = Action::All;
-	uint32_t              assembler_flags    = 0;
-	uint32_t              preprocessor_flags = 0;
-	bool                  verbose            = false;
+	}; // PreprocessorFlags
 
-};
+//////////////////////////////////////////////////////////////////////////
+
+	std::filesystem::path InputFile;
+	std::filesystem::path OutputFile;
+
+	Language              Language          = Language::Unspecified;
+	Action                Action            = Action::All;
+	uint32_t              AssemblerFlags    = 0;
+	uint32_t              PreprocessorFlags = 0;
+	bool                  Verbose           = false;
+
+}; // CompileOptions

@@ -27,27 +27,30 @@
 class OutputWidget
 {
 	GENO_SINGLETON( OutputWidget );
+	               ~OutputWidget( void );
 
-	~OutputWidget( void );
+//////////////////////////////////////////////////////////////////////////
 
 public:
 
-	void Show        ( bool* p_open );
+	void Show        ( bool* pOpen );
 	void ClearCapture( void );
 
+//////////////////////////////////////////////////////////////////////////
+
 private:
 
-	void RedirectOutputStream( int* fd, FILE* stream );
+	void RedirectOutputStream( int* pFileDescriptor, FILE* pFileStream );
 	void Capture             ( void );
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
-	std::string captured_;
+	std::string m_Captured;
 
-	int pipe_[ 2 ]  = { };
-	int stdout_     = 0;
-	int stderr_     = 0;
-	int old_stdout_ = 0;
-	int old_stderr_ = 0;
+	int         m_Pipe[ 2 ] = { };
+	int         m_StdOut    = 0;
+	int         m_StdErr    = 0;
+	int         m_OldStdOut = 0;
+	int         m_OldStdErr = 0;
 
-};
+}; // OutputWidget

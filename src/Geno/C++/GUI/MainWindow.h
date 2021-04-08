@@ -30,11 +30,10 @@ struct ImGuiContext;
 
 class MainWindow
 {
-public:
-
 	GENO_SINGLETON( MainWindow );
+	               ~MainWindow( void );
 
-	~MainWindow( void );
+//////////////////////////////////////////////////////////////////////////
 
 public:
 
@@ -44,37 +43,38 @@ public:
 	void EndFrame            ( void );
 	void PushHorizontalLayout( void );
 	void PopHorizontalLayout ( void );
-	void DragEnter           ( Drop drop, int x, int y );
-	void DragOver            ( int x, int y );
+	void DragEnter           ( Drop Drop, int X, int Y );
+	void DragOver            ( int X, int Y );
 	void DragLeave           ( void );
-	void DragDrop            ( const Drop& drop, int x, int y );
+	void DragDrop            ( const Drop& rDrop, int X, int Y );
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	const Drop* GetDraggedDrop( void ) const { return dragged_drop_.has_value() ? &dragged_drop_.value() : nullptr; }
-	int         GetDragPosX   ( void ) const { return drag_pos_x_; }
-	int         GetDragPosY   ( void ) const { return drag_pos_y_; }
+	const Drop* GetDraggedDrop( void ) const { return m_DraggedDrop.has_value() ? &m_DraggedDrop.value() : nullptr; }
+	int         GetDragPosX   ( void ) const { return m_DragPosX; }
+	int         GetDragPosY   ( void ) const { return m_DragPosY; }
 
-private:
-
-	static void GLFWSizeCB( GLFWwindow* window, int width, int height );
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
-	GLFWwindow*   window_         = nullptr;
-	ImGuiContext* im_gui_context_ = nullptr;
+	static void GLFWSizeCB( GLFWwindow* pWindow, int Width, int Height );
 
-	std::filesystem::path ini_path_;
-	std::optional< Drop > dragged_drop_;
+//////////////////////////////////////////////////////////////////////////
 
-	int width_                = 0;
-	int height_               = 0;
-	int layout_stack_counter_ = 0;
-	int drag_pos_x_           = 0;
-	int drag_pos_y_           = 0;
+	std::filesystem::path m_IniPath;
+	std::optional< Drop > m_DraggedDrop;
+
+	GLFWwindow*           m_pWindow            = nullptr;
+	ImGuiContext*         m_pImGuiContext      = nullptr;
+	int                   m_Width              = 0;
+	int                   m_Height             = 0;
+	int                   m_LayoutStackCounter = 0;
+	int                   m_DragPosX           = 0;
+	int                   m_DragPosY           = 0;
 
 #if defined( _WIN32 )
-	Win32DropTarget* drop_target_ = nullptr;
+	Win32DropTarget*      m_pDropTarget        = nullptr;
 #endif // _WIN32
 
-};
+}; // MainWindow

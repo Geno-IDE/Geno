@@ -17,7 +17,10 @@
 
 #include "Configuration.h"
 
-void Configuration::CombineWith( const Configuration& other )
+//////////////////////////////////////////////////////////////////////////
+
+void Configuration::CombineWith( const Configuration& rOther )
 {
-	files_.insert( files_.end(), other.files_.begin(), other.files_.end() );
-}
+	m_Files.insert( m_Files.end(), rOther.m_Files.begin(), rOther.m_Files.end() );
+
+} // CombineWith

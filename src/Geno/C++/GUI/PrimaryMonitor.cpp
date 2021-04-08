@@ -21,44 +21,43 @@
 
 #include <GLFW/glfw3.h>
 
+//////////////////////////////////////////////////////////////////////////
+
 PrimaryMonitor::PrimaryMonitor( void )
-	: monitor_( nullptr )
-	, x_      ( 0 )
-	, y_      ( 0 )
-	, width_  ( 0 )
-	, height_ ( 0 )
 {
 	// Depends on GLFW to be initialized
 	GLFW::Instance();
 
 	glfwSetMonitorCallback( MonitorFunction );
 
-	int count;
-
-	if( GLFWmonitor** monitors = glfwGetMonitors( &count ); monitors != nullptr )
+	int Count;
+	if( GLFWmonitor** ppMonitors = glfwGetMonitors( &Count ); ppMonitors != nullptr )
 	{
-		monitor_ = monitors[ 0 ];
+		m_pMonitor = ppMonitors[ 0 ];
 
-		for( int i = 0; i < count; ++i )
-			glfwSetMonitorUserPointer( monitors[ i ], this );
+		for( int i = 0; i < Count; ++i )
+			glfwSetMonitorUserPointer( ppMonitors[ i ], this );
 
-		glfwGetMonitorWorkarea( monitor_, &x_, &y_, &width_, &height_ );
+		glfwGetMonitorWorkarea( m_pMonitor, &m_X, &m_Y, &m_Width, &m_Height );
 	}
-}
 
-void PrimaryMonitor::MonitorFunction( GLFWmonitor* monitor, int /*event*/ )
+} // PrimaryMonitor
+
+//////////////////////////////////////////////////////////////////////////
+
+void PrimaryMonitor::MonitorFunction( GLFWmonitor* pMonitor, int /*Event*/ )
 {
-	if( PrimaryMonitor* self = ( PrimaryMonitor* )glfwGetMonitorUserPointer( monitor ); self != nullptr )
+	if( PrimaryMonitor* pSelf = ( PrimaryMonitor* )glfwGetMonitorUserPointer( pMonitor ); pSelf != nullptr )
 	{
 		// Primary monitor may have changed
-		int count = 0;
-
-		if( GLFWmonitor** monitors = glfwGetMonitors( &count ); monitors != nullptr )
+		int Count;
+		if( GLFWmonitor** ppMonitors = glfwGetMonitors( &Count ); ppMonitors != nullptr )
 		{
-			self->monitor_ = monitors[ 0 ];
+			pSelf->m_pMonitor = ppMonitors[ 0 ];
 
-			glfwSetMonitorUserPointer( self->monitor_, self );
-			glfwGetMonitorWorkarea( monitor, &self->x_, &self->y_, &self->width_, &self->height_ );
+			glfwSetMonitorUserPointer( pSelf->m_pMonitor, pSelf );
+			glfwGetMonitorWorkarea( pMonitor, &pSelf->m_X, &pSelf->m_Y, &pSelf->m_Width, &pSelf->m_Height );
 		}
 	}
-}
+
+} // MonitorFunction

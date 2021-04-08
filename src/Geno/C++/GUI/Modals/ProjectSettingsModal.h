@@ -24,7 +24,7 @@
 
 namespace GCL
 {
-	class Object;
+class Object;
 }
 
 class Project;
@@ -33,9 +33,13 @@ class ProjectSettingsModal : public IModal
 {
 	GENO_SINGLETON( ProjectSettingsModal ) = default;
 
+//////////////////////////////////////////////////////////////////////////
+
 public:
 
-	void Show( std::string project );
+	void Show( std::string Project );
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
@@ -44,9 +48,10 @@ private:
 	void        UpdateDerived( void ) override;
 	void        OnClose      ( void ) override;
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
-	int         current_category_ = -1;
-	std::string edited_project_;
+	std::string m_EditedProject;
 
-};
+	int         m_CurrentCategory = -1;
+
+}; // ProjectSettingsModal

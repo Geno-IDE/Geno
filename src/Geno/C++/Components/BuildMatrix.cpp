@@ -19,75 +19,87 @@
 
 #include <Common/Intrinsics.h>
 
-void BuildMatrix::NewColumn( std::string name )
-{
-	Column column;
-	column.name = std::move( name );
+//////////////////////////////////////////////////////////////////////////
 
-	columns_.emplace_back( std::move( column ) );
-}
-
-void BuildMatrix::NewConfiguration( std::string_view which_column, std::string configuration )
+void BuildMatrix::NewColumn( std::string Name )
 {
-	for( Column& column : columns_ )
+	Column Column;
+	Column.Name = std::move( Name );
+
+	m_Columns.emplace_back( std::move( Column ) );
+
+} // NewColumn
+
+//////////////////////////////////////////////////////////////////////////
+
+void BuildMatrix::NewConfiguration( std::string_view WhichColumn, std::string Configuration )
+{
+	for( Column& column : m_Columns )
 	{
-		if( column.name == which_column )
+		if( column.Name == WhichColumn )
 		{
-			column.configurations.push_back( { std::move( configuration ) } );
+			column.Configurations.push_back( { std::move( Configuration ) } );
 			return;
 		}
 	}
-}
+
+} // NewConfiguration
+
+//////////////////////////////////////////////////////////////////////////
 
 Configuration BuildMatrix::CurrentConfiguration( void ) const
 {
-	Configuration result;
+	Configuration Result;
 
 	// Combine the values of all current configurations in each column
-	for( const Column& column : columns_ )
+	for( const Column& rColumn : m_Columns )
 	{
-		if( column.current_configuration.empty() )
+		if( rColumn.CurrentConfiguration.empty() )
 			continue;
 
 		// Find the current configuration
-		auto it = std::find_if( column.configurations.begin(), column.configurations.end(),
-			[ &column ]( const NamedConfiguration& cfg )
+		auto CurrentConfiguration = std::find_if( rColumn.Configurations.begin(), rColumn.Configurations.end(),
+			[ &rColumn ]( const NamedConfiguration& cfg )
 			{
-				return cfg.name == column.current_configuration;
+				return cfg.Name == rColumn.CurrentConfiguration;
 			}
 		);
 
-		if( it == column.configurations.end() )
+		if( CurrentConfiguration == rColumn.Configurations.end() )
 			continue;
 
-		result.CombineWith( it->configuration );
+		Result.CombineWith( CurrentConfiguration->Configuration );
 	}
 
-	return result;
-}
+	return Result;
+
+} // CurrentConfiguration
+
+//////////////////////////////////////////////////////////////////////////
 
 BuildMatrix BuildMatrix::PlatformDefault( void )
 {
-	BuildMatrix matrix;
+	BuildMatrix Matrix;
 
-	Column platform_column;
-	platform_column.name = "Platform";
-	platform_column.configurations.push_back( { ( std::string )Intrinsics::TargetMachine() } );
-	matrix.columns_.emplace_back( std::move( platform_column ) );
+	Column PlatformColumn;
+	PlatformColumn.Name = "Platform";
+	PlatformColumn.Configurations.push_back( { ( std::string )Intrinsics::TargetMachine() } );
+	Matrix.m_Columns.emplace_back( std::move( PlatformColumn ) );
 
-	Column optimization_column;
-	optimization_column.name = "Optimization";
-	optimization_column.configurations.push_back( { "Full" } );
-	optimization_column.configurations.push_back( { "Favor Size" } );
-	optimization_column.configurations.push_back( { "Favor Speed" } );
-	optimization_column.configurations.push_back( { "Off" } );
-	matrix.columns_.emplace_back( std::move( optimization_column ) );
+	Column OptimizationColumn;
+	OptimizationColumn.Name = "Optimization";
+	OptimizationColumn.Configurations.push_back( { "Full" } );
+	OptimizationColumn.Configurations.push_back( { "Favor Size" } );
+	OptimizationColumn.Configurations.push_back( { "Favor Speed" } );
+	OptimizationColumn.Configurations.push_back( { "Off" } );
+	Matrix.m_Columns.emplace_back( std::move( OptimizationColumn ) );
 
-	Column symbols_column;
-	symbols_column.name = "Symbols";
-	symbols_column.configurations.push_back( { "On" } );
-	symbols_column.configurations.push_back( { "Off" } );
-	matrix.columns_.emplace_back( std::move( symbols_column ) );
+	Column SymbolsColumn;
+	SymbolsColumn.Name = "Debug Symbols";
+	SymbolsColumn.Configurations.push_back( { "On" } );
+	SymbolsColumn.Configurations.push_back( { "Off" } );
+	Matrix.m_Columns.emplace_back( std::move( SymbolsColumn ) );
 
-	return matrix;
-}
+	return Matrix;
+
+} // PlatformDefault

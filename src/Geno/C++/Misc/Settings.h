@@ -24,10 +24,9 @@
 class Settings
 {
 	GENO_SINGLETON( Settings );
+	               ~Settings( void );
 
-public:
-
-	~Settings( void );
+//////////////////////////////////////////////////////////////////////////
 
 public:
 
@@ -35,8 +34,8 @@ public:
 	void Save       ( void );
 	void UpdateTheme( void );
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	GCL::Object object_;
+	GCL::Object m_Object;
 
-};
+}; // Settings

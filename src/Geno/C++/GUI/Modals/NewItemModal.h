@@ -24,36 +24,40 @@ class NewItemModal : public IModal
 {
 	GENO_SINGLETON( NewItemModal ) = default;
 
-public:
-
-	using PathCallback   = void( * )( std::string name, std::filesystem::path location, void* user );
-	using StringCallback = void( * )( std::string string, void* user );
+//////////////////////////////////////////////////////////////////////////
 
 public:
 
-	void RequestPath  ( std::string title, std::filesystem::path default_location, void* user, PathCallback callback );
-	void RequestString( std::string title, void* user, StringCallback callback );
+	using PathCallback   = void( * )( std::string Name, std::filesystem::path Location, void* pUser );
+	using StringCallback = void( * )( std::string String, void* pUser );
+
+//////////////////////////////////////////////////////////////////////////
+
+	void RequestPath  ( std::string Title, std::filesystem::path DefaultLocation, void* pUser, PathCallback Callback );
+	void RequestString( std::string Title, void* pUser, StringCallback Callback );
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
 	std::string PopupID      ( void ) override { return "NewItem"; };
-	std::string Title        ( void ) override { return title_; };
+	std::string Title        ( void ) override { return m_Title; };
 	void        UpdateDerived( void ) override;
 	void        OnClose      ( void ) override;
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
 	void UpdateItem  ( void );
 	void UpdateString( void );
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
-	std::string           title_;
-	std::string           name_;
-	std::filesystem::path location_;
+	std::string           m_Title;
+	std::string           m_Name;
+	std::filesystem::path m_Location;
 
-	void*                 callback_     = nullptr;
-	void*                 user_         = nullptr;
-	int                   request_type_ = -1;
+	void*                 m_Callback    = nullptr;
+	void*                 m_pUser       = nullptr;
+	int                   m_RequestType = -1;
 
-};
+}; // NewItemModal

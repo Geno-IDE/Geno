@@ -24,16 +24,20 @@
 
 namespace GCL
 {
-	class Object;
+class Object;
 }
 
 class SettingsModal : public IModal
 {
 	GENO_SINGLETON( SettingsModal ) = default;
 
+//////////////////////////////////////////////////////////////////////////
+
 public:
 
-	void Show( GCL::Object* object );
+	void Show( GCL::Object* pObject );
+
+//////////////////////////////////////////////////////////////////////////
 
 private:
 
@@ -42,9 +46,9 @@ private:
 	void        UpdateDerived( void ) override;
 	void        OnClose      ( void ) override;
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
-	int          current_category_ = -1;
-	GCL::Object* edited_object_    = nullptr;
+	int          m_CurrentCategory = -1;
+	GCL::Object* m_pEditedObject   = nullptr;
 
-};
+}; // SettingsModal

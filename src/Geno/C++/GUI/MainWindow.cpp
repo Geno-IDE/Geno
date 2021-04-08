@@ -35,43 +35,48 @@
 #include "win32-resource.h"
 #endif // _WIN32
 
-static std::string ini_filename;
+static std::string IniFilename;
+
+//////////////////////////////////////////////////////////////////////////
 
 MainWindow::MainWindow( void )
 {
-	PrimaryMonitor& monitor = PrimaryMonitor::Instance();
+	PrimaryMonitor& rMonitor = PrimaryMonitor::Instance();
 
-	width_  = 3 * monitor.Width()  / 4;
-	height_ = 3 * monitor.Height() / 4;
+	m_Width                  = 3 * rMonitor.Width()  / 4;
+	m_Height                 = 3 * rMonitor.Height() / 4;
 
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 0 );
 
-	if( ( window_ = glfwCreateWindow( width_, height_, "Geno", nullptr, nullptr ) ) == nullptr )
+	if( ( m_pWindow = glfwCreateWindow( m_Width, m_Height, "Geno", nullptr, nullptr ) ) == nullptr )
 		return;
 
-	glfwSetWindowUserPointer( window_, this );
-	glfwMakeContextCurrent( window_ );
-	glfwSetWindowPos( window_, monitor.X() + ( monitor.Width() - width_ ) / 2, monitor.Y() + ( monitor.Height() - height_ ) / 2 );
-	glfwSetWindowSizeCallback( window_, GLFWSizeCB );
+	glfwSetWindowUserPointer( m_pWindow, this );
+	glfwMakeContextCurrent( m_pWindow );
+	glfwSetWindowPos( m_pWindow, rMonitor.X() + ( rMonitor.Width() - m_Width ) / 2, rMonitor.Y() + ( rMonitor.Height() - m_Height ) / 2 );
+	glfwSetWindowSizeCallback( m_pWindow, GLFWSizeCB );
 	glfwSwapInterval( 1 );
 
 #if defined( _WIN32 )
 
 	// Set window icon
-	HWND  hwnd        = glfwGetWin32Window( window_ );
-	HICON hicon_large = LoadIcon( GetModuleHandle( nullptr ), MAKEINTRESOURCE( IDI_ICON_LARGE ) );
-	HICON hicon_small = LoadIcon( GetModuleHandle( nullptr ), MAKEINTRESOURCE( IDI_ICON_SMALL ) );
+	HWND      WindowHandle    = glfwGetWin32Window( m_pWindow );
+	HINSTANCE Instance        = GetModuleHandle( nullptr );
+	HICON     IconHandleLarge = LoadIcon( Instance, MAKEINTRESOURCE( IDI_ICON_LARGE ) );
+	HICON     IconHandleSmall = LoadIcon( Instance, MAKEINTRESOURCE( IDI_ICON_SMALL ) );
 
-	SendMessage( hwnd, WM_SETICON, ICON_BIG,   ( LPARAM )hicon_large );
-	SendMessage( hwnd, WM_SETICON, ICON_SMALL, ( LPARAM )hicon_small );
+	SendMessage( WindowHandle, WM_SETICON, ICON_BIG,   ( LPARAM )IconHandleLarge );
+	SendMessage( WindowHandle, WM_SETICON, ICON_SMALL, ( LPARAM )IconHandleSmall );
 
 	// Create drop target
-	drop_target_ = new Win32DropTarget();
+	m_pDropTarget = new Win32DropTarget();
 
 #endif // _WIN32
 
-}
+} // MainWindow
+
+//////////////////////////////////////////////////////////////////////////
 
 MainWindow::~MainWindow( void )
 {
@@ -79,64 +84,73 @@ MainWindow::~MainWindow( void )
 #if defined( _WIN32 )
 
 	// Destroy drop target
-	delete drop_target_;
+	delete m_pDropTarget;
 
 #endif // _WIN32
 
-	if( im_gui_context_ )
+	if( m_pImGuiContext )
 	{
 		ImGui_ImplGlfw_Shutdown();
 		ImGui_ImplOpenGL3_Shutdown();
 
-		ImGui::DestroyContext( im_gui_context_ );
+		ImGui::DestroyContext( m_pImGuiContext );
 	}
 
-	if( window_ )
+	if( m_pWindow )
 	{
-		glfwDestroyWindow( window_ );
+		glfwDestroyWindow( m_pWindow );
 	}
-}
+
+} // ~MainWindow
+
+//////////////////////////////////////////////////////////////////////////
 
 void MainWindow::Init( void )
 {
-	if( !im_gui_context_ )
+	if( !m_pImGuiContext )
 	{
-		ini_path_       = LocalAppData::Instance() / L"imgui.ini";
-		im_gui_context_ = ImGui::CreateContext();
-		ini_filename    = ini_path_.string();
+		m_IniPath       = LocalAppData::Instance() / L"imgui.ini";
+		m_pImGuiContext = ImGui::CreateContext();
+		IniFilename     = m_IniPath.string();
 
 		// Configure interface
-		ImGuiIO& io                     = ImGui::GetIO();
-		io.IniFilename                  = ini_filename.c_str();
-		io.ConfigFlags                 |= ImGuiConfigFlags_DockingEnable;
-		io.ConfigFlags                 |= ImGuiConfigFlags_ViewportsEnable;
-		io.ConfigViewportsNoTaskBarIcon = true;
+		ImGuiIO& rIO                     = ImGui::GetIO();
+		rIO.IniFilename                  = IniFilename.c_str();
+		rIO.ConfigFlags                 |= ImGuiConfigFlags_DockingEnable;
+		rIO.ConfigFlags                 |= ImGuiConfigFlags_ViewportsEnable;
+		rIO.ConfigViewportsNoTaskBarIcon = true;
 
 		// Requires GLEW to be initialized
 		GLEW::Instance();
 
-		ImGui_ImplGlfw_InitForOpenGL( window_, true );
+		ImGui_ImplGlfw_InitForOpenGL( m_pWindow, true );
 		ImGui_ImplOpenGL3_Init( "#version 130" );
 
 		// Load settings
 		Settings::Instance();
 	}
-}
+
+} // Init
+
+//////////////////////////////////////////////////////////////////////////
 
 void MainWindow::MakeCurrent( void )
 {
-	glfwMakeContextCurrent( window_ );
-}
+	glfwMakeContextCurrent( m_pWindow );
+
+} // MakeCurrent
+
+//////////////////////////////////////////////////////////////////////////
 
 bool MainWindow::BeginFrame( void )
 {
-	if( glfwWindowShouldClose( window_ ) )
+	if( glfwWindowShouldClose( m_pWindow ) )
 		return false;
 
-	const ImVec4 col = ImGui::GetStyleColorVec4( ImGuiCol_WindowBg );
+	const ImVec4 Color = ImGui::GetStyleColorVec4( ImGuiCol_WindowBg );
 
 	glfwPollEvents();
-	glClearColor( col.x, col.y, col.z, 1.0f );
+	glClearColor( Color.x, Color.y, Color.z, 1.0f );
 	glClear( GL_COLOR_BUFFER_BIT );
 
 	ImGui_ImplOpenGL3_NewFrame();
@@ -146,7 +160,10 @@ bool MainWindow::BeginFrame( void )
 	ImGui::DockSpaceOverViewport();
 
 	return true;
-}
+
+} // BeginFrame
+
+//////////////////////////////////////////////////////////////////////////
 
 void MainWindow::EndFrame( void )
 {
@@ -158,58 +175,80 @@ void MainWindow::EndFrame( void )
 	{
 		ImGui::UpdatePlatformWindows();
 		ImGui::RenderPlatformWindowsDefault();
-		glfwMakeContextCurrent( window_ );
+		glfwMakeContextCurrent( m_pWindow );
 	}
 
-	glfwSwapBuffers( window_ );
-}
+	glfwSwapBuffers( m_pWindow );
+
+} // EndFrame
+
+//////////////////////////////////////////////////////////////////////////
 
 void MainWindow::PushHorizontalLayout( void )
 {
-	if( layout_stack_counter_++ == 0 )
-		im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Horizontal;
-}
+	if( m_LayoutStackCounter++ == 0 )
+		m_pImGuiContext->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Horizontal;
+
+} // PushHorizontalLayout
+
+//////////////////////////////////////////////////////////////////////////
 
 void MainWindow::PopHorizontalLayout( void )
 {
-	if( --layout_stack_counter_ == 0 )
-		im_gui_context_->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Vertical;
-}
+	if( --m_LayoutStackCounter == 0 )
+		m_pImGuiContext->CurrentWindow->DC.LayoutType = ImGuiLayoutType_Vertical;
 
-void MainWindow::DragEnter( Drop drop, int x, int y )
-{
-	dragged_drop_ = std::move( drop );
-	drag_pos_x_   = x;
-	drag_pos_y_   = y;
-}
+} // PopHorizontalLayout
 
-void MainWindow::DragOver( int x, int y )
+//////////////////////////////////////////////////////////////////////////
+
+void MainWindow::DragEnter( Drop Drop, int X, int Y )
 {
-	drag_pos_x_ = x;
-	drag_pos_y_ = y;
-}
+	m_DraggedDrop = std::move( Drop );
+	m_DragPosX   = X;
+	m_DragPosY   = Y;
+
+} // DragEnter
+
+//////////////////////////////////////////////////////////////////////////
+
+void MainWindow::DragOver( int X, int Y )
+{
+	m_DragPosX = X;
+	m_DragPosY = Y;
+
+} // DragOver
+
+//////////////////////////////////////////////////////////////////////////
 
 void MainWindow::DragLeave( void )
 {
-	dragged_drop_.reset();
-}
+	m_DraggedDrop.reset();
 
-void MainWindow::DragDrop( const Drop& drop, int x, int y )
+} // DragLeave
+
+//////////////////////////////////////////////////////////////////////////
+
+void MainWindow::DragDrop( const Drop& rDrop, int X, int Y )
 {
-	drag_pos_x_ = x;
-	drag_pos_y_ = y;
+	m_DragPosX = X;
+	m_DragPosY = Y;
 
 	// NOTE: Here we assume that the provided @drop is the same as @dragged_drop_
 
-	MainMenuBar::Instance().OnDragDrop( drop, x, y );
+	MainMenuBar::Instance().OnDragDrop( rDrop, X, Y );
 
-	dragged_drop_.reset();
-}
+	m_DraggedDrop.reset();
 
-void MainWindow::GLFWSizeCB( GLFWwindow* window, int width, int height )
+} // DragDrop
+
+//////////////////////////////////////////////////////////////////////////
+
+void MainWindow::GLFWSizeCB( GLFWwindow* pWindow, int Width, int Height )
 {
-	MainWindow* self = ( MainWindow* )glfwGetWindowUserPointer( window );
+	MainWindow* pSelf = ( MainWindow* )glfwGetWindowUserPointer( pWindow );
 
-	self->width_  = width;
-	self->height_ = height;
-}
+	pSelf->m_Width    = Width;
+	pSelf->m_Height   = Height;
+
+} // GLFWSizeCB

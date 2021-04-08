@@ -30,48 +30,50 @@
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
 
-void WorkspaceWidget::Show( bool* p_open )
-{
-	if( ImGui::Begin( "Workspace", p_open ) )
-	{
-		if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
-		{
-			const std::string workspace_id_string    = workspace->name_ + "##WKS_" + workspace->name_;
-			bool              workspace_item_hovered = false;
-			Project*          project_hovered        = nullptr;
+//////////////////////////////////////////////////////////////////////////
 
-			if( expand_workspace_node_ )
+void WorkspaceWidget::Show( bool* pOpen )
+{
+	if( ImGui::Begin( "Workspace", pOpen ) )
+	{
+		if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
+		{
+			const std::string WorkspaceIDString    = pWorkspace->m_Name + "##WKS_" + pWorkspace->m_Name;
+			bool              WorkspaceItemHovered = false;
+			const Project*    pHoveredProject      = nullptr;
+
+			if( m_ExpandWorkspaceNode )
 			{
 				ImGui::SetNextItemOpen( true );
-				expand_workspace_node_ = false;
+				m_ExpandWorkspaceNode = false;
 			}
 
-			if( ImGui::TreeNode( workspace_id_string.c_str() ) )
+			if( ImGui::TreeNode( WorkspaceIDString.c_str() ) )
 			{
-				workspace_item_hovered = ImGui::IsItemHovered();
+				WorkspaceItemHovered = ImGui::IsItemHovered();
 
-				for( Project& prj : workspace->projects_ )
+				for( const Project& rProject : pWorkspace->m_Projects )
 				{
-					const std::string project_id_string = prj.name_ + "##PRJ_" + prj.name_;
+					const std::string ProjectIDString = rProject.m_Name + "##PRJ_" + rProject.m_Name;
 
-					if( project_node_to_be_expanded_ == prj.name_ )
+					if( m_ProjectNodeToBeExpanded == rProject.m_Name )
 					{
 						ImGui::SetNextItemOpen( true );
-						project_node_to_be_expanded_.clear();
+						m_ProjectNodeToBeExpanded.clear();
 					}
 
-					if( ImGui::TreeNode( project_id_string.c_str() ) )
+					if( ImGui::TreeNode( ProjectIDString.c_str() ) )
 					{
 						if( ImGui::IsItemHovered() )
-							project_hovered = &prj;
+							pHoveredProject = &rProject;
 
-						for( std::filesystem::path& file : prj.files_ )
+						for( const std::filesystem::path& rFile : rProject.m_Files )
 						{
-							std::string file_string = file.filename().string();
+							const std::string FileString = rFile.filename().string();
 
-							if( ImGui::Selectable( file_string.c_str() ) )
+							if( ImGui::Selectable( FileString.c_str() ) )
 							{
-								TextEditWidget::Instance().AddFile( file );
+								TextEditWidget::Instance().AddFile( rFile );
 							}
 						}
 
@@ -80,7 +82,7 @@ void WorkspaceWidget::Show( bool* p_open )
 					else
 					{
 						if( ImGui::IsItemHovered() )
-							project_hovered = &prj;
+							pHoveredProject = &rProject;
 					}
 				}
 
@@ -88,35 +90,33 @@ void WorkspaceWidget::Show( bool* p_open )
 			}
 			else
 			{
-				workspace_item_hovered = ImGui::IsItemHovered();
+				WorkspaceItemHovered = ImGui::IsItemHovered();
 			}
 
-//////////////////////////////////////////////////////////////////////////
-
 			// ImGUI seeds the popup IDs by the ID of the last item on the stack, which would be the context menu below
-			bool open_workspace_rename_popup = false;
-			bool open_project_rename_popup   = false;
+			bool OpenWorkspaceRenamePopup = false;
+			bool OpenProjectRenamePopup   = false;
 
 			if( ImGui::IsMouseReleased( ImGuiMouseButton_Right ) )
 			{
-				if( workspace_item_hovered )
+				if( WorkspaceItemHovered )
 				{
 					ImGui::OpenPopup( "WorkspaceContextMenu", ImGuiPopupFlags_MouseButtonRight );
 				}
-				else if( project_hovered )
+				else if( pHoveredProject )
 				{
 					ImGui::OpenPopup( "ProjectContextMenu", ImGuiPopupFlags_MouseButtonRight );
 
-					selected_project_ = project_hovered->name_;
+					m_SelectedProjectName = pHoveredProject->m_Name;
 				}
 			}
 
 			if( ImGui::BeginPopup( "WorkspaceContextMenu", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings ) )
 			{
-				if( ImGui::MenuItem( "Rename" ) )      open_workspace_rename_popup = true;
+				if( ImGui::MenuItem( "Rename" ) )      OpenWorkspaceRenamePopup = true;
 				if( ImGui::MenuItem( "New Project" ) )
 				{
-					NewItemModal::Instance().RequestPath( "New Project", workspace->location_, this,
+					NewItemModal::Instance().RequestPath( "New Project", pWorkspace->m_Location, this,
 						[]( std::string name, std::filesystem::path location, void* user )
 						{
 							WorkspaceWidget* self = static_cast< WorkspaceWidget* >( user );
@@ -124,7 +124,7 @@ void WorkspaceWidget::Show( bool* p_open )
 							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 							{
 								// Automatically expand tree if adding an item for the first time
-								self->expand_workspace_node_ = true;
+								self->m_ExpandWorkspaceNode = true;
 
 								workspace->NewProject( std::move( location ), std::move( name ) );
 							}
@@ -142,65 +142,67 @@ void WorkspaceWidget::Show( bool* p_open )
 			else if( ImGui::BeginPopup( "ProjectContextMenu", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings ) )
 			{
 				if( ImGui::MenuItem( "Rename" ) )
-					open_project_rename_popup = true;
+					OpenProjectRenamePopup = true;
 
 				if( ImGui::MenuItem( "New File" ) )
 				{
-					Project* prj = workspace->ProjectByName( selected_project_ );
+					Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName );
 
-					NewItemModal::Instance().RequestPath( "New File", prj->location_, this,
-						[]( std::string name, std::filesystem::path location, void* user )
+					NewItemModal::Instance().RequestPath( "New File", pProject->m_Location, this,
+						[]( std::string Name, std::filesystem::path Location, void* pUser )
 						{
-							WorkspaceWidget* self = static_cast< WorkspaceWidget* >( user );
+							WorkspaceWidget* pSelf = static_cast< WorkspaceWidget* >( pUser );
 
-							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+							if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 							{
-								if( Project* prj = workspace->ProjectByName( self->selected_project_ ) )
+								if( Project* pProject = pWorkspace->ProjectByName( pSelf->m_SelectedProjectName ) )
 								{
-									std::filesystem::path file_path = location / name;
-									std::ofstream         ofs = std::ofstream( file_path, std::ios::binary | std::ios::trunc );
+									std::filesystem::path FilePath         = Location / Name;
+									std::ofstream         OutputFileStream( FilePath, std::ios::binary | std::ios::trunc );
 
-									if( ofs.is_open() )
+									if( OutputFileStream.is_open() )
 									{
-										prj->files_.emplace_back( std::move( file_path ) );
+										pProject->m_Files.emplace_back( std::move( FilePath ) );
 									}
 								}
 							}
 
-							self->project_node_to_be_expanded_ = self->selected_project_;
-							self->popup_text_.clear();
+							pSelf->m_ProjectNodeToBeExpanded = pSelf->m_SelectedProjectName;
+							pSelf->m_PopupText.clear();
 						}
 					);
 				}
+
 				ImGui::Separator();
+
 				if( ImGui::MenuItem( "Settings" ) )
 				{
-					ProjectSettingsModal::Instance().Show( selected_project_ );
+					ProjectSettingsModal::Instance().Show( m_SelectedProjectName );
 				}
 
 				ImGui::EndPopup();
 			}
 
-			if( open_workspace_rename_popup )    ImGui::OpenPopup( "Rename Workspace" );
-			else if( open_project_rename_popup ) ImGui::OpenPopup( "Rename Project" );
+			if( OpenWorkspaceRenamePopup )    ImGui::OpenPopup( "Rename Workspace" );
+			else if( OpenProjectRenamePopup ) ImGui::OpenPopup( "Rename Project" );
 
 			if( ImGui::BeginPopupModal( "Rename Workspace" ) )
 			{
-				ImGui::InputTextWithHint( "##Name", "New Name", &popup_text_ );
+				ImGui::InputTextWithHint( "##Name", "New Name", &m_PopupText );
 
 				if( ImGui::Button( "Rename", ImVec2( 100, 0 ) ) )
 				{
 					ImGui::CloseCurrentPopup();
 
-					std::filesystem::path old_path = ( workspace->location_ / workspace->name_ ).replace_extension( Workspace::ext );
+					const std::filesystem::path OldPath = ( pWorkspace->m_Location / pWorkspace->m_Name ).replace_extension( Workspace::EXTENSION );
 
-					if( std::filesystem::exists( old_path ) )
+					if( std::filesystem::exists( OldPath ) )
 					{
-						std::filesystem::path new_path = ( workspace->location_ / popup_text_ ).replace_extension( Workspace::ext );
-						std::filesystem::rename( old_path, new_path );
+						const std::filesystem::path NewPath = ( pWorkspace->m_Location / m_PopupText ).replace_extension( Workspace::EXTENSION );
+						std::filesystem::rename( OldPath, NewPath );
 					}
 
-					workspace->name_ = std::move( popup_text_ );
+					pWorkspace->m_Name = std::move( m_PopupText );
 				}
 
 				ImGui::SameLine();
@@ -213,27 +215,27 @@ void WorkspaceWidget::Show( bool* p_open )
 			}
 			else if( ImGui::BeginPopupModal( "Rename Project" ) )
 			{
-				ImGui::InputTextWithHint( "##Name", "New Name", &popup_text_ );
+				ImGui::InputTextWithHint( "##Name", "New Name", &m_PopupText );
 
 				if( ImGui::Button( "Rename", ImVec2( 100, 0 ) ) )
 				{
 					ImGui::CloseCurrentPopup();
 
-					if( Project* prj = workspace->ProjectByName( selected_project_ ) )
+					if( Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName ) )
 					{
-						std::filesystem::path old_path = ( prj->location_ / prj->name_ ).replace_extension( Project::ext );
+						const std::filesystem::path OldPath = ( pProject->m_Location / pProject->m_Name ).replace_extension( Project::EXTENSION );
 
-						if( std::filesystem::exists( old_path ) )
+						if( std::filesystem::exists( OldPath ) )
 						{
-							std::filesystem::path new_path = ( prj->location_ / popup_text_ ).replace_extension( Project::ext );
-							std::filesystem::rename( old_path, new_path );
+							const std::filesystem::path NewPath = ( pProject->m_Location / m_PopupText ).replace_extension( Project::EXTENSION );
+							std::filesystem::rename( OldPath, NewPath );
 						}
 
-						prj->name_ = std::move( popup_text_ );
+						pProject->m_Name = std::move( m_PopupText );
 					}
 
-					popup_text_.clear();
-					selected_project_.clear();
+					m_PopupText.clear();
+					m_SelectedProjectName.clear();
 				}
 
 				ImGui::SameLine();
@@ -245,6 +247,7 @@ void WorkspaceWidget::Show( bool* p_open )
 				ImGui::EndPopup();
 			}
 		}
-	}
-	ImGui::End();
-}
+
+	} ImGui::End();
+
+} // Show

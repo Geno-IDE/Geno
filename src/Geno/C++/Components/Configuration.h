@@ -28,16 +28,18 @@ class Configuration
 	GENO_DISABLE_COPY( Configuration );
 	GENO_DEFAULT_MOVE( Configuration );
 
+//////////////////////////////////////////////////////////////////////////
+
 public:
 
 	Configuration( void ) = default;
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	void CombineWith( const Configuration& other );
+	void CombineWith( const Configuration& rOther );
 
-public:
+//////////////////////////////////////////////////////////////////////////
 
-	std::vector< std::filesystem::path > files_;
+	std::vector< std::filesystem::path > m_Files;
 
-};
+}; // Configuration

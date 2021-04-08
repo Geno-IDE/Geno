@@ -23,6 +23,8 @@
 
 #include <GL/glew.h>
 
+//////////////////////////////////////////////////////////////////////////
+
 GLEW::GLEW( void )
 {
 	// Depends on a current context
@@ -33,10 +35,5 @@ GLEW::GLEW( void )
 		std::cerr << "glewInit failed: " << ( const char* )glewGetErrorString( err ) << "\n";
 		return;
 	}
-}
 
-GLEW& GLEW::Instance( void )
-{
-	static GLEW instance;
-	return instance;
-}
+} // GLEW

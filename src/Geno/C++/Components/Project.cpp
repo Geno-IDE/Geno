@@ -24,266 +24,291 @@
 
 #include <iostream>
 
-Project::Project( std::filesystem::path location )
-	: location_( std::move( location ) )
-	, name_    ( "MyProject" )
-{
-}
+//////////////////////////////////////////////////////////////////////////
 
-Project::Project( Project&& other )
+Project::Project( std::filesystem::path Location )
+	: m_Location( std::move( Location ) )
+	, m_Name    ( "MyProject" )
 {
-	*this = std::move( other );
-}
+} // Project
 
-Project& Project::operator=( Project&& other )
+//////////////////////////////////////////////////////////////////////////
+
+Project::Project( Project&& rrOther )
 {
-	kind_                = other.kind_; other.kind_ = ProjectKind::Unknown;
-	location_            = std::move( other.location_ );
-	name_                = std::move( other.name_ );
-	files_               = std::move( other.files_ );
-	includes_            = std::move( other.includes_ );
-	libraries_           = std::move( other.libraries_ );
-	configrations_       = std::move( other.configrations_ );
-	files_left_to_build_ = std::move( other.files_left_to_build_ );
-	files_to_link_       = std::move( other.files_to_link_ );
+	*this = std::move( rrOther );
+
+} // Project
+
+//////////////////////////////////////////////////////////////////////////
+
+Project& Project::operator=( Project&& rrOther )
+{
+	m_Kind             = rrOther.m_Kind; rrOther.m_Kind = ProjectKind::Unknown;
+	m_Location         = std::move( rrOther.m_Location );
+	m_Name             = std::move( rrOther.m_Name );
+	m_Files            = std::move( rrOther.m_Files );
+	m_Includes         = std::move( rrOther.m_Includes );
+	m_Libraries        = std::move( rrOther.m_Libraries );
+	m_Configurations   = std::move( rrOther.m_Configurations );
+	m_FilesLeftToBuild = std::move( rrOther.m_FilesLeftToBuild );
+	m_FilesToLink      = std::move( rrOther.m_FilesToLink );
 
 	return *this;
-}
 
-void Project::Build( ICompiler& compiler )
+} // operator=
+
+//////////////////////////////////////////////////////////////////////////
+
+void Project::Build( ICompiler& rCompiler )
 {
-	files_left_to_build_.clear();
-	files_to_link_.clear();
+	m_FilesLeftToBuild.clear();
+	m_FilesToLink     .clear();
 
-	if( files_.empty() )
+	if( m_Files.empty() )
 		return;
 
-	for( const std::filesystem::path& cpp : files_ )
+	for( const std::filesystem::path& rFile : m_Files )
 	{
 		// #TODO: Compiler will be per-file so this check is only temporary
-		if( cpp.extension() != ".cpp" )
+		if( rFile.extension() != ".cpp" )
 			continue;
 
 		// Keep track of which files are currently building
-		files_left_to_build_.push_back( cpp );
+		m_FilesLeftToBuild.push_back( rFile );
 	}
 
-	BuildNextFile( compiler );
-}
+	BuildNextFile( rCompiler );
+
+} // Build
+
+//////////////////////////////////////////////////////////////////////////
 
 bool Project::Serialize( void )
 {
-	if( location_.empty() )
+	if( m_Location.empty() )
 	{
 		std::cerr << "Failed to serialize ";
 
-		if( name_.empty() ) std::cerr << "unnamed project.";
-		else                std::cerr << "project '" << name_ << "'.";
+		if( m_Name.empty() ) std::cerr << "unnamed project.";
+		else                 std::cerr << "project '" << m_Name << "'.";
 
 		std::cerr << " Location not specified.\n";
 
 		return false;
 	}
 
-	GCL::Serializer serializer( ( location_ / name_ ).replace_extension( ext ) );
-	if( !serializer.IsOpen() )
+	GCL::Serializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
+	if( !Serializer.IsOpen() )
 		return false;
 
 	// Name
 	{
-		GCL::Object name( "Name" );
-		name.SetString( name_ );
-		serializer.WriteObject( name );
+		GCL::Object Name( "Name" );
+		Name.SetString( m_Name );
+		Serializer.WriteObject( Name );
 	}
 
 	// Kind
 	{
-		GCL::Object kind( "Kind" );
-		kind.SetString( ProjectKindToString( kind_ ) );
-		serializer.WriteObject( kind );
+		GCL::Object Kind( "Kind" );
+		Kind.SetString( StringifyProjectKind( m_Kind ) );
+		Serializer.WriteObject( Kind );
 	}
 
 	// Files
-	if( !files_.empty() )
+	if( !m_Files.empty() )
 	{
-		GCL::Object files( "Files", std::in_place_type< GCL::Object::TableType > );
+		GCL::Object Files( "Files", std::in_place_type< GCL::Object::TableType > );
 
-		for( const std::filesystem::path& file : files_ )
+		for( const std::filesystem::path& rFile : m_Files )
 		{
-			const std::filesystem::path relative_path = file.lexically_relative( location_ );
+			const std::filesystem::path RelativePath = rFile.lexically_relative( m_Location );
 
-			files.AddChild( GCL::Object( relative_path.string() ) );
+			Files.AddChild( GCL::Object( RelativePath.string() ) );
 		}
 
-		serializer.WriteObject( files );
+		Serializer.WriteObject( Files );
 	}
 
 	// Libraries
-	if( !libraries_.empty() )
+	if( !m_Libraries.empty() )
 	{
-		GCL::Object libraries( "Libraries", std::in_place_type< GCL::Object::TableType > );
+		GCL::Object Libraries( "Libraries", std::in_place_type< GCL::Object::TableType > );
 
-		for( const std::filesystem::path& library : libraries_ )
+		for( const std::filesystem::path& rLibrary : m_Libraries )
 		{
-			const std::filesystem::path relative_path = library.lexically_relative( location_ );
+			const std::filesystem::path RelativePath = rLibrary.lexically_relative( m_Location );
 
-			libraries.AddChild( GCL::Object( relative_path.string() ) );
+			Libraries.AddChild( GCL::Object( RelativePath.string() ) );
 		}
 
-		serializer.WriteObject( libraries );
+		Serializer.WriteObject( Libraries );
 	}
 
 	return true;
-}
+
+} // Serialize
+
+//////////////////////////////////////////////////////////////////////////
 
 bool Project::Deserialize( void )
 {
-	if( location_.empty() )
+	if( m_Location.empty() )
 	{
 		std::cerr << "Failed to deserialize ";
 
-		if( name_.empty() ) std::cerr << "unnamed project.";
-		else                std::cerr << "project '" << name_ << "'.";
+		if( m_Name.empty() ) std::cerr << "unnamed project.";
+		else                 std::cerr << "project '" << m_Name << "'.";
 
 		std::cerr << " Location not specified.\n";
 
 		return false;
 	}
 
-	GCL::Deserializer deserializer( ( location_ / name_ ).replace_extension( ext ) );
-	if( !deserializer.IsOpen() )
+	GCL::Deserializer Deserializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
+	if( !Deserializer.IsOpen() )
 		return false;
 
-	deserializer.Objects( this, GCLObjectCallback );
+	Deserializer.Objects( this, GCLObjectCallback );
 
 	return true;
-}
 
-void Project::GCLObjectCallback( GCL::Object object, void* user )
+} // Deserialize
+
+//////////////////////////////////////////////////////////////////////////
+
+void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 {
-	Project*         self = static_cast< Project* >( user );
-	std::string_view name = object.Name();
+	Project*         pSelf = static_cast< Project* >( pUser );
+	std::string_view Name  = Object.Name();
 
-	if( name == "Name" )
+	if( Name == "Name" )
 	{
-		self->name_ = object.String();
+		pSelf->m_Name = Object.String();
 	}
-	else if( name == "Kind" )
+	else if( Name == "Kind" )
 	{
-		self->kind_ = ProjectKindFromString( object.String() );
+		pSelf->m_Kind = ProjectKindFromString( Object.String() );
 	}
-	else if( name == "Files" )
+	else if( Name == "Files" )
 	{
-		for( auto& file_path_string : object.Table() )
+		for( const GCL::Object& rFilePathObj : Object.Table() )
 		{
-			std::filesystem::path file_path = file_path_string.String();
+			std::filesystem::path FilePath = rFilePathObj.String();
 
-			if( !file_path.is_absolute() )
-				file_path = self->location_ / file_path;
+			if( !FilePath.is_absolute() )
+				FilePath = pSelf->m_Location / FilePath;
 
-			file_path = file_path.lexically_normal();
-			self->files_.emplace_back( std::move( file_path ) );
+			FilePath = FilePath.lexically_normal();
+			pSelf->m_Files.emplace_back( std::move( FilePath ) );
 		}
 	}
-	else if( name == "Includes" )
+	else if( Name == "Includes" )
 	{
-		for( auto& file_path_string : object.Table() )
+		for( const GCL::Object& rFilePathObj : Object.Table() )
 		{
-			std::filesystem::path file_path = file_path_string.String();
+			std::filesystem::path FilePath = rFilePathObj.String();
 
-			if( !file_path.is_absolute() )
-				file_path = self->location_ / file_path;
+			if( !FilePath.is_absolute() )
+				FilePath = pSelf->m_Location / FilePath;
 
-			file_path = file_path.lexically_normal();
-			self->includes_.emplace_back( std::move( file_path ) );
+			FilePath = FilePath.lexically_normal();
+			pSelf->m_Includes.emplace_back( std::move( FilePath ) );
 		}
 	}
-	else if( name == "Libraries" )
+	else if( Name == "Libraries" )
 	{
-		for( auto& library : object.Table() )
+		for( const GCL::Object& rLibraryObj : Object.Table() )
 		{
-			std::filesystem::path path = library.String();
+			std::filesystem::path LibraryPath = rLibraryObj.String();
 
-			if( !path.is_absolute() )
-				path = self->location_ / path;
+			if( !LibraryPath.is_absolute() )
+				LibraryPath = pSelf->m_Location / LibraryPath;
 
-			path = path.lexically_normal();
-			self->libraries_.emplace_back( std::move( path ) );
+			LibraryPath = LibraryPath.lexically_normal();
+			pSelf->m_Libraries.emplace_back( std::move( LibraryPath ) );
 		}
 	}
-}
 
-void Project::BuildNextFile( ICompiler& compiler )
+} // GCLObjectCallback
+
+//////////////////////////////////////////////////////////////////////////
+
+void Project::BuildNextFile( ICompiler& rCompiler )
 {
-	if( files_left_to_build_.empty() )
+	if( m_FilesLeftToBuild.empty() )
 	{
-		Link( compiler );
+		Link( rCompiler );
 
 		return;
 	}
 
 //////////////////////////////////////////////////////////////////////////
 
-	auto it = std::find( files_.begin(), files_.end(), files_left_to_build_.back() );
-
-	if( it == files_.end() )
+	auto File = std::find( m_Files.begin(), m_Files.end(), m_FilesLeftToBuild.back() );
+	if( File == m_Files.end() )
 	{
 		// If the file was not found, remove it from the queue and try again
-		files_left_to_build_.pop_back();
-		BuildNextFile( compiler );
+		m_FilesLeftToBuild.pop_back();
+		BuildNextFile( rCompiler );
 	}
 	else
 	{
 		// Listen to every file compilation to check if we're 
-		compiler ^= [ this, &compiler ]( const CompilationDone& e )
+		rCompiler ^= [ this, &rCompiler ]( const CompilationDone& rEvent )
 		{
 			// Cancel build if a file failed to build
-			if( e.exit_code != 0 )
+			if( rEvent.exit_code != 0 )
 			{
-				ProjectBuildFinished build_finished;
-				build_finished.project = this;
-				build_finished.success = false;
+				ProjectBuildFinished Event;
+				Event.pProject = this;
+				Event.Success  = false;
 
-				Publish( build_finished );
+				Publish( Event );
 			}
-			else if( auto it = std::find( files_left_to_build_.begin(), files_left_to_build_.end(), e.options.input_file ); it != files_left_to_build_.end() )
+			else if( auto NextFile = std::find( m_FilesLeftToBuild.begin(), m_FilesLeftToBuild.end(), rEvent.options.InputFile ); NextFile != m_FilesLeftToBuild.end() )
 			{
-				files_to_link_.push_back( e.options.output_file );
-				files_left_to_build_.erase( it );
-				BuildNextFile( compiler );
+				m_FilesToLink.push_back( rEvent.options.OutputFile );
+				m_FilesLeftToBuild.erase( NextFile );
+				BuildNextFile( rCompiler );
 			}
 		};
 
-		CompileOptions options;
-		options.input_file  = *it;
-		options.output_file = location_ / it->filename();
-		options.output_file.replace_extension( ".o" );
-		options.language    = CompileOptions::Language::CPlusPlus;
-		options.action      = CompileOptions::Action::CompileAndAssemble;
+		CompileOptions Options;
+		Options.InputFile  = *File;
+		Options.OutputFile = m_Location / File->filename();
+		Options.OutputFile.replace_extension( ".o" );
+		Options.Language    = CompileOptions::Language::CPlusPlus;
+		Options.Action      = CompileOptions::Action::CompileAndAssemble;
 
 		// Compile the file
-		compiler.Compile( options );
+		rCompiler.Compile( Options );
 	}
-}
 
-void Project::Link( ICompiler& compiler )
+} // BuildNextFile
+
+//////////////////////////////////////////////////////////////////////////
+
+void Project::Link( ICompiler& rCompiler )
 {
-	compiler ^= [ this ]( const LinkingDone& e )
+	rCompiler ^= [ this ]( const LinkingDone& rEvent )
 	{
-		ProjectBuildFinished build_finished;
-		build_finished.project = this;
-		build_finished.output  = e.options.output_file;
-		build_finished.success = e.exit_code == 0;
+		ProjectBuildFinished Event;
+		Event.pProject = this;
+		Event.Output   = rEvent.options.OutputFile;
+		Event.Success  = rEvent.exit_code == 0;
 
-		Publish( build_finished );
+		Publish( Event );
 	};
 
-	LinkOptions options;
-	options.input_files      = std::move( files_to_link_ );
-	options.linked_libraries = libraries_;
-	options.output_file      = location_ / name_;
-	options.output_file.replace_extension( ProjectKindOutputExtension( kind_ ) );
-	options.kind             = kind_;
+	LinkOptions Options;
+	Options.InputFiles      = std::move( m_FilesToLink );
+	Options.LinkedLibraries = m_Libraries;
+	Options.OutputFile      = m_Location / m_Name;
+	Options.OutputFile.replace_extension( ProjectKindOutputExtension( m_Kind ) );
+	Options.Kind             = m_Kind;
 
-	compiler.Link( options );
-}
+	rCompiler.Link( Options );
+
+} // Link
