@@ -32,7 +32,7 @@ bool _Win32HandleResult( DWORD Result, std::string_view Function, std::string_vi
 		const std::string_view FunctionName = Function.substr( 0, Function.find_first_of( "(", 0 ) );
 		char                   Buffer[ 256 ];
 
-		if( FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, Result, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), Buffer, std::size( Buffer ), NULL ) == 0 )
+		if( FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, Result, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), Buffer, static_cast< DWORD >( std::size( Buffer ) ), NULL ) == 0 )
 			strcpy_s( Buffer, std::size( Buffer ), "Unknown error" );
 
 		std::cerr << File << "(L" << Line << ") " << FunctionName << " failed: " << Buffer << "\n";
