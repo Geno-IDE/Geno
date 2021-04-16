@@ -60,8 +60,9 @@ void Application::NewWorkspace( std::filesystem::path Location, std::string Name
 {
 	CloseWorkspace();
 
-	Workspace& rWorkspace = m_CurrentWorkspace.emplace( std::move( Location ) );
-	rWorkspace.m_Name      = std::move( Name );
+	Workspace& rWorkspace    = m_CurrentWorkspace.emplace( std::move( Location ) );
+	rWorkspace.m_Name        = std::move( Name );
+	rWorkspace.m_BuildMatrix = BuildMatrix::PlatformDefault();
 
 } // NewWorkspace
 
