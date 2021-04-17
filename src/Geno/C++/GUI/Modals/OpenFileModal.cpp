@@ -40,7 +40,7 @@ OpenFileModal::OpenFileModal( void )
 
 #endif // _WIN32
 
-	m_CurrentDirectory = RootDirectory();
+	m_CurrentDirectory = std::filesystem::current_path();
 
 } // OpenFileModal
 
@@ -222,9 +222,9 @@ void OpenFileModal::UpdateDerived( void )
 
 				if( m_DirectoryRequested )
 				{
-					bool selected = m_SelectedPath == rDirectoryEntry;
+					bool Selected = m_SelectedPath == rDirectoryEntry;
 
-					if( ImGui::Selectable( FileName.c_str(), &selected, ImGuiSelectableFlags_AllowDoubleClick ) )
+					if( ImGui::Selectable( FileName.c_str(), &Selected, ImGuiSelectableFlags_AllowDoubleClick ) )
 					{
 						const bool DoubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
 
@@ -247,12 +247,21 @@ void OpenFileModal::UpdateDerived( void )
 
 				for( const std::filesystem::path& rFilePath : FilePaths )
 				{
-					std::string filename = rFilePath.filename().string();
-					bool        selected = rFilePath == m_SelectedPath;
+					std::string FileName = rFilePath.filename().string();
+					bool        Selected = rFilePath == m_SelectedPath;
 
-					if( ImGui::Selectable( filename.c_str(), &selected ) )
+					if( ImGui::Selectable( FileName.c_str(), &Selected, ImGuiSelectableFlags_AllowDoubleClick ) )
 					{
 						m_SelectedPath = rFilePath;
+
+						// Open file immediately if file was double-clicked
+						if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+						{
+							if( m_Callback )
+								m_Callback( m_SelectedPath, m_pUser );
+
+							Close();
+						}
 					}
 				}
 			}

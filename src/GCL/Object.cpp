@@ -111,15 +111,15 @@ bool GCL::Object::Empty( void ) const
 
 GCL::Object& GCL::Object::operator[]( std::string_view Name )
 {
-	TableType& table = std::get< TableType >( m_Value );
+	TableType& rTable = std::get< TableType >( m_Value );
 
-	for( Object& value : table )
+	for( Object& rValue : rTable )
 	{
-		if( value.m_Name == Name )
-			return value;
+		if( rValue.m_Name == Name )
+			return rValue;
 	}
 
-	return table.emplace_back( std::string( Name ) );
+	return rTable.emplace_back( std::string( Name ) );
 
 } // operator[]
 

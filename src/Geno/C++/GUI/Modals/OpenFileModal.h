@@ -38,7 +38,7 @@ class OpenFileModal : public IModal
 
 public:
 
-	using Callback = void( * )( const std::filesystem::path& path, void* user );
+	using Callback = void( * )( const std::filesystem::path& rPath, void* pUser );
 
 //////////////////////////////////////////////////////////////////////////
 
