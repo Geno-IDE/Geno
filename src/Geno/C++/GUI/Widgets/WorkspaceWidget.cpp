@@ -127,6 +127,7 @@ void WorkspaceWidget::Show( bool* pOpen )
 								self->m_ExpandWorkspaceNode = true;
 
 								workspace->NewProject( std::move( location ), std::move( name ) );
+								workspace->Serialize();
 							}
 						}
 					);
@@ -163,6 +164,7 @@ void WorkspaceWidget::Show( bool* pOpen )
 									if( OutputFileStream.is_open() )
 									{
 										pProject->m_Files.emplace_back( std::move( FilePath ) );
+										pProject->Serialize();
 									}
 								}
 							}
@@ -203,6 +205,7 @@ void WorkspaceWidget::Show( bool* pOpen )
 					}
 
 					pWorkspace->m_Name = std::move( m_PopupText );
+					pWorkspace->Serialize();
 				}
 
 				ImGui::SameLine();
@@ -232,6 +235,7 @@ void WorkspaceWidget::Show( bool* pOpen )
 						}
 
 						pProject->m_Name = std::move( m_PopupText );
+						pProject->Serialize();
 					}
 
 					m_PopupText.clear();
