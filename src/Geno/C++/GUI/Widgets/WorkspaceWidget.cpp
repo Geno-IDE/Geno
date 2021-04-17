@@ -170,7 +170,26 @@ void WorkspaceWidget::Show( bool* pOpen )
 							}
 
 							pSelf->m_ProjectNodeToBeExpanded = pSelf->m_SelectedProjectName;
-							pSelf->m_PopupText.clear();
+						}
+					);
+				}
+
+				if( ImGui::MenuItem( "Add File" ) )
+				{
+					OpenFileModal::Instance().RequestFile( "Add File", this,
+						[]( const std::filesystem::path& rPath, void* pUser )
+						{
+							WorkspaceWidget* pSelf = static_cast< WorkspaceWidget* >( pUser );
+
+							if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
+							{
+								Project* pProject = pWorkspace->ProjectByName( pSelf->m_SelectedProjectName );
+
+								pProject->m_Files.push_back( rPath );
+								pProject->Serialize();
+							}
+
+							pSelf->m_ProjectNodeToBeExpanded = pSelf->m_SelectedProjectName;
 						}
 					);
 				}
