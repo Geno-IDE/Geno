@@ -32,8 +32,6 @@ class Object
 
 public:
 
-//////////////////////////////////////////////////////////////////////////
-
 	using StringType = std::string;
 	using TableType  = std::vector< Object >;
 	using Variant    = std::variant< std::monostate, StringType, TableType >;
@@ -62,7 +60,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 
 	std::string_view Name    ( void ) const { return m_Name; }
-	bool             IsNull  ( void ) const { return m_Value.index() == 0; }
+	bool             IsNull  ( void ) const { return m_Value.index() == 0 || m_Value.valueless_by_exception(); }
 	bool             IsString( void ) const { return m_Value.index() == 1; }
 	bool             IsTable ( void ) const { return m_Value.index() == 2; }
 

@@ -41,6 +41,16 @@ constexpr bool LineStartsWithIndent( std::string_view Line, int IndentLevel )
 
 //////////////////////////////////////////////////////////////////////////
 
+static void AddChildCB( GCL::Object Child, void* pUser )
+{
+	GCL::Object* pParent = static_cast< GCL::Object* >( pUser );
+
+	pParent->AddChild( std::move( Child ) );
+
+} // AddChildCB
+
+//////////////////////////////////////////////////////////////////////////
+
 GCL::Deserializer::Deserializer( const std::filesystem::path& rPath )
 {
 	if( !std::filesystem::exists( rPath ) )
@@ -54,10 +64,9 @@ GCL::Deserializer::Deserializer( const std::filesystem::path& rPath )
 		m_FileSize = static_cast< size_t >( _lseek( FileDescriptor, 0, SEEK_END ) );
 		_lseek( FileDescriptor, 0, SEEK_SET );
 
-		m_pFileBuffer = ( char* )malloc( m_FileSize );
+		m_pFileBuffer = static_cast< char* >( malloc( m_FileSize ) );
 
-		for( size_t BytesRead = 0; BytesRead < m_FileSize; BytesRead += _read( FileDescriptor, m_pFileBuffer, static_cast< uint32_t >( m_FileSize ) ) );
-
+		_read( FileDescriptor, m_pFileBuffer, static_cast< uint32_t >( m_FileSize ) );
 		_close( FileDescriptor );
 	}
 
@@ -67,7 +76,8 @@ GCL::Deserializer::Deserializer( const std::filesystem::path& rPath )
 
 GCL::Deserializer::~Deserializer( void )
 {
-	free( m_pFileBuffer );
+	if( m_pFileBuffer )
+		free( m_pFileBuffer );
 
 } // ~Deserializer
 
@@ -82,7 +92,7 @@ void GCL::Deserializer::Objects( void* pUser, ObjectCallback Callback )
 		size_t           LineEnd = Unparsed.find( '\n' );
 		std::string_view Line    = Unparsed.substr( 0, LineEnd );
 
-		ParseLine( Line, 0, &Unparsed, Callback, pUser );
+		Unparsed = ParseLine( Line, 0, Unparsed, Callback, pUser );
 	}
 
 } // Objects
@@ -97,12 +107,9 @@ bool GCL::Deserializer::IsOpen( void ) const
 
 //////////////////////////////////////////////////////////////////////////
 
-bool GCL::Deserializer::ParseLine( std::string_view Line, int IndentLevel, std::string_view* pUnparsed, ObjectCallback Callback, void* pUser )
+std::string_view GCL::Deserializer::ParseLine( std::string_view Line, int IndentLevel, std::string_view Unparsed, ObjectCallback Callback, void* pUser )
 {
-	if( !LineStartsWithIndent( Line, IndentLevel ) )
-		return false;
-
-	*pUnparsed = pUnparsed->substr( Line.size() + ( Line.size() < pUnparsed->size() ) );
+	Unparsed = Unparsed.substr( Line.size() + ( Line.size() < Unparsed.size() ) );
 
 	std::string_view UnindentedLine = Line.substr( IndentLevel );
 	size_t           ColonIndex     = UnindentedLine.find_first_of( ':' );
@@ -124,15 +131,21 @@ bool GCL::Deserializer::ParseLine( std::string_view Line, int IndentLevel, std::
 	else // Colon is at the end of the line, signifying the start of a table
 	{
 		std::string_view Name             = UnindentedLine.substr( 0, ColonIndex );
-		Object           Object( ( std::string )Name, std::in_place_type< Object::TableType > );
-		auto             AddChildCallback = []( GCL::Object Child, void* pParent ) { static_cast< GCL::Object* >( pParent )->AddChild( std::move( Child ) ); };
+		Object           Object( std::string( Name ), std::in_place_type< Object::TableType > );
+
+		++IndentLevel;
 
 		// Parse remaining lines recursively until the indent level changes
-		while( !pUnparsed->empty() && ParseLine( pUnparsed->substr( 0, pUnparsed->find( '\n' ) ), IndentLevel + 1, pUnparsed, AddChildCallback, &Object ) );
+		while( !Unparsed.empty() && LineStartsWithIndent( Unparsed, IndentLevel ) )
+		{
+			Unparsed = ParseLine( Unparsed.substr( 0, Unparsed.find( '\n' ) ), IndentLevel, Unparsed, AddChildCB, &Object );
+		}
+
+		--IndentLevel;
 
 		Callback( std::move( Object ), pUser );
 	}
 
-	return true;
+	return Unparsed;
 
 } // ParseLine

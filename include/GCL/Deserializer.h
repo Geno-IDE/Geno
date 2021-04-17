@@ -49,7 +49,7 @@ public:
 
 private:
 
-	bool ParseLine( std::string_view Line, int IndentLevel, std::string_view* pUnparsed, ObjectCallback Callback, void* pUser );
+	std::string_view ParseLine( std::string_view Line, int IndentLevel, std::string_view Unparsed, ObjectCallback Callback, void* pUser );
 
 //////////////////////////////////////////////////////////////////////////
 
