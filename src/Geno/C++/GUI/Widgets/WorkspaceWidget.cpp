@@ -23,7 +23,7 @@
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Modals/ProjectSettingsModal.h"
 #include "GUI/Modals/WorkspaceSettingsModal.h"
-#include "GUI/Application.h"
+#include "Application.h"
 
 #include <fstream>
 

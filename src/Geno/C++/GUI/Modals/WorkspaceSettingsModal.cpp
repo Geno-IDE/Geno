@@ -19,8 +19,8 @@
 
 #include "Components/Workspace.h"
 #include "GUI/Modals/NewItemModal.h"
-#include "GUI/Application.h"
 #include "GUI/MainWindow.h"
+#include "Application.h"
 
 #include <imgui.h>
 

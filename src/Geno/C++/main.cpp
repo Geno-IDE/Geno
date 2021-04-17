@@ -15,7 +15,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "GUI/Application.h"
+#include "Application.h"
 
 #if defined( _WIN32 )
 #include <Windows.h>

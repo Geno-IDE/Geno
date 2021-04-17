@@ -24,9 +24,9 @@
 #include "GUI/Widgets/OutputWidget.h"
 #include "GUI/Widgets/TextEditWidget.h"
 #include "GUI/Widgets/WorkspaceWidget.h"
-#include "GUI/Application.h"
 #include "GUI/MainWindow.h"
 #include "Misc/Settings.h"
+#include "Application.h"
 
 #include <functional>
 #include <iostream>

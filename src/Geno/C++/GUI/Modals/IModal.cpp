@@ -17,7 +17,7 @@
 
 #include "IModal.h"
 
-#include "GUI/Application.h"
+#include "Application.h"
 
 #include <imgui.h>
 

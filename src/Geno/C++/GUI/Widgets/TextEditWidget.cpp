@@ -19,9 +19,9 @@
 
 #include "Common/Drop.h"
 #include "Common/LocalAppData.h"
-#include "GUI/Application.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
+#include "Application.h"
 
 #include <fstream>
 #include <iostream>

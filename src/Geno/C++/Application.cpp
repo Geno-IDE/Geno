@@ -20,7 +20,6 @@
 #include "GUI/Modals/IModal.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
-#include "Misc/Settings.h"
 
 #include <iostream>
 
