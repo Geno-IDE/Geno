@@ -173,8 +173,10 @@ void OpenFileModal::UpdateDerived( void )
 						{
 							if( m_EditingPathIsFolder )
 							{
-								if( std::filesystem::create_directory( rNewPath ) ) m_EditingPath.clear();
-								else                                                m_ChangeEditFocus = true;
+								std::error_code ErrorCode;
+
+								if( std::filesystem::create_directory( rNewPath, ErrorCode ) ) m_EditingPath.clear();
+								else                                                           m_ChangeEditFocus = true;
 							}
 							else
 							{
@@ -197,70 +199,85 @@ void OpenFileModal::UpdateDerived( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-			std::filesystem::directory_iterator  RootDirectoryIterator( m_CurrentDirectory, std::filesystem::directory_options::skip_permission_denied );
-			std::filesystem::path                ParentDirectory = m_CurrentDirectory.parent_path();
-			std::vector< std::filesystem::path > DirectoryPaths;
-			std::vector< std::filesystem::path > FilePaths;
+			std::error_code                     ErrorCode;
+			std::filesystem::directory_iterator RootDirectoryIterator( m_CurrentDirectory, std::filesystem::directory_options::skip_permission_denied, ErrorCode );
 
-			if( m_CurrentDirectory != ParentDirectory )
+			if( ErrorCode )
 			{
-				if( ImGui::Selectable( ".." ) )
-				{
-					m_CurrentDirectory = ParentDirectory;
-				}
+				const std::string ErrorMessage    = ErrorCode.message();
+				const ImVec2      WindowSize      = ImGui::GetWindowSize();
+				const ImVec2      WrappedTextSize = ImGui::CalcTextSize( ErrorMessage.c_str(), ErrorMessage.c_str() + ErrorMessage.size(), false, WindowSize.x );
+				const ImVec2      TextPos         = ( WindowSize - WrappedTextSize ) / 2;
+
+				ImGui::SetCursorPos( TextPos );
+				ImGui::PushTextWrapPos( WindowSize.x );
+				ImGui::TextWrapped( "%s", ErrorMessage.c_str() );
+				ImGui::PopTextWrapPos();
 			}
-
-			for( const std::filesystem::directory_entry& rEntry : RootDirectoryIterator )
+			else
 			{
-				/**/ if( rEntry.is_directory() )    DirectoryPaths.push_back( rEntry );
-				else if( rEntry.is_regular_file() ) FilePaths.push_back( rEntry );
-			}
+				std::vector< std::filesystem::path > DirectoryPaths;
+				std::vector< std::filesystem::path > FilePaths;
 
-			for( const std::filesystem::path& rDirectoryEntry : DirectoryPaths )
-			{
-				const std::string FileName = rDirectoryEntry.filename().string();
-
-				if( m_DirectoryRequested )
+				// Go up one directory
+				if( m_CurrentDirectory.has_parent_path() )
 				{
-					bool Selected = m_SelectedPath == rDirectoryEntry;
-
-					if( ImGui::Selectable( FileName.c_str(), &Selected, ImGuiSelectableFlags_AllowDoubleClick ) )
-					{
-						const bool DoubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
-
-						if( DoubleClicked ) m_CurrentDirectory = rDirectoryEntry;
-						else                m_SelectedPath     = rDirectoryEntry;
-					}
+					if( ImGui::Selectable( ".." ) )
+						m_CurrentDirectory = m_CurrentDirectory.parent_path();
 				}
-				else
+
+				for( const std::filesystem::directory_entry& rEntry : RootDirectoryIterator )
 				{
-					if( ImGui::Selectable( FileName.c_str() ) )
-					{
-						m_CurrentDirectory = rDirectoryEntry;
-					}
+					/**/ if( rEntry.is_directory() )    DirectoryPaths.push_back( rEntry );
+					else if( rEntry.is_regular_file() ) FilePaths.push_back( rEntry );
 				}
-			}
 
-			if( !m_DirectoryRequested )
-			{
-				ImGui::Separator();
-
-				for( const std::filesystem::path& rFilePath : FilePaths )
+				for( const std::filesystem::path& rDirectoryEntry : DirectoryPaths )
 				{
-					std::string FileName = rFilePath.filename().string();
-					bool        Selected = rFilePath == m_SelectedPath;
+					const std::string FileName = rDirectoryEntry.filename().string();
 
-					if( ImGui::Selectable( FileName.c_str(), &Selected, ImGuiSelectableFlags_AllowDoubleClick ) )
+					if( m_DirectoryRequested )
 					{
-						m_SelectedPath = rFilePath;
+						bool Selected = m_SelectedPath == rDirectoryEntry;
 
-						// Open file immediately if file was double-clicked
-						if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+						if( ImGui::Selectable( FileName.c_str(), &Selected, ImGuiSelectableFlags_AllowDoubleClick ) )
 						{
-							if( m_Callback )
-								m_Callback( m_SelectedPath, m_pUser );
+							const bool DoubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
 
-							Close();
+							if( DoubleClicked ) m_CurrentDirectory = rDirectoryEntry;
+							else                m_SelectedPath     = rDirectoryEntry;
+						}
+					}
+					else
+					{
+						if( ImGui::Selectable( FileName.c_str() ) )
+						{
+							m_CurrentDirectory = rDirectoryEntry;
+						}
+					}
+				}
+
+				if( !m_DirectoryRequested )
+				{
+					ImGui::Separator();
+
+					for( const std::filesystem::path& rFilePath : FilePaths )
+					{
+						std::string FileName = rFilePath.filename().string();
+						bool        Selected = rFilePath == m_SelectedPath;
+
+						if( ImGui::Selectable( FileName.c_str(), &Selected, ImGuiSelectableFlags_AllowDoubleClick ) )
+						{
+							m_SelectedPath = rFilePath;
+
+							// Open file immediately if file was double-clicked
+							if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+							{
+								if( m_Callback )
+									m_Callback( m_SelectedPath, m_pUser );
+
+								Close();
+							}
 						}
 					}
 				}
