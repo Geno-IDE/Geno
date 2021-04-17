@@ -60,7 +60,8 @@ public:
 
 private:
 
-	static void GLFWSizeCB( GLFWwindow* pWindow, int Width, int Height );
+	static void GLFWErrorCB( int Error, const char* pDescription );
+	static void GLFWSizeCB ( GLFWwindow* pWindow, int Width, int Height );
 
 //////////////////////////////////////////////////////////////////////////
 

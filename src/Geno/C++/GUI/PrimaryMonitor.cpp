@@ -17,17 +17,12 @@
 
 #include "PrimaryMonitor.h"
 
-#include "ThirdParty/GLFW.h"
-
 #include <GLFW/glfw3.h>
 
 //////////////////////////////////////////////////////////////////////////
 
 PrimaryMonitor::PrimaryMonitor( void )
 {
-	// Depends on GLFW to be initialized
-	GLFW::Instance();
-
 	glfwSetMonitorCallback( MonitorFunction );
 
 	int Count;
