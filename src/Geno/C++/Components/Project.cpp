@@ -258,16 +258,7 @@ void Project::BuildNextFile( ICompiler& rCompiler )
 		// Listen to every file compilation to check if we're 
 		rCompiler ^= [ this, &rCompiler ]( const CompilationDone& rEvent )
 		{
-			// Cancel build if a file failed to build
-			if( rEvent.exit_code != 0 )
-			{
-				ProjectBuildFinished Event;
-				Event.pProject = this;
-				Event.Success  = false;
-
-				Publish( Event );
-			}
-			else if( auto NextFile = std::find( m_FilesLeftToBuild.begin(), m_FilesLeftToBuild.end(), rEvent.options.InputFile ); NextFile != m_FilesLeftToBuild.end() )
+			if( auto NextFile = std::find( m_FilesLeftToBuild.begin(), m_FilesLeftToBuild.end(), rEvent.options.InputFile ); NextFile != m_FilesLeftToBuild.end() )
 			{
 				m_FilesToLink.push_back( rEvent.options.OutputFile );
 				m_FilesLeftToBuild.erase( NextFile );
