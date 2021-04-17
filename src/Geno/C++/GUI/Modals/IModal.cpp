@@ -32,6 +32,8 @@ void IModal::Update( void )
 		ImGui::OpenPopup( PopupID.c_str() );
 	}
 
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowMinSize, ImVec2( 350, 196 ) );
+
 	if( ImGui::BeginPopupModal( PopupID.c_str() ) )
 	{
 		UpdateDerived();
@@ -41,6 +43,8 @@ void IModal::Update( void )
 
 		ImGui::EndPopup();
 	}
+
+	ImGui::PopStyleVar();
 
 } // Update
 
