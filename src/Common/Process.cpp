@@ -22,7 +22,6 @@
 
 #include <chrono>
 #include <codecvt>
-#include <iostream>
 #include <thread>
 
 #include <io.h>
@@ -61,8 +60,6 @@ int Process::Run( void )
 
 	static std::wstring_convert< std::codecvt_utf8< wchar_t > > ConvertUTF8;
 	const std::string CommandLineUTF8 = ConvertUTF8.to_bytes( m_CommandLine.data(), m_CommandLine.data() + m_CommandLine.size() );
-
-	std::cout << "¤ " << CommandLineUTF8 << "\n";
 
 	if( WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( m_CommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) ) )
 	{

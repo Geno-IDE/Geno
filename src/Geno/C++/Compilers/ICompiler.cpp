@@ -64,6 +64,8 @@ void ICompiler::Link( const LinkOptions& rOptions )
 
 void ICompiler::CompileAsync( CompileOptions Options )
 {
+	std::cout << "<- " << Options.InputFile.filename().string() << "\n";
+
 	std::wstring CommandLine = MakeCommandLineString( Options );
 	Process      Process( std::move( CommandLine ) );
 
@@ -78,6 +80,8 @@ void ICompiler::CompileAsync( CompileOptions Options )
 
 void ICompiler::LinkAsync( LinkOptions Options )
 {
+	std::cout << "-> " << Options.OutputFile.filename().string() << "\n";
+
 	std::wstring CommandLine = MakeCommandLineString( Options );
 	Process      Process( std::move( CommandLine ) );
 

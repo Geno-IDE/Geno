@@ -42,14 +42,14 @@ static std::string IniFilename;
 
 MainWindow::MainWindow( void )
 {
-	PrimaryMonitor& rMonitor = PrimaryMonitor::Instance();
-	m_Width                  = 3 * rMonitor.Width()  / 4;
-	m_Height                 = 3 * rMonitor.Height() / 4;
-
 	glfwSetErrorCallback( GLFWErrorCB );
 
 	if( glfwInit() == GLFW_FALSE )
 		return;
+
+	PrimaryMonitor& rMonitor = PrimaryMonitor::Instance();
+	m_Width                  = 3 * rMonitor.Width()  / 4;
+	m_Height                 = 3 * rMonitor.Height() / 4;
 
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 0 );
