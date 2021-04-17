@@ -17,26 +17,6 @@
 
 #include "CompilerGCC.h"
 
-#include "Misc/Settings.h"
-
-//////////////////////////////////////////////////////////////////////////
-
-static std::filesystem::path FindGCCLocation( void )
-{
-
-#if defined( _WIN32 )
-
-	Settings& rSettings = Settings::Instance();
-
-	if( GCL::Object& rMinGWPath = rSettings.m_Object[ "MinGW-Path" ]; rMinGWPath.IsString() )
-		return rMinGWPath.String();
-
-#endif // _WIN32
-
-	return std::filesystem::path();
-
-} // FindGCCLocation
-
 //////////////////////////////////////////////////////////////////////////
 
 std::wstring CompilerGCC::MakeCommandLineString( const CompileOptions& rOptions )
@@ -45,7 +25,7 @@ std::wstring CompilerGCC::MakeCommandLineString( const CompileOptions& rOptions 
 	Command.reserve( 1024 );
 
 	// Start with GCC executable
-	Command += ( FindGCCLocation() / L"bin/g++" ).lexically_normal();
+	Command += L"g++";
 
 	// Language
 	switch( rOptions.Language )
@@ -114,7 +94,7 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 		case ProjectKind::DynamicLibrary:
 		{
 			// Start with GCC executable
-			Command += ( FindGCCLocation() / L"bin/g++" ).lexically_normal();
+			Command += L"g++";
 
 			// Create a shared library
 			if( rOptions.Kind == ProjectKind::DynamicLibrary )
@@ -155,7 +135,7 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 		case ProjectKind::StaticLibrary:
 		{
 			// Start with AR executable
-			Command += ( FindGCCLocation() / "bin/ar" ).lexically_normal();
+			Command += L"bin/ar";
 
 			// Command: Replace existing or insert new file(s) into the archive
 			Command += L" r";
@@ -182,8 +162,8 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 			Command += L" " + OutputFile.wstring();
 
 			// Set input files
-			for( const std::filesystem::path& input_file : rOptions.InputFiles )
-				Command += L" " + input_file.wstring();
+			for( const std::filesystem::path& rInputFile : rOptions.InputFiles )
+				Command += L" " + rInputFile.wstring();
 
 		} break;
 	}

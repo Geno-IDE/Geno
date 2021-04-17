@@ -56,7 +56,6 @@ private:
 	void ActionBuildBuild        ( void );
 	void ActionViewTextEdit      ( void );
 	void ActionViewWorkspace     ( void );
-	void ActionViewSettings      ( void );
 	void ActionViewOutput        ( void );
 	void ActionHelpDemo          ( void );
 	void ActionHelpAbout         ( void );

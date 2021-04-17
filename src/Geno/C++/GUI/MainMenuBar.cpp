@@ -20,12 +20,10 @@
 #include "Compilers/ICompiler.h"
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
-#include "GUI/Modals/SettingsModal.h"
 #include "GUI/Widgets/OutputWidget.h"
 #include "GUI/Widgets/TextEditWidget.h"
 #include "GUI/Widgets/WorkspaceWidget.h"
 #include "GUI/MainWindow.h"
-#include "Misc/Settings.h"
 #include "Application.h"
 
 #include <functional>
@@ -77,7 +75,6 @@ void MainMenuBar::Show( void )
 		{
 			if( ImGui::MenuItem( "Text Edit", "Alt+T" ) ) ActionViewTextEdit();
 			if( ImGui::MenuItem( "Workspace", "Alt+W" ) ) ActionViewWorkspace();
-			if( ImGui::MenuItem( "Settings", "Alt+S" ) )  ActionViewSettings();
 			if( ImGui::MenuItem( "Output", "Alt+O" ) )    ActionViewOutput();
 
 			ImGui::EndMenu();
@@ -120,7 +117,6 @@ void MainMenuBar::Show( void )
 		if( ImGui::IsKeyPressed( GLFW_KEY_E ) ) ActionFileExit();
 		if( ImGui::IsKeyPressed( GLFW_KEY_T ) ) ActionViewTextEdit();
 		if( ImGui::IsKeyPressed( GLFW_KEY_W ) ) ActionViewWorkspace();
-		if( ImGui::IsKeyPressed( GLFW_KEY_S ) ) ActionViewSettings();
 		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionViewOutput();
 	}
 	else
@@ -239,16 +235,6 @@ void MainMenuBar::ActionViewWorkspace( void )
 	m_ShowWorkspace ^= 1;
 
 } // ActionViewWorkspace
-
-//////////////////////////////////////////////////////////////////////////
-
-void MainMenuBar::ActionViewSettings( void )
-{
-	Settings& rSettings = Settings::Instance();
-
-	SettingsModal::Instance().Show( &rSettings.m_Object );
-
-} // ActionViewSettings
 
 //////////////////////////////////////////////////////////////////////////
 

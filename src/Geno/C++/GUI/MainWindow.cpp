@@ -21,7 +21,6 @@
 #include "GUI/Platform/Win32/Win32DropTarget.h"
 #include "GUI/MainMenuBar.h"
 #include "GUI/PrimaryMonitor.h"
-#include "Misc/Settings.h"
 
 #include <iostream>
 
@@ -137,9 +136,6 @@ void MainWindow::Init( void )
 
 		ImGui_ImplGlfw_InitForOpenGL( m_pWindow, true );
 		ImGui_ImplOpenGL3_Init( "#version 130" );
-
-		// Load settings
-		Settings::Instance();
 	}
 
 } // Init
