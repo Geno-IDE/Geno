@@ -20,7 +20,7 @@
 #include "Components/BuildMatrix.h"
 #include "Components/Project.h"
 
-#include <Common/EventDispatcher.h>
+#include <Common/Event.h>
 #include <GCL/Deserializer.h>
 
 #include <filesystem>
@@ -30,15 +30,7 @@
 
 class Workspace;
 
-struct WorkspaceBuildFinished
-{
-	Workspace*            pWorkspace;
-	std::filesystem::path Output;
-	bool                  Success = false;
-
-}; // WorkspaceBuildFinished
-
-class Workspace : public EventDispatcher< Workspace, WorkspaceBuildFinished >
+class Workspace
 {
 	GENO_DISABLE_COPY( Workspace );
 	GENO_DEFAULT_MOVE( Workspace );
@@ -63,6 +55,14 @@ public:
 
 	Project& NewProject   ( std::filesystem::path Location, std::string Name );
 	Project* ProjectByName( std::string_view Name );
+
+//////////////////////////////////////////////////////////////////////////
+
+	struct
+	{
+		Event< Workspace, void( std::filesystem::path OutputFile, bool Success ) > BuildFinished;
+
+	} Events;
 
 //////////////////////////////////////////////////////////////////////////
 

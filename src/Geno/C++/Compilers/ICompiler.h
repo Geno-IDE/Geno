@@ -27,24 +27,10 @@
 #include <string>
 
 #include <Common/Aliases.h>
-#include <Common/EventDispatcher.h>
+#include <Common/Event.h>
 #include <Common/Macros.h>
 
-struct CompilationDone
-{
-	CompileOptions options;
-	int            exit_code = -1;
-
-}; // CompilationDone
-
-struct LinkingDone
-{
-	LinkOptions options;
-	int         exit_code = -1;
-
-}; // LinkingDone
-
-class ICompiler : public EventDispatcher< ICompiler, CompilationDone, LinkingDone >
+class ICompiler
 {
 	GENO_DISABLE_COPY( ICompiler );
 
@@ -59,6 +45,17 @@ public:
 
 	void Compile( const CompileOptions& rOptions );
 	void Link   ( const LinkOptions& rOptions );
+
+//////////////////////////////////////////////////////////////////////////
+
+public:
+
+	struct
+	{
+		Event< ICompiler, void( CompileOptions Options, int ErrorCode ) > FinishedCompiling;
+		Event< ICompiler, void( LinkOptions Options, int ErrorCode ) >    FinishedLinking;
+
+	} Events;
 
 //////////////////////////////////////////////////////////////////////////
 

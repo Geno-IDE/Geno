@@ -29,12 +29,6 @@
 
 void ICompiler::Compile( const CompileOptions& rOptions )
 {
-	if( !std::filesystem::exists( rOptions.InputFile ) )
-	{
-		std::cerr << "Failed to compile " << rOptions.InputFile.string() << ". File does not exist.\n";
-		return;
-	}
-
 	std::future Future = std::async( &ICompiler::CompileAsync, this, rOptions );
 
 	m_Futures.emplace_back( std::move( Future ) );
@@ -45,15 +39,6 @@ void ICompiler::Compile( const CompileOptions& rOptions )
 
 void ICompiler::Link( const LinkOptions& rOptions )
 {
-	for( const std::filesystem::path& rInputFile : rOptions.InputFiles )
-	{
-		if( !std::filesystem::exists( rInputFile ) )
-		{
-			std::cerr << "Failed to link " << rInputFile.string() << ". File does not exist.\n";
-			return;
-		}
-	}
-
 	std::future Future = std::async( &ICompiler::LinkAsync, this, rOptions );
 
 	m_Futures.emplace_back( std::move( Future ) );
@@ -69,10 +54,7 @@ void ICompiler::CompileAsync( CompileOptions Options )
 	std::wstring CommandLine = MakeCommandLineString( Options );
 	Process      Process( std::move( CommandLine ) );
 
-	CompilationDone Event;
-	Event.options   = Options;
-	Event.exit_code = Process.ExitCode();
-	Publish( Event );
+	Events.FinishedCompiling( *this, Options, Process.ExitCode() );
 
 } // CompileAsync
 
@@ -85,9 +67,6 @@ void ICompiler::LinkAsync( LinkOptions Options )
 	std::wstring CommandLine = MakeCommandLineString( Options );
 	Process      Process( std::move( CommandLine ) );
 
-	LinkingDone Event;
-	Event.options   = Options;
-	Event.exit_code = Process.ExitCode();
-	Publish( Event );
+	Events.FinishedLinking( *this, Options, Process.ExitCode() );
 
 } // LinkAsync

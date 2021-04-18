@@ -195,8 +195,8 @@ void Workspace::BuildNextProject( void )
 		return;
 
 	// Find the next project to build
-	auto Project = std::find_if( m_Projects.begin(), m_Projects.end(), [ this ]( ::Project& rProject ) { return ( rProject.m_Name == m_ProjectsLeftToBuild.back() ); } );
-	if( Project == m_Projects.end() )
+	auto ProjectIt = std::find_if( m_Projects.begin(), m_Projects.end(), [ this ]( ::Project& rProject ) { return ( rProject.m_Name == m_ProjectsLeftToBuild.back() ); } );
+	if( ProjectIt == m_Projects.end() )
 	{
 		// If next project was not found, remove it from the queue and try again
 		m_ProjectsLeftToBuild.pop_back();
@@ -204,19 +204,19 @@ void Workspace::BuildNextProject( void )
 	}
 	else
 	{
-		std::cout << "=== Started building " << Project->m_Name << " ===\n";
+		std::cout << "=== Started building " << ProjectIt->m_Name << " ===\n";
 
-		*Project ^= [ this ]( const ProjectBuildFinished& rEvent )
+		ProjectIt->Events.BuildFinished += [ this ]( Project& rProject, std::filesystem::path OutputFile, bool Success )
 		{
-			if( rEvent.Success ) std::cout << "=== " << rEvent.pProject->m_Name << " finished successfully ===\n";
-			else                 std::cerr << "=== " << rEvent.pProject->m_Name << " finished with errors ===\n";
+			if( Success ) std::cout << "=== " << rProject.m_Name << " finished successfully ===\n";
+			else          std::cerr << "=== " << rProject.m_Name << " finished with errors ===\n";
 
-			auto NextProject = std::find( m_ProjectsLeftToBuild.begin(), m_ProjectsLeftToBuild.end(), rEvent.pProject->m_Name );
+			auto NextProject = std::find( m_ProjectsLeftToBuild.begin(), m_ProjectsLeftToBuild.end(), rProject.m_Name );
 			if( NextProject != m_ProjectsLeftToBuild.end() )
 			{
 				m_ProjectsLeftToBuild.erase( NextProject );
 
-				if( m_ProjectsLeftToBuild.empty() ) OnBuildFinished( rEvent.Output, rEvent.Success );
+				if( m_ProjectsLeftToBuild.empty() ) OnBuildFinished( OutputFile, Success );
 				else                                BuildNextProject();
 			}
 			else
@@ -225,7 +225,7 @@ void Workspace::BuildNextProject( void )
 			}
 		};
 
-		Project->Build( *m_Compiler );
+		ProjectIt->Build( *m_Compiler );
 	}
 
 } // BuildNextProject
@@ -234,11 +234,7 @@ void Workspace::BuildNextProject( void )
 
 void Workspace::OnBuildFinished( const std::filesystem::path& rOutput, bool Success )
 {
-	WorkspaceBuildFinished Event;
-	Event.pWorkspace = this;
-	Event.Output     = rOutput;
-	Event.Success    = Success;
-	Publish( Event );
+	Events.BuildFinished( *this, rOutput, Success );
 
 } // OnBuildFinished
 

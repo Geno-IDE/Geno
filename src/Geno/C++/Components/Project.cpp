@@ -256,11 +256,11 @@ void Project::BuildNextFile( ICompiler& rCompiler )
 	else
 	{
 		// Listen to every file compilation to check if we're 
-		rCompiler ^= [ this, &rCompiler ]( const CompilationDone& rEvent )
+		rCompiler.Events.FinishedCompiling += [ this ]( ICompiler& rCompiler, CompileOptions Options, int /*ExitCode*/ )
 		{
-			if( auto NextFile = std::find( m_FilesLeftToBuild.begin(), m_FilesLeftToBuild.end(), rEvent.options.InputFile ); NextFile != m_FilesLeftToBuild.end() )
+			if( auto NextFile = std::find( m_FilesLeftToBuild.begin(), m_FilesLeftToBuild.end(), Options.InputFile ); NextFile != m_FilesLeftToBuild.end() )
 			{
-				m_FilesToLink.push_back( rEvent.options.OutputFile );
+				m_FilesToLink.push_back( Options.OutputFile );
 				m_FilesLeftToBuild.erase( NextFile );
 				BuildNextFile( rCompiler );
 			}
@@ -270,8 +270,8 @@ void Project::BuildNextFile( ICompiler& rCompiler )
 		Options.InputFile  = *File;
 		Options.OutputFile = m_Location / File->filename();
 		Options.OutputFile.replace_extension( ".o" );
-		Options.Language    = CompileOptions::Language::CPlusPlus;
-		Options.Action      = CompileOptions::Action::CompileAndAssemble;
+		Options.Language   = CompileOptions::Language::CPlusPlus;
+		Options.Action     = CompileOptions::Action::CompileAndAssemble;
 
 		// Compile the file
 		rCompiler.Compile( Options );
@@ -283,14 +283,9 @@ void Project::BuildNextFile( ICompiler& rCompiler )
 
 void Project::Link( ICompiler& rCompiler )
 {
-	rCompiler ^= [ this ]( const LinkingDone& rEvent )
+	rCompiler.Events.FinishedLinking += [ this ]( ICompiler& /*rCompiler*/, LinkOptions Options, int ExitCode )
 	{
-		ProjectBuildFinished Event;
-		Event.pProject = this;
-		Event.Output   = rEvent.options.OutputFile;
-		Event.Success  = rEvent.exit_code == 0;
-
-		Publish( Event );
+		Events.BuildFinished( *this, Options.OutputFile, ExitCode == 0 );
 	};
 
 	LinkOptions Options;

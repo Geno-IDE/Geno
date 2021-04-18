@@ -193,12 +193,12 @@ void MainMenuBar::ActionBuildBuildAndRun( void )
 	{
 		OutputWidget::Instance().ClearCapture();
 
-		*pWorkspace ^= [ this ]( const WorkspaceBuildFinished& rEvent )
+		pWorkspace->Events.BuildFinished += [ this ]( Workspace& /*rWorkspace*/, std::filesystem::path OutputFile, bool /*Success*/ )
 		{
-			const std::string OutputString = rEvent.Output.string();
+			const std::string OutputString = OutputFile.string();
 
 			std::cout << "=== Running " << OutputString << "===\n";
-			Process process( rEvent.Output.wstring() );
+			Process process( OutputFile.wstring() );
 			std::cout << "=== " << OutputString << " finished with exit code " << process.ExitCode() << " ===\n";
 		};
 

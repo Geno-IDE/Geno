@@ -19,24 +19,15 @@
 #include "Components/Enums/ProjectKind.h"
 #include "Components/Configuration.h"
 
-#include <Common/EventDispatcher.h>
+#include <Common/Event.h>
 #include <GCL/Object.h>
 
 #include <filesystem>
 #include <vector>
 
 class ICompiler;
-class Project;
 
-struct ProjectBuildFinished
-{
-	Project*              pProject;
-	std::filesystem::path Output;
-	bool                  Success = false;
-
-}; // ProjectBuildFinished
-
-class Project : public EventDispatcher< Project, ProjectBuildFinished >
+class Project
 {
 	GENO_DISABLE_COPY( Project );
 
@@ -58,6 +49,14 @@ public:
 	void Build      ( ICompiler& rCompiler );
 	bool Serialize  ( void );
 	bool Deserialize( void );
+
+//////////////////////////////////////////////////////////////////////////
+
+	struct
+	{
+		Event< Project, void( std::filesystem::path OutputFile, bool Success ) > BuildFinished;
+
+	} Events;
 
 //////////////////////////////////////////////////////////////////////////
 
