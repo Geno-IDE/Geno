@@ -269,7 +269,7 @@ void Project::BuildNextFile( ICompiler& rCompiler )
 		CompileOptions Options;
 		Options.InputFile  = *File;
 		Options.OutputFile = m_Location / File->filename();
-		Options.OutputFile.replace_extension( ".o" );
+		Options.OutputFile.replace_extension( ".obj" );
 		Options.Language   = CompileOptions::Language::CPlusPlus;
 		Options.Action     = CompileOptions::Action::CompileAndAssemble;
 

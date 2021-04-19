@@ -18,6 +18,7 @@
 #include "Workspace.h"
 
 #include "Compilers/CompilerGCC.h"
+#include "Compilers/CompilerMSVC.h"
 
 #include <iostream>
 
@@ -30,7 +31,8 @@ Workspace::Workspace( std::filesystem::path Location )
 	: m_Location( std::move( Location ) )
 	, m_Name    ( "MyWorkspace" )
 {
-	m_Compiler = std::make_unique< CompilerGCC >();
+//	m_Compiler = std::make_unique< CompilerGCC >();
+	m_Compiler = std::make_unique< CompilerMSVC >();
 
 } // Workspace
 
