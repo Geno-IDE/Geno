@@ -23,7 +23,6 @@
 #include "Common/Process.h"
 
 #include <future>
-#include <iostream>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -49,12 +48,10 @@ void ICompiler::Link( const LinkOptions& rOptions )
 
 void ICompiler::CompileAsync( CompileOptions Options )
 {
-	std::cout << "<- " << Options.InputFile.filename().string() << "\n";
+	const std::wstring CommandLine = MakeCommandLineString( Options );
+	const int          ExitCode    = Process::ResultOf( CommandLine );
 
-	std::wstring CommandLine = MakeCommandLineString( Options );
-	Process      Process( std::move( CommandLine ) );
-
-	Events.FinishedCompiling( *this, Options, Process.ExitCode() );
+	Events.FinishedCompiling( *this, Options, ExitCode );
 
 } // CompileAsync
 
@@ -62,11 +59,9 @@ void ICompiler::CompileAsync( CompileOptions Options )
 
 void ICompiler::LinkAsync( LinkOptions Options )
 {
-	std::cout << "-> " << Options.OutputFile.filename().string() << "\n";
+	const std::wstring CommandLine = MakeCommandLineString( Options );
+	const int          ExitCode    = Process::ResultOf( CommandLine );
 
-	std::wstring CommandLine = MakeCommandLineString( Options );
-	Process      Process( std::move( CommandLine ) );
-
-	Events.FinishedLinking( *this, Options, Process.ExitCode() );
+	Events.FinishedLinking( *this, Options, ExitCode );
 
 } // LinkAsync

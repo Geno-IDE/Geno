@@ -18,25 +18,11 @@
 #pragma once
 #include <string>
 
-class Process
+namespace Process
 {
-public:
 
-	explicit Process( std::wstring CommandLine );
+extern int          ResultOf( const std::wstring& rCommandLine );
+extern std::wstring OutputOf( const std::wstring& rCommandLine, int& rResult );
+extern std::wstring OutputOf( const std::wstring& rCommandLine );
 
-//////////////////////////////////////////////////////////////////////////
-
-	int ExitCode( void ) const { return m_ExitCode; }
-
-//////////////////////////////////////////////////////////////////////////
-
-private:
-
-	int Run( void );
-
-//////////////////////////////////////////////////////////////////////////
-
-	std::wstring m_CommandLine;
-	int          m_ExitCode = -1;
-
-}; // Process
+}; // ::Process

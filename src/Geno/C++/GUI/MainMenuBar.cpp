@@ -198,8 +198,9 @@ void MainMenuBar::ActionBuildBuildAndRun( void )
 			const std::string OutputString = OutputFile.string();
 
 			std::cout << "=== Running " << OutputString << "===\n";
-			Process process( OutputFile.wstring() );
-			std::cout << "=== " << OutputString << " finished with exit code " << process.ExitCode() << " ===\n";
+
+			const int ExitCode = Process::ResultOf( OutputFile.wstring() );
+			std::cout << "=== " << OutputString << " finished with exit code " << ExitCode << " ===\n";
 		};
 
 		pWorkspace->Build();

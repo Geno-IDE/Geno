@@ -32,36 +32,18 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-Process::Process( std::wstring CommandLine )
-	: m_CommandLine( std::move( CommandLine ) )
-	, m_ExitCode   ( Run() )
+static int Run( const std::wstring& rCommandLine, HANDLE StdIn, HANDLE StdOut, HANDLE StdErr )
 {
-} // Process
-
-//////////////////////////////////////////////////////////////////////////
-
-int Process::Run( void )
-{
-
-#if defined( _WIN32 )
-
-	STARTUPINFO      StartupInfo = { };
-	int              FileIn      = _fileno( stdin );
-	int              FileOut     = _fileno( stdout );
-	int              FileErr     = _fileno( stderr );
-	Win32ProcessInfo ProcessInfo;
-
+	STARTUPINFO StartupInfo = { };
 	StartupInfo.cb          = sizeof( STARTUPINFO );
 	StartupInfo.wShowWindow = SW_HIDE;
 	StartupInfo.dwFlags     = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
-	StartupInfo.hStdInput   = ( ( FileIn  > 0 ) ? ( HANDLE )_get_osfhandle( FileIn )  : GetStdHandle( STD_INPUT_HANDLE ) );
-	StartupInfo.hStdOutput  = ( ( FileOut > 0 ) ? ( HANDLE )_get_osfhandle( FileOut ) : GetStdHandle( STD_OUTPUT_HANDLE ) );
-	StartupInfo.hStdError   = ( ( FileErr > 0 ) ? ( HANDLE )_get_osfhandle( FileErr ) : GetStdHandle( STD_ERROR_HANDLE ) );
+	StartupInfo.hStdInput   = StdIn;
+	StartupInfo.hStdOutput  = StdOut;
+	StartupInfo.hStdError   = StdErr;
 
-	static std::wstring_convert< std::codecvt_utf8< wchar_t > > ConvertUTF8;
-	const std::string CommandLineUTF8 = ConvertUTF8.to_bytes( m_CommandLine.data(), m_CommandLine.data() + m_CommandLine.size() );
-
-	if( WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( m_CommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) ) )
+	Win32ProcessInfo ProcessInfo;
+	if( WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( rCommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) ) )
 	{
 		BOOL  Result;
 		DWORD ExitCode;
@@ -72,8 +54,66 @@ int Process::Run( void )
 		return Result ? static_cast< int >( ExitCode ) : -1;
 	}
 
-#endif // _WIN32
-
 	return -1;
 
 } // Run
+
+//////////////////////////////////////////////////////////////////////////
+
+int Process::ResultOf( const std::wstring& rCommandLine )
+{
+	HANDLE StdOut = ( HANDLE )_get_osfhandle( _fileno( stdout ) );
+	HANDLE StdIn  = ( HANDLE )_get_osfhandle( _fileno( stdin ) );
+	HANDLE StdErr = ( HANDLE )_get_osfhandle( _fileno( stderr ) );
+
+	return Run( rCommandLine, StdIn, StdOut, StdErr );
+
+} // ResultOf
+
+//////////////////////////////////////////////////////////////////////////
+
+std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
+{
+	HANDLE Read;
+	HANDLE Write;
+
+	SECURITY_ATTRIBUTES SecurityAttributes;
+	SecurityAttributes.nLength              = sizeof( SECURITY_ATTRIBUTES );
+	SecurityAttributes.bInheritHandle       = TRUE;
+	SecurityAttributes.lpSecurityDescriptor = nullptr;
+
+	if( CreatePipe( &Read, &Write, &SecurityAttributes, 0 ) )
+	{
+		std::wstring Output;
+		std::string  AnsiBuffer;
+
+		rResult = Run( rCommandLine, nullptr, Write, Write );
+
+		DWORD BytesAvailable;
+		if( PeekNamedPipe( Read, nullptr, 0, nullptr, &BytesAvailable, nullptr ) && BytesAvailable )
+		{
+			AnsiBuffer.resize( BytesAvailable );
+			Output    .resize( BytesAvailable );
+
+			ReadFile( Read, AnsiBuffer.data(), BytesAvailable, nullptr, nullptr );
+			MultiByteToWideChar( CP_ACP, 0, AnsiBuffer.c_str(), BytesAvailable, Output.data(), BytesAvailable );
+		}
+
+		CloseHandle( Write );
+		CloseHandle( Read );
+
+		return Output;
+	}
+
+	return std::wstring();
+
+} // OutputOf
+
+//////////////////////////////////////////////////////////////////////////
+
+std::wstring Process::OutputOf( const std::wstring& rCommandLine )
+{
+	int Result;
+	return OutputOf( rCommandLine, Result );
+
+} // OutputOf
