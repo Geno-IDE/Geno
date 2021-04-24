@@ -17,8 +17,10 @@ function library( name )
 	}
 
 	vpaths {
-		[ 'Source Files/*' ] = 'src/' .. name,
-		[ 'Header Files/*' ] = 'include/' .. name,
+		[ '*' ] = {
+			'src/'     .. name,
+			'include/' .. name,
+		}
 	}
 
 	filter 'system:macosx or ios'

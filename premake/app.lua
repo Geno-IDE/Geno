@@ -36,7 +36,7 @@ function app( name )
 			'src/%{prj.name}/Resources/win32-resource.h',
 		}
 		vpaths {
-			[ 'Resources/*' ] = 'src/' .. name .. '/Resources',
+			[ 'Resource Files/*' ] = 'src/' .. name .. '/Resources',
 		}
 
 	filter 'system:linux'
