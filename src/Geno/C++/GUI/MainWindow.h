@@ -16,8 +16,13 @@
  */
 
 #pragma once
-#include "Common/Drop.h"
-#include "Common/Macros.h"
+#include "GUI/Widgets/MainMenuBar.h"
+#include "GUI/Widgets/OutputWindow.h"
+#include "GUI/Widgets/TextEdit.h"
+#include "GUI/Widgets/WorkspaceOutliner.h"
+
+#include <Common/Drop.h>
+#include <Common/Macros.h>
 
 #include <optional>
 #include <string>
@@ -58,6 +63,13 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
+	MainMenuBar       MenuBar           = { };
+	WorkspaceOutliner WorkspaceOutliner = { };
+	TextEdit          TextEdit          = { };
+	OutputWindow      OutputWindow      = { };
+
+//////////////////////////////////////////////////////////////////////////
+
 private:
 
 	static void GLFWErrorCB( int Error, const char* pDescription );
@@ -65,11 +77,13 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::filesystem::path m_IniPath;
-	std::optional< Drop > m_DraggedDrop;
+	std::filesystem::path m_IniPath            = { };
+
+	std::optional< Drop > m_DraggedDrop        = { };
 
 	GLFWwindow*           m_pWindow            = nullptr;
 	ImGuiContext*         m_pImGuiContext      = nullptr;
+
 	int                   m_Width              = 0;
 	int                   m_Height             = 0;
 	int                   m_LayoutStackCounter = 0;

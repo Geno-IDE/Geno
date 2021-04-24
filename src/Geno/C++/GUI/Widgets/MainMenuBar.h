@@ -16,47 +16,49 @@
  */
 
 #pragma once
-#include <Common/Macros.h>
-#include <Common/Texture2D.h>
+#include "Components/BuildMatrix.h"
 
-#include <filesystem>
-#include <string>
+#include <string_view>
 #include <vector>
 
+#include <Common/Macros.h>
+
 class  Drop;
-struct ImGuiInputTextCallbackData;
+struct CompilationDone;
+struct WorkspaceOpened;
 
-class TextEditWidget
+class MainMenuBar
 {
-	GENO_SINGLETON( TextEditWidget );
-
-	TextEditWidget( void ) = default;
-
-//////////////////////////////////////////////////////////////////////////
-
 public:
 
-	struct File
-	{
-		std::filesystem::path Path;
-		std::string           Text;
-
-		bool                  Open = true;
-
-	}; // File
+	void Draw( void );
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Show      ( bool* pOpen );
-	void AddFile   ( const std::filesystem::path& rPath );
-	void OnDragDrop( const Drop& rDrop, int X, int Y );
+	float Height( void ) const { return m_Height; }
+
+//////////////////////////////////////////////////////////////////////////
+
+	bool ShowDemoWindow        = false;
+	bool ShowAboutWindow       = false;
+	bool ShowTextEdit          = false;
+	bool ShowWorkspaceOutliner = false;
+	bool ShowOutputWindow      = false;
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
-	Texture2D           m_DraggedBitmapTexture;
+	void ActionFileNewWorkspace  ( void );
+	void ActionFileOpenWorkspace ( void );
+	void ActionFileCloseWorkspace( void );
+	void ActionFileExit          ( void );
+	void ActionBuildBuildAndRun  ( void );
+	void ActionBuildBuild        ( void );
+	void AddBuildMatrixColumn    ( BuildMatrix::Column& rColumn );
 
-	std::vector< File > m_Files;
+//////////////////////////////////////////////////////////////////////////
 
-}; // TextEditWidget
+	float m_Height = 0.0f;
+
+}; // MainMenuBar

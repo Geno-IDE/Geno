@@ -20,9 +20,9 @@
 #include "Compilers/ICompiler.h"
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
-#include "GUI/Widgets/OutputWidget.h"
-#include "GUI/Widgets/TextEditWidget.h"
-#include "GUI/Widgets/WorkspaceWidget.h"
+#include "GUI/Widgets/OutputWindow.h"
+#include "GUI/Widgets/TextEdit.h"
+#include "GUI/Widgets/WorkspaceOutliner.h"
 #include "GUI/MainWindow.h"
 #include "Application.h"
 
@@ -39,13 +39,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-void MainMenuBar::Show( void )
+void MainMenuBar::Draw( void )
 {
-	// Initialize windows before user requests it be shown
-	OutputWidget   ::Instance();
-	TextEditWidget ::Instance();
-	WorkspaceWidget::Instance();
-
 	if( ImGui::BeginMainMenuBar() )
 	{
 		m_Height = ImGui::GetWindowHeight();
@@ -73,17 +68,17 @@ void MainMenuBar::Show( void )
 
 		if( ImGui::BeginMenu( "View" ) )
 		{
-			if( ImGui::MenuItem( "Text Edit", "Alt+T" ) ) ActionViewTextEdit();
-			if( ImGui::MenuItem( "Workspace", "Alt+W" ) ) ActionViewWorkspace();
-			if( ImGui::MenuItem( "Output", "Alt+O" ) )    ActionViewOutput();
+			if( ImGui::MenuItem( "Text Edit", "Alt+T" ) ) ShowTextEdit          ^= 1;
+			if( ImGui::MenuItem( "Workspace", "Alt+W" ) ) ShowWorkspaceOutliner ^= 1;
+			if( ImGui::MenuItem( "Output",    "Alt+O" ) ) ShowOutputWindow      ^= 1;
 
 			ImGui::EndMenu();
 		}
 
 		if( ImGui::BeginMenu( "Help" ) )
 		{
-			if( ImGui::MenuItem( "Demo" ) )  ActionHelpDemo();
-			if( ImGui::MenuItem( "About" ) ) ActionHelpAbout();
+			if( ImGui::MenuItem( "Demo" ) )  ShowDemoWindow  ^= 1;
+			if( ImGui::MenuItem( "About" ) ) ShowAboutWindow ^= 1;
 
 			ImGui::EndMenu();
 		}
@@ -114,10 +109,10 @@ void MainMenuBar::Show( void )
 	}
 	else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_ALT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_ALT ) )
 	{
-		if( ImGui::IsKeyPressed( GLFW_KEY_E ) ) ActionFileExit();
-		if( ImGui::IsKeyPressed( GLFW_KEY_T ) ) ActionViewTextEdit();
-		if( ImGui::IsKeyPressed( GLFW_KEY_W ) ) ActionViewWorkspace();
-		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ActionViewOutput();
+		if( ImGui::IsKeyPressed( GLFW_KEY_E ) ) exit( 0 );
+		if( ImGui::IsKeyPressed( GLFW_KEY_T ) ) ShowTextEdit          ^= 1;
+		if( ImGui::IsKeyPressed( GLFW_KEY_W ) ) ShowWorkspaceOutliner ^= 1;
+		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ShowOutputWindow      ^= 1;
 	}
 	else
 	{
@@ -125,23 +120,7 @@ void MainMenuBar::Show( void )
 		if( ImGui::IsKeyPressed( GLFW_KEY_F7 ) ) ActionBuildBuild();
 	}
 
-	// Show widgets
-	if( m_ShowDemoWindow  ) ImGui::ShowDemoWindow(            &m_ShowDemoWindow );
-	if( m_ShowAboutWindow ) ImGui::ShowAboutWindow(           &m_ShowAboutWindow );
-	if( m_ShowTextEdit    ) TextEditWidget ::Instance().Show( &m_ShowTextEdit );
-	if( m_ShowWorkspace   ) WorkspaceWidget::Instance().Show( &m_ShowWorkspace );
-	if( m_ShowOutput      ) OutputWidget   ::Instance().Show( &m_ShowOutput );
-
-} // Show
-
-//////////////////////////////////////////////////////////////////////////
-
-void MainMenuBar::OnDragDrop( const Drop& rDrop, int X, int Y )
-{
-	if( m_ShowTextEdit )
-		TextEditWidget::Instance().OnDragDrop( rDrop, X, Y );
-
-} // OnDragDrop
+} // Draw
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -191,7 +170,7 @@ void MainMenuBar::ActionBuildBuildAndRun( void )
 {
 	if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 	{
-		OutputWidget::Instance().ClearCapture();
+		MainWindow::Instance().OutputWindow.ClearCapture();
 
 		pWorkspace->Events.BuildFinished += [ this ]( Workspace& /*rWorkspace*/, std::filesystem::path OutputFile, bool /*Success*/ )
 		{
@@ -214,52 +193,12 @@ void MainMenuBar::ActionBuildBuild( void )
 {
 	if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 	{
-		OutputWidget::Instance().ClearCapture();
+		MainWindow::Instance().OutputWindow.ClearCapture();
 
 		pWorkspace->Build();
 	}
 
 } // ActionBuildBuild
-
-//////////////////////////////////////////////////////////////////////////
-
-void MainMenuBar::ActionViewTextEdit( void )
-{
-	m_ShowTextEdit ^= 1;
-
-} // ActionViewTextEdit
-
-//////////////////////////////////////////////////////////////////////////
-
-void MainMenuBar::ActionViewWorkspace( void )
-{
-	m_ShowWorkspace ^= 1;
-
-} // ActionViewWorkspace
-
-//////////////////////////////////////////////////////////////////////////
-
-void MainMenuBar::ActionViewOutput( void )
-{
-	m_ShowOutput ^= 1;
-
-} // ActionViewOutput
-
-//////////////////////////////////////////////////////////////////////////
-
-void MainMenuBar::ActionHelpDemo( void )
-{
-	m_ShowDemoWindow ^= 1;
-
-} // ActionHelpDemo
-
-//////////////////////////////////////////////////////////////////////////
-
-void MainMenuBar::ActionHelpAbout( void )
-{
-	m_ShowAboutWindow ^= 1;
-
-} // ActionHelpAbout
 
 //////////////////////////////////////////////////////////////////////////
 

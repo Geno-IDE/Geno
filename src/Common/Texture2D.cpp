@@ -19,7 +19,30 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-Texture2D::Texture2D( void )
+Texture2D::~Texture2D( void )
+{
+	if( m_ID )
+		glDeleteTextures( 1, &m_ID );
+
+} // ~Texture2D
+
+//////////////////////////////////////////////////////////////////////////
+
+void Texture2D::SetPixels( GLint InternalFormat, GLsizei Width, GLsizei Height, GLenum Format, const GLvoid* pData )
+{
+	if( !m_ID )
+		CreateTexture();
+
+	glBindTexture( GL_TEXTURE_2D, m_ID );
+	glTexImage2D( GL_TEXTURE_2D, 0, InternalFormat, Width, Height, 0, Format, GL_UNSIGNED_BYTE, pData );
+	glGenerateMipmap( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, 0 );
+
+} // SetPixels
+
+//////////////////////////////////////////////////////////////////////////
+
+void Texture2D::CreateTexture( void )
 {
 	glCreateTextures( GL_TEXTURE_2D, 1, &m_ID );
 	glBindTexture( GL_TEXTURE_2D, m_ID );
@@ -29,23 +52,4 @@ Texture2D::Texture2D( void )
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glBindTexture( GL_TEXTURE_2D, 0 );
 
-} // Texture2D
-
-//////////////////////////////////////////////////////////////////////////
-
-Texture2D::~Texture2D( void )
-{
-	glDeleteTextures( 1, &m_ID );
-
-} // ~Texture2D
-
-//////////////////////////////////////////////////////////////////////////
-
-void Texture2D::SetPixels( GLint InternalFormat, GLsizei Width, GLsizei Height, GLenum Format, const GLvoid* pData )
-{
-	glBindTexture( GL_TEXTURE_2D, m_ID );
-	glTexImage2D( GL_TEXTURE_2D, 0, InternalFormat, Width, Height, 0, Format, GL_UNSIGNED_BYTE, pData );
-	glGenerateMipmap( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, 0 );
-
-} // SetPixels
+} // CreateTexture

@@ -18,26 +18,41 @@
 #pragma once
 #include "Common/Macros.h"
 
-class WorkspaceWidget
-{
-	GENO_SINGLETON( WorkspaceWidget );
+#include <string>
 
-	WorkspaceWidget( void ) = default;
+#if defined( _WIN32 )
+#include <Windows.h>
+#endif // _WIN32
+
+class OutputWindow
+{
+public:
+
+	 OutputWindow( void );
+	~OutputWindow( void );
 
 //////////////////////////////////////////////////////////////////////////
 
 public:
 
-	void Show( bool* pOpen );
+	void Show        ( bool* pOpen );
+	void ClearCapture( void );
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
-	std::string m_PopupText;
-	std::string m_SelectedProjectName;
-	std::string m_ProjectNodeToBeExpanded;
+	void RedirectOutputStream( int* pFileDescriptor, FILE* pFileStream );
+	void Capture             ( void );
 
-	bool        m_ExpandWorkspaceNode = false;
+//////////////////////////////////////////////////////////////////////////
 
-}; // WorkspaceWidget
+	std::string m_Captured;
+
+	int         m_Pipe[ 2 ] = { };
+	int         m_StdOut    = 0;
+	int         m_StdErr    = 0;
+	int         m_OldStdOut = 0;
+	int         m_OldStdErr = 0;
+
+}; // OutputWidget

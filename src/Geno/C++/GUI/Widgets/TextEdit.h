@@ -16,30 +16,41 @@
  */
 
 #pragma once
-#include <GL/glew.h>
+#include <Common/Macros.h>
+#include <Common/Texture2D.h>
 
-class Texture2D
+#include <filesystem>
+#include <string>
+#include <vector>
+
+class  Drop;
+struct ImGuiInputTextCallbackData;
+
+class TextEdit
 {
 public:
 
-	~Texture2D( void );
+	struct File
+	{
+		std::filesystem::path Path;
+		std::string           Text;
+
+		bool                  Open = true;
+
+	}; // File
 
 //////////////////////////////////////////////////////////////////////////
 
-	void SetPixels( GLint InternalFormat, GLsizei Width, GLsizei Height, GLenum Format, const GLvoid* pData );
-
-//////////////////////////////////////////////////////////////////////////
-
-	GLuint GetID( void ) const { return m_ID; }
+	void Show      ( bool* pOpen );
+	void AddFile   ( const std::filesystem::path& rPath );
+	void OnDragDrop( const Drop& rDrop, int X, int Y );
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
-	void CreateTexture( void );
+	Texture2D           m_DraggedBitmapTexture;
 
-//////////////////////////////////////////////////////////////////////////
+	std::vector< File > m_Files;
 
-	GLuint m_ID = 0;
-
-}; // Texture2D
+}; // TextEdit

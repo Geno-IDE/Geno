@@ -15,7 +15,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "OutputWidget.h"
+#include "OutputWindow.h"
 
 #include <filesystem>
 
@@ -34,7 +34,7 @@ constexpr uint32_t pipe_size = 64 * 1024;
 
 //////////////////////////////////////////////////////////////////////////
 
-OutputWidget::OutputWidget( void )
+OutputWindow::OutputWindow( void )
 {
 	RedirectOutputStream( &m_StdOut, stdout );
 	RedirectOutputStream( &m_StdErr, stderr );
@@ -61,7 +61,7 @@ OutputWidget::OutputWidget( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-OutputWidget::~OutputWidget( void )
+OutputWindow::~OutputWindow( void )
 {
 	GENO_ASSERT( _dup2( m_OldStdOut, m_StdOut ) == 0 );
 	GENO_ASSERT( _dup2( m_OldStdErr, m_StdErr ) == 0 );
@@ -76,7 +76,7 @@ OutputWidget::~OutputWidget( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void OutputWidget::Show( bool* pOpen )
+void OutputWindow::Show( bool* pOpen )
 {
 	if( ImGui::Begin( "Output", pOpen ) )
 	{
@@ -90,7 +90,7 @@ void OutputWidget::Show( bool* pOpen )
 
 //////////////////////////////////////////////////////////////////////////
 
-void OutputWidget::ClearCapture( void )
+void OutputWindow::ClearCapture( void )
 {
 	m_Captured.clear();
 
@@ -98,7 +98,7 @@ void OutputWidget::ClearCapture( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void OutputWidget::RedirectOutputStream( int* pFileDescriptor, FILE* pFileStream )
+void OutputWindow::RedirectOutputStream( int* pFileDescriptor, FILE* pFileStream )
 {
 	if( ( *pFileDescriptor = _fileno( pFileStream ) ) < 0 )
 	{
@@ -125,7 +125,7 @@ void OutputWidget::RedirectOutputStream( int* pFileDescriptor, FILE* pFileStream
 
 //////////////////////////////////////////////////////////////////////////
 
-void OutputWidget::Capture( void )
+void OutputWindow::Capture( void )
 {
 	if( !_eof( m_Pipe[ READ ] ) )
 	{

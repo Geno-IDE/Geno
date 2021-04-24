@@ -15,14 +15,15 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "WorkspaceWidget.h"
+#include "WorkspaceOutliner.h"
 
 #include "Components/Project.h"
-#include "GUI/Widgets/TextEditWidget.h"
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Modals/ProjectSettingsModal.h"
 #include "GUI/Modals/WorkspaceSettingsModal.h"
+#include "GUI/Widgets/TextEdit.h"
+#include "GUI/MainWindow.h"
 #include "Application.h"
 
 #include <fstream>
@@ -32,7 +33,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-void WorkspaceWidget::Show( bool* pOpen )
+void WorkspaceOutliner::Show( bool* pOpen )
 {
 	if( ImGui::Begin( "Workspace", pOpen ) )
 	{
@@ -73,7 +74,7 @@ void WorkspaceWidget::Show( bool* pOpen )
 
 							if( ImGui::Selectable( FileString.c_str() ) )
 							{
-								TextEditWidget::Instance().AddFile( rFile );
+								MainWindow::Instance().TextEdit.AddFile( rFile );
 							}
 						}
 
@@ -119,7 +120,7 @@ void WorkspaceWidget::Show( bool* pOpen )
 					NewItemModal::Instance().RequestPath( "New Project", pWorkspace->m_Location, this,
 						[]( std::string name, std::filesystem::path location, void* user )
 						{
-							WorkspaceWidget* self = static_cast< WorkspaceWidget* >( user );
+							WorkspaceOutliner* self = static_cast< WorkspaceOutliner* >( user );
 
 							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
 							{
@@ -152,7 +153,7 @@ void WorkspaceWidget::Show( bool* pOpen )
 					NewItemModal::Instance().RequestPath( "New File", pProject->m_Location, this,
 						[]( std::string Name, std::filesystem::path Location, void* pUser )
 						{
-							WorkspaceWidget* pSelf = static_cast< WorkspaceWidget* >( pUser );
+							WorkspaceOutliner* pSelf = static_cast< WorkspaceOutliner* >( pUser );
 
 							if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 							{
@@ -179,7 +180,7 @@ void WorkspaceWidget::Show( bool* pOpen )
 					OpenFileModal::Instance().RequestFile( "Add File", this,
 						[]( const std::filesystem::path& rPath, void* pUser )
 						{
-							WorkspaceWidget* pSelf = static_cast< WorkspaceWidget* >( pUser );
+							WorkspaceOutliner* pSelf = static_cast< WorkspaceOutliner* >( pUser );
 
 							if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 							{

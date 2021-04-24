@@ -15,11 +15,11 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "TextEditWidget.h"
+#include "TextEdit.h"
 
 #include "Common/Drop.h"
 #include "Common/LocalAppData.h"
-#include "GUI/MainMenuBar.h"
+#include "GUI/Widgets/MainMenuBar.h"
 #include "GUI/MainWindow.h"
 #include "Application.h"
 
@@ -34,7 +34,7 @@ const char* WINDOW_NAME = "Text Edit";
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEditWidget::Show( bool* pOpen )
+void TextEdit::Show( bool* pOpen )
 {
 	ImGuiStyle& rStyle          = ImGui::GetStyle();
 	ImVec4      BackgroundColor = rStyle.Colors[ ImGuiCol_WindowBg ];
@@ -144,7 +144,7 @@ void TextEditWidget::Show( bool* pOpen )
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEditWidget::AddFile( const std::filesystem::path& rPath )
+void TextEdit::AddFile( const std::filesystem::path& rPath )
 {
 	if( !std::filesystem::exists( rPath ) )
 	{
@@ -178,7 +178,7 @@ void TextEditWidget::AddFile( const std::filesystem::path& rPath )
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEditWidget::OnDragDrop( const Drop& rDrop, int X, int Y )
+void TextEdit::OnDragDrop( const Drop& rDrop, int X, int Y )
 {
 	ImGuiWindow* pWindow = ImGui::FindWindowByName( WINDOW_NAME );
 

@@ -18,7 +18,6 @@
 #include "Application.h"
 
 #include "GUI/Modals/IModal.h"
-#include "GUI/MainMenuBar.h"
 #include "GUI/MainWindow.h"
 
 #include <iostream>
@@ -40,8 +39,6 @@ int Application::Run( void )
 
 	while( MainWindow::Instance().BeginFrame() )
 	{
-		MainMenuBar::Instance().Show();
-
 		// This will update all modals recursively
 		if( !m_ModalStack.empty() )
 			m_ModalStack.front()->Update();

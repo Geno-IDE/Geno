@@ -19,7 +19,6 @@
 
 #include "Common/LocalAppData.h"
 #include "GUI/Platform/Win32/Win32DropTarget.h"
-#include "GUI/MainMenuBar.h"
 #include "GUI/PrimaryMonitor.h"
 
 #include <iostream>
@@ -167,6 +166,14 @@ bool MainWindow::BeginFrame( void )
 	ImGui::NewFrame();
 	ImGui::DockSpaceOverViewport();
 
+	MenuBar.Draw();
+
+	if( MenuBar.ShowDemoWindow        ) ImGui::ShowDemoWindow(  &MenuBar.ShowDemoWindow );
+	if( MenuBar.ShowAboutWindow       ) ImGui::ShowAboutWindow( &MenuBar.ShowAboutWindow );
+	if( MenuBar.ShowWorkspaceOutliner ) WorkspaceOutliner.Show( &MenuBar.ShowWorkspaceOutliner );
+	if( MenuBar.ShowTextEdit          ) TextEdit         .Show( &MenuBar.ShowTextEdit );
+	if( MenuBar.ShowOutputWindow      ) OutputWindow     .Show( &MenuBar.ShowOutputWindow );
+
 	return true;
 
 } // BeginFrame
@@ -242,9 +249,7 @@ void MainWindow::DragDrop( const Drop& rDrop, int X, int Y )
 	m_DragPosX = X;
 	m_DragPosY = Y;
 
-	// NOTE: Here we assume that the provided @drop is the same as @dragged_drop_
-
-	MainMenuBar::Instance().OnDragDrop( rDrop, X, Y );
+	this->TextEdit.OnDragDrop( rDrop, X, Y );
 
 	m_DraggedDrop.reset();
 
