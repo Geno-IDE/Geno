@@ -41,27 +41,29 @@
 
 void MainMenuBar::Draw( void )
 {
+	const bool WorkspaceActive = Application::Instance().CurrentWorkspace() != nullptr;
+
 	if( ImGui::BeginMainMenuBar() )
 	{
 		m_Height = ImGui::GetWindowHeight();
 
 		if( ImGui::BeginMenu( "File" ) )
 		{
-			if( ImGui::MenuItem( "New Workspace", "Ctrl+N" ) )   ActionFileNewWorkspace();
-			if( ImGui::MenuItem( "Open Workspace", "Ctrl+O" ) )  ActionFileOpenWorkspace();
-			if( ImGui::MenuItem( "Close Workspace", "Ctrl+W" ) ) ActionFileCloseWorkspace();
+			if( ImGui::MenuItem( "New Workspace",   "Ctrl+N", false, true            ) ) ActionFileNewWorkspace();
+			if( ImGui::MenuItem( "Open Workspace",  "Ctrl+O", false, true            ) ) ActionFileOpenWorkspace();
+			if( ImGui::MenuItem( "Close Workspace", "Ctrl+W", false, WorkspaceActive ) ) ActionFileCloseWorkspace();
 
 			ImGui::Separator();
 
-			if( ImGui::MenuItem( "Exit", "Alt+E" ) ) ActionFileExit();
+			if( ImGui::MenuItem( "Exit", "Alt+E" ) ) exit( 0 );
 
 			ImGui::EndMenu();
 		}
 
-		if( ImGui::BeginMenu( "Build" ) )
+		if( ImGui::BeginMenu( "Build", WorkspaceActive ) )
 		{
 			if( ImGui::MenuItem( "Build And Run", "F5" ) ) ActionBuildBuildAndRun();
-			if( ImGui::MenuItem( "Build", "F7" ) )         ActionBuildBuild();
+			if( ImGui::MenuItem( "Build",         "F7" ) ) ActionBuildBuild();
 
 			ImGui::EndMenu();
 		}
@@ -155,14 +157,6 @@ void MainMenuBar::ActionFileCloseWorkspace( void )
 	Application::Instance().CloseWorkspace();
 
 } // ActionFileCloseWorkspace
-
-//////////////////////////////////////////////////////////////////////////
-
-void MainMenuBar::ActionFileExit( void )
-{
-	exit( 0 );
-
-} // ActionFileExit
 
 //////////////////////////////////////////////////////////////////////////
 

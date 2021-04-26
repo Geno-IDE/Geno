@@ -52,7 +52,6 @@ private:
 	void ActionFileNewWorkspace  ( void );
 	void ActionFileOpenWorkspace ( void );
 	void ActionFileCloseWorkspace( void );
-	void ActionFileExit          ( void );
 	void ActionBuildBuildAndRun  ( void );
 	void ActionBuildBuild        ( void );
 	void AddBuildMatrixColumn    ( BuildMatrix::Column& rColumn );
