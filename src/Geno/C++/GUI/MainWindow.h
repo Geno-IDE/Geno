@@ -32,6 +32,7 @@
 class  Win32DropTarget;
 struct GLFWwindow;
 struct ImGuiContext;
+struct ImGuiSettingsHandler;
 
 class MainWindow
 {
@@ -72,8 +73,11 @@ public:
 
 private:
 
-	static void GLFWErrorCB( int Error, const char* pDescription );
-	static void GLFWSizeCB ( GLFWwindow* pWindow, int Width, int Height );
+	static void  GLFWErrorCB            ( int Error, const char* pDescription );
+	static void  GLFWSizeCB             ( GLFWwindow* pWindow, int Width, int Height );
+	static void* ImGuiSettingsReadOpenCB( ImGuiContext* pContext, ImGuiSettingsHandler* pHandler, const char* pName );
+	static void  ImGuiSettingsReadLineCB( ImGuiContext* pContext, ImGuiSettingsHandler* pHandler, void* pEntry, const char* pLine );
+	static void  ImGuiSettingsWriteAllCB( ImGuiContext* pContext, ImGuiSettingsHandler* pHandler, ImGuiTextBuffer* pOutBuffer );
 
 //////////////////////////////////////////////////////////////////////////
 

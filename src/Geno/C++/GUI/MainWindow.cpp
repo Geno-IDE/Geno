@@ -133,6 +133,16 @@ void MainWindow::Init( void )
 		rIO.ConfigFlags                 |= ImGuiConfigFlags_ViewportsEnable;
 		rIO.ConfigViewportsNoTaskBarIcon = true;
 
+		// Set up custom settings handler
+		ImGuiSettingsHandler IniHandler;
+		IniHandler.UserData   = this;
+		IniHandler.TypeName   = "Geno Widgets";
+		IniHandler.TypeHash   = ImHashStr( IniHandler.TypeName );
+		IniHandler.ReadOpenFn = ImGuiSettingsReadOpenCB;
+		IniHandler.ReadLineFn = ImGuiSettingsReadLineCB;
+		IniHandler.WriteAllFn = ImGuiSettingsWriteAllCB;
+		m_pImGuiContext->SettingsHandlers.push_back( IniHandler );
+
 		ImGui_ImplGlfw_InitForOpenGL( m_pWindow, true );
 		ImGui_ImplOpenGL3_Init( "#version 130" );
 	}
@@ -273,3 +283,41 @@ void MainWindow::GLFWSizeCB( GLFWwindow* pWindow, int Width, int Height )
 	pSelf->m_Height   = Height;
 
 } // GLFWSizeCB
+
+//////////////////////////////////////////////////////////////////////////
+
+void* MainWindow::ImGuiSettingsReadOpenCB( ImGuiContext* /*pContext*/, ImGuiSettingsHandler* /*pHandler*/, const char* pName )
+{
+	return ( void* )pName;
+
+} // ImGuiSettingsReadOpenCB
+
+//////////////////////////////////////////////////////////////////////////
+
+void MainWindow::ImGuiSettingsReadLineCB( ImGuiContext* /*pContext*/, ImGuiSettingsHandler* pHandler, void* pEntry, const char* pLine )
+{
+	MainWindow* pSelf = ( MainWindow* )pHandler->UserData;
+	const char* pName = ( const char* )pEntry;
+	int         Bool;
+
+	if(      strcmp( pName, "Text Edit" ) == 0 ) { if( sscanf_s( pLine, "Active=%d", &Bool ) == 1 ) pSelf->MenuBar.ShowTextEdit          = Bool; }
+	else if( strcmp( pName, "Workspace" ) == 0 ) { if( sscanf_s( pLine, "Active=%d", &Bool ) == 1 ) pSelf->MenuBar.ShowWorkspaceOutliner = Bool; }
+	else if( strcmp( pName, "Output"    ) == 0 ) { if( sscanf_s( pLine, "Active=%d", &Bool ) == 1 ) pSelf->MenuBar.ShowOutputWindow      = Bool; }
+
+} // ImGuiSettingsReadLineCB
+
+//////////////////////////////////////////////////////////////////////////
+
+void MainWindow::ImGuiSettingsWriteAllCB( ImGuiContext* pContext, ImGuiSettingsHandler* pHandler, ImGuiTextBuffer* pOutBuffer )
+{
+	for( ImGuiWindow* pWindow : pContext->Windows )
+	{
+		if( pWindow->Active )
+		{
+			pOutBuffer->appendf( "[%s][%s]\n", pHandler->TypeName, pWindow->Name );
+			pOutBuffer->appendf( "Active=%d\n", pWindow->Active );
+			pOutBuffer->append( "\n" );
+		}
+	}
+
+} // ImGuiSettingsWriteAllCB
