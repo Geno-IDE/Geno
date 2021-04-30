@@ -70,9 +70,9 @@ void MainMenuBar::Draw( void )
 
 		if( ImGui::BeginMenu( "View" ) )
 		{
-			if( ImGui::MenuItem( "Text Edit", "Alt+T" ) ) ShowTextEdit          ^= 1;
-			if( ImGui::MenuItem( "Workspace", "Alt+W" ) ) ShowWorkspaceOutliner ^= 1;
-			if( ImGui::MenuItem( "Output",    "Alt+O" ) ) ShowOutputWindow      ^= 1;
+			ImGui::MenuItem( "Text Edit", "Alt+T", &ShowTextEdit );
+			ImGui::MenuItem( "Workspace", "Alt+W", &ShowWorkspaceOutliner );
+			ImGui::MenuItem( "Output",    "Alt+O", &ShowOutputWindow );
 
 			ImGui::EndMenu();
 		}
