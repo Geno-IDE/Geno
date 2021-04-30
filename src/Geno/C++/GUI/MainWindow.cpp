@@ -174,7 +174,7 @@ bool MainWindow::BeginFrame( void )
 	ImGui_ImplGlfw_NewFrame();
 
 	ImGui::NewFrame();
-	ImGui::DockSpaceOverViewport();
+	ImGui::DockSpaceOverViewport( nullptr, ImGuiDockNodeFlags_NoWindowMenuButton );
 
 	MenuBar.Draw();
 
