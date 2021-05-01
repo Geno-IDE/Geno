@@ -18,7 +18,6 @@
 #pragma once
 #include "Compilers/CompileOptions.h"
 #include "Compilers/LinkOptions.h"
-#include "Components/Enums/ProjectKind.h"
 
 #include <atomic>
 #include <filesystem>
@@ -68,8 +67,8 @@ protected:
 
 private:
 
-	void CompileAsync( CompileOptions rOptions );
-	void LinkAsync   ( LinkOptions rOptions );
+	void CompileAsync( CompileOptions Options );
+	void LinkAsync   ( LinkOptions Options );
 
 //////////////////////////////////////////////////////////////////////////
 

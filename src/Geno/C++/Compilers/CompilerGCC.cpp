@@ -90,14 +90,14 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 
 	switch( rOptions.Kind )
 	{
-		case ProjectKind::Application:
-		case ProjectKind::DynamicLibrary:
+		case Project::Kind::Application:
+		case Project::Kind::DynamicLibrary:
 		{
 			// Start with GCC executable
 			Command += L"g++";
 
 			// Create a shared library
-			if( rOptions.Kind == ProjectKind::DynamicLibrary )
+			if( rOptions.Kind == Project::Kind::DynamicLibrary )
 				Command += L" -shared";
 
 			// Linker options
@@ -120,7 +120,7 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 				std::filesystem::path OutputFile = rOptions.OutputFile;
 
 				// Add "lib" prefix for dynamic libraries
-				if( rOptions.Kind == ProjectKind::DynamicLibrary )
+				if( rOptions.Kind == Project::Kind::DynamicLibrary )
 					OutputFile.replace_filename( L"lib" + OutputFile.filename().wstring() );
 
 				Command += L" -o " + OutputFile.wstring();
@@ -132,7 +132,7 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 
 		} break;
 
-		case ProjectKind::StaticLibrary:
+		case Project::Kind::StaticLibrary:
 		{
 			// Start with AR executable
 			Command += L"bin/ar";

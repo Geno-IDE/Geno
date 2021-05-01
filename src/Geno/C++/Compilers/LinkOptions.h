@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include "Components/Enums/ProjectKind.h"
+#include "Components/Project.h"
 
 #include <filesystem>
 
@@ -34,7 +34,7 @@ struct LinkOptions
 	std::vector< std::filesystem::path > InputFiles;
 	std::vector< std::filesystem::path > LinkedLibraries;
 	std::filesystem::path                OutputFile;
-	ProjectKind                          Kind  = ProjectKind::Unknown;
-	uint32_t                             Flags = 0;
+	uint32_t                             Flags            = 0;
+	Project::Kind                        Kind             = Project::Kind::Application;
 
 }; // LinkOptions

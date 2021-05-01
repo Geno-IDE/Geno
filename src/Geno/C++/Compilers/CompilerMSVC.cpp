@@ -139,7 +139,7 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 
 	switch( rOptions.Kind )
 	{
-		case ProjectKind::Application:
+		case Project::Kind::Application:
 		{
 			CommandLine += L" /SUBSYSTEM:CONSOLE";
 

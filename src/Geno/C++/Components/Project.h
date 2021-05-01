@@ -16,7 +16,6 @@
  */
 
 #pragma once
-#include "Components/Enums/ProjectKind.h"
 #include "Components/Configuration.h"
 
 #include <Common/Event.h>
@@ -34,6 +33,17 @@ class Project
 //////////////////////////////////////////////////////////////////////////
 
 public:
+
+	enum class Kind
+	{
+		Unspecified,
+		Application,
+		StaticLibrary,
+		DynamicLibrary,
+
+	}; // Kind
+
+//////////////////////////////////////////////////////////////////////////
 
 	static constexpr std::string_view EXTENSION = ".gprj";
 
@@ -60,7 +70,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	ProjectKind                          m_Kind = ProjectKind::Unknown;
+	Kind                                 m_Kind = Kind::Application;
 
 	std::filesystem::path                m_Location;
 	std::string                          m_Name;

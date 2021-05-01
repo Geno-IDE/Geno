@@ -111,14 +111,14 @@ void ProjectSettingsModal::UpdateDerived( void )
 					ImGui::SetNextItemWidth( -5.0f );
 					if( ImGui::Combo( "##Kind", &CurrentItem, KindNames.data(), static_cast< int >( KindNames.size() ) ) )
 					{
-						pProject->m_Kind = static_cast< ProjectKind >( CurrentItem + 1 );
+						pProject->m_Kind = static_cast< Project::Kind >( CurrentItem + 1 );
 					}
 
 				} break;
 
 				case CategoryLinker:
 				{
-					if( pProject->m_Kind == ProjectKind::StaticLibrary )
+					if( pProject->m_Kind == Project::Kind::StaticLibrary )
 					{
 						ImGui::TextUnformatted( "There are no linker settings for static libraries!" );
 						break;

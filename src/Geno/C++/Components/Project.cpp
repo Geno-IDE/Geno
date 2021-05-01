@@ -44,7 +44,7 @@ Project::Project( Project&& rrOther )
 
 Project& Project::operator=( Project&& rrOther )
 {
-	m_Kind             = rrOther.m_Kind; rrOther.m_Kind = ProjectKind::Unknown;
+	m_Kind             = rrOther.m_Kind;
 	m_Location         = std::move( rrOther.m_Location );
 	m_Name             = std::move( rrOther.m_Name );
 	m_Files            = std::move( rrOther.m_Files );
@@ -53,6 +53,8 @@ Project& Project::operator=( Project&& rrOther )
 	m_Configurations   = std::move( rrOther.m_Configurations );
 	m_FilesLeftToBuild = std::move( rrOther.m_FilesLeftToBuild );
 	m_FilesToLink      = std::move( rrOther.m_FilesToLink );
+
+	rrOther.m_Kind     = Kind::Unspecified;
 
 	return *this;
 
@@ -112,7 +114,15 @@ bool Project::Serialize( void )
 	// Kind
 	{
 		GCL::Object Kind( "Kind" );
-		Kind.SetString( ( std::string )StringifyProjectKind( m_Kind ) );
+
+		switch( m_Kind )
+		{
+			case Kind::Application:    { Kind.SetString( "Application" );    } break;
+			case Kind::StaticLibrary:  { Kind.SetString( "StaticLibrary" );  } break;
+			case Kind::DynamicLibrary: { Kind.SetString( "DynamicLibrary" ); } break;
+			default:                   { Kind.SetString( "Unspecified" );    } break;
+		}
+
 		Serializer.WriteObject( Kind );
 	}
 
@@ -189,7 +199,12 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 	}
 	else if( Name == "Kind" )
 	{
-		pSelf->m_Kind = ProjectKindFromString( Object.String() );
+		const std::string& rKindString = Object.String();
+
+		if(      rKindString == "Application"    ) { pSelf->m_Kind = Kind::Application; }
+		else if( rKindString == "StaticLibrary"  ) { pSelf->m_Kind = Kind::StaticLibrary; }
+		else if( rKindString == "DynamicLibrary" ) { pSelf->m_Kind = Kind::DynamicLibrary; }
+		else                                       { pSelf->m_Kind = Kind::Unspecified; }
 	}
 	else if( Name == "Files" )
 	{
@@ -292,8 +307,22 @@ void Project::Link( ICompiler& rCompiler )
 	Options.InputFiles      = std::move( m_FilesToLink );
 	Options.LinkedLibraries = m_Libraries;
 	Options.OutputFile      = m_Location / m_Name;
-	Options.OutputFile.replace_extension( ProjectKindOutputExtension( m_Kind ) );
-	Options.Kind             = m_Kind;
+	Options.Kind            = m_Kind;
+
+	switch( m_Kind )
+	{
+
+#if defined( _WIN32 )
+		case Kind::Application:    { Options.OutputFile.replace_extension( ".exe" ); } break;
+		case Kind::StaticLibrary:  { Options.OutputFile.replace_extension( ".lib" ); } break;
+		case Kind::DynamicLibrary: { Options.OutputFile.replace_extension( ".dll" ); } break;
+#else // _WIN32
+		case Kind::Application:    { Options.OutputFile.replace_extension( "" );    } break;
+		case Kind::StaticLibrary:  { Options.OutputFile.replace_extension( ".a" );  } break;
+		case Kind::DynamicLibrary: { Options.OutputFile.replace_extension( ".so" ); } break;
+#endif // _WIN32
+
+	}
 
 	rCompiler.Link( Options );
 
