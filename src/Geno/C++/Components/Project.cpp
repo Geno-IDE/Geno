@@ -304,25 +304,10 @@ void Project::Link( ICompiler& rCompiler )
 	};
 
 	LinkOptions Options;
-	Options.InputFiles      = std::move( m_FilesToLink );
+	Options.ObjectFiles     = std::move( m_FilesToLink );
 	Options.LinkedLibraries = m_Libraries;
 	Options.OutputFile      = m_Location / m_Name;
 	Options.Kind            = m_Kind;
-
-	switch( m_Kind )
-	{
-
-#if defined( _WIN32 )
-		case Kind::Application:    { Options.OutputFile.replace_extension( ".exe" ); } break;
-		case Kind::StaticLibrary:  { Options.OutputFile.replace_extension( ".lib" ); } break;
-		case Kind::DynamicLibrary: { Options.OutputFile.replace_extension( ".dll" ); } break;
-#else // _WIN32
-		case Kind::Application:    { Options.OutputFile.replace_extension( "" );    } break;
-		case Kind::StaticLibrary:  { Options.OutputFile.replace_extension( ".a" );  } break;
-		case Kind::DynamicLibrary: { Options.OutputFile.replace_extension( ".so" ); } break;
-#endif // _WIN32
-
-	}
 
 	rCompiler.Link( Options );
 

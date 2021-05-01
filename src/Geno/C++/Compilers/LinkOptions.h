@@ -31,7 +31,7 @@ struct LinkOptions
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::vector< std::filesystem::path > InputFiles;
+	std::vector< std::filesystem::path > ObjectFiles;
 	std::vector< std::filesystem::path > LinkedLibraries;
 	std::filesystem::path                OutputFile;
 	uint32_t                             Flags            = 0;

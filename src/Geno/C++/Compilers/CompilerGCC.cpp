@@ -119,15 +119,48 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 			{
 				std::filesystem::path OutputFile = rOptions.OutputFile;
 
-				// Add "lib" prefix for dynamic libraries
-				if( rOptions.Kind == Project::Kind::DynamicLibrary )
-					OutputFile.replace_filename( L"lib" + OutputFile.filename().wstring() );
+				switch( rOptions.Kind )
+				{
+					case Project::Kind::Application:
+					{
 
+					#if defined( _WIN32 )
+						OutputFile.replace_extension( ".exe" );
+					#endif // _WIN32
+
+					} break;
+
+					case Project::Kind::StaticLibrary:
+					{
+
+					#if defined( _WIN32 )
+						OutputFile.replace_extension( L".lib" );
+					#else // _WIN32
+						OutputFile.replace_filename(  L"lib" + OutputFile.filename().wstring() );
+						OutputFile.replace_extension( L".a" );
+					#endif // _WIN32
+
+					} break;
+
+					case Project::Kind::DynamicLibrary:
+					{
+
+					#if defined( _WIN32 )
+						OutputFile.replace_extension( L".lib" );
+					#else // _WIN32
+						OutputFile.replace_filename(  L"lib" + OutputFile.filename().wstring() );
+						OutputFile.replace_extension( L".so" );
+					#endif // _WIN32
+
+					} break;
+				}
+
+				// Set output file
 				Command += L" -o " + OutputFile.wstring();
 			}
 
-			// Finally, set the input files
-			for( const std::filesystem::path& rInputFile : rOptions.InputFiles )
+			// Finally, set the object files
+			for( const std::filesystem::path& rInputFile : rOptions.ObjectFiles )
 				Command += L" " + rInputFile.lexically_normal().wstring();
 
 		} break;
@@ -162,8 +195,8 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 			Command += L" " + OutputFile.wstring();
 
 			// Set input files
-			for( const std::filesystem::path& rInputFile : rOptions.InputFiles )
-				Command += L" " + rInputFile.wstring();
+			for( const std::filesystem::path& rObjectFile : rOptions.ObjectFiles )
+				Command += L" " + rObjectFile.wstring();
 
 		} break;
 	}

@@ -126,7 +126,36 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 	std::wstring                CommandLine;
 
 	CommandLine += ( MSVCDir / "bin" / HOST / "x64" / "link.exe" ).wstring();
-	CommandLine += L" /NOLOGO /MACHINE:x64";
+
+	switch( rOptions.Kind )
+	{
+		case Project::Kind::Application:
+		{
+			CommandLine += L" /SUBSYSTEM:CONSOLE";
+			CommandLine += L" /OUT:" + rOptions.OutputFile.wstring() + L".exe";
+
+		} break;
+
+		case Project::Kind::StaticLibrary:
+		{
+			CommandLine += L" /LIB";
+			CommandLine += L" /OUT:" + rOptions.OutputFile.wstring() + L".lib";
+
+		} break;
+
+		case Project::Kind::DynamicLibrary:
+		{
+			CommandLine += L" /DLL";
+			CommandLine += L" /OUT:\"" + rOptions.OutputFile.wstring() + L".dll\"";
+
+		} break;
+	}
+
+	// Add input files
+	for( const std::filesystem::path& rLibrary : rOptions.LinkedLibraries )
+	{
+		CommandLine += L" \"" + rLibrary.wstring() + L"\"";
+	}
 
 	// Add standard library paths
 	{
@@ -137,21 +166,14 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 		CommandLine += L" /LIBPATH:\"" + ( WindowsSDKLibraryDir / "ucrt" / "x64" ).wstring() + L"\"";
 	}
 
-	switch( rOptions.Kind )
+	// Add all object files
+	for( const std::filesystem::path& rObjectFile : rOptions.ObjectFiles )
 	{
-		case Project::Kind::Application:
-		{
-			CommandLine += L" /SUBSYSTEM:CONSOLE";
-
-		} break;
+		CommandLine += L" \"" + rObjectFile.wstring() + L"\"";
 	}
 
-	for( const std::filesystem::path& rInputFile : rOptions.InputFiles )
-	{
-		CommandLine += L" " + rInputFile.wstring();
-	}
-
-	CommandLine += L" /OUT:" + rOptions.OutputFile.wstring();
+	// Miscellaneous options
+	CommandLine += L" /NOLOGO /MACHINE:x64";
 
 	return CommandLine;
 
