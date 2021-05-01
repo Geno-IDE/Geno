@@ -102,6 +102,7 @@ void TextEdit::Show( bool* pOpen )
 	}
 
 	ImGui::PushStyleColor( ImGuiCol_ChildBg, BackgroundColor );
+	ImGui::SetNextWindowSize( ImVec2( 350, 196 ), ImGuiCond_FirstUseEver );
 
 	if( ImGui::Begin( WINDOW_NAME, pOpen ) )
 	{

@@ -78,6 +78,8 @@ OutputWindow::~OutputWindow( void )
 
 void OutputWindow::Show( bool* pOpen )
 {
+	ImGui::SetNextWindowSize( ImVec2( 350*2, 196 ), ImGuiCond_FirstUseEver );
+
 	if( ImGui::Begin( "Output", pOpen ) )
 	{
 		Capture();

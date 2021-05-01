@@ -35,6 +35,8 @@
 
 void WorkspaceOutliner::Show( bool* pOpen )
 {
+	ImGui::SetNextWindowSize( ImVec2( 350, 196*4 ), ImGuiCond_FirstUseEver );
+
 	if( ImGui::Begin( "Workspace", pOpen ) )
 	{
 		if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )

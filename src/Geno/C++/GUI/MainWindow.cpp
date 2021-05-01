@@ -101,8 +101,6 @@ MainWindow::~MainWindow( void )
 
 	if( m_pImGuiContext )
 	{
-		ImGui::PopStyleVar();
-
 		ImGui_ImplGlfw_Shutdown();
 		ImGui_ImplOpenGL3_Shutdown();
 
@@ -147,9 +145,6 @@ void MainWindow::Init( void )
 
 		ImGui_ImplGlfw_InitForOpenGL( m_pWindow, true );
 		ImGui_ImplOpenGL3_Init( "#version 130" );
-
-		// Default window size
-		ImGui::PushStyleVar( ImGuiStyleVar_WindowMinSize, ImVec2( 350, 196 ) );
 	}
 
 } // Init

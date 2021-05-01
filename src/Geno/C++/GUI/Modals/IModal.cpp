@@ -32,6 +32,8 @@ void IModal::Update( void )
 		ImGui::OpenPopup( PopupID.c_str() );
 	}
 
+	ImGui::SetNextWindowSize( ImVec2( 350, 196 ), ImGuiCond_FirstUseEver );
+
 	if( ImGui::BeginPopupModal( PopupID.c_str() ) )
 	{
 		UpdateDerived();
