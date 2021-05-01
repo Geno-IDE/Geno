@@ -110,8 +110,15 @@ std::wstring CompilerMSVC::MakeCommandLineString( const CompileOptions& rOptions
 	}
 
 	// Set output file
-	CommandLine += L" " + rOptions.InputFile.wstring();
 	CommandLine += L" /Fo\"" + rOptions.OutputFile.wstring() + L"\"";
+
+	// Set input file
+	switch( rOptions.Language )
+	{
+		case CompileOptions::Language::C:         { CommandLine += L" /Tc \"" + rOptions.InputFile.wstring() + L"\""; } break;
+		case CompileOptions::Language::CPlusPlus: { CommandLine += L" /Tp \"" + rOptions.InputFile.wstring() + L"\""; } break;
+		default:                                  { CommandLine += L" \""     + rOptions.InputFile.wstring() + L"\""; } break;
+	}
 
 	return CommandLine;
 
