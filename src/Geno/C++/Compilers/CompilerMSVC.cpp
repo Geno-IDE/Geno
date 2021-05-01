@@ -111,6 +111,7 @@ std::wstring CompilerMSVC::MakeCommandLineString( const CompileOptions& rOptions
 
 	// Set output file
 	CommandLine += L" " + rOptions.InputFile.wstring();
+	CommandLine += L" /Fo\"" + rOptions.OutputFile.wstring() + L"\"";
 
 	return CommandLine;
 
