@@ -120,7 +120,7 @@ void TextEdit::Show( bool* pOpen )
 
 	if( ImGui::Begin( WINDOW_NAME, pOpen ) )
 	{
-		const int           TabBarFlags  = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_FittingPolicyScroll | ImGuiTabBarFlags_IsFocused;
+		const int           TabBarFlags  = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_FittingPolicyScroll | ImGuiTabBarFlags_IsFocused;
 		const ImGuiContext* pContext     = ImGui::GetCurrentContext();
 		const ImGuiWindow*  pWindow      = ImGui::GetCurrentWindow();
 		const ImRect        TabBarBounds = ImRect( pWindow->DC.CursorPos.x, pWindow->DC.CursorPos.y, pWindow->WorkRect.Max.x, pWindow->DC.CursorPos.y + pContext->FontSize + pContext->Style.FramePadding.y * 2 );
@@ -175,11 +175,16 @@ void TextEdit::AddFile( const std::filesystem::path& rPath )
 	std::ifstream     InputFileStream( rPath, std::ios::binary );
 	const std::string Text( ( std::istreambuf_iterator< char >( InputFileStream ) ), std::istreambuf_iterator< char >() );
 
-	for( File& rFile : m_Files )
+	for( int i = 0; i < m_Files.size(); ++i )
 	{
+		File& rFile = m_Files[ i ];
+
 		// Do not need to add file to vector if it already exists
 		if( rFile.Path == rPath )
 		{
+			// Select the tab that corresponds to the open file
+			m_pTabBar->NextSelectedTabId = m_pTabBar->Tabs[ i ].ID;
+
 			// Update text in case file changed externally
 			rFile.Text = Text;
 			return;
