@@ -45,11 +45,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 			bool              WorkspaceItemHovered = false;
 			const Project*    pHoveredProject      = nullptr;
 
-			if( m_ExpandWorkspaceNode )
-			{
-				ImGui::SetNextItemOpen( true );
-				m_ExpandWorkspaceNode = false;
-			}
+			ImGui::SetNextItemOpen( true, m_ExpandWorkspaceNode ? ImGuiCond_Always : ImGuiCond_Appearing );
+			m_ExpandWorkspaceNode = false;
 
 			if( ImGui::TreeNode( WorkspaceIDString.c_str() ) )
 			{
@@ -59,11 +56,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					const std::string ProjectIDString = rProject.m_Name + "##PRJ_" + rProject.m_Name;
 
-					if( m_ProjectNodeToBeExpanded == rProject.m_Name )
-					{
-						ImGui::SetNextItemOpen( true );
-						m_ProjectNodeToBeExpanded.clear();
-					}
+					ImGui::SetNextItemOpen( true, m_ProjectNodeToBeExpanded == rProject.m_Name ? ImGuiCond_Always : ImGuiCond_Appearing );
+					m_ProjectNodeToBeExpanded.clear();
 
 					if( ImGui::TreeNode( ProjectIDString.c_str() ) )
 					{
