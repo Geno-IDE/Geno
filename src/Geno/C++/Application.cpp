@@ -35,7 +35,7 @@ Application::~Application( void )
 
 int Application::Run( void )
 {
-	MainWindow::Instance().Init();
+	MainWindow::Instance();
 
 	while( MainWindow::Instance().BeginFrame() )
 	{

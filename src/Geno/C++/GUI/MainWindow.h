@@ -16,11 +16,6 @@
  */
 
 #pragma once
-#include "GUI/Widgets/MainMenuBar.h"
-#include "GUI/Widgets/OutputWindow.h"
-#include "GUI/Widgets/TextEdit.h"
-#include "GUI/Widgets/WorkspaceOutliner.h"
-
 #include <Common/Drop.h>
 #include <Common/Macros.h>
 
@@ -29,7 +24,11 @@
 
 #include <imgui.h>
 
+class  MainMenuBar;
+class  OutputWindow;
+class  TextEdit;
 class  Win32DropTarget;
+class  WorkspaceOutliner;
 struct GLFWwindow;
 struct ImGuiContext;
 struct ImGuiSettingsHandler;
@@ -45,7 +44,6 @@ class MainWindow
 
 public:
 
-	void Init                ( void );
 	void MakeCurrent         ( void );
 	bool BeginFrame          ( void );
 	void EndFrame            ( void );
@@ -64,10 +62,10 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	MainMenuBar       MenuBar           = { };
-	WorkspaceOutliner WorkspaceOutliner = { };
-	TextEdit          TextEdit          = { };
-	OutputWindow      OutputWindow      = { };
+	MainMenuBar*       pMenuBar           = nullptr;
+	WorkspaceOutliner* pWorkspaceOutliner = nullptr;
+	TextEdit*          pTextEdit          = nullptr;
+	OutputWindow*      pOutputWindow      = nullptr;
 
 //////////////////////////////////////////////////////////////////////////
 

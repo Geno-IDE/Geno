@@ -20,6 +20,10 @@
 #include "Common/LocalAppData.h"
 #include "GUI/Platform/Win32/Win32DropTarget.h"
 #include "GUI/PrimaryMonitor.h"
+#include "GUI/Widgets/MainMenuBar.h"
+#include "GUI/Widgets/OutputWindow.h"
+#include "GUI/Widgets/TextEdit.h"
+#include "GUI/Widgets/WorkspaceOutliner.h"
 
 #include <iostream>
 
@@ -85,12 +89,47 @@ MainWindow::MainWindow( void )
 
 #endif // _WIN32
 
+	m_IniPath       = LocalAppData::Instance() / L"imgui.ini";
+	m_pImGuiContext = ImGui::CreateContext();
+	IniFilename     = m_IniPath.string();
+
+	// Configure interface
+	ImGuiIO& rIO                     = ImGui::GetIO();
+	rIO.IniFilename                  = IniFilename.c_str();
+	rIO.ConfigFlags                 |= ImGuiConfigFlags_DockingEnable;
+	rIO.ConfigFlags                 |= ImGuiConfigFlags_ViewportsEnable;
+	rIO.ConfigViewportsNoTaskBarIcon = true;
+
+	// Set up custom settings handler
+	ImGuiSettingsHandler IniHandler;
+	IniHandler.UserData   = this;
+	IniHandler.TypeName   = "Geno Widgets";
+	IniHandler.TypeHash   = ImHashStr( IniHandler.TypeName );
+	IniHandler.ReadOpenFn = ImGuiSettingsReadOpenCB;
+	IniHandler.ReadLineFn = ImGuiSettingsReadLineCB;
+	IniHandler.WriteAllFn = ImGuiSettingsWriteAllCB;
+	m_pImGuiContext->SettingsHandlers.push_back( IniHandler );
+
+	ImGui_ImplGlfw_InitForOpenGL( m_pWindow, true );
+	ImGui_ImplOpenGL3_Init( "#version 130" );
+
+	// Create widgets
+	pMenuBar           = new MainMenuBar();
+	pWorkspaceOutliner = new WorkspaceOutliner();
+	pTextEdit          = new TextEdit();
+	pOutputWindow      = new OutputWindow();
+
 } // MainWindow
 
 //////////////////////////////////////////////////////////////////////////
 
 MainWindow::~MainWindow( void )
 {
+	// Destroy widgets
+	delete pOutputWindow;
+	delete pTextEdit;
+	delete pWorkspaceOutliner;
+	delete pMenuBar;
 
 #if defined( _WIN32 )
 
@@ -115,39 +154,6 @@ MainWindow::~MainWindow( void )
 	glfwTerminate();
 
 } // ~MainWindow
-
-//////////////////////////////////////////////////////////////////////////
-
-void MainWindow::Init( void )
-{
-	if( !m_pImGuiContext )
-	{
-		m_IniPath       = LocalAppData::Instance() / L"imgui.ini";
-		m_pImGuiContext = ImGui::CreateContext();
-		IniFilename     = m_IniPath.string();
-
-		// Configure interface
-		ImGuiIO& rIO                     = ImGui::GetIO();
-		rIO.IniFilename                  = IniFilename.c_str();
-		rIO.ConfigFlags                 |= ImGuiConfigFlags_DockingEnable;
-		rIO.ConfigFlags                 |= ImGuiConfigFlags_ViewportsEnable;
-		rIO.ConfigViewportsNoTaskBarIcon = true;
-
-		// Set up custom settings handler
-		ImGuiSettingsHandler IniHandler;
-		IniHandler.UserData   = this;
-		IniHandler.TypeName   = "Geno Widgets";
-		IniHandler.TypeHash   = ImHashStr( IniHandler.TypeName );
-		IniHandler.ReadOpenFn = ImGuiSettingsReadOpenCB;
-		IniHandler.ReadLineFn = ImGuiSettingsReadLineCB;
-		IniHandler.WriteAllFn = ImGuiSettingsWriteAllCB;
-		m_pImGuiContext->SettingsHandlers.push_back( IniHandler );
-
-		ImGui_ImplGlfw_InitForOpenGL( m_pWindow, true );
-		ImGui_ImplOpenGL3_Init( "#version 130" );
-	}
-
-} // Init
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -176,13 +182,13 @@ bool MainWindow::BeginFrame( void )
 	ImGui::NewFrame();
 	ImGui::DockSpaceOverViewport( nullptr, ImGuiDockNodeFlags_NoWindowMenuButton );
 
-	MenuBar.Draw();
+	pMenuBar->Draw();
 
-	if( MenuBar.ShowDemoWindow        ) ImGui::ShowDemoWindow(  &MenuBar.ShowDemoWindow );
-	if( MenuBar.ShowAboutWindow       ) ImGui::ShowAboutWindow( &MenuBar.ShowAboutWindow );
-	if( MenuBar.ShowWorkspaceOutliner ) WorkspaceOutliner.Show( &MenuBar.ShowWorkspaceOutliner );
-	if( MenuBar.ShowTextEdit          ) TextEdit         .Show( &MenuBar.ShowTextEdit );
-	if( MenuBar.ShowOutputWindow      ) OutputWindow     .Show( &MenuBar.ShowOutputWindow );
+	if( pMenuBar->ShowDemoWindow        ) ImGui::ShowDemoWindow(    &pMenuBar->ShowDemoWindow );
+	if( pMenuBar->ShowAboutWindow       ) ImGui::ShowAboutWindow(   &pMenuBar->ShowAboutWindow );
+	if( pMenuBar->ShowWorkspaceOutliner ) pWorkspaceOutliner->Show( &pMenuBar->ShowWorkspaceOutliner );
+	if( pMenuBar->ShowTextEdit          ) pTextEdit         ->Show( &pMenuBar->ShowTextEdit );
+	if( pMenuBar->ShowOutputWindow      ) pOutputWindow     ->Show( &pMenuBar->ShowOutputWindow );
 
 	return true;
 
@@ -259,7 +265,7 @@ void MainWindow::DragDrop( const Drop& rDrop, int X, int Y )
 	m_DragPosX = X;
 	m_DragPosY = Y;
 
-	this->TextEdit.OnDragDrop( rDrop, X, Y );
+	pTextEdit->OnDragDrop( rDrop, X, Y );
 
 	m_DraggedDrop.reset();
 
@@ -300,9 +306,9 @@ void MainWindow::ImGuiSettingsReadLineCB( ImGuiContext* /*pContext*/, ImGuiSetti
 	const char* pName = ( const char* )pEntry;
 	int         Bool;
 
-	if(      strcmp( pName, "Text Edit" ) == 0 ) { if( sscanf_s( pLine, "Active=%d", &Bool ) == 1 ) pSelf->MenuBar.ShowTextEdit          = Bool; }
-	else if( strcmp( pName, "Workspace" ) == 0 ) { if( sscanf_s( pLine, "Active=%d", &Bool ) == 1 ) pSelf->MenuBar.ShowWorkspaceOutliner = Bool; }
-	else if( strcmp( pName, "Output"    ) == 0 ) { if( sscanf_s( pLine, "Active=%d", &Bool ) == 1 ) pSelf->MenuBar.ShowOutputWindow      = Bool; }
+	if(      strcmp( pName, "Text Edit" ) == 0 ) { if( sscanf_s( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pMenuBar->ShowTextEdit          = Bool; }
+	else if( strcmp( pName, "Workspace" ) == 0 ) { if( sscanf_s( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pMenuBar->ShowWorkspaceOutliner = Bool; }
+	else if( strcmp( pName, "Output"    ) == 0 ) { if( sscanf_s( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pMenuBar->ShowOutputWindow      = Bool; }
 
 } // ImGuiSettingsReadLineCB
 

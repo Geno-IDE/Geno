@@ -24,7 +24,7 @@
 #include <vector>
 
 class  Drop;
-struct ImGuiInputTextCallbackData;
+struct ImGuiTabBar;
 
 class TextEdit
 {
@@ -41,6 +41,10 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
+	TextEdit( void );
+
+//////////////////////////////////////////////////////////////////////////
+
 	void Show      ( bool* pOpen );
 	void AddFile   ( const std::filesystem::path& rPath );
 	void OnDragDrop( const Drop& rDrop, int X, int Y );
@@ -49,8 +53,10 @@ public:
 
 private:
 
-	Texture2D           m_DraggedBitmapTexture;
+	ImGuiTabBar*        m_pTabBar              = nullptr;
 
-	std::vector< File > m_Files;
+	Texture2D           m_DraggedBitmapTexture = { };
+
+	std::vector< File > m_Files                = { };
 
 }; // TextEdit

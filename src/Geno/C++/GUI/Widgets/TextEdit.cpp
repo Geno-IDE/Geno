@@ -34,6 +34,20 @@ const char* WINDOW_NAME = "Text Edit";
 
 //////////////////////////////////////////////////////////////////////////
 
+TextEdit::TextEdit( void )
+{
+	// Create tab bar
+	{
+		ImGuiContext* pContext = ImGui::GetCurrentContext();
+		ImGuiID       ID       = ImHashStr( "TextEditTabBar" ); // ImGui::GetID( "TextEditTabBar" );
+		m_pTabBar              = pContext->TabBars.GetOrAddByKey( ID );
+		m_pTabBar->ID          = ID;
+	}
+
+} // TextEdit
+
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::Show( bool* pOpen )
 {
 	ImGuiStyle& rStyle          = ImGui::GetStyle();
@@ -106,9 +120,12 @@ void TextEdit::Show( bool* pOpen )
 
 	if( ImGui::Begin( WINDOW_NAME, pOpen ) )
 	{
-		const int TabBarFlags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_FittingPolicyScroll;
+		const int           TabBarFlags  = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_FittingPolicyScroll | ImGuiTabBarFlags_IsFocused;
+		const ImGuiContext* pContext     = ImGui::GetCurrentContext();
+		const ImGuiWindow*  pWindow      = ImGui::GetCurrentWindow();
+		const ImRect        TabBarBounds = ImRect( pWindow->DC.CursorPos.x, pWindow->DC.CursorPos.y, pWindow->WorkRect.Max.x, pWindow->DC.CursorPos.y + pContext->FontSize + pContext->Style.FramePadding.y * 2 );
 
-		if( !m_Files.empty() && ImGui::BeginTabBar( "TextEditTabBar", TabBarFlags ) )
+		if( !m_Files.empty() && ImGui::BeginTabBarEx( m_pTabBar, TabBarBounds, TabBarFlags, nullptr ) )
 		{
 			for( File& rFile : m_Files )
 			{

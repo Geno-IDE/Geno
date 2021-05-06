@@ -74,9 +74,16 @@ void WorkspaceOutliner::Show( bool* pOpen )
 						{
 							const std::string FileString = rFile.filename().string();
 
-							if( ImGui::Selectable( FileString.c_str() ) )
+							const bool ClickedFile = ImGui::Selectable( FileString.c_str() );
+
+							if( ImGui::IsItemHovered() )
 							{
-								MainWindow::Instance().TextEdit.AddFile( rFile );
+								ImGui::SetMouseCursor( ImGuiMouseCursor_Hand );
+							}
+
+							if( ClickedFile )
+							{
+								MainWindow::Instance().pTextEdit->AddFile( rFile );
 							}
 						}
 

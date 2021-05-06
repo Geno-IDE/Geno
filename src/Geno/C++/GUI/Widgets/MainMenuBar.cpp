@@ -164,7 +164,7 @@ void MainMenuBar::ActionBuildBuildAndRun( void )
 {
 	if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 	{
-		MainWindow::Instance().OutputWindow.ClearCapture();
+		MainWindow::Instance().pOutputWindow->ClearCapture();
 
 		pWorkspace->Events.BuildFinished += [ this ]( Workspace& /*rWorkspace*/, std::filesystem::path OutputFile, bool /*Success*/ )
 		{
@@ -187,7 +187,7 @@ void MainMenuBar::ActionBuildBuild( void )
 {
 	if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 	{
-		MainWindow::Instance().OutputWindow.ClearCapture();
+		MainWindow::Instance().pOutputWindow->ClearCapture();
 
 		pWorkspace->Build();
 	}
