@@ -34,7 +34,7 @@
 
 static int Run( const std::wstring& rCommandLine, HANDLE StdIn, HANDLE StdOut, HANDLE StdErr )
 {
-	STARTUPINFO StartupInfo = { };
+	STARTUPINFOW StartupInfo = { };
 	StartupInfo.cb          = sizeof( STARTUPINFO );
 	StartupInfo.wShowWindow = SW_HIDE;
 	StartupInfo.dwFlags     = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;

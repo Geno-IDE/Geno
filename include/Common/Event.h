@@ -72,7 +72,7 @@ void Event< Sender, void( Parameters... ) >::operator()( Sender& rSender, Parame
 
 	while( !ReceiversCopy.empty() )
 	{
-		ReceiverVector::iterator IteratorToErase = std::find_if( m_Receivers.begin(), m_Receivers.end(),
+		typename ReceiverVector::iterator IteratorToErase = std::find_if( m_Receivers.begin(), m_Receivers.end(),
 			[ &ReceiversCopy ]( const ReceiverFunction& rReceiver )
 			{
 				return ( rReceiver.target_type() == ReceiversCopy.back().target_type() );
