@@ -81,8 +81,10 @@ static std::wstring FindWindowsSDKVersion( const std::filesystem::path& rProgram
 {
 	for( const std::filesystem::directory_entry& rDirectory : std::filesystem::directory_iterator( rProgramFilesX86 / "Windows Kits" / "10" / "Lib" ) )
 	{
-		if( std::filesystem::exists( rDirectory / "um" / "x64" / "kernel32.lib" ) )
-			return rDirectory.path().filename();
+		const std::filesystem::path DirectoryPath = rDirectory.path();
+
+		if( std::filesystem::exists( DirectoryPath / "um" / "x64" / "kernel32.lib" ) )
+			return DirectoryPath.filename();
 	}
 
 	return std::wstring();
