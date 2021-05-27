@@ -18,6 +18,9 @@
 #pragma once
 #include "Common/Macros.h"
 
+#include <filesystem>
+#include <string>
+
 class WorkspaceOutliner
 {
 public:
@@ -28,10 +31,11 @@ public:
 
 private:
 
-	std::string m_PopupText;
-	std::string m_SelectedProjectName;
-	std::string m_ProjectNodeToBeExpanded;
+	std::filesystem::path m_SelectedFile            = { };
+	std::string           m_PopupText               = { };
+	std::string           m_SelectedProjectName     = { };
+	std::string           m_ProjectNodeToBeExpanded = { };
 
-	bool        m_ExpandWorkspaceNode = false;
+	bool                  m_ExpandWorkspaceNode     = false;
 
 }; // WorkspaceWidget

@@ -73,6 +73,9 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							if( ImGui::IsItemHovered() )
 							{
 								ImGui::SetMouseCursor( ImGuiMouseCursor_Hand );
+
+								m_SelectedFile        = rFile;
+								m_SelectedProjectName = rProject.m_Name;
 							}
 
 							if( ClickedFile )
@@ -101,7 +104,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 			bool OpenWorkspaceRenamePopup = false;
 			bool OpenProjectRenamePopup   = false;
 
-			if( ImGui::IsMouseReleased( ImGuiMouseButton_Right ) )
+			if( ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
 			{
 				if( WorkspaceItemHovered )
 				{
@@ -112,6 +115,10 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					ImGui::OpenPopup( "ProjectContextMenu", ImGuiPopupFlags_MouseButtonRight );
 
 					m_SelectedProjectName = pHoveredProject->m_Name;
+				}
+				else if( !m_SelectedFile.empty() )
+				{
+					ImGui::OpenPopup( "FileContextMenu", ImGuiPopupFlags_MouseButtonRight );
 				}
 			}
 
@@ -203,6 +210,24 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				if( ImGui::MenuItem( "Settings" ) )
 				{
 					ProjectSettingsModal::Instance().Show( m_SelectedProjectName );
+				}
+
+				ImGui::EndPopup();
+			}
+			else if( ImGui::BeginPopup( "FileContextMenu", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings ) )
+			{
+				if( ImGui::MenuItem( "Remove" ) )
+				{
+					if( Project* pSelectedProject = pWorkspace->ProjectByName( m_SelectedProjectName ) )
+					{
+						auto SelectedFileIt = std::find_if( pSelectedProject->m_Files.begin(), pSelectedProject->m_Files.end(), [ this ]( const std::filesystem::path& rPath ) { return rPath == m_SelectedFile; } );
+						if( SelectedFileIt != pSelectedProject->m_Files.end() )
+						{
+							pSelectedProject->m_Files.erase( SelectedFileIt );
+						}
+					}
+
+					m_SelectedFile.clear();
 				}
 
 				ImGui::EndPopup();
