@@ -30,6 +30,7 @@
 enum Category
 {
 	CategoryGeneral,
+	CategoryCompiler,
 	CategoryLinker,
 	NumCategories
 };
@@ -40,9 +41,10 @@ static constexpr const char* StringifyCategory( Category Category )
 {
 	switch( Category )
 	{
-		case CategoryGeneral: return "General";
-		case CategoryLinker:  return "Linker";
-		default:              return nullptr;
+		case CategoryGeneral:  return "General";
+		case CategoryCompiler: return "Compiler";
+		case CategoryLinker:   return "Linker";
+		default:               return nullptr;
 	}
 
 } // StringifyCategory
@@ -112,6 +114,29 @@ void ProjectSettingsModal::UpdateDerived( void )
 					if( ImGui::Combo( "##Kind", &CurrentItem, KindNames.data(), static_cast< int >( KindNames.size() ) ) )
 					{
 						pProject->m_Kind = static_cast< Project::Kind >( CurrentItem + 1 );
+					}
+
+				} break;
+
+				case CategoryCompiler:
+				{
+					ImGui::TextUnformatted( "Include Directories" );
+
+					for( size_t i = 0; i < pProject->m_IncludeDirectories.size(); ++i )
+					{
+						std::filesystem::path& rIncludeDir = pProject->m_IncludeDirectories[ i ];
+						std::string            Buffer      = rIncludeDir.lexically_relative( pProject->m_Location ).string();
+						const std::string      Label       = "##INCLUDEDIR_" + std::to_string( i );
+
+						if( ImGui::InputText( Label.c_str(), &Buffer ) )
+						{
+							rIncludeDir = ( pProject->m_Location / Buffer ).lexically_normal();
+						}
+					}
+
+					if( ImGui::SmallButton( "+##ADD_INCLUDE_DIR" ) )
+					{
+						pProject->m_IncludeDirectories.emplace_back();
 					}
 
 				} break;

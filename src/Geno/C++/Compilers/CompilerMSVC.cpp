@@ -100,15 +100,23 @@ std::wstring CompilerMSVC::MakeCommandLineString( const CompileOptions& rOptions
 
 	std::wstring CommandLine;
 	CommandLine += ( MSVCDir / "bin" / HOST / "x64" / "cl.exe" ).wstring();
-	CommandLine += L" /c /nologo /EHsc";
+	CommandLine += L" /c /nologo /EHsc /std:c++latest";
 
 	// Set standard include directories
 	{
 		const std::wstring          WindowsSDKVersion    = FindWindowsSDKVersion( ProgramFilesX86 );
 		const std::filesystem::path WindowsSDKIncludeDir = ProgramFilesX86 / "Windows Kits" / "10" / "Include" / WindowsSDKVersion;
 
-		CommandLine += L" /I\"" + ( MSVCDir / "include"           ).wstring() + L"\"";
-		CommandLine += L" /I\"" + ( WindowsSDKIncludeDir / "ucrt" ).wstring() + L"\"";
+		CommandLine += L" /I\"" + ( MSVCDir / "include"             ).wstring() + L"\"";
+		CommandLine += L" /I\"" + ( WindowsSDKIncludeDir / "ucrt"   ).wstring() + L"\"";
+		CommandLine += L" /I\"" + ( WindowsSDKIncludeDir / "um"     ).wstring() + L"\"";
+		CommandLine += L" /I\"" + ( WindowsSDKIncludeDir / "shared" ).wstring() + L"\"";
+	}
+
+	// Add user-defined include directories
+	for( const std::filesystem::path& rIncludeDir : rOptions.IncludeDirs )
+	{
+		CommandLine += L" /I\"" + rIncludeDir.wstring() + L"\"";
 	}
 
 	// Set output file

@@ -44,17 +44,17 @@ Project::Project( Project&& rrOther )
 
 Project& Project::operator=( Project&& rrOther )
 {
-	m_Kind             = rrOther.m_Kind;
-	m_Location         = std::move( rrOther.m_Location );
-	m_Name             = std::move( rrOther.m_Name );
-	m_Files            = std::move( rrOther.m_Files );
-	m_Includes         = std::move( rrOther.m_Includes );
-	m_Libraries        = std::move( rrOther.m_Libraries );
-	m_Configurations   = std::move( rrOther.m_Configurations );
-	m_FilesLeftToBuild = std::move( rrOther.m_FilesLeftToBuild );
-	m_FilesToLink      = std::move( rrOther.m_FilesToLink );
+	m_Kind               = rrOther.m_Kind;
+	m_Location           = std::move( rrOther.m_Location );
+	m_Name               = std::move( rrOther.m_Name );
+	m_Files              = std::move( rrOther.m_Files );
+	m_IncludeDirectories = std::move( rrOther.m_IncludeDirectories );
+	m_Libraries          = std::move( rrOther.m_Libraries );
+	m_Configurations     = std::move( rrOther.m_Configurations );
+	m_FilesLeftToBuild   = std::move( rrOther.m_FilesLeftToBuild );
+	m_FilesToLink        = std::move( rrOther.m_FilesToLink );
 
-	rrOther.m_Kind     = Kind::Unspecified;
+	rrOther.m_Kind       = Kind::Unspecified;
 
 	return *this;
 
@@ -141,6 +141,21 @@ bool Project::Serialize( void )
 		Serializer.WriteObject( Files );
 	}
 
+	// Include directories
+	if( !m_IncludeDirectories.empty() )
+	{
+		GCL::Object IncludeDirs( "IncludeDirs", std::in_place_type< GCL::Object::TableType > );
+
+		for( const std::filesystem::path& rIncludeDir : m_IncludeDirectories )
+		{
+			const std::filesystem::path RelativePath = rIncludeDir.lexically_relative( m_Location );
+
+			IncludeDirs.AddChild( GCL::Object( RelativePath.string() ) );
+		}
+
+		Serializer.WriteObject( IncludeDirs );
+	}
+
 	// Libraries
 	if( !m_Libraries.empty() )
 	{
@@ -219,7 +234,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 			pSelf->m_Files.emplace_back( std::move( FilePath ) );
 		}
 	}
-	else if( Name == "Includes" )
+	else if( Name == "IncludeDirs" )
 	{
 		for( const GCL::Object& rFilePathObj : Object.Table() )
 		{
@@ -229,7 +244,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 				FilePath = pSelf->m_Location / FilePath;
 
 			FilePath = FilePath.lexically_normal();
-			pSelf->m_Includes.emplace_back( std::move( FilePath ) );
+			pSelf->m_IncludeDirectories.emplace_back( std::move( FilePath ) );
 		}
 	}
 	else if( Name == "Libraries" )
@@ -282,11 +297,12 @@ void Project::BuildNextFile( ICompiler& rCompiler )
 		};
 
 		CompileOptions Options;
-		Options.InputFile  = *File;
-		Options.OutputFile = m_Location / File->filename();
+		Options.IncludeDirs = m_IncludeDirectories;
+		Options.Language    = CompileOptions::Language::CPlusPlus;
+		Options.Action      = CompileOptions::Action::CompileAndAssemble;
+		Options.InputFile   = *File;
+		Options.OutputFile  = m_Location / File->filename();
 		Options.OutputFile.replace_extension( ".obj" );
-		Options.Language   = CompileOptions::Language::CPlusPlus;
-		Options.Action     = CompileOptions::Action::CompileAndAssemble;
 
 		// Compile the file
 		rCompiler.Compile( Options );

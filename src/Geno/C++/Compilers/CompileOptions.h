@@ -52,13 +52,15 @@ struct CompileOptions
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::filesystem::path InputFile;
-	std::filesystem::path OutputFile;
+	std::vector< std::filesystem::path > IncludeDirs;
 
-	Language              Language          = Language::Unspecified;
-	Action                Action            = Action::All;
-	uint32_t              AssemblerFlags    = 0;
-	uint32_t              PreprocessorFlags = 0;
-	bool                  Verbose           = false;
+	std::filesystem::path                InputFile;
+	std::filesystem::path                OutputFile;
+
+	Language                             Language          = Language::Unspecified;
+	Action                               Action            = Action::All;
+	uint32_t                             AssemblerFlags    = 0;
+	uint32_t                             PreprocessorFlags = 0;
+	bool                                 Verbose           = false;
 
 }; // CompileOptions
