@@ -151,17 +151,22 @@ void ProjectSettingsModal::UpdateDerived( void )
 
 					ImGui::TextUnformatted( "Libraries" );
 
-					for( std::filesystem::path& rLibrary : pProject->m_Libraries )
+					for( size_t i = 0; i < pProject->m_Libraries.size(); ++i )
 					{
-						std::string       Buffer = rLibrary.lexically_relative( pProject->m_Location ).string();
-						const std::string Label  = "##LIBRARY_" + Buffer;
+						std::filesystem::path& rLibrary = pProject->m_Libraries[ i ];
+						std::string            Buffer   = rLibrary.lexically_relative( pProject->m_Location ).string();
+						const std::string      Label    = "##LIBRARY_" + Buffer;
 
 						if( ImGui::InputText( Label.c_str(), &Buffer ) )
+						{
 							rLibrary = ( pProject->m_Location / Buffer ).lexically_normal();
+						}
 					}
 
 					if( ImGui::SmallButton( "+##ADD_LIBRARY" ) )
+					{
 						pProject->m_Libraries.emplace_back();
+					}
 
 				} break;
 			}
@@ -173,8 +178,9 @@ void ProjectSettingsModal::UpdateDerived( void )
 	} ImGui::EndChild();
 
 	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + 4 );
-	if( ImGui::Button( "Close", ImVec2( 80, 0 ) ) )
+	if( ImGui::Button( "Save & Close", ImVec2( 100, 0 ) ) )
 	{
+		pProject->Serialize();
 		Close();
 	}
 

@@ -124,21 +124,24 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 			if( ImGui::BeginPopup( "WorkspaceContextMenu", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings ) )
 			{
-				if( ImGui::MenuItem( "Rename" ) )      OpenWorkspaceRenamePopup = true;
+				if( ImGui::MenuItem( "Rename" ) )
+				{
+					OpenWorkspaceRenamePopup = true;
+				}
 				if( ImGui::MenuItem( "New Project" ) )
 				{
 					NewItemModal::Instance().RequestPath( "New Project", pWorkspace->m_Location, this,
-						[]( std::string name, std::filesystem::path location, void* user )
+						[]( std::string Name, std::filesystem::path Location, void* pUser )
 						{
-							WorkspaceOutliner* self = static_cast< WorkspaceOutliner* >( user );
+							WorkspaceOutliner* pSelf = static_cast< WorkspaceOutliner* >( pUser );
 
-							if( Workspace* workspace = Application::Instance().CurrentWorkspace() )
+							if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 							{
 								// Automatically expand tree if adding an item for the first time
-								self->m_ExpandWorkspaceNode = true;
+								pSelf->m_ExpandWorkspaceNode = true;
 
-								workspace->NewProject( std::move( location ), std::move( name ) );
-								workspace->Serialize();
+								pWorkspace->NewProject( std::move( Location ), std::move( Name ) );
+								pWorkspace->Serialize();
 							}
 						}
 					);
