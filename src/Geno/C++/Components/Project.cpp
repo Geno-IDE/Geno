@@ -49,6 +49,7 @@ Project& Project::operator=( Project&& rrOther )
 	m_Name               = std::move( rrOther.m_Name );
 	m_Files              = std::move( rrOther.m_Files );
 	m_IncludeDirectories = std::move( rrOther.m_IncludeDirectories );
+	m_Defines            = std::move( rrOther.m_Defines );
 	m_Libraries          = std::move( rrOther.m_Libraries );
 	m_Configurations     = std::move( rrOther.m_Configurations );
 	m_FilesLeftToBuild   = std::move( rrOther.m_FilesLeftToBuild );
@@ -156,6 +157,19 @@ bool Project::Serialize( void )
 		Serializer.WriteObject( IncludeDirs );
 	}
 
+	// Preprocessor defines
+	if( !m_Defines.empty() )
+	{
+		GCL::Object Defines( "Defines", std::in_place_type< GCL::Object::TableType > );
+
+		for( const std::string& rDefine : m_Defines )
+		{
+			Defines.AddChild( GCL::Object( rDefine ) );
+		}
+
+		Serializer.WriteObject( Defines );
+	}
+
 	// Libraries
 	if( !m_Libraries.empty() )
 	{
@@ -247,6 +261,15 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 			pSelf->m_IncludeDirectories.emplace_back( std::move( FilePath ) );
 		}
 	}
+	else if( Name == "Defines" )
+	{
+		for( const GCL::Object& rDefineObj : Object.Table() )
+		{
+			std::string Define = rDefineObj.String();
+
+			pSelf->m_Defines.emplace_back( std::move( Define ) );
+		}
+	}
 	else if( Name == "Libraries" )
 	{
 		for( const GCL::Object& rLibraryObj : Object.Table() )
@@ -298,6 +321,7 @@ void Project::BuildNextFile( ICompiler& rCompiler )
 
 		CompileOptions Options;
 		Options.IncludeDirs = m_IncludeDirectories;
+		Options.Defines     = m_Defines;
 		Options.Language    = CompileOptions::Language::CPlusPlus;
 		Options.Action      = CompileOptions::Action::CompileAndAssemble;
 		Options.InputFile   = *File;

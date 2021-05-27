@@ -102,6 +102,14 @@ std::wstring CompilerMSVC::MakeCommandLineString( const CompileOptions& rOptions
 	CommandLine += ( MSVCDir / "bin" / HOST / "x64" / "cl.exe" ).wstring();
 	CommandLine += L" /c /nologo /EHsc /std:c++latest";
 
+	// Add user-defined preprocessor defines
+	for( const std::string& rDefine : rOptions.Defines )
+	{
+		UTF8Converter Converter;
+
+		CommandLine += L" /D \"" + Converter.from_bytes( rDefine ) + L"\"";
+	}
+
 	// Set standard include directories
 	{
 		const std::wstring          WindowsSDKVersion    = FindWindowsSDKVersion( ProgramFilesX86 );

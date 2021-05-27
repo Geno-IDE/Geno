@@ -76,6 +76,7 @@ public:
 	std::string                          m_Name;
 	std::vector< std::filesystem::path > m_Files;
 	std::vector< std::filesystem::path > m_IncludeDirectories;
+	std::vector< std::string >           m_Defines;
 	std::vector< std::filesystem::path > m_Libraries;
 	std::vector< Configuration >         m_Configurations;
 	std::vector< std::filesystem::path > m_FilesLeftToBuild;

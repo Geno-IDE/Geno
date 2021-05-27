@@ -139,6 +139,22 @@ void ProjectSettingsModal::UpdateDerived( void )
 						pProject->m_IncludeDirectories.emplace_back();
 					}
 
+					ImGui::Separator();
+					ImGui::TextUnformatted( "Preprocessor Defines" );
+
+					for( size_t i = 0; i < pProject->m_Defines.size(); ++i )
+					{
+						std::string&      rDefine = pProject->m_Defines[ i ];
+						const std::string Label   = "##DEFINE_" + std::to_string( i );
+
+						ImGui::InputText( Label.c_str(), &rDefine );
+					}
+
+					if( ImGui::SmallButton( "+##ADD_DEFINE" ) )
+					{
+						pProject->m_Defines.emplace_back();
+					}
+
 				} break;
 
 				case CategoryLinker:
@@ -155,7 +171,7 @@ void ProjectSettingsModal::UpdateDerived( void )
 					{
 						std::filesystem::path& rLibrary = pProject->m_Libraries[ i ];
 						std::string            Buffer   = rLibrary.lexically_relative( pProject->m_Location ).string();
-						const std::string      Label    = "##LIBRARY_" + Buffer;
+						const std::string      Label    = "##LIBRARY_" + std::to_string( i );
 
 						if( ImGui::InputText( Label.c_str(), &Buffer ) )
 						{

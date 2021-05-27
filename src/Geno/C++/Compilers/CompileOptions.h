@@ -53,6 +53,7 @@ struct CompileOptions
 //////////////////////////////////////////////////////////////////////////
 
 	std::vector< std::filesystem::path > IncludeDirs;
+	std::vector< std::string >           Defines;
 
 	std::filesystem::path                InputFile;
 	std::filesystem::path                OutputFile;
