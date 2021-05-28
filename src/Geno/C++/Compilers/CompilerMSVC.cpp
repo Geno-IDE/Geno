@@ -99,7 +99,7 @@ std::wstring CompilerMSVC::MakeCommandLineString( const CompileOptions& rOptions
 	const std::filesystem::path MSVCDir         = FindMSVCDir( ProgramFilesX86 );
 
 	std::wstring CommandLine;
-	CommandLine += ( MSVCDir / "bin" / HOST / "x64" / "cl.exe" ).wstring();
+	CommandLine += L"\"" + ( MSVCDir / "bin" / HOST / "x64" / "cl.exe" ).wstring() + L"\"";
 	CommandLine += L" /nologo";
 
 	// Action-based options
@@ -170,7 +170,7 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 	const std::wstring          WindowsSDKVersion = FindWindowsSDKVersion( ProgramFilesX86 );
 	std::wstring                CommandLine;
 
-	CommandLine += ( MSVCDir / "bin" / HOST / "x64" / "link.exe" ).wstring();
+	CommandLine += L"\"" + ( MSVCDir / "bin" / HOST / "x64" / "link.exe" ).wstring() + L"\"";
 
 	switch( rOptions.Kind )
 	{
