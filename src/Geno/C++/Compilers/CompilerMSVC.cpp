@@ -100,7 +100,14 @@ std::wstring CompilerMSVC::MakeCommandLineString( const CompileOptions& rOptions
 
 	std::wstring CommandLine;
 	CommandLine += ( MSVCDir / "bin" / HOST / "x64" / "cl.exe" ).wstring();
-	CommandLine += L" /c /nologo";
+	CommandLine += L" /nologo";
+
+	// Action-based options
+	switch( rOptions.Action )
+	{
+		case CompileOptions::Action::OnlyPreprocess: { CommandLine += L" /P"; } break;
+		default:                                     { CommandLine += L" /c"; } break;
+	}
 
 	// Language-specific options
 	switch( rOptions.Language )
@@ -132,6 +139,11 @@ std::wstring CompilerMSVC::MakeCommandLineString( const CompileOptions& rOptions
 	for( const std::filesystem::path& rIncludeDir : rOptions.IncludeDirs )
 	{
 		CommandLine += L" /I\"" + rIncludeDir.wstring() + L"\"";
+	}
+
+	// Add options based on user-defined flags
+	{
+		if( rOptions.PreprocessorFlags & CompileOptions::PreprocessorFlagUndefineSystemMacros ) CommandLine += L" /u";
 	}
 
 	// Set output file
