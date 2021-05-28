@@ -64,20 +64,20 @@ GCL::Serializer::~Serializer( void )
 
 void GCL::Serializer::WriteObject( const Object& rObject, int IndentLevel )
 {
-	std::string_view name = rObject.Name();
+	const std::string_view Name = rObject.Name();
 
 	for( int i = 0; i < IndentLevel; ++i )
 		_write( m_FileDescriptor, "\t", 1 );
 
-	_write( m_FileDescriptor, name.data(), static_cast< uint32_t >( name.size() ) );
+	_write( m_FileDescriptor, Name.data(), static_cast< uint32_t >( Name.size() ) );
 
 	if( rObject.IsNull() )
 	{
 		_write( m_FileDescriptor, "\n", 1 );
 	}
-	if( rObject.IsString() )
+	else if( rObject.IsString() )
 	{
-		Object::StringType string = rObject.String();
+		const Object::StringType& string = rObject.String();
 
 		_write( m_FileDescriptor, ":", 1 );
 		_write( m_FileDescriptor, string.data(), static_cast< uint32_t >( string.size() ) );

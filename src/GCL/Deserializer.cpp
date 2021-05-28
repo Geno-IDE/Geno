@@ -41,6 +41,14 @@ constexpr bool LineStartsWithIndent( std::string_view Line, int IndentLevel )
 
 //////////////////////////////////////////////////////////////////////////
 
+constexpr size_t IncrementUnlessNPos( size_t Index )
+{
+	return Index + ( Index == std::string_view::npos ? 0 : 1 );
+
+} // IncrementUnlessNPos
+
+//////////////////////////////////////////////////////////////////////////
+
 static void AddChildCB( GCL::Object Child, void* pUser )
 {
 	GCL::Object* pParent = static_cast< GCL::Object* >( pUser );
@@ -111,26 +119,27 @@ std::string_view GCL::Deserializer::ParseLine( std::string_view Line, int Indent
 {
 	Unparsed = Unparsed.substr( Line.size() + ( Line.size() < Unparsed.size() ) );
 
-	std::string_view UnindentedLine = Line.substr( IndentLevel );
-	size_t           ColonIndex     = UnindentedLine.find_first_of( ':' );
+	std::string_view TrimmedLine = Line.substr( IndentLevel );
+	TrimmedLine                  = TrimmedLine.substr( 0, IncrementUnlessNPos( TrimmedLine.find_last_not_of( "\r\t " ) ) );
+	size_t           ColonIndex  = TrimmedLine.find_first_of( ':' );
 
 	if( ColonIndex == std::string_view::npos ) // No colon found
 	{
 		Object* pParentObject = static_cast< Object* >( pUser );
-		Object  Child( ( std::string )UnindentedLine );
+		Object  Child( ( std::string )TrimmedLine );
 
 		pParentObject->AddChild( std::move( Child ) );
 	}
-	else if( ( ColonIndex + 1 ) < UnindentedLine.size() ) // Something comes after the colon
+	else if( ( ColonIndex + 1 ) < TrimmedLine.size() ) // Something comes after the colon
 	{
-		Object Object( ( std::string )UnindentedLine.substr( 0, ColonIndex ) );
-		Object.SetString( ( std::string )UnindentedLine.substr( ColonIndex + 1 ) );
+		Object Object( ( std::string )TrimmedLine.substr( 0, ColonIndex ) );
+		Object.SetString( ( std::string )TrimmedLine.substr( ColonIndex + 1 ) );
 
 		Callback( std::move( Object ), pUser );
 	}
 	else // Colon is at the end of the line, signifying the start of a table
 	{
-		std::string_view Name             = UnindentedLine.substr( 0, ColonIndex );
+		std::string_view Name             = TrimmedLine.substr( 0, ColonIndex );
 		Object           Object( std::string( Name ), std::in_place_type< Object::TableType > );
 
 		++IndentLevel;
