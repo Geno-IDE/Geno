@@ -208,7 +208,10 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 	// Add user-defined library paths
 	for( const std::filesystem::path& rLibraryDirectory : rOptions.LibraryDirectories )
 	{
-		CommandLine += L"/LIBPATH:\"" + rLibraryDirectory.wstring() + L"\"";
+		// Get rid of trailing slashes. It's not allowed in MSVC
+		const std::filesystem::path Path = ( rLibraryDirectory / L"NUL" ).parent_path();
+
+		CommandLine += L" /LIBPATH:\"" + Path.wstring() + L"\"";
 	}
 
 	// Add input files
