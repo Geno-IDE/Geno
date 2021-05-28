@@ -73,12 +73,16 @@ void Project::Build( ICompiler& rCompiler )
 
 	for( const std::filesystem::path& rFile : m_Files )
 	{
-		// #TODO: Compiler will be per-file so this check is only temporary
-		if( rFile.extension() != ".cpp" )
-			continue;
+		std::filesystem::path Extension = rFile.extension();
 
-		// Keep track of which files are currently building
-		m_FilesLeftToBuild.push_back( rFile );
+		// #TODO: Compiler will be per-file so this check is only temporary
+		if( Extension == ".cpp"
+		 || Extension == ".cxx"
+		 || Extension == ".cc"
+		 || Extension == ".c" )
+		{
+			m_FilesLeftToBuild.push_back( rFile );
+		}
 	}
 
 	BuildNextFile( rCompiler );
@@ -322,7 +326,7 @@ void Project::BuildNextFile( ICompiler& rCompiler )
 		CompileOptions Options;
 		Options.IncludeDirs = m_IncludeDirectories;
 		Options.Defines     = m_Defines;
-		Options.Language    = CompileOptions::Language::CPlusPlus;
+		Options.Language    = File->extension() == ".c" ? CompileOptions::Language::C : CompileOptions::Language::CPlusPlus;
 		Options.Action      = CompileOptions::Action::CompileAndAssemble;
 		Options.InputFile   = *File;
 		Options.OutputFile  = m_Location / File->filename();

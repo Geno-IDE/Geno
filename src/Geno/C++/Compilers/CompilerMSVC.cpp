@@ -100,7 +100,14 @@ std::wstring CompilerMSVC::MakeCommandLineString( const CompileOptions& rOptions
 
 	std::wstring CommandLine;
 	CommandLine += ( MSVCDir / "bin" / HOST / "x64" / "cl.exe" ).wstring();
-	CommandLine += L" /c /nologo /EHsc /std:c++latest";
+	CommandLine += L" /c /nologo";
+
+	// Language-specific options
+	switch( rOptions.Language )
+	{
+		case CompileOptions::Language::C:         { CommandLine += L" /std:c11";             } break;
+		case CompileOptions::Language::CPlusPlus: { CommandLine += L" /EHsc /std:c++latest"; } break;
+	}
 
 	// Add user-defined preprocessor defines
 	for( const std::string& rDefine : rOptions.Defines )
