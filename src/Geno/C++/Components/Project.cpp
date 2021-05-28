@@ -278,12 +278,8 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 	{
 		for( const GCL::Object& rLibraryObj : Object.Table() )
 		{
-			std::filesystem::path LibraryPath = rLibraryObj.String();
+			std::string LibraryPath = rLibraryObj.String();
 
-			if( !LibraryPath.is_absolute() )
-				LibraryPath = pSelf->m_Location / LibraryPath;
-
-			LibraryPath = LibraryPath.lexically_normal();
 			pSelf->m_Libraries.emplace_back( std::move( LibraryPath ) );
 		}
 	}
@@ -348,10 +344,10 @@ void Project::Link( ICompiler& rCompiler )
 	};
 
 	LinkOptions Options;
-	Options.ObjectFiles     = std::move( m_FilesToLink );
-	Options.LinkedLibraries = m_Libraries;
-	Options.OutputFile      = m_Location / m_Name;
-	Options.Kind            = m_Kind;
+	Options.ObjectFiles = std::move( m_FilesToLink );
+	Options.Libraries   = m_Libraries;
+	Options.OutputFile  = m_Location / m_Name;
+	Options.Kind        = m_Kind;
 
 	rCompiler.Link( Options );
 

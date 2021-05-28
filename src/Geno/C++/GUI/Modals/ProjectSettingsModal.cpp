@@ -169,14 +169,10 @@ void ProjectSettingsModal::UpdateDerived( void )
 
 					for( size_t i = 0; i < pProject->m_Libraries.size(); ++i )
 					{
-						std::filesystem::path& rLibrary = pProject->m_Libraries[ i ];
-						std::string            Buffer   = rLibrary.lexically_relative( pProject->m_Location ).string();
-						const std::string      Label    = "##LIBRARY_" + std::to_string( i );
+						std::string&      rLibrary = pProject->m_Libraries[ i ];
+						const std::string Label    = "##LIBRARY_" + std::to_string( i );
 
-						if( ImGui::InputText( Label.c_str(), &Buffer ) )
-						{
-							rLibrary = ( pProject->m_Location / Buffer ).lexically_normal();
-						}
+						ImGui::InputText( Label.c_str(), &rLibrary );
 					}
 
 					if( ImGui::SmallButton( "+##ADD_LIBRARY" ) )

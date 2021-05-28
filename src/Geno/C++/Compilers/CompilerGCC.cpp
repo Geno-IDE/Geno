@@ -109,7 +109,7 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 			}
 
 			// Link libraries
-			for( const std::filesystem::path& rLibrary : rOptions.LinkedLibraries )
+			for( const std::filesystem::path& rLibrary : rOptions.Libraries )
 			{
 				Command += L" -L" + rLibrary.parent_path().wstring();
 				Command += L" -l" + rLibrary.filename().replace_extension().wstring();

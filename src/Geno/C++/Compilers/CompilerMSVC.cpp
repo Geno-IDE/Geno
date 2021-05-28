@@ -184,12 +184,6 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 		} break;
 	}
 
-	// Add input files
-	for( const std::filesystem::path& rLibrary : rOptions.LinkedLibraries )
-	{
-		CommandLine += L" \"" + rLibrary.wstring() + L"\"";
-	}
-
 	// Add standard library paths
 	{
 		const std::filesystem::path WindowsSDKLibraryDir = ProgramFilesX86 / "Windows Kits" / "10" / "Lib" / WindowsSDKVersion;
@@ -197,6 +191,12 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 		CommandLine += L" /LIBPATH:\"" + ( MSVCDir / "lib" / "x64"               ).wstring() + L"\"";
 		CommandLine += L" /LIBPATH:\"" + ( WindowsSDKLibraryDir / "um" / "x64"   ).wstring() + L"\"";
 		CommandLine += L" /LIBPATH:\"" + ( WindowsSDKLibraryDir / "ucrt" / "x64" ).wstring() + L"\"";
+	}
+
+	// Add input files
+	for( const std::filesystem::path& rLibrary : rOptions.Libraries )
+	{
+		CommandLine += L" \"" + rLibrary.wstring() + L"\"";
 	}
 
 	// Add all object files
