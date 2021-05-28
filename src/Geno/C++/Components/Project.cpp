@@ -49,6 +49,7 @@ Project& Project::operator=( Project&& rrOther )
 	m_Name               = std::move( rrOther.m_Name );
 	m_Files              = std::move( rrOther.m_Files );
 	m_IncludeDirectories = std::move( rrOther.m_IncludeDirectories );
+	m_LibraryDirectories = std::move( rrOther.m_LibraryDirectories );
 	m_Defines            = std::move( rrOther.m_Defines );
 	m_Libraries          = std::move( rrOther.m_Libraries );
 	m_Configurations     = std::move( rrOther.m_Configurations );
@@ -161,6 +162,21 @@ bool Project::Serialize( void )
 		Serializer.WriteObject( IncludeDirs );
 	}
 
+	// Library directories
+	if( !m_LibraryDirectories.empty() )
+	{
+		GCL::Object LibraryDirs( "LibraryDirs", std::in_place_type< GCL::Object::TableType > );
+
+		for( const std::filesystem::path& rLibraryDir : m_LibraryDirectories )
+		{
+			const std::filesystem::path RelativePath = rLibraryDir.lexically_relative( m_Location );
+
+			LibraryDirs.AddChild( GCL::Object( RelativePath.string() ) );
+		}
+
+		Serializer.WriteObject( LibraryDirs );
+	}
+
 	// Preprocessor defines
 	if( !m_Defines.empty() )
 	{
@@ -179,11 +195,9 @@ bool Project::Serialize( void )
 	{
 		GCL::Object Libraries( "Libraries", std::in_place_type< GCL::Object::TableType > );
 
-		for( const std::filesystem::path& rLibrary : m_Libraries )
+		for( const std::string& rLibrary : m_Libraries )
 		{
-			const std::filesystem::path RelativePath = rLibrary.lexically_relative( m_Location );
-
-			Libraries.AddChild( GCL::Object( RelativePath.string() ) );
+			Libraries.AddChild( GCL::Object( rLibrary ) );
 		}
 
 		Serializer.WriteObject( Libraries );
@@ -265,6 +279,19 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 			pSelf->m_IncludeDirectories.emplace_back( std::move( FilePath ) );
 		}
 	}
+	else if( Name == "LibraryDirs" )
+	{
+		for( const GCL::Object& rFilePathObj : Object.Table() )
+		{
+			std::filesystem::path FilePath = rFilePathObj.String();
+
+			if( !FilePath.is_absolute() )
+				FilePath = pSelf->m_Location / FilePath;
+
+			FilePath = FilePath.lexically_normal();
+			pSelf->m_LibraryDirectories.emplace_back( std::move( FilePath ) );
+		}
+	}
 	else if( Name == "Defines" )
 	{
 		for( const GCL::Object& rDefineObj : Object.Table() )
@@ -278,9 +305,9 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 	{
 		for( const GCL::Object& rLibraryObj : Object.Table() )
 		{
-			std::string LibraryPath = rLibraryObj.String();
+			std::string Library = rLibraryObj.String();
 
-			pSelf->m_Libraries.emplace_back( std::move( LibraryPath ) );
+			pSelf->m_Libraries.emplace_back( std::move( Library ) );
 		}
 	}
 
@@ -344,10 +371,11 @@ void Project::Link( ICompiler& rCompiler )
 	};
 
 	LinkOptions Options;
-	Options.ObjectFiles = std::move( m_FilesToLink );
-	Options.Libraries   = m_Libraries;
-	Options.OutputFile  = m_Location / m_Name;
-	Options.Kind        = m_Kind;
+	Options.ObjectFiles        = std::move( m_FilesToLink );
+	Options.LibraryDirectories = m_LibraryDirectories;
+	Options.Libraries          = m_Libraries;
+	Options.OutputFile         = m_Location / m_Name;
+	Options.Kind               = m_Kind;
 
 	rCompiler.Link( Options );
 

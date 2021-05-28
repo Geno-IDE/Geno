@@ -108,11 +108,18 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 				if( rOptions.Flags & LinkOptions::LinkerFlagNoDefaultLibs ) { Command += L",-nodefaultlibs"; }
 			}
 
-			// Link libraries
-			for( const std::filesystem::path& rLibrary : rOptions.Libraries )
+			// User-defined library directories
+			for( const std::filesystem::path& rLibraryDirectory : rOptions.LibraryDirectories )
 			{
-				Command += L" -L" + rLibrary.parent_path().wstring();
-				Command += L" -l" + rLibrary.filename().replace_extension().wstring();
+				Command += L" -L" + rLibraryDirectory.wstring();
+			}
+
+			// Link libraries
+			for( const std::string& rLibrary : rOptions.Libraries )
+			{
+				UTF8Converter Converter;
+
+				Command += L" -l" + Converter.from_bytes( rLibrary );
 			}
 
 			// Set output file
@@ -125,7 +132,7 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 					{
 
 					#if defined( _WIN32 )
-						OutputFile.replace_extension( ".exe" );
+						OutputFile.replace_extension( L".exe" );
 					#endif // _WIN32
 
 					} break;

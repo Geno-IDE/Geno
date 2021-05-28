@@ -193,10 +193,18 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 		CommandLine += L" /LIBPATH:\"" + ( WindowsSDKLibraryDir / "ucrt" / "x64" ).wstring() + L"\"";
 	}
 
-	// Add input files
-	for( const std::filesystem::path& rLibrary : rOptions.Libraries )
+	// Add user-defined library paths
+	for( const std::filesystem::path& rLibraryDirectory : rOptions.LibraryDirectories )
 	{
-		CommandLine += L" \"" + rLibrary.wstring() + L"\"";
+		CommandLine += L"/LIBPATH:\"" + rLibraryDirectory.wstring() + L"\"";
+	}
+
+	// Add input files
+	for( const std::string& rLibrary : rOptions.Libraries )
+	{
+		UTF8Converter Converter;
+
+		CommandLine += L" \"" + Converter.from_bytes( rLibrary ) + L"\"";
 	}
 
 	// Add all object files

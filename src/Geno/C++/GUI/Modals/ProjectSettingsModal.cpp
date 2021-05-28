@@ -165,6 +165,25 @@ void ProjectSettingsModal::UpdateDerived( void )
 						break;
 					}
 
+					ImGui::TextUnformatted( "Library Directories" );
+
+					for( size_t i = 0; i < pProject->m_LibraryDirectories.size(); ++i )
+					{
+						std::filesystem::path& rLibraryDir = pProject->m_LibraryDirectories[ i ];
+						std::string            Buffer      = rLibraryDir.lexically_relative( pProject->m_Location ).string();
+						const std::string      Label       = "##LIBRARYDIR_" + std::to_string( i );
+
+						if( ImGui::InputText( Label.c_str(), &Buffer ) )
+						{
+							rLibraryDir = ( pProject->m_Location / Buffer ).lexically_normal();
+						}
+					}
+
+					if( ImGui::SmallButton( "+##ADD_LIBRARY_DIR" ) )
+					{
+						pProject->m_LibraryDirectories.emplace_back();
+					}
+
 					ImGui::TextUnformatted( "Libraries" );
 
 					for( size_t i = 0; i < pProject->m_Libraries.size(); ++i )
