@@ -32,6 +32,7 @@ class  WorkspaceOutliner;
 struct GLFWwindow;
 struct ImGuiContext;
 struct ImGuiSettingsHandler;
+struct ImFont;
 
 class MainWindow
 {
@@ -85,6 +86,7 @@ private:
 
 	GLFWwindow*           m_pWindow            = nullptr;
 	ImGuiContext*         m_pImGuiContext      = nullptr;
+	ImFont*               m_pFont              = nullptr;
 
 	int                   m_Width              = 0;
 	int                   m_Height             = 0;

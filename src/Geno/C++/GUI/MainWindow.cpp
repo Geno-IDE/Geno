@@ -100,6 +100,10 @@ MainWindow::MainWindow( void )
 	rIO.ConfigFlags                 |= ImGuiConfigFlags_ViewportsEnable;
 	rIO.ConfigViewportsNoTaskBarIcon = true;
 
+	// Load custom fonts
+	m_pFont = rIO.Fonts->AddFontFromFileTTF( "Fonts/LieraSans/LieraSans-Regular.ttf", 15.0f );
+	rIO.Fonts->Build();
+
 	// Set up custom settings handler
 	ImGuiSettingsHandler IniHandler;
 	IniHandler.UserData   = this;
@@ -181,6 +185,7 @@ bool MainWindow::BeginFrame( void )
 
 	ImGui::NewFrame();
 	ImGui::DockSpaceOverViewport( nullptr, ImGuiDockNodeFlags_NoWindowMenuButton );
+	ImGui::PushFont( m_pFont );
 
 	pMenuBar->Draw();
 
@@ -198,6 +203,7 @@ bool MainWindow::BeginFrame( void )
 
 void MainWindow::EndFrame( void )
 {
+	ImGui::PopFont();
 	ImGui::Render();
 
 	ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
