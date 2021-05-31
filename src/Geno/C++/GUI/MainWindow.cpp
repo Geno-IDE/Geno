@@ -24,6 +24,7 @@
 #include "GUI/Widgets/OutputWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
+#include "GUI/Styles.h"
 
 #include <iostream>
 
@@ -92,6 +93,9 @@ MainWindow::MainWindow( void )
 	m_IniPath       = LocalAppData::Instance() / L"imgui.ini";
 	m_pImGuiContext = ImGui::CreateContext();
 	IniFilename     = m_IniPath.string();
+
+	// Set default style
+	Styles::Dark();
 
 	// Configure interface
 	ImGuiIO& rIO                     = ImGui::GetIO();
