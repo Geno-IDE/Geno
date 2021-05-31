@@ -135,12 +135,15 @@ void TextEdit::Show( bool* pOpen )
 				{
 					const int InputTextFlags = ImGuiInputTextFlags_AllowTabInput;
 
+					ImGui::PushFont( MainWindow::Instance().GetFontMono() );
+
 					if( ImGui::InputTextMultiline( "##TextEditor", &rFile.Text, ImVec2( -0.01f, -0.01f ), InputTextFlags ) )
 					{
 						std::ofstream ofs( rFile.Path, std::ios::binary | std::ios::trunc );
 						ofs << rFile.Text;
 					}
 
+					ImGui::PopFont();
 					ImGui::EndTabItem();
 				}
 			}

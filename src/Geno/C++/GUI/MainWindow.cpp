@@ -105,7 +105,8 @@ MainWindow::MainWindow( void )
 	rIO.ConfigViewportsNoTaskBarIcon = true;
 
 	// Load custom fonts
-	m_pFont = rIO.Fonts->AddFontFromFileTTF( "Fonts/LieraSans/LieraSans-Regular.ttf", 15.0f );
+	m_pFontSans = rIO.Fonts->AddFontFromFileTTF( "Fonts/LieraSans/LieraSans-Regular.ttf", 15.0f );
+	m_pFontMono = rIO.Fonts->AddFontFromFileTTF( "Fonts/LVC-Mono/LVCMono.otf",            15.0f );
 	rIO.Fonts->Build();
 
 	// Set up custom settings handler
@@ -189,7 +190,7 @@ bool MainWindow::BeginFrame( void )
 
 	ImGui::NewFrame();
 	ImGui::DockSpaceOverViewport( nullptr, ImGuiDockNodeFlags_NoWindowMenuButton );
-	ImGui::PushFont( m_pFont );
+	ImGui::PushFont( m_pFontSans );
 
 	pMenuBar->Draw();
 
