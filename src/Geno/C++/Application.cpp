@@ -33,8 +33,10 @@ Application::~Application( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-int Application::Run( void )
+int Application::Run( int NumArgs, char** ppArgs )
 {
+	HandleCommandLineArgs( NumArgs, ppArgs );
+
 	MainWindow::Instance();
 
 	while( MainWindow::Instance().BeginFrame() )
@@ -64,12 +66,25 @@ void Application::NewWorkspace( std::filesystem::path Location, std::string Name
 
 //////////////////////////////////////////////////////////////////////////
 
-void Application::LoadWorkspace( const std::filesystem::path& rPath )
+bool Application::LoadWorkspace( std::filesystem::path Path )
 {
-	CloseWorkspace();
-	NewWorkspace( rPath.parent_path(), rPath.filename().replace_extension().string() );
+	std::error_code Error;
 
-	m_CurrentWorkspace->Deserialize();
+	if( std::filesystem::exists( Path, Error ) )
+	{
+		if( Path.is_relative() )
+			Path = std::filesystem::absolute( Path, Error );
+
+		if( !Error )
+		{
+			CloseWorkspace();
+			NewWorkspace( Path.parent_path(), Path.filename().replace_extension().string() );
+
+			return m_CurrentWorkspace->Deserialize();
+		}
+	}
+
+	return false;
 
 } // LoadWorkspace
 
@@ -123,3 +138,43 @@ Workspace* Application::CurrentWorkspace( void )
 	return m_CurrentWorkspace.has_value() ? &m_CurrentWorkspace.value() : nullptr;
 
 } // CurrentWorkspace
+
+//////////////////////////////////////////////////////////////////////////
+
+void Application::HandleCommandLineArgs( int NumArgs, char** ppArgs )
+{
+	switch( NumArgs )
+	{
+		default:
+		{
+			[[ fallthrough ]];
+		}
+
+		case 2:
+		{
+			const std::filesystem::path WorkspacePath = ppArgs[ 1 ];
+			std::error_code             Error;
+
+			if( !std::filesystem::exists( WorkspacePath, Error ) )
+				exit( 1 );
+
+			if( !LoadWorkspace( WorkspacePath ) )
+				exit( 1 );
+
+			[[ fallthrough ]];
+		}
+
+		case 1:
+		{
+			m_Location = ppArgs[ 0 ];
+
+			[[ fallthrough ]];
+		}
+
+		case 0:
+		{
+			break;
+		}
+	}
+
+} // HandleCommandLineArgs

@@ -23,9 +23,9 @@
 
  //////////////////////////////////////////////////////////////////////////
 
-int main( int /*ArgCount*/, char** /*ppArgs*/ )
+int main( int ArgCount, char** ppArgs )
 {
-	return Application::Instance().Run();
+	return Application::Instance().Run( ArgCount, ppArgs );
 
 } // main
 

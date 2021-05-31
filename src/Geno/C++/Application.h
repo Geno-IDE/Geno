@@ -36,9 +36,9 @@ class Application
 
 public:
 
-	int        Run             ( void );
+	int        Run             ( int NumArgs, char** ppArgs );
 	void       NewWorkspace    ( std::filesystem::path Location, std::string Name );
-	void       LoadWorkspace   ( const std::filesystem::path& rPath );
+	bool       LoadWorkspace   ( std::filesystem::path Path );
 	void       CloseWorkspace  ( void );
 	void       PushModal       ( IModal* pModal );
 	void       PopModal        ( void );
@@ -49,7 +49,12 @@ public:
 
 private:
 
+	void HandleCommandLineArgs( int NumArgs, char** ppArgs );
+
+//////////////////////////////////////////////////////////////////////////
+
 	std::optional< Workspace > m_CurrentWorkspace;
 	std::vector< IModal* >     m_ModalStack;
+	std::filesystem::path      m_Location;
 
 }; // Application
