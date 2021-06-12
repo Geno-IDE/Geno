@@ -28,6 +28,7 @@ app( 'Geno' )
 		'third_party/glew/include',
 		'third_party/glfw/include',
 		'third_party/imgui',
+		'third_party/stb',
 	}
 	libdirs {
 		'third_party/glew/lib/Release/%{cfg.platform}'
