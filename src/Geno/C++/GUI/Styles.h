@@ -19,7 +19,8 @@
 
 namespace Styles
 {
-	extern void Light( void );
-	extern void Dark ( void );
+
+extern void Light( void );
+extern void Dark( void );
 
 } // Styles
