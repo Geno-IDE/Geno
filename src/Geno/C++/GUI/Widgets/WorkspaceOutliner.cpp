@@ -17,6 +17,7 @@
 
 #include "WorkspaceOutliner.h"
 
+#include "Auxiliary/ImGuiAux.h"
 #include "Components/Project.h"
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
@@ -30,6 +31,33 @@
 
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
+#include <stb_image.h>
+
+//////////////////////////////////////////////////////////////////////////
+
+static void LoadTexture( const char* pFilePath, Texture2D& rTexture )
+{
+	int      Width;
+	int      Height;
+	stbi_uc* pData = stbi_load( pFilePath, &Width, &Height, nullptr, STBI_rgb_alpha );
+
+	if( pData )
+	{
+		rTexture.SetPixels( GL_RGBA8, Width, Height, GL_RGBA, pData );
+		free( pData );
+	}
+
+} // LoadTexture
+
+//////////////////////////////////////////////////////////////////////////
+
+WorkspaceOutliner::WorkspaceOutliner( void )
+{
+	LoadTexture( "Icons/Workspace.png",  m_IconTextureWorkspace );
+	LoadTexture( "Icons/Project.png",    m_IconTextureProject );
+	LoadTexture( "Icons/SourceFile.png", m_IconTextureSourceFile );
+
+} // WorkspaceOutliner
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -48,7 +76,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 			ImGui::SetNextItemOpen( true, m_ExpandWorkspaceNode ? ImGuiCond_Always : ImGuiCond_Appearing );
 			m_ExpandWorkspaceNode = false;
 
-			if( ImGui::TreeNode( WorkspaceIDString.c_str() ) )
+			if( ImGuiAux::PushTreeWithIcon( WorkspaceIDString.c_str(), m_IconTextureWorkspace ) )
 			{
 				WorkspaceItemHovered = ImGui::IsItemHovered();
 
@@ -59,7 +87,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					ImGui::SetNextItemOpen( true, m_ProjectNodeToBeExpanded == rProject.m_Name ? ImGuiCond_Always : ImGuiCond_Appearing );
 					m_ProjectNodeToBeExpanded.clear();
 
-					if( ImGui::TreeNode( ProjectIDString.c_str() ) )
+					if( ImGuiAux::PushTreeWithIcon( ProjectIDString.c_str(), m_IconTextureProject ) )
 					{
 						if( ImGui::IsItemHovered() )
 							pHoveredProject = &rProject;
@@ -68,7 +96,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 						{
 							const std::string FileString = rFile.filename().string();
 
-							const bool ClickedFile = ImGui::Selectable( FileString.c_str() );
+							const bool FileTreeOpened = ImGuiAux::PushTreeWithIcon( FileString.c_str(), m_IconTextureSourceFile, false );
 
 							if( ImGui::IsItemHovered() )
 							{
@@ -76,11 +104,16 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 								m_SelectedFile        = rFile;
 								m_SelectedProjectName = rProject.m_Name;
+
+								if( ImGui::IsItemClicked() )
+								{
+									MainWindow::Instance().pTextEdit->AddFile( rFile );
+								}
 							}
 
-							if( ClickedFile )
+							if( FileTreeOpened )
 							{
-								MainWindow::Instance().pTextEdit->AddFile( rFile );
+								ImGui::TreePop();
 							}
 						}
 
