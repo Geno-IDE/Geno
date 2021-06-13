@@ -19,10 +19,10 @@
 
 #include "Auxiliary/ImGuiAux.h"
 #include "Components/Project.h"
+#include "GUI/Modals/BuildMatrixModal.h"
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Modals/ProjectSettingsModal.h"
-#include "GUI/Modals/WorkspaceSettingsModal.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/MainMenuBar.h"
 #include "GUI/MainWindow.h"
@@ -188,9 +188,9 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					);
 				}
 				ImGui::Separator();
-				if( ImGui::MenuItem( "Settings" ) )
+				if( ImGui::MenuItem( "Build Matrix" ) )
 				{
-					WorkspaceSettingsModal::Instance().Show();
+					BuildMatrixModal::Instance().Show();
 				}
 
 				ImGui::EndPopup();
