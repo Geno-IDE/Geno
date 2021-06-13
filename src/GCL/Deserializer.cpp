@@ -19,16 +19,11 @@
 
 #include "Common/Platform/POSIX/POSIXError.h"
 
+#include "Common/Platform/UNIXFeatures.h"
+
 #include <iostream>
 
-#include <fcntl.h>
 #include <string.h>
-#if defined(_WIN32)
-#include <io.h>
-#else
-#include <unistd.h>
-#include <stdio.h>
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -72,27 +67,17 @@ GCL::Deserializer::Deserializer( const std::filesystem::path& rPath )
 		return;
 	}
 
-	#if defined(_WIN32)
-	if( int FileDescriptor; POSIX_CALL( _wsopen_s( &FileDescriptor, rPath.c_str(), _O_RDONLY | _O_BINARY, _SH_DENYNO, 0 ) ) )
+	int FileDescriptor;
+	if( FileDescriptor = open(rPath.c_str(), O_RDONLY ) )
 	{
-		m_FileSize = static_cast< size_t >( _lseek( FileDescriptor, 0, SEEK_END ) );
-		_lseek( FileDescriptor, 0, SEEK_SET );
+		m_FileSize = static_cast< size_t >( lseek( FileDescriptor, 0, SEEK_END ) );
+		lseek( FileDescriptor, 0, SEEK_SET );
 
 		m_pFileBuffer = static_cast< char* >( malloc( m_FileSize ) );
 
-		_read( FileDescriptor, m_pFileBuffer, static_cast< uint32_t >( m_FileSize ) );
-		_close( FileDescriptor );
+		read( FileDescriptor, m_pFileBuffer, static_cast< uint32_t >( m_FileSize ) );
+		close( FileDescriptor );
 	}
-	#else
-	int FileDescriptor = open(rPath.c_str(), O_RDONLY);
-	m_FileSize = static_cast< size_t >( lseek( FileDescriptor, 0, SEEK_END ) );
-	lseek( FileDescriptor, 0, SEEK_SET );
-
-	m_pFileBuffer = static_cast< char* >( malloc( m_FileSize ) );
-
-	read( FileDescriptor, m_pFileBuffer, static_cast< uint32_t >( m_FileSize ) );
-	close( FileDescriptor );
-	#endif
 
 } // Deserializer
 

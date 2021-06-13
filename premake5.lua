@@ -7,8 +7,6 @@ require 'premake/target'
 require 'premake/third_party_library'
 require 'premake/utils'
 
-rtti ("on")
-
 workspace( 'Geno' )
 platforms( utils.get_platforms() )
 configurations { 'Debug', 'Release' }
@@ -42,7 +40,7 @@ app( 'Geno' )
 		}
 
 	filter 'system:linux'
-		exceptionhandling( "On" ) 
+		exceptionhandling( "On" ) -- Need this for a temporary fix to memory errors in OutputWindow.cpp
 		links {
 			'pthread',
 			'dl',

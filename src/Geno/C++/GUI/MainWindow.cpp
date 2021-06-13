@@ -33,10 +33,10 @@
 #include <examples/imgui_impl_opengl3.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-//#include <GLFW/glfw3native.h>
 #include <imgui_internal.h>
 
 #if defined( _WIN32 )
+#include <GLFW/glfw3native.h>
 #include "win32-resource.h"
 #endif // _WIN32
 

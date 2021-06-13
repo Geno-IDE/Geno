@@ -18,7 +18,6 @@
 #include "Common/Platform/POSIX/POSIXError.h"
 
 #include <iostream>
-
 #include <string.h>
 
 //////////////////////////////////////////////////////////////////////////
