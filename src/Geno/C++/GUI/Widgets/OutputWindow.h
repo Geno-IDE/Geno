@@ -47,7 +47,11 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
+	#if defined(_WIN32)
 	std::string m_Captured;
+	#else
+	char* m_Captured;
+	#endif
 
 	int         m_Pipe[ 2 ] = { };
 	int         m_StdOut    = 0;

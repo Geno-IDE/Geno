@@ -20,6 +20,7 @@
 
 #include <variant>
 #include <vector>
+#include <string>
 
 namespace GCL
 {

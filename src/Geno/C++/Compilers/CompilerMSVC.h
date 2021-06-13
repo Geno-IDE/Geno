@@ -18,6 +18,7 @@
 #pragma once
 #include "Compilers/ICompiler.h"
 
+#if defined(_WIN32)
 class CompilerMSVC : public ICompiler
 {
 private:
@@ -26,3 +27,4 @@ private:
 	std::wstring MakeCommandLineString( const LinkOptions& rOptions ) override;
 
 }; // CompilerMSVC
+#endif

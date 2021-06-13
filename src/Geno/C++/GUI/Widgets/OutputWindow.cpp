@@ -19,8 +19,7 @@
 
 #include <filesystem>
 
-#include <fcntl.h>
-#include <io.h>
+#include "Common/Platform/UNIXFeatures.h"
 
 #include <imgui.h>
 
@@ -39,6 +38,10 @@ OutputWindow::OutputWindow( void )
 	RedirectOutputStream( &m_StdOut, stdout );
 	RedirectOutputStream( &m_StdErr, stderr );
 
+	#if !defined(_WIN32)
+	m_Captured = NULL;
+	#endif
+
 	// Need stdout and stderr
 	GENO_ASSERT( m_StdOut > 0 );
 	GENO_ASSERT( m_StdErr > 0 );
@@ -48,30 +51,28 @@ OutputWindow::OutputWindow( void )
 	GENO_ASSERT( setvbuf( stderr, nullptr, _IONBF, 0 ) == 0 );
 
 	// Duplicate stdout and stderr
-	GENO_ASSERT( ( m_OldStdOut = _dup( m_StdOut ) ) > 0 );
-	GENO_ASSERT( ( m_OldStdErr = _dup( m_StdErr ) ) > 0 );
+	GENO_ASSERT( ( m_OldStdOut = dup( m_StdOut ) ) > 0 );
+	GENO_ASSERT( ( m_OldStdErr = dup( m_StdErr ) ) > 0 );
 
-	GENO_ASSERT( _pipe( m_Pipe, pipe_size, O_BINARY ) != -1 );
+	GENO_ASSERT( pipe( m_Pipe ) != -1 );
 
 	// Associate stdout and stderr with the output pipe
-	GENO_ASSERT( _dup2( m_Pipe[ WRITE ], m_StdOut ) == 0 );
-	GENO_ASSERT( _dup2( m_Pipe[ WRITE ], m_StdErr ) == 0 );
-
+	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdOut ) == 0 );
+	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdErr ) == 0 );
 } // OutputWidget
 
 //////////////////////////////////////////////////////////////////////////
 
 OutputWindow::~OutputWindow( void )
 {
-	GENO_ASSERT( _dup2( m_OldStdOut, m_StdOut ) == 0 );
-	GENO_ASSERT( _dup2( m_OldStdErr, m_StdErr ) == 0 );
+	GENO_ASSERT( dup2( m_OldStdOut, m_StdOut ) == 0 );
+	GENO_ASSERT( dup2( m_OldStdErr, m_StdErr ) == 0 );
 
-	if( m_OldStdOut > 0 ) _close( m_OldStdOut );
-	if( m_OldStdErr > 0 ) _close( m_OldStdErr );
+	if( m_OldStdOut > 0 ) close( m_OldStdOut );
+	if( m_OldStdErr > 0 ) close( m_OldStdErr );
 
-	if( m_Pipe[ READ ] > 0 )  _close( m_Pipe[ READ ] );
-	if( m_Pipe[ WRITE ] > 0 ) _close( m_Pipe[ WRITE ] );
-
+	if( m_Pipe[ READ ] > 0 )  close( m_Pipe[ READ ] );
+	if( m_Pipe[ WRITE ] > 0 ) close( m_Pipe[ WRITE ] );
 } // ~OutputWidget
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,7 +85,7 @@ void OutputWindow::Show( bool* pOpen )
 	{
 		Capture();
 
-		ImGui::TextUnformatted( m_Captured.c_str(), m_Captured.c_str() + m_Captured.size() );
+		ImGui::TextUnformatted( m_Captured,  m_Captured);
 
 	} ImGui::End();
 
@@ -94,52 +95,53 @@ void OutputWindow::Show( bool* pOpen )
 
 void OutputWindow::ClearCapture( void )
 {
-	m_Captured.clear();
-
+	#if defined(_WIN32)
+	m_Captured.clear()
+	#else
+	free(m_Captured);
+	#endif
 } // ClearCapture
 
 //////////////////////////////////////////////////////////////////////////
 
 void OutputWindow::RedirectOutputStream( int* pFileDescriptor, FILE* pFileStream )
 {
-	if( ( *pFileDescriptor = _fileno( pFileStream ) ) < 0 )
+	if( ( *pFileDescriptor = fileno( pFileStream ) ) < 0 )
 	{
-
 	#if defined( _WIN32 )
-
 		if( FILE* f; freopen_s( &f, "CONOUT$", "w", pFileStream ) == 0 )
-			*pFileDescriptor = _fileno( f );
+			*pFileDescriptor = fileno( f );
 		else if( freopen_s( &f, "NUL", "w", pFileStream ) == 0 )
-			*pFileDescriptor = _fileno( f );
-
+			*pFileDescriptor = fileno( f );
 	#else // _WIN32
-
 		if( FILE* f = freopen( "/dev/null", "w", pFileStream ); f != nullptr )
-			*pFileDescriptor = _fileno( f );
-
+			*pFileDescriptor = fileno( f );
 	#endif // _WIN32
-
 	}
+
 
 	GENO_ASSERT( *pFileDescriptor > 0 );
 
 } // RedirectOutputStream
 
 //////////////////////////////////////////////////////////////////////////
-
 void OutputWindow::Capture( void )
 {
-	if( !_eof( m_Pipe[ READ ] ) )
-	{
-		int64_t StartingOffset = _telli64( m_Pipe[ READ ] );
-		size_t  BytesInFront   = ( size_t )_lseeki64( m_Pipe[ READ ], 0, SEEK_END );
-		size_t  OldSize        = m_Captured.size();
+	int64_t StartingOffset = lseek( m_Pipe[ READ ], 0, SEEK_CUR );
+	size_t  BytesInFront   = ( size_t )lseek( m_Pipe[ READ ], 0, SEEK_END );
+	#if defined(_WIN32)
+	size_t OldSize = m_Captured.size();
+	#else
+	size_t  OldSize        = m_Captured ? strlen(m_Captured) : 0;
+	#endif
 
-		_lseeki64( m_Pipe[ READ ], StartingOffset, SEEK_SET );
+	lseek( m_Pipe[ READ ], StartingOffset, SEEK_SET );
 
-		m_Captured.resize( OldSize + BytesInFront );
+	#if defined(_WIN32)
+	m_Captured.resize(OldSize + BytesInFront);
+	#else
+	m_Captured = static_cast<char*> (realloc(m_Captured, OldSize + BytesInFront));
+	#endif
 
-		for( size_t bytes_read = 0; bytes_read < BytesInFront; bytes_read += _read( m_Pipe[ READ ], &m_Captured[ OldSize + bytes_read ], ( uint32_t )( BytesInFront - bytes_read ) ) );
-	}
-
+	for( size_t bytes_read = 0; bytes_read < BytesInFront; bytes_read += read( m_Pipe[ READ ], &m_Captured[ OldSize + bytes_read ], ( uint32_t )( BytesInFront - bytes_read ) ) );
 } // Capture
