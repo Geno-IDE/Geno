@@ -18,8 +18,9 @@
 #pragma once
 #include <optional>
 #include <string_view>
+#include <cerrno>
 
-extern bool _POSIXHandleErrno( errno_t Error, std::string_view Function, std::string_view File, int Line );
+extern bool _POSIXHandleErrno( int Error, std::string_view Function, std::string_view File, int Line );
 
 template< typename T >
 inline std::optional< T > _POSIXHandleResultPassthrough( T Result, std::string_view Function, std::string_view File, int Line )

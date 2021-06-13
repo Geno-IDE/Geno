@@ -18,19 +18,18 @@
 #include "Common/Platform/POSIX/POSIXError.h"
 
 #include <iostream>
-
 #include <string.h>
 
 //////////////////////////////////////////////////////////////////////////
 
-bool _POSIXHandleErrno( errno_t Error, std::string_view Function, std::string_view File, int Line )
+bool _POSIXHandleErrno( int Error, std::string_view Function, std::string_view File, int Line )
 {
 	if( Error != 0 )
 	{
 
+	std::string_view FunctionName  = Function.substr( 0, Function.find_first_of( "(", 0 ) );
 	#if defined( _WIN32 )
 
-		std::string_view FunctionName  = Function.substr( 0, Function.find_first_of( "(", 0 ) );
 		char             Buffer[ 256 ] = { };
 
 		strerror_s( Buffer, std::size( Buffer ), Error );

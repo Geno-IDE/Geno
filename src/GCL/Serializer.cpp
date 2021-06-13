@@ -21,26 +21,24 @@
 
 #include <Common/Platform/POSIX/POSIXError.h>
 
-#include <iostream>
+#include "Common/Platform/UNIXFeatures.h"
 
-#include <fcntl.h>
-#include <io.h>
-#include <string.h>
+#include <iostream>
 
 //////////////////////////////////////////////////////////////////////////
 
 GCL::Serializer::Serializer( const std::filesystem::path& rPath )
 {
+#if defined( _WIN32 )
 	constexpr int OPEN_FLAGS       = O_WRONLY | O_BINARY | O_TRUNC | O_CREAT;
 	constexpr int SHARE_FLAGS      = SH_DENYNO;
 	constexpr int PERMISSION_FLAGS = S_IREAD | S_IWRITE;
 
-#if defined( _WIN32 )
 	POSIX_CALL( _wsopen_s( &m_FileDescriptor, rPath.c_str(), OPEN_FLAGS, SHARE_FLAGS, PERMISSION_FLAGS ) );
 #else // _WIN32
-	POSIX_CALL( m_FileDescriptor = open( rPath.c_str(), ofstream, SHARE_FLAGS, PERMISSION_FLAGS ) );
-#endif // _WIN32
-
+	constexpr int OPEN_FLAGS       = O_WRONLY | O_TRUNC | O_CREAT;
+	m_FileDescriptor = open( rPath.c_str(), OPEN_FLAGS );
+#endif
 } // Serializer
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,11 +48,7 @@ GCL::Serializer::~Serializer( void )
 	if( m_FileDescriptor >= 0 )
 	{
 
-#if defined( _WIN32 )
-		_close( m_FileDescriptor );
-#else // _WIN32
-		close( m_FileDescriptor );
-#endif // else
+	close( m_FileDescriptor );
 
 	}
 
@@ -67,28 +61,28 @@ void GCL::Serializer::WriteObject( const Object& rObject, int IndentLevel )
 	const std::string_view Name = rObject.Name();
 
 	for( int i = 0; i < IndentLevel; ++i )
-		_write( m_FileDescriptor, "\t", 1 );
+		write( m_FileDescriptor, "\t", 1 );
 
-	_write( m_FileDescriptor, Name.data(), static_cast< uint32_t >( Name.size() ) );
+	write( m_FileDescriptor, Name.data(), static_cast< uint32_t >( Name.size() ) );
 
 	if( rObject.IsNull() )
 	{
-		_write( m_FileDescriptor, "\n", 1 );
+		write( m_FileDescriptor, "\n", 1 );
 	}
 	else if( rObject.IsString() )
 	{
 		const Object::StringType& string = rObject.String();
 
-		_write( m_FileDescriptor, ":", 1 );
-		_write( m_FileDescriptor, string.data(), static_cast< uint32_t >( string.size() ) );
-		_write( m_FileDescriptor, "\n", 1 );
+		write( m_FileDescriptor, ":", 1 );
+		write( m_FileDescriptor, string.data(), static_cast< uint32_t >( string.size() ) );
+		write( m_FileDescriptor, "\n", 1 );
 	}
 	else if( rObject.IsTable() )
 	{
 		const Object::TableType& table = rObject.Table();
 
-		_write( m_FileDescriptor, ":", 1 );
-		_write( m_FileDescriptor, "\n", 1 );
+		write( m_FileDescriptor, ":", 1 );
+		write( m_FileDescriptor, "\n", 1 );
 
 		for( const Object& child : table )
 			WriteObject( child, IndentLevel + 1 );
