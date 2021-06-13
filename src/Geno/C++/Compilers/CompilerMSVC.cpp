@@ -66,9 +66,12 @@ static std::filesystem::path FindMSVCDir( const std::filesystem::path& rProgramF
 			const std::filesystem::path VisualStudioLocation( VSWhereOutput.begin(), VSWhereOutput.end() - 2 );
 			if( std::filesystem::exists( VisualStudioLocation ) )
 			{
-				const std::filesystem::path CL = VisualStudioLocation / "VC" / "Tools" / "MSVC" / "14.28.29910";
-				if( std::filesystem::exists( CL ) )
-					return CL;
+				for( const std::filesystem::directory_entry& rMSVCDir : std::filesystem::directory_iterator( VisualStudioLocation / "VC" / "Tools" / "MSVC" ) )
+				{
+					// Just choose the first best version
+					if( true )
+						return rMSVCDir;
+				}
 			}
 		}
 	}

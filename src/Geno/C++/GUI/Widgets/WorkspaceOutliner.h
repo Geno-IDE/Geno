@@ -17,6 +17,7 @@
 
 #pragma once
 #include "Common/Macros.h"
+#include "Common/Texture2D.h"
 
 #include <filesystem>
 #include <string>
@@ -25,11 +26,19 @@ class WorkspaceOutliner
 {
 public:
 
+	WorkspaceOutliner( void );
+
+//////////////////////////////////////////////////////////////////////////
+
 	void Show( bool* pOpen );
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
+
+	Texture2D             m_IconTextureWorkspace    = { };
+	Texture2D             m_IconTextureProject      = { };
+	Texture2D             m_IconTextureSourceFile   = { };
 
 	std::filesystem::path m_SelectedFile            = { };
 	std::string           m_PopupText               = { };

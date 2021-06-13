@@ -16,38 +16,14 @@
  */
 
 #pragma once
-#include <GL/glew.h>
 
-#include <cstdint>
+class Texture2D;
 
-class Texture2D
+//////////////////////////////////////////////////////////////////////////
+
+namespace ImGuiAux
 {
-public:
 
-	~Texture2D( void );
+extern bool PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, const bool DrawArrow = true );
 
-//////////////////////////////////////////////////////////////////////////
-
-	void SetPixels( GLint InternalFormat, GLsizei Width, GLsizei Height, GLenum Format, const GLvoid* pData );
-
-//////////////////////////////////////////////////////////////////////////
-
-	GLuint   GetID         ( void ) const { return m_ID; }
-	uint16_t GetWidth      ( void ) const { return m_Width; }
-	uint16_t GetHeight     ( void ) const { return m_Height; }
-	float    GetAspectRatio( void ) const { return static_cast< float >( m_Width ) / m_Height; }
-
-//////////////////////////////////////////////////////////////////////////
-
-private:
-
-	void CreateTexture( void );
-
-//////////////////////////////////////////////////////////////////////////
-
-	GLuint   m_ID     = 0;
-
-	uint16_t m_Width  = 0;
-	uint16_t m_Height = 0;
-
-}; // Texture2D
+} // ImGuiAux

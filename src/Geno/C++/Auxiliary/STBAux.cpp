@@ -15,39 +15,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include <GL/glew.h>
+#define STBI_NO_GIF
+#define STBI_NO_LINEAR
+#define STBI_NO_HDR
 
-#include <cstdint>
+#define STB_IMAGE_IMPLEMENTATION
 
-class Texture2D
-{
-public:
+#define STBI_ONLY_PNG
 
-	~Texture2D( void );
+#pragma warning( disable: 4505 )
 
-//////////////////////////////////////////////////////////////////////////
-
-	void SetPixels( GLint InternalFormat, GLsizei Width, GLsizei Height, GLenum Format, const GLvoid* pData );
-
-//////////////////////////////////////////////////////////////////////////
-
-	GLuint   GetID         ( void ) const { return m_ID; }
-	uint16_t GetWidth      ( void ) const { return m_Width; }
-	uint16_t GetHeight     ( void ) const { return m_Height; }
-	float    GetAspectRatio( void ) const { return static_cast< float >( m_Width ) / m_Height; }
-
-//////////////////////////////////////////////////////////////////////////
-
-private:
-
-	void CreateTexture( void );
-
-//////////////////////////////////////////////////////////////////////////
-
-	GLuint   m_ID     = 0;
-
-	uint16_t m_Width  = 0;
-	uint16_t m_Height = 0;
-
-}; // Texture2D
+#include <stb_image.h>

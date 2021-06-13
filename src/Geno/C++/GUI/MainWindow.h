@@ -32,6 +32,7 @@ class  WorkspaceOutliner;
 struct GLFWwindow;
 struct ImGuiContext;
 struct ImGuiSettingsHandler;
+struct ImFont;
 
 class MainWindow
 {
@@ -57,6 +58,8 @@ public:
 //////////////////////////////////////////////////////////////////////////
 
 	const Drop* GetDraggedDrop( void ) const { return m_DraggedDrop.has_value() ? &m_DraggedDrop.value() : nullptr; }
+	ImFont*     GetFontSans   ( void ) const { return m_pFontSans; }
+	ImFont*     GetFontMono   ( void ) const { return m_pFontMono; }
 	int         GetDragPosX   ( void ) const { return m_DragPosX; }
 	int         GetDragPosY   ( void ) const { return m_DragPosY; }
 
@@ -85,6 +88,8 @@ private:
 
 	GLFWwindow*           m_pWindow            = nullptr;
 	ImGuiContext*         m_pImGuiContext      = nullptr;
+	ImFont*               m_pFontSans          = nullptr;
+	ImFont*               m_pFontMono          = nullptr;
 
 	int                   m_Width              = 0;
 	int                   m_Height             = 0;

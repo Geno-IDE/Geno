@@ -24,6 +24,7 @@
 #include "GUI/Widgets/OutputWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
+#include "GUI/Styles.h"
 
 #include <iostream>
 
@@ -93,12 +94,20 @@ MainWindow::MainWindow( void )
 	m_pImGuiContext = ImGui::CreateContext();
 	IniFilename     = m_IniPath.string();
 
+	// Set default style
+	Styles::Dark();
+
 	// Configure interface
 	ImGuiIO& rIO                     = ImGui::GetIO();
 	rIO.IniFilename                  = IniFilename.c_str();
 	rIO.ConfigFlags                 |= ImGuiConfigFlags_DockingEnable;
 	rIO.ConfigFlags                 |= ImGuiConfigFlags_ViewportsEnable;
 	rIO.ConfigViewportsNoTaskBarIcon = true;
+
+	// Load custom fonts
+	m_pFontSans = rIO.Fonts->AddFontFromFileTTF( "Fonts/LieraSans/LieraSans-Regular.ttf", 15.0f );
+	m_pFontMono = rIO.Fonts->AddFontFromFileTTF( "Fonts/LVC-Mono/LVCMono.otf",            15.0f );
+	rIO.Fonts->Build();
 
 	// Set up custom settings handler
 	ImGuiSettingsHandler IniHandler;
@@ -181,6 +190,7 @@ bool MainWindow::BeginFrame( void )
 
 	ImGui::NewFrame();
 	ImGui::DockSpaceOverViewport( nullptr, ImGuiDockNodeFlags_NoWindowMenuButton );
+	ImGui::PushFont( m_pFontSans );
 
 	pMenuBar->Draw();
 
@@ -198,6 +208,7 @@ bool MainWindow::BeginFrame( void )
 
 void MainWindow::EndFrame( void )
 {
+	ImGui::PopFont();
 	ImGui::Render();
 
 	ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );

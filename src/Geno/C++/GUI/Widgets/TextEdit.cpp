@@ -135,12 +135,15 @@ void TextEdit::Show( bool* pOpen )
 				{
 					const int InputTextFlags = ImGuiInputTextFlags_AllowTabInput;
 
+					ImGui::PushFont( MainWindow::Instance().GetFontMono() );
+
 					if( ImGui::InputTextMultiline( "##TextEditor", &rFile.Text, ImVec2( -0.01f, -0.01f ), InputTextFlags ) )
 					{
 						std::ofstream ofs( rFile.Path, std::ios::binary | std::ios::trunc );
 						ofs << rFile.Text;
 					}
 
+					ImGui::PopFont();
 					ImGui::EndTabItem();
 				}
 			}
@@ -175,7 +178,7 @@ void TextEdit::AddFile( const std::filesystem::path& rPath )
 	std::ifstream     InputFileStream( rPath, std::ios::binary );
 	const std::string Text( ( std::istreambuf_iterator< char >( InputFileStream ) ), std::istreambuf_iterator< char >() );
 
-	for( int i = 0; i < m_Files.size(); ++i )
+	for( size_t i = 0; i < m_Files.size(); ++i )
 	{
 		File& rFile = m_Files[ i ];
 
@@ -183,7 +186,7 @@ void TextEdit::AddFile( const std::filesystem::path& rPath )
 		if( rFile.Path == rPath )
 		{
 			// Select the tab that corresponds to the open file
-			m_pTabBar->NextSelectedTabId = m_pTabBar->Tabs[ i ].ID;
+			m_pTabBar->NextSelectedTabId = m_pTabBar->Tabs[ static_cast< int >( i ) ].ID;
 
 			// Update text in case file changed externally
 			rFile.Text = Text;

@@ -33,6 +33,9 @@ void Texture2D::SetPixels( GLint InternalFormat, GLsizei Width, GLsizei Height, 
 	if( !m_ID )
 		CreateTexture();
 
+	m_Width  = static_cast< uint16_t >( Width );
+	m_Height = static_cast< uint16_t >( Height );
+
 	glBindTexture( GL_TEXTURE_2D, m_ID );
 	glTexImage2D( GL_TEXTURE_2D, 0, InternalFormat, Width, Height, 0, Format, GL_UNSIGNED_BYTE, pData );
 	glGenerateMipmap( GL_TEXTURE_2D );
