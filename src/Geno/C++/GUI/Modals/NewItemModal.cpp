@@ -38,7 +38,7 @@ void NewItemModal::RequestPath( std::string Title, std::filesystem::path Default
 	{
 		m_Title       = std::move( Title );
 		m_Location    = std::move( DefaultLocation );
-		m_Callback    = (void*) Callback;
+		m_Callback    = reinterpret_cast<void*> (Callback);
 		m_pUser       = pUser;
 		m_RequestType = RequestTypePath;
 	}
@@ -52,7 +52,7 @@ void NewItemModal::RequestString( std::string Title, void* pUser, StringCallback
 	if( Open() )
 	{
 		m_Title       = std::move( Title );
-		m_Callback    = (void*) Callback;
+		m_Callback    = reinterpret_cast<void*> (Callback);
 		m_pUser       = pUser;
 		m_RequestType = RequestTypeString;
 	}
@@ -81,8 +81,8 @@ void NewItemModal::UpdateDerived( void )
 		{
 			switch( m_RequestType )
 			{
-				case RequestTypePath:   { ((PathCallback) m_Callback )( std::move( m_Name ), std::move( m_Location ), m_pUser ); } break;
-				case RequestTypeString: { ((StringCallback) m_Callback )( std::move( m_Name ), m_pUser );                          } break;
+				case RequestTypePath:   { ( reinterpret_cast<PathCallback> (m_Callback) )( std::move( m_Name ), std::move( m_Location ), m_pUser ); } break;
+				case RequestTypeString: { ( reinterpret_cast<StringCallback> (m_Callback) )( std::move( m_Name ), m_pUser );                          } break;
 				default:                { GENO_ASSERT( false ); /* Request type was corrupted */                                                } break;
 			}
 		}
