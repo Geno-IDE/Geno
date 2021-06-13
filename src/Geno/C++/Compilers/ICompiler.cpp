@@ -49,7 +49,11 @@ void ICompiler::Link( const LinkOptions& rOptions )
 void ICompiler::CompileAsync( CompileOptions Options )
 {
 	const std::wstring CommandLine = MakeCommandLineString( Options );
+	#if defined(_WIN32)
 	const int          ExitCode    = Process::ResultOf( CommandLine );
+	#else
+	const int ExitCode = 0;
+	#endif
 
 	Events.FinishedCompiling( *this, Options, ExitCode );
 
@@ -60,7 +64,11 @@ void ICompiler::CompileAsync( CompileOptions Options )
 void ICompiler::LinkAsync( LinkOptions Options )
 {
 	const std::wstring CommandLine = MakeCommandLineString( Options );
+	#if defined(_WIN32)
 	const int          ExitCode    = Process::ResultOf( CommandLine );
+	#else
+	const int ExitCode = 0;
+	#endif
 
 	Events.FinishedLinking( *this, Options, ExitCode );
 

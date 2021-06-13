@@ -24,21 +24,26 @@
 #include <iostream>
 
 #include <fcntl.h>
-#include <io.h>
 #include <string.h>
+#if defined(_WIN32)
+#include <io.h>
+#else
+#include <unistd.h>
+#include <stdio.h>
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 
 GCL::Serializer::Serializer( const std::filesystem::path& rPath )
 {
+#if defined( _WIN32 )
 	constexpr int OPEN_FLAGS       = O_WRONLY | O_BINARY | O_TRUNC | O_CREAT;
 	constexpr int SHARE_FLAGS      = SH_DENYNO;
 	constexpr int PERMISSION_FLAGS = S_IREAD | S_IWRITE;
-
-#if defined( _WIN32 )
 	POSIX_CALL( _wsopen_s( &m_FileDescriptor, rPath.c_str(), OPEN_FLAGS, SHARE_FLAGS, PERMISSION_FLAGS ) );
 #else // _WIN32
-	POSIX_CALL( m_FileDescriptor = open( rPath.c_str(), ofstream, SHARE_FLAGS, PERMISSION_FLAGS ) );
+	constexpr int OPEN_FLAGS       = O_WRONLY | O_TRUNC | O_CREAT;
+	m_FileDescriptor = open( rPath.c_str(), OPEN_FLAGS );
 #endif // _WIN32
 
 } // Serializer
@@ -65,6 +70,8 @@ GCL::Serializer::~Serializer( void )
 void GCL::Serializer::WriteObject( const Object& rObject, int IndentLevel )
 {
 	const std::string_view Name = rObject.Name();
+
+	#if defined( _WIN32 )
 
 	for( int i = 0; i < IndentLevel; ++i )
 		_write( m_FileDescriptor, "\t", 1 );
@@ -93,6 +100,35 @@ void GCL::Serializer::WriteObject( const Object& rObject, int IndentLevel )
 		for( const Object& child : table )
 			WriteObject( child, IndentLevel + 1 );
 	}
+	#else
+	for( int i = 0; i < IndentLevel; ++i )
+		write( m_FileDescriptor, "\t", 1 );
+
+	write( m_FileDescriptor, Name.data(), static_cast< uint32_t >( Name.size() ) );
+
+	if( rObject.IsNull() )
+	{
+		write( m_FileDescriptor, "\n", 1 );
+	}
+	else if( rObject.IsString() )
+	{
+		const Object::StringType& string = rObject.String();
+
+		write( m_FileDescriptor, ":", 1 );
+		write( m_FileDescriptor, string.data(), static_cast< uint32_t >( string.size() ) );
+		write( m_FileDescriptor, "\n", 1 );
+	}
+	else if( rObject.IsTable() )
+	{
+		const Object::TableType& table = rObject.Table();
+
+		write( m_FileDescriptor, ":", 1 );
+		write( m_FileDescriptor, "\n", 1 );
+
+		for( const Object& child : table )
+			WriteObject( child, IndentLevel + 1 );
+	}
+	#endif
 
 } // WriteObject
 

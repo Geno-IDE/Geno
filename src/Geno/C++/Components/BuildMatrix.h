@@ -46,7 +46,7 @@ public:
 	struct NamedConfiguration
 	{
 		std::string   Name;
-		Configuration Configuration;
+		Configuration configuration;
 		ColumnVector  ExclusiveColumns;
 
 	}; // NamedConfiguration
@@ -58,7 +58,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 
 	void          NewColumn           ( std::string Name );
-	void          NewConfiguration    ( std::string_view WhichColumn, std::string Configuration );
+	void          NewConfiguration    ( std::string_view WhichColumn, std::string configuration );
 	Configuration CurrentConfiguration( void ) const;
 
 //////////////////////////////////////////////////////////////////////////
