@@ -38,6 +38,10 @@ OutputWindow::OutputWindow( void )
 	RedirectOutputStream( &m_StdOut, stdout );
 	RedirectOutputStream( &m_StdErr, stderr );
 
+	#if !defined(_WIN32)
+	m_Captured = NULL;
+	#endif
+
 	// Need stdout and stderr
 	GENO_ASSERT( m_StdOut > 0 );
 	GENO_ASSERT( m_StdErr > 0 );
@@ -81,7 +85,7 @@ void OutputWindow::Show( bool* pOpen )
 	{
 		Capture();
 
-		ImGui::TextUnformatted( m_Captured.c_str(), m_Captured.c_str() + m_Captured.size() );
+		ImGui::TextUnformatted( m_Captured,  m_Captured);
 
 	} ImGui::End();
 
@@ -91,8 +95,11 @@ void OutputWindow::Show( bool* pOpen )
 
 void OutputWindow::ClearCapture( void )
 {
-	m_Captured.clear();
-
+	#if defined(_WIN32)
+	m_Captured.clear()
+	#else
+	free(m_Captured);
+	#endif
 } // ClearCapture
 
 //////////////////////////////////////////////////////////////////////////
@@ -122,16 +129,19 @@ void OutputWindow::Capture( void )
 {
 	int64_t StartingOffset = lseek( m_Pipe[ READ ], 0, SEEK_CUR );
 	size_t  BytesInFront   = ( size_t )lseek( m_Pipe[ READ ], 0, SEEK_END );
-	size_t  OldSize        = m_Captured.size();
+	#if defined(_WIN32)
+	size_t OldSize = m_Captured.size();
+	#else
+	size_t  OldSize        = m_Captured ? strlen(m_Captured) : 0;
+	#endif
 
 	lseek( m_Pipe[ READ ], StartingOffset, SEEK_SET );
 
-	try
-	{
-		// TODO: This causes an OOM for some reason
-		m_Captured.resize( OldSize + BytesInFront );
-	}
-	catch(const std::exception& e) {}
-	
+	#if defined(_WIN32)
+	m_Captured.resize(OldSize + BytesInFront);
+	#else
+	m_Captured = static_cast<char*> (realloc(m_Captured, OldSize + BytesInFront));
+	#endif
+
 	for( size_t bytes_read = 0; bytes_read < BytesInFront; bytes_read += read( m_Pipe[ READ ], &m_Captured[ OldSize + bytes_read ], ( uint32_t )( BytesInFront - bytes_read ) ) );
 } // Capture
