@@ -180,6 +180,7 @@ void OutputWindow::Capture( void )
 
 	try
 	{
+		// TODO: This causes an OOM for some reason
 		m_Captured.resize( OldSize + BytesInFront );
 	}
 	catch(const std::exception& e)
