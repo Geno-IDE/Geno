@@ -40,6 +40,7 @@ app( 'Geno' )
 		}
 
 	filter 'system:linux'
+		exceptionhandling( "On" ) -- Need this for a temporary fix to memory errors in OutputWindow.cpp
 		links {
 			'pthread',
 			'dl',
