@@ -32,8 +32,14 @@ class Event< Sender, void( Parameters... ) >
 {
 public:
 
-	using ReceiverFunction = std::function< void( Sender&, Parameters... ) >;
-	using ReceiverVector   = std::vector< ReceiverFunction >;
+	struct Receiver
+	{
+		std::function< void( Sender&, Parameters... ) > Function;
+		uint64_t                                        ID;
+
+	}; // Receiver
+
+	using ReceiverVector = std::vector< Receiver >;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -46,6 +52,8 @@ private:
 
 	ReceiverVector m_Receivers;
 
+	uint64_t       m_IDCounter = 0;
+
 }; // Event
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,7 +62,11 @@ template< typename Sender, typename... Parameters >
 template< typename Functor >
 void Event< Sender, void( Parameters... ) >::operator+=( Functor&& rrFunctor )
 {
-	m_Receivers.emplace_back( std::forward< Functor >( rrFunctor ) );
+	Receiver Receiver_;
+	Receiver_.Function = std::forward< Functor >( rrFunctor );
+	Receiver_.ID       = ++m_IDCounter;
+
+	m_Receivers.emplace_back( std::move( Receiver_ ) );
 
 } // operator+=
 
@@ -65,17 +77,17 @@ void Event< Sender, void( Parameters... ) >::operator()( Sender& rSender, Parame
 {
 	ReceiverVector ReceiversCopy = m_Receivers;
 
-	for( ReceiverFunction& rReceiver : ReceiversCopy )
+	for( Receiver& rReceiver : ReceiversCopy )
 	{
-		std::invoke( rReceiver, rSender, Params... );
+		std::invoke( rReceiver.Function, rSender, Params... );
 	}
 
 	while( !ReceiversCopy.empty() )
 	{
 		typename ReceiverVector::iterator IteratorToErase = std::find_if( m_Receivers.begin(), m_Receivers.end(),
-			[ &ReceiversCopy ]( const ReceiverFunction& rReceiver )
+			[ &ReceiversCopy ]( const Receiver& rReceiver )
 			{
-				return ( rReceiver.target_type() == ReceiversCopy.back().target_type() );
+				return ( rReceiver.ID == ReceiversCopy.back().ID );
 			}
 		);
 
