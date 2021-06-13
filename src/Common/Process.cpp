@@ -14,23 +14,24 @@
  *    being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
-#if defined( _WIN32 )
-
 #include "Common/Process.h"
 
+#if defined( _WIN32 )
 #include "Common/Platform/Win32/Win32Error.h"
 #include "Common/Platform/Win32/Win32ProcessInfo.h"
+
+#include <Windows.h>
+#endif
+
+#include "Common/Platform/UNIXFeatures.h"
 
 #include <chrono>
 #include <codecvt>
 #include <thread>
 
-#include <io.h>
-
-#include <Windows.h>
-
 //////////////////////////////////////////////////////////////////////////
 
+#if defined( _WIN32 )
 static int Run( const std::wstring& rCommandLine, HANDLE StdIn, HANDLE StdOut, HANDLE StdErr )
 {
 	STARTUPINFOW StartupInfo = { };
@@ -56,23 +57,27 @@ static int Run( const std::wstring& rCommandLine, HANDLE StdIn, HANDLE StdOut, H
 	return -1;
 
 } // Run
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 
 int Process::ResultOf( const std::wstring& rCommandLine )
 {
-	HANDLE StdOut = ( HANDLE )_get_osfhandle( _fileno( stdout ) );
-	HANDLE StdIn  = ( HANDLE )_get_osfhandle( _fileno( stdin ) );
-	HANDLE StdErr = ( HANDLE )_get_osfhandle( _fileno( stderr ) );
+#if defined( _WIN32 )
+	HANDLE StdOut = ( HANDLE )_get_osfhandle( fileno( stdout ) );
+	HANDLE StdIn  = ( HANDLE )_get_osfhandle( fileno( stdin ) );
+	HANDLE StdErr = ( HANDLE )_get_osfhandle( fileno( stderr ) );
 
 	return Run( rCommandLine, StdIn, StdOut, StdErr );
-
+#endif
+	return 0;
 } // ResultOf
 
 //////////////////////////////////////////////////////////////////////////
 
 std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 {
+#if defined( _WIN32 )
 	HANDLE Read;
 	HANDLE Write;
 
@@ -104,17 +109,17 @@ std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 		return Output;
 	}
 
+#endif
 	return std::wstring();
-
 } // OutputOf
 
 //////////////////////////////////////////////////////////////////////////
 
 std::wstring Process::OutputOf( const std::wstring& rCommandLine )
 {
+#if defined(_WIN32)
 	int Result;
 	return OutputOf( rCommandLine, Result );
+#endif
 
 } // OutputOf
-
-#endif
