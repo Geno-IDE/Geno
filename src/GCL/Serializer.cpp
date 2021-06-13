@@ -29,8 +29,16 @@
 
 GCL::Serializer::Serializer( const std::filesystem::path& rPath )
 {
+#if defined( _WIN32 )
+	constexpr int OPEN_FLAGS       = O_WRONLY | O_BINARY | O_TRUNC | O_CREAT;
+	constexpr int SHARE_FLAGS      = SH_DENYNO;
+	constexpr int PERMISSION_FLAGS = S_IREAD | S_IWRITE;
+
+	POSIX_CALL( _wsopen_s( &m_FileDescriptor, rPath.c_str(), OPEN_FLAGS, SHARE_FLAGS, PERMISSION_FLAGS ) );
+#else // _WIN32
 	constexpr int OPEN_FLAGS       = O_WRONLY | O_TRUNC | O_CREAT;
 	m_FileDescriptor = open( rPath.c_str(), OPEN_FLAGS );
+#endif
 } // Serializer
 
 //////////////////////////////////////////////////////////////////////////
