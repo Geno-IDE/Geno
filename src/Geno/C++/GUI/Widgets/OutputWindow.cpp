@@ -20,7 +20,12 @@
 #include <filesystem>
 
 #include <fcntl.h>
+#if defined(_WIN32)
 #include <io.h>
+#else
+#include <stdio.h>
+#include <unistd.h>
+#endif
 
 #include <imgui.h>
 
@@ -48,6 +53,7 @@ OutputWindow::OutputWindow( void )
 	GENO_ASSERT( setvbuf( stderr, nullptr, _IONBF, 0 ) == 0 );
 
 	// Duplicate stdout and stderr
+	#if defined(_WIN32)
 	GENO_ASSERT( ( m_OldStdOut = _dup( m_StdOut ) ) > 0 );
 	GENO_ASSERT( ( m_OldStdErr = _dup( m_StdErr ) ) > 0 );
 
@@ -56,6 +62,16 @@ OutputWindow::OutputWindow( void )
 	// Associate stdout and stderr with the output pipe
 	GENO_ASSERT( _dup2( m_Pipe[ WRITE ], m_StdOut ) == 0 );
 	GENO_ASSERT( _dup2( m_Pipe[ WRITE ], m_StdErr ) == 0 );
+	#else
+	GENO_ASSERT( ( m_OldStdOut = dup( m_StdOut ) ) > 0 );
+	GENO_ASSERT( ( m_OldStdErr = dup( m_StdErr ) ) > 0 );
+
+	GENO_ASSERT( pipe( m_Pipe ) != -1 );
+
+	// Associate stdout and stderr with the output pipe
+	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdOut ) == 0 );
+	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdErr ) == 0 );
+	#endif
 
 } // OutputWidget
 
@@ -63,6 +79,7 @@ OutputWindow::OutputWindow( void )
 
 OutputWindow::~OutputWindow( void )
 {
+	#if defined(_WIN32)
 	GENO_ASSERT( _dup2( m_OldStdOut, m_StdOut ) == 0 );
 	GENO_ASSERT( _dup2( m_OldStdErr, m_StdErr ) == 0 );
 
@@ -72,6 +89,16 @@ OutputWindow::~OutputWindow( void )
 	if( m_Pipe[ READ ] > 0 )  _close( m_Pipe[ READ ] );
 	if( m_Pipe[ WRITE ] > 0 ) _close( m_Pipe[ WRITE ] );
 
+	#else
+	GENO_ASSERT( dup2( m_OldStdOut, m_StdOut ) == 0 );
+	GENO_ASSERT( dup2( m_OldStdErr, m_StdErr ) == 0 );
+
+	if( m_OldStdOut > 0 ) close( m_OldStdOut );
+	if( m_OldStdErr > 0 ) close( m_OldStdErr );
+
+	if( m_Pipe[ READ ] > 0 )  close( m_Pipe[ READ ] );
+	if( m_Pipe[ WRITE ] > 0 ) close( m_Pipe[ WRITE ] );
+	#endif
 } // ~OutputWidget
 
 //////////////////////////////////////////////////////////////////////////
@@ -102,33 +129,36 @@ void OutputWindow::ClearCapture( void )
 
 void OutputWindow::RedirectOutputStream( int* pFileDescriptor, FILE* pFileStream )
 {
+	#if defined( _WIN32 )
 	if( ( *pFileDescriptor = _fileno( pFileStream ) ) < 0 )
 	{
 
-	#if defined( _WIN32 )
 
 		if( FILE* f; freopen_s( &f, "CONOUT$", "w", pFileStream ) == 0 )
 			*pFileDescriptor = _fileno( f );
 		else if( freopen_s( &f, "NUL", "w", pFileStream ) == 0 )
 			*pFileDescriptor = _fileno( f );
 
+	}
 	#else // _WIN32
+	if( ( *pFileDescriptor = fileno( pFileStream ) ) < 0 )
+	{
 
 		if( FILE* f = freopen( "/dev/null", "w", pFileStream ); f != nullptr )
-			*pFileDescriptor = _fileno( f );
-
+			*pFileDescriptor = fileno( f );
+	}
 	#endif // _WIN32
 
-	}
 
 	GENO_ASSERT( *pFileDescriptor > 0 );
 
 } // RedirectOutputStream
 
 //////////////////////////////////////////////////////////////////////////
-
+#include <iostream>
 void OutputWindow::Capture( void )
 {
+	#if defined(_WIN32)
 	if( !_eof( m_Pipe[ READ ] ) )
 	{
 		int64_t StartingOffset = _telli64( m_Pipe[ READ ] );
@@ -141,5 +171,23 @@ void OutputWindow::Capture( void )
 
 		for( size_t bytes_read = 0; bytes_read < BytesInFront; bytes_read += _read( m_Pipe[ READ ], &m_Captured[ OldSize + bytes_read ], ( uint32_t )( BytesInFront - bytes_read ) ) );
 	}
+	#else
+	int64_t StartingOffset = lseek( m_Pipe[ READ ], 0, SEEK_CUR );
+	size_t  BytesInFront   = ( size_t )lseek( m_Pipe[ READ ], 0, SEEK_END );
+	size_t  OldSize        = m_Captured.size();
 
+	lseek( m_Pipe[ READ ], StartingOffset, SEEK_SET );
+
+	try
+	{
+		m_Captured.resize( OldSize + BytesInFront );
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
+	
+
+	for( size_t bytes_read = 0; bytes_read < BytesInFront; bytes_read += read( m_Pipe[ READ ], &m_Captured[ OldSize + bytes_read ], ( uint32_t )( BytesInFront - bytes_read ) ) );
+	#endif
 } // Capture

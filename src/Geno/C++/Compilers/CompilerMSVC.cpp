@@ -17,6 +17,8 @@
 
 #include "CompilerMSVC.h"
 
+#if defined(_WIN32)
+
 #include <Common/Process.h>
 
 #include <Windows.h>
@@ -237,3 +239,5 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 	return CommandLine;
 
 } // MakeCommandLineString
+
+#endif

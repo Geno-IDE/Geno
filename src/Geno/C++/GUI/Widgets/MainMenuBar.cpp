@@ -172,7 +172,11 @@ void MainMenuBar::ActionBuildBuildAndRun( void )
 
 			std::cout << "=== Running " << OutputString << "===\n";
 
+			#if defined(_WIN32)
 			const int ExitCode = Process::ResultOf( OutputFile.wstring() );
+			#else
+			const int ExitCode = 0;
+			#endif
 			std::cout << "=== " << OutputString << " finished with exit code " << ExitCode << " ===\n";
 		};
 

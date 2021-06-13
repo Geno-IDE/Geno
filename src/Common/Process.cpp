@@ -14,6 +14,7 @@
  *    being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
+#if defined( _WIN32 )
 
 #include "Common/Process.h"
 
@@ -26,9 +27,7 @@
 
 #include <io.h>
 
-#if defined( _WIN32 )
 #include <Windows.h>
-#endif // _WIN32
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -117,3 +116,5 @@ std::wstring Process::OutputOf( const std::wstring& rCommandLine )
 	return OutputOf( rCommandLine, Result );
 
 } // OutputOf
+
+#endif

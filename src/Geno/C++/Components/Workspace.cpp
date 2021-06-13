@@ -31,16 +31,18 @@ Workspace::Workspace( std::filesystem::path Location )
 	: m_Location( std::move( Location ) )
 	, m_Name    ( "MyWorkspace" )
 {
-//	m_Compiler = std::make_unique< CompilerGCC >();
+	#if defined(_WIN32)
 	m_Compiler = std::make_unique< CompilerMSVC >();
-
+	#else
+	m_Compiler = std::make_unique< CompilerGCC >();
+	#endif
 } // Workspace
 
 //////////////////////////////////////////////////////////////////////////
 
 void Workspace::Build( void )
 {
-	Configuration Configuration = m_BuildMatrix.CurrentConfiguration();
+	Configuration configuration = m_BuildMatrix.CurrentConfiguration();
 
 	if( m_Compiler && !m_Projects.empty() )
 	{

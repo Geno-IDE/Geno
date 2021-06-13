@@ -7,6 +7,9 @@ require 'premake/target'
 require 'premake/third_party_library'
 require 'premake/utils'
 
+rtti ("on")
+exceptionhandling( "On" ) 
+
 workspace( 'Geno' )
 platforms( utils.get_platforms() )
 configurations { 'Debug', 'Release' }
