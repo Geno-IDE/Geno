@@ -2,6 +2,7 @@
 	<img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/Gaztin/Geno?style=for-the-badge">
 	<img alt="Contributors" src="https://img.shields.io/github/contributors/Gaztin/Geno?style=for-the-badge">
 	<img alt="License" src="https://img.shields.io/github/license/Gaztin/Geno?style=for-the-badge">
+	<a href="https://discord.gg/dUd5aDSBAN"><img alt="Discord" src="https://img.shields.io/discord/854043545240338442?color=%238A9CFC&label=%20Discord&logo=Discord&logoColor=%238A9CFC&style=for-the-badge"></a>
 </p>
 <br>
 
