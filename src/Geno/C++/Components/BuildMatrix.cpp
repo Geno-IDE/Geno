@@ -40,7 +40,7 @@ void BuildMatrix::NewConfiguration( std::string_view WhichColumn, std::string Co
 	{
 		if( column.Name == WhichColumn )
 		{
-			column.Configurations.push_back( { std::move( Configuration ) } );
+			column.Configurations.try_emplace( std::move( Configuration ) );
 			return;
 		}
 	}
@@ -60,17 +60,11 @@ Configuration BuildMatrix::CurrentConfiguration( void ) const
 			continue;
 
 		// Find the current configuration
-		auto CurrentConfiguration = std::find_if( rColumn.Configurations.begin(), rColumn.Configurations.end(),
-			[ &rColumn ]( const NamedConfiguration& cfg )
-			{
-				return cfg.Name == rColumn.CurrentConfiguration;
-			}
-		);
-
+		auto CurrentConfiguration = rColumn.Configurations.find( rColumn.CurrentConfiguration );
 		if( CurrentConfiguration == rColumn.Configurations.end() )
 			continue;
 
-		Result.CombineWith( CurrentConfiguration->Configuration );
+		Result.CombineWith( CurrentConfiguration->second );
 	}
 
 	return Result;
@@ -85,21 +79,21 @@ BuildMatrix BuildMatrix::PlatformDefault( void )
 
 	Column PlatformColumn;
 	PlatformColumn.Name = "Platform";
-	PlatformColumn.Configurations.push_back( { ( std::string )Intrinsics::TargetMachine() } );
+	PlatformColumn.Configurations.try_emplace( std::string( Intrinsics::TargetMachine() ) );
 	Matrix.m_Columns.emplace_back( std::move( PlatformColumn ) );
 
 	Column OptimizationColumn;
 	OptimizationColumn.Name = "Optimization";
-	OptimizationColumn.Configurations.push_back( { "Full" } );
-	OptimizationColumn.Configurations.push_back( { "Favor Size" } );
-	OptimizationColumn.Configurations.push_back( { "Favor Speed" } );
-	OptimizationColumn.Configurations.push_back( { "Off" } );
+	OptimizationColumn.Configurations.try_emplace( "Full" );
+	OptimizationColumn.Configurations.try_emplace( "Favor Size" );
+	OptimizationColumn.Configurations.try_emplace( "Favor Speed" );
+	OptimizationColumn.Configurations.try_emplace( "Off" );
 	Matrix.m_Columns.emplace_back( std::move( OptimizationColumn ) );
 
 	Column SymbolsColumn;
 	SymbolsColumn.Name = "Debug Symbols";
-	SymbolsColumn.Configurations.push_back( { "On" } );
-	SymbolsColumn.Configurations.push_back( { "Off" } );
+	SymbolsColumn.Configurations.try_emplace( "On" );
+	SymbolsColumn.Configurations.try_emplace( "Off" );
 	Matrix.m_Columns.emplace_back( std::move( SymbolsColumn ) );
 
 	return Matrix;

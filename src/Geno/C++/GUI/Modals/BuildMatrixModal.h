@@ -39,4 +39,9 @@ private:
 	std::string Title        ( void ) override;
 	void        UpdateDerived( void ) override;
 
+//////////////////////////////////////////////////////////////////////////
+
+	std::string m_SelectedColumn;
+	std::string m_SelectedConfiguration;
+
 }; // BuildMatrixModal
