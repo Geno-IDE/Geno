@@ -1,7 +1,7 @@
 <p align="center">
-	<img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/Gaztin/Geno?style=for-the-badge">
-	<img alt="Contributors" src="https://img.shields.io/github/contributors/Gaztin/Geno?style=for-the-badge">
-	<img alt="License" src="https://img.shields.io/github/license/Gaztin/Geno?style=for-the-badge">
+	<a href="https://github.com/Geno-IDE/Geno"><img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/Geno-IDE/Geno?style=for-the-badge"></a>
+	<a href="https://github.com/Geno-IDE/Geno/graphs/contributors"><img alt="Contributors" src="https://img.shields.io/github/contributors/Geno-IDE/Geno?style=for-the-badge"></a>
+	<a href="/LICENSE"><img alt="License" src="https://img.shields.io/github/license/Geno-IDE/Geno?style=for-the-badge"></a>
 	<a href="https://discord.gg/dUd5aDSBAN"><img alt="Discord" src="https://img.shields.io/discord/854043545240338442?color=%238A9CFC&label=%20Discord&logo=Discord&logoColor=%238A9CFC&style=for-the-badge"></a>
 </p>
 <br>
@@ -13,15 +13,15 @@
 <p align="center">
 	Native IDE centered around clean cross-compilation and distribution
 	<br>
-	<a href="https://github.com/Gaztin/Geno/wiki/User-Guide"><strong>User Guide »</strong></a>
+	<a href="https://github.com/Geno-IDE/Geno/wiki/User-Guide"><strong>User Guide »</strong></a>
 	<br>
 	<br>
 	<br>
-	<a href="https://github.com/Gaztin/Geno/releases">View Releases</a>
+	<a href="https://github.com/Geno-IDE/Geno/releases">View Releases</a>
 	·
-	<a href="https://github.com/Gaztin/Geno/issues">Report a Bug</a>
+	<a href="https://github.com/Geno-IDE/Geno/issues">Report a Bug</a>
 	·
-	<a href="https://github.com/Gaztin/Geno/fork">Fork Geno</a>
+	<a href="https://github.com/Geno-IDE/Geno/fork">Fork Geno</a>
 </p>
 <hr noshade>
 
