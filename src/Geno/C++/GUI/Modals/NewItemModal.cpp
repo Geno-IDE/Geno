@@ -20,6 +20,7 @@
 #include "GUI/Modals/OpenFileModal.h"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
 enum RequestType
@@ -63,7 +64,7 @@ void NewItemModal::RequestString( std::string Title, void* pUser, StringCallback
 
 void NewItemModal::UpdateDerived( void )
 {
-	if( ImGui::BeginChild( 1 , ImVec2( 0, -24 ) ) )
+	if( ImGui::BeginChild( 1, ImVec2( 0, -24 ) ) )
 	{
 		ImGui::TextUnformatted( "Name" );
 
@@ -75,6 +76,10 @@ void NewItemModal::UpdateDerived( void )
 
 	} ImGui::EndChild();
 
+	const bool CanClickOK = !m_Name.empty() && !m_Location.empty();
+
+	ImGui::PushItemFlag( ImGuiItemFlags_Disabled, !CanClickOK );
+	ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * ( CanClickOK ? 1.0f : 0.5f ) );
 	if( ImGui::Button( "OK", ImVec2( 80, 0 ) ) )
 	{
 		if( m_Callback )
@@ -88,6 +93,17 @@ void NewItemModal::UpdateDerived( void )
 		}
 
 		Close();
+	}
+	ImGui::PopStyleVar();
+	ImGui::PopItemFlag();
+
+	// Explain why OK button is not clickable when hovering it
+	if( !CanClickOK && ImGui::IsItemHovered() )
+	{
+		ImGui::BeginTooltip();
+		if( m_Name    .empty() ) ImGui::BulletText( "Name not set" );
+		if( m_Location.empty() ) ImGui::BulletText( "Location not set" );
+		ImGui::EndTooltip();
 	}
 
 	ImGui::SameLine();

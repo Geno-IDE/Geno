@@ -115,7 +115,7 @@ void Styles::Dark( void )
 	{
 		ImGui::StyleColorsDark( &rStyle );
 
-		rStyle.Colors[ ImGuiCol_FrameBg           ] = ImColor( 0xF0191919 );
+		rStyle.Colors[ ImGuiCol_FrameBg           ] = ImColor( 0xF0202020 );
 		rStyle.Colors[ ImGuiCol_Tab               ] = ImColor( 0x7F404040 );
 		rStyle.Colors[ ImGuiCol_TabHovered        ] = ImColor( 0x9F808080 );
 		rStyle.Colors[ ImGuiCol_TabActive         ] = ImColor( 0xFF404040 );
