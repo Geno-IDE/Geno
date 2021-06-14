@@ -75,21 +75,36 @@ void BuildMatrixModal::UpdateDerived( void )
 
 				if( ImGui::BeginChild( ++ID ) )
 				{
-					for( const BuildMatrix::NamedConfiguration& rConfiguration : rColumn.Configurations )
+					for( const auto&[ rName, rConfiguration ] : rColumn.Configurations )
 					{
-						const ImGuiWindow* pWindow   = ImGui::GetCurrentWindow();
-						const ImVec2       TextSize  = ImGui::CalcTextSize( rConfiguration.Name.c_str() );
-						const ImVec2       CursorPos = pWindow->DC.CursorPos;
+						ImGuiWindow* pWindow   = ImGui::GetCurrentWindow();
+						const ImVec2 TextSize  = ImGui::CalcTextSize( rName.c_str() );
+						const ImVec2 CursorPos = pWindow->DC.CursorPos;
+						const bool   Selected  = rColumn.Name == m_SelectedColumn && rName == m_SelectedConfiguration;
 
-						ImGui::SetCursorPosX( ( pWindow->Size.x - TextSize.x ) * 0.5f );
-						ImGui::Text( rConfiguration.Name.c_str() );
+						ImGui::PushStyleColor( ImGuiCol_ChildBg, ImGui::GetStyleColorVec4( ImGuiCol_ChildBg ) + ( Selected ? ImVec4( 0.5f, 0.5f, 0.5f, 0.5f ) : ImVec4( 0, 0, 0, 0 ) ) );
 
-						if( ImGui::IsItemHovered() )
+						if( ImGui::BeginChild( ++ID, ImVec2( 0, TextSize.y ) ) )
 						{
-							ImGui::SetMouseCursor( ImGuiMouseCursor_Hand );
-							ImGui::RenderArrow( pWindow->DrawList, CursorPos + ImVec2( 0.0f,                                   0.0f ), 0xFFFFFFFF, ImGuiDir_Right );
-							ImGui::RenderArrow( pWindow->DrawList, CursorPos + ImVec2( pWindow->Size.x - ImGui::GetFontSize(), 0.0f ), 0xFFFFFFFF, ImGuiDir_Left );
-						}
+							if( ImGui::IsWindowHovered() )
+							{
+								ImGui::SetMouseCursor( ImGuiMouseCursor_Hand );
+								ImGui::RenderArrow( pWindow->DrawList, CursorPos + ImVec2( 0.0f,                                   0.0f ), 0xFFFFFFFF, ImGuiDir_Right );
+								ImGui::RenderArrow( pWindow->DrawList, CursorPos + ImVec2( pWindow->Size.x - ImGui::GetFontSize(), 0.0f ), 0xFFFFFFFF, ImGuiDir_Left );
+
+								if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) )
+								{
+									m_SelectedColumn        = rColumn.Name;
+									m_SelectedConfiguration = rName;
+								}
+							}
+
+							ImGui::SetCursorPosX( ( pWindow->Size.x - TextSize.x ) * 0.5f );
+							ImGui::Text( rName.c_str() );
+
+						} ImGui::EndChild();
+
+						ImGui::PopStyleColor();
 					}
 
 				} ImGui::EndChild();

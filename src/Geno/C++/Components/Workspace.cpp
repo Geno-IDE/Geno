@@ -250,19 +250,9 @@ void Workspace::SerializeBuildMatrixColumn( GCL::Object& rObject, const BuildMat
 {
 	GCL::Object ColumnObj( rColumn.Name, std::in_place_type< GCL::Object::TableType > );
 
-	for( const BuildMatrix::NamedConfiguration& rConfiguration : rColumn.Configurations )
+	for( const auto&[ rName, rConfiguration ] : rColumn.Configurations )
 	{
-		GCL::Object ConfigurationObj( rConfiguration.Name );
-
-		if( !rConfiguration.ExclusiveColumns.empty() )
-		{
-			ConfigurationObj.SetTable();
-
-			for( const BuildMatrix::Column& rExclusiveColumn : rConfiguration.ExclusiveColumns )
-			{
-				SerializeBuildMatrixColumn( ConfigurationObj, rExclusiveColumn );
-			}
-		}
+		GCL::Object ConfigurationObj( rName );
 
 		ColumnObj.AddChild( std::move( ConfigurationObj ) );
 	}
@@ -277,23 +267,7 @@ void Workspace::DeserializeBuildMatrixColumn( BuildMatrix::Column& rColumn, cons
 {
 	for( const GCL::Object& rConfigurationObj : rObject.Table() )
 	{
-		BuildMatrix::NamedConfiguration NewConfiguration;
-		NewConfiguration.Name = rConfigurationObj.Name();
-
-		if( rConfigurationObj.IsTable() )
-		{
-			for( const GCL::Object& rExclusiveColumnObj : rConfigurationObj.Table() )
-			{
-				BuildMatrix::Column ExclusiveColumn;
-				ExclusiveColumn.Name = rExclusiveColumnObj.Name();
-
-				DeserializeBuildMatrixColumn( ExclusiveColumn, rExclusiveColumnObj );
-
-				NewConfiguration.ExclusiveColumns.emplace_back( std::move( ExclusiveColumn ) );
-			}
-		}
-
-		rColumn.Configurations.emplace_back( std::move( NewConfiguration ) );
+		rColumn.Configurations.try_emplace( std::string( rConfigurationObj.Name() ) );
 	}
 
 } // DeserializeBuildMatrixColumn

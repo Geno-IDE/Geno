@@ -207,25 +207,13 @@ void MainMenuBar::AddBuildMatrixColumn( BuildMatrix::Column& rColumn )
 	ImGui::SetNextItemWidth( 100.0f );
 	if( ImGui::BeginCombo( Label.c_str(), rColumn.CurrentConfiguration.c_str() ) )
 	{
-		for( BuildMatrix::NamedConfiguration& rConfiguration : rColumn.Configurations )
+		for( auto&[ rName, rConfiguration ] : rColumn.Configurations )
 		{
-			if( ImGui::Selectable( rConfiguration.Name.c_str() ) )
-				rColumn.CurrentConfiguration = rConfiguration.Name;
+			if( ImGui::Selectable( rName.c_str() ) )
+				rColumn.CurrentConfiguration = rName;
 		}
 
 		ImGui::EndCombo();
-	}
-
-	// Add combos for exclusive categories for the selected configuration
-	for( BuildMatrix::NamedConfiguration& rConfiguration : rColumn.Configurations )
-	{
-		if( rConfiguration.Name == rColumn.CurrentConfiguration )
-		{
-			for( BuildMatrix::Column& rExclusiveColumn : rConfiguration.ExclusiveColumns )
-				AddBuildMatrixColumn( rExclusiveColumn );
-
-			break;
-		}
 	}
 
 } // AddBuildMatrixColumn
