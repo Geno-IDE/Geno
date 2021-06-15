@@ -218,11 +218,13 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 	}
 
 	// Add input files
-	for( const std::string& rLibrary : rOptions.Libraries )
+	for( std::filesystem::path Library : rOptions.Libraries )
 	{
-		UTF8Converter Converter;
+		// Add '.lib' extension if missing
+		if( !Library.has_extension() )
+			Library.replace_extension( ".lib" );
 
-		CommandLine += L" \"" + Converter.from_bytes( rLibrary ) + L"\"";
+		CommandLine += L" \"" + Library.wstring() + L"\"";
 	}
 
 	// Add all object files
