@@ -18,9 +18,9 @@
 #pragma once
 #include "Common/Macros.h"
 
+#include <string>
 #include <variant>
 #include <vector>
-#include <string>
 
 namespace GCL
 {

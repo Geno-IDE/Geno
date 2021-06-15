@@ -21,24 +21,21 @@
 
 #include <Common/Platform/POSIX/POSIXError.h>
 
-#include "Common/Platform/UNIXFeatures.h"
-
 #include <iostream>
+
+#include <fcntl.h>
+
+#if defined( _WIN32 )
+#include <corecrt_io.h>
+#define open  _wopen
+#endif // _WIN32
 
 //////////////////////////////////////////////////////////////////////////
 
 GCL::Serializer::Serializer( const std::filesystem::path& rPath )
 {
-#if defined( _WIN32 )
-	constexpr int OPEN_FLAGS       = O_WRONLY | O_BINARY | O_TRUNC | O_CREAT;
-	constexpr int SHARE_FLAGS      = SH_DENYNO;
-	constexpr int PERMISSION_FLAGS = S_IREAD | S_IWRITE;
+	m_FileDescriptor = open( rPath.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_BINARY );
 
-	POSIX_CALL( _wsopen_s( &m_FileDescriptor, rPath.c_str(), OPEN_FLAGS, SHARE_FLAGS, PERMISSION_FLAGS ) );
-#else // _WIN32
-	constexpr int OPEN_FLAGS       = O_WRONLY | O_TRUNC | O_CREAT;
-	m_FileDescriptor = open( rPath.c_str(), OPEN_FLAGS );
-#endif
 } // Serializer
 
 //////////////////////////////////////////////////////////////////////////
@@ -46,11 +43,7 @@ GCL::Serializer::Serializer( const std::filesystem::path& rPath )
 GCL::Serializer::~Serializer( void )
 {
 	if( m_FileDescriptor >= 0 )
-	{
-
-	close( m_FileDescriptor );
-
-	}
+		close( m_FileDescriptor );
 
 } // ~Serializer
 

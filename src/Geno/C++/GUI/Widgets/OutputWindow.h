@@ -18,8 +18,6 @@
 #pragma once
 #include "Common/Macros.h"
 
-#include <string>
-
 #if defined( _WIN32 )
 #include <Windows.h>
 #endif // _WIN32
@@ -47,16 +45,14 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-	#if defined(_WIN32)
-	std::string m_Captured;
-	#else
-	char* m_Captured;
-	#endif
+	char*       m_pCaptured    = nullptr;
 
-	int         m_Pipe[ 2 ] = { };
-	int         m_StdOut    = 0;
-	int         m_StdErr    = 0;
-	int         m_OldStdOut = 0;
-	int         m_OldStdErr = 0;
+	size_t      m_CapturedSize = 0;
+
+	int         m_Pipe[ 2 ]    = { };
+	int         m_StdOut       = 0;
+	int         m_StdErr       = 0;
+	int         m_OldStdOut    = 0;
+	int         m_OldStdErr    = 0;
 
 }; // OutputWidget

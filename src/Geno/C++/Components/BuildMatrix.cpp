@@ -18,6 +18,7 @@
 #include "BuildMatrix.h"
 
 #include <Common/Intrinsics.h>
+
 #include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
@@ -33,13 +34,13 @@ void BuildMatrix::NewColumn( std::string Name )
 
 //////////////////////////////////////////////////////////////////////////
 
-void BuildMatrix::NewConfiguration( std::string_view WhichColumn, std::string configuration )
+void BuildMatrix::NewConfiguration( std::string_view WhichColumn, std::string Configuration )
 {
 	for( Column& column : m_Columns )
 	{
 		if( column.Name == WhichColumn )
 		{
-			column.Configurations.push_back( { std::move( configuration ) } );
+			column.Configurations.push_back( { std::move( Configuration ) } );
 			return;
 		}
 	}
@@ -69,7 +70,7 @@ Configuration BuildMatrix::CurrentConfiguration( void ) const
 		if( CurrentConfiguration == rColumn.Configurations.end() )
 			continue;
 
-		Result.CombineWith( CurrentConfiguration->configuration );
+		Result.CombineWith( CurrentConfiguration->Configuration );
 	}
 
 	return Result;

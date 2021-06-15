@@ -16,9 +16,9 @@
  */
 
 #pragma once
+#include <cerrno>
 #include <optional>
 #include <string_view>
-#include <cerrno>
 
 extern bool _POSIXHandleErrno( int Error, std::string_view Function, std::string_view File, int Line );
 

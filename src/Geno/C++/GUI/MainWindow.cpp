@@ -33,12 +33,18 @@
 #include <examples/imgui_impl_opengl3.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 #include <imgui_internal.h>
 
 #if defined( _WIN32 )
-#include <GLFW/glfw3native.h>
 #include "win32-resource.h"
 #endif // _WIN32
+
+#if defined( _WIN32 )
+#define sscanf sscanf_s
+#endif // _WIN32
+
+//////////////////////////////////////////////////////////////////////////
 
 static std::string IniFilename;
 
@@ -317,15 +323,9 @@ void MainWindow::ImGuiSettingsReadLineCB( ImGuiContext* /*pContext*/, ImGuiSetti
 	const char* pName = ( const char* )pEntry;
 	int         Bool;
 
-#if defined(_WIN32)
-	if(      strcmp( pName, "Text Edit" ) == 0 ) { if( sscanf_s( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pMenuBar->ShowTextEdit          = Bool; }
-	else if( strcmp( pName, "Workspace" ) == 0 ) { if( sscanf_s( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pMenuBar->ShowWorkspaceOutliner = Bool; }
-	else if( strcmp( pName, "Output"    ) == 0 ) { if( sscanf_s( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pMenuBar->ShowOutputWindow      = Bool; }
-#else
 	if(      strcmp( pName, "Text Edit" ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pMenuBar->ShowTextEdit          = Bool; }
 	else if( strcmp( pName, "Workspace" ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pMenuBar->ShowWorkspaceOutliner = Bool; }
 	else if( strcmp( pName, "Output"    ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pMenuBar->ShowOutputWindow      = Bool; }
-#endif
 
 } // ImGuiSettingsReadLineCB
 

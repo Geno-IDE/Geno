@@ -15,9 +15,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "CompilerMSVC.h"
+#if defined( _WIN32 )
 
-#if defined(_WIN32)
+#include "CompilerMSVC.h"
 
 #include <Common/Process.h>
 
@@ -242,4 +242,4 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 
 } // MakeCommandLineString
 
-#endif
+#endif // _WIN32

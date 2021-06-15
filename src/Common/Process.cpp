@@ -16,14 +16,13 @@
  */
 #include "Common/Process.h"
 
-#if defined( _WIN32 )
 #include "Common/Platform/Win32/Win32Error.h"
 #include "Common/Platform/Win32/Win32ProcessInfo.h"
 
+#if defined( _WIN32 )
+#include <corecrt_io.h>
 #include <Windows.h>
-#endif
-
-#include "Common/Platform/UNIXFeatures.h"
+#endif // _WIN32
 
 #include <chrono>
 #include <codecvt>
@@ -32,6 +31,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #if defined( _WIN32 )
+
 static int Run( const std::wstring& rCommandLine, HANDLE StdIn, HANDLE StdOut, HANDLE StdErr )
 {
 	STARTUPINFOW StartupInfo = { };
@@ -57,27 +57,37 @@ static int Run( const std::wstring& rCommandLine, HANDLE StdIn, HANDLE StdOut, H
 	return -1;
 
 } // Run
-#endif
+
+#endif // _WIN32
 
 //////////////////////////////////////////////////////////////////////////
 
 int Process::ResultOf( const std::wstring& rCommandLine )
 {
+
 #if defined( _WIN32 )
+
 	HANDLE StdOut = ( HANDLE )_get_osfhandle( fileno( stdout ) );
 	HANDLE StdIn  = ( HANDLE )_get_osfhandle( fileno( stdin ) );
 	HANDLE StdErr = ( HANDLE )_get_osfhandle( fileno( stderr ) );
 
 	return Run( rCommandLine, StdIn, StdOut, StdErr );
-#endif
+
+#else // _WIN32
+
 	return 0;
+
+#endif // !_WIN32
+
 } // ResultOf
 
 //////////////////////////////////////////////////////////////////////////
 
 std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 {
+
 #if defined( _WIN32 )
+
 	HANDLE Read;
 	HANDLE Write;
 
@@ -109,17 +119,17 @@ std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 		return Output;
 	}
 
-#endif
+#endif // _WIN32
+
 	return std::wstring();
+
 } // OutputOf
 
 //////////////////////////////////////////////////////////////////////////
 
 std::wstring Process::OutputOf( const std::wstring& rCommandLine )
 {
-#if defined(_WIN32)
 	int Result;
 	return OutputOf( rCommandLine, Result );
-#endif
 
 } // OutputOf
