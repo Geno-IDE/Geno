@@ -30,10 +30,31 @@ class TextEdit
 {
 public:
 
+
+	struct Palette {
+		unsigned int Default;
+		unsigned int Keyword;
+		unsigned int Number;
+		unsigned int String;
+		unsigned int Comment;
+		unsigned int LineNumber;
+	};
+
+	struct Glyph {
+		char			c;
+		unsigned int	color;
+
+		Glyph(char c, unsigned int color) : c(c), color(color) {}
+	};
+
+	typedef std::vector<Glyph> Line;
+
 	struct File
 	{
 		std::filesystem::path Path;
 		std::string           Text;
+
+		std::vector<Line>	  Lines;
 
 		bool                  Open = true;
 
@@ -52,6 +73,13 @@ public:
 //////////////////////////////////////////////////////////////////////////
 
 private:
+
+	void SplitLines(File& file);
+	bool RenderEditor(File& file);
+
+	Palette palette;
+
+//////////////////////////////////////////////////////////////////////////
 
 	ImGuiTabBar*        m_pTabBar              = nullptr;
 
