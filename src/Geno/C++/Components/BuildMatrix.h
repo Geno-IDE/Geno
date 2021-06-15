@@ -45,9 +45,9 @@ public:
 
 	struct NamedConfiguration
 	{
-		std::string   Name;
-		Configuration Configuration;
-		ColumnVector  ExclusiveColumns;
+		std::string     Name;
+		::Configuration Configuration;
+		ColumnVector    ExclusiveColumns;
 
 	}; // NamedConfiguration
 
