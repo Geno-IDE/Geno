@@ -17,8 +17,8 @@
 
 #include "Common/Platform/POSIX/POSIXError.h"
 
+#include <cstring>
 #include <iostream>
-#include <string.h>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -26,12 +26,11 @@ bool _POSIXHandleErrno( int Error, std::string_view Function, std::string_view F
 {
 	if( Error != 0 )
 	{
+		const std::string_view FunctionName = Function.substr( 0, Function.find_first_of( "(", 0 ) );
 
-	std::string_view FunctionName  = Function.substr( 0, Function.find_first_of( "(", 0 ) );
 	#if defined( _WIN32 )
 
-		char             Buffer[ 256 ] = { };
-
+		char Buffer[ 256 ] = { };
 		strerror_s( Buffer, std::size( Buffer ), Error );
 
 		std::cerr << File << "(L" << Line << ") " << FunctionName << " failed: " << Buffer << "\n";

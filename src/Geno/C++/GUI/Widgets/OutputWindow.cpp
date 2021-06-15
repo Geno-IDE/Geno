@@ -19,9 +19,17 @@
 
 #include <filesystem>
 
-#include "Common/Platform/UNIXFeatures.h"
-
+#include <fcntl.h>
 #include <imgui.h>
+
+#if defined( _WIN32 )
+#include <io.h>
+#define pipe( Pipe ) _pipe( Pipe, 64 * 1024, O_BINARY )
+#else // _WIN32
+#include <unistd.h>
+#endif // !_WIN32
+
+//////////////////////////////////////////////////////////////////////////
 
 enum
 {
@@ -29,18 +37,12 @@ enum
 	WRITE,
 };
 
-constexpr uint32_t pipe_size = 64 * 1024;
-
 //////////////////////////////////////////////////////////////////////////
 
 OutputWindow::OutputWindow( void )
 {
 	RedirectOutputStream( &m_StdOut, stdout );
 	RedirectOutputStream( &m_StdErr, stderr );
-
-	#if !defined(_WIN32)
-	m_Captured = NULL;
-	#endif
 
 	// Need stdout and stderr
 	GENO_ASSERT( m_StdOut > 0 );
@@ -59,6 +61,7 @@ OutputWindow::OutputWindow( void )
 	// Associate stdout and stderr with the output pipe
 	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdOut ) == 0 );
 	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdErr ) == 0 );
+
 } // OutputWidget
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,21 +74,22 @@ OutputWindow::~OutputWindow( void )
 	if( m_OldStdOut > 0 ) close( m_OldStdOut );
 	if( m_OldStdErr > 0 ) close( m_OldStdErr );
 
-	if( m_Pipe[ READ ] > 0 )  close( m_Pipe[ READ ] );
+	if( m_Pipe[ READ  ] > 0 ) close( m_Pipe[ READ ] );
 	if( m_Pipe[ WRITE ] > 0 ) close( m_Pipe[ WRITE ] );
+
 } // ~OutputWidget
 
 //////////////////////////////////////////////////////////////////////////
 
 void OutputWindow::Show( bool* pOpen )
 {
-	ImGui::SetNextWindowSize( ImVec2( 350*2, 196 ), ImGuiCond_FirstUseEver );
+	ImGui::SetNextWindowSize( ImVec2( 350 * 2, 196 ), ImGuiCond_FirstUseEver );
 
 	if( ImGui::Begin( "Output", pOpen ) )
 	{
 		Capture();
 
-		ImGui::TextUnformatted( m_Captured,  m_Captured);
+		ImGui::TextUnformatted( m_pCaptured ? m_pCaptured : "" );
 
 	} ImGui::End();
 
@@ -95,11 +99,10 @@ void OutputWindow::Show( bool* pOpen )
 
 void OutputWindow::ClearCapture( void )
 {
-	#if defined(_WIN32)
-	m_Captured.clear()
-	#else
-	free(m_Captured);
-	#endif
+	free( m_pCaptured );
+
+	m_pCaptured = nullptr;
+
 } // ClearCapture
 
 //////////////////////////////////////////////////////////////////////////
@@ -108,17 +111,22 @@ void OutputWindow::RedirectOutputStream( int* pFileDescriptor, FILE* pFileStream
 {
 	if( ( *pFileDescriptor = fileno( pFileStream ) ) < 0 )
 	{
+
 	#if defined( _WIN32 )
+
 		if( FILE* f; freopen_s( &f, "CONOUT$", "w", pFileStream ) == 0 )
 			*pFileDescriptor = fileno( f );
 		else if( freopen_s( &f, "NUL", "w", pFileStream ) == 0 )
 			*pFileDescriptor = fileno( f );
+
 	#else // _WIN32
+
 		if( FILE* f = freopen( "/dev/null", "w", pFileStream ); f != nullptr )
 			*pFileDescriptor = fileno( f );
-	#endif // _WIN32
-	}
 
+	#endif // _WIN32
+
+	}
 
 	GENO_ASSERT( *pFileDescriptor > 0 );
 
@@ -127,21 +135,13 @@ void OutputWindow::RedirectOutputStream( int* pFileDescriptor, FILE* pFileStream
 //////////////////////////////////////////////////////////////////////////
 void OutputWindow::Capture( void )
 {
-	int64_t StartingOffset = lseek( m_Pipe[ READ ], 0, SEEK_CUR );
-	size_t  BytesInFront   = ( size_t )lseek( m_Pipe[ READ ], 0, SEEK_END );
-	#if defined(_WIN32)
-	size_t OldSize = m_Captured.size();
-	#else
-	size_t  OldSize        = m_Captured ? strlen(m_Captured) : 0;
-	#endif
+	const long   StartingOffset = lseek( m_Pipe[ READ ], 0, SEEK_CUR );
+	const size_t TargetSize     = lseek( m_Pipe[ READ ], 0, SEEK_END ) + m_CapturedSize;
 
 	lseek( m_Pipe[ READ ], StartingOffset, SEEK_SET );
 
-	#if defined(_WIN32)
-	m_Captured.resize(OldSize + BytesInFront);
-	#else
-	m_Captured = static_cast<char*> (realloc(m_Captured, OldSize + BytesInFront));
-	#endif
+	m_pCaptured = static_cast< char* >( realloc( m_pCaptured, TargetSize ) );
 
-	for( size_t bytes_read = 0; bytes_read < BytesInFront; bytes_read += read( m_Pipe[ READ ], &m_Captured[ OldSize + bytes_read ], ( uint32_t )( BytesInFront - bytes_read ) ) );
+	for( ; m_CapturedSize < TargetSize; m_CapturedSize += read( m_Pipe[ READ ], &m_pCaptured[ m_CapturedSize ], static_cast< uint32_t >( TargetSize - m_CapturedSize ) ) );
+
 } // Capture

@@ -19,11 +19,18 @@
 
 #include "Common/Platform/POSIX/POSIXError.h"
 
-#include "Common/Platform/UNIXFeatures.h"
-
+#include <cstdio>
+#include <cstring>
 #include <iostream>
 
-#include <string.h>
+#include <fcntl.h>
+
+#if defined( _WIN32 )
+#include <io.h>
+#define open _wopen
+#else // _WIN32
+#include <unistd.h>
+#endif // !_WIN32
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -67,8 +74,7 @@ GCL::Deserializer::Deserializer( const std::filesystem::path& rPath )
 		return;
 	}
 
-	int FileDescriptor;
-	if( FileDescriptor = open(rPath.c_str(), O_RDONLY ) )
+	if( int FileDescriptor; ( FileDescriptor = open( rPath.c_str(), O_RDONLY | O_BINARY ) ) != 0 )
 	{
 		m_FileSize = static_cast< size_t >( lseek( FileDescriptor, 0, SEEK_END ) );
 		lseek( FileDescriptor, 0, SEEK_SET );
