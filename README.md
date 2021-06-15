@@ -4,6 +4,11 @@
 	<a href="/LICENSE"><img alt="License" src="https://img.shields.io/github/license/Geno-IDE/Geno?style=for-the-badge"></a>
 	<a href="https://discord.gg/dUd5aDSBAN"><img alt="Discord" src="https://img.shields.io/discord/854043545240338442?color=%238A9CFC&label=%20Discord&logo=Discord&logoColor=%238A9CFC&style=for-the-badge"></a>
 </p>
+
+<p align="center">
+	<a href="https://github.com/Geno-IDE/Geno/actions/workflows/ci-windows.yml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Geno-IDE/Geno/CI%20(Windows)?label=Windows&logo=Windows&logoColor=FFF&style=for-the-badge"></a>
+	<a href="https://github.com/Geno-IDE/Geno/actions/workflows/ci-linux.yml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Geno-IDE/Geno/CI%20(Linux)?label=Linux&logo=Linux&logoColor=FFF&style=for-the-badge"></a>
+</p>
 <br>
 
 <p align="center">
