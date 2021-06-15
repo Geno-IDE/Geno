@@ -28,9 +28,10 @@
 #if defined( _WIN32 )
 #include <io.h>
 #define open _wopen
-#else // _WIN32
+#elif defined( __unix__ ) // _WIN32
 #include <unistd.h>
-#endif // !_WIN32
+#define O_BINARY 0
+#endif // __unix__
 
 //////////////////////////////////////////////////////////////////////////
 
