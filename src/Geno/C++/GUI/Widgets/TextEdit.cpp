@@ -15,6 +15,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#define _CRT_SECURE_NO_WARNINGS
 #include "TextEdit.h"
 
 #include "Common/Drop.h"
@@ -43,6 +44,13 @@ TextEdit::TextEdit( void )
 		m_pTabBar              = pContext->TabBars.GetOrAddByKey( ID );
 		m_pTabBar->ID          = ID;
 	}
+
+	palette.Default		= 0xFFf4f4f4;
+	palette.Keyword		= 0xFF0000F0;
+	palette.Number		= 0xFF303030;
+	palette.String		= 0xFF9E5817;
+	palette.Comment		= 0xFF0f5904;
+	palette.LineNumber	= 0xFFF0F0F0;
 
 } // TextEdit
 
@@ -89,7 +97,7 @@ void TextEdit::Show( bool* pOpen )
 					case Drop::TypeIndex::Text:
 					{
 						const Drop::Text& rText = pDrop->GetText();
-						
+
 						ImGui::SetNextWindowPos( ImVec2( DragX, DragY ) );
 						ImGui::BeginTooltip();
 						ImGui::Text( "%ws", rText.c_str() );
@@ -100,7 +108,7 @@ void TextEdit::Show( bool* pOpen )
 					case Drop::TypeIndex::Paths:
 					{
 						const Drop::Paths& rPaths = pDrop->GetPaths();
-						
+
 						ImGui::SetNextWindowPos( ImVec2( DragX, DragY ) );
 						ImGui::BeginTooltip();
 
@@ -118,7 +126,7 @@ void TextEdit::Show( bool* pOpen )
 	ImGui::PushStyleColor( ImGuiCol_ChildBg, BackgroundColor );
 	ImGui::SetNextWindowSize( ImVec2( 350, 196 ), ImGuiCond_FirstUseEver );
 
-	if( ImGui::Begin( WINDOW_NAME, pOpen ) )
+	if( ImGui::Begin( WINDOW_NAME, pOpen, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar) )
 	{
 		const int           TabBarFlags  = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_FittingPolicyScroll | ImGuiTabBarFlags_IsFocused;
 		const ImGuiContext* pContext     = ImGui::GetCurrentContext();
@@ -137,11 +145,13 @@ void TextEdit::Show( bool* pOpen )
 
 					ImGui::PushFont( MainWindow::Instance().GetFontMono() );
 
-					if( ImGui::InputTextMultiline( "##TextEditor", &rFile.Text, ImVec2( -0.01f, -0.01f ), InputTextFlags ) )
+					/*if( ImGui::InputTextMultiline( "##TextEditor", &rFile.Text, ImVec2( -0.01f, -0.01f ), InputTextFlags ) )
 					{
 						std::ofstream ofs( rFile.Path, std::ios::binary | std::ios::trunc );
 						ofs << rFile.Text;
-					}
+					}*/
+
+					RenderEditor(rFile);
 
 					ImGui::PopFont();
 					ImGui::EndTabItem();
@@ -190,6 +200,9 @@ void TextEdit::AddFile( const std::filesystem::path& rPath )
 
 			// Update text in case file changed externally
 			rFile.Text = Text;
+
+			SplitLines(rFile);
+
 			return;
 		}
 	}
@@ -197,6 +210,8 @@ void TextEdit::AddFile( const std::filesystem::path& rPath )
 	File File;
 	File.Path = rPath;
 	File.Text = Text;
+
+	SplitLines(File);
 
 	m_Files.emplace_back( std::move( File ) );
 
@@ -224,3 +239,123 @@ void TextEdit::OnDragDrop( const Drop& rDrop, int X, int Y )
 	}
 
 } // OnDragDrop
+
+void TextEdit::SplitLines(File& file) {
+
+
+	file.Lines.clear();
+
+	Line lineBuffer;
+
+	for (unsigned int i = 0; i < file.Text.length(); i++) {
+		const char c = file.Text[i];
+
+		if (c == '\n') {
+			file.Lines.push_back(lineBuffer);
+			lineBuffer.clear();
+		} else {
+			lineBuffer.push_back(Glyph(c, palette.Default));
+		}
+	}
+
+	file.Lines.push_back(lineBuffer);
+}
+
+bool TextEdit::RenderEditor(File& file) {
+	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::ColorConvertU32ToFloat4(0xFF101010));
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+
+	const float fontSize = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, "#").x;
+	ImVec2 charAdvance = ImVec2(fontSize, ImGui::GetTextLineHeightWithSpacing());
+
+	unsigned int totalLines = (unsigned int)file.Lines.size();
+
+	char buf[16];
+	sprintf(buf, " %u | ", totalLines);
+
+	const float lineNumMaxWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf).x;
+
+	memset(buf, 0, sizeof(buf));
+
+	ImVec2 size = ImGui::GetContentRegionMax();
+	ImVec2 cursor = ImGui::GetCursorScreenPos();
+
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	ImGui::SetCursorScreenPos(ImVec2(cursor.x + lineNumMaxWidth, cursor.y));
+	ImGui::BeginChild("##TextEditor", ImVec2(size.x - lineNumMaxWidth, 0), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar );
+	ImGui::PushAllowKeyboardFocus(true);
+	ImVec2 scroll = ImVec2(ImGui::GetScrollX(), ImGui::GetScrollY());
+
+	unsigned int firstLine = (unsigned int)(scroll.y / charAdvance.y);
+	unsigned int lastLine = std::min(firstLine + (unsigned int)(size.y / charAdvance.y + 2), totalLines - 1);
+
+	float longest = 0.0f;
+
+	for (unsigned int i = firstLine; i <= lastLine; i++) {
+		ImVec2 pos(cursor.x + lineNumMaxWidth - scroll.x, cursor.y + (i - firstLine) * charAdvance.y);
+
+		Line& line = file.Lines[i];
+
+		std::string stringBuffer;
+
+		float xOffset = 0.0f;
+		unsigned int prevColor = line.size() ? line[0].color : palette.Default;
+
+		for (Glyph& glyph : line) {
+
+			if (glyph.color != prevColor) {
+				drawList->AddText(ImVec2(pos.x + xOffset, pos.y), prevColor, stringBuffer.c_str());
+				float textWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, stringBuffer.c_str()).x;
+				xOffset += textWidth;
+				stringBuffer.clear();
+
+				prevColor = glyph.color;
+			} else {
+				stringBuffer.push_back(glyph.c);
+			}
+		}
+
+		if (!stringBuffer.empty()) {
+			drawList->AddText(ImVec2(pos.x + xOffset, pos.y), prevColor, stringBuffer.c_str());
+			float textWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, stringBuffer.c_str()).x;
+			xOffset += textWidth;
+			stringBuffer.clear();
+		}
+
+		if (xOffset > longest) longest = xOffset;
+
+
+	}
+
+
+
+	ImGui::Dummy(ImVec2(longest + 10, (totalLines + 10) * charAdvance.y));
+
+	ImGui::PopAllowKeyboardFocus();
+	ImGui::EndChild();
+
+	ImGui::SetCursorScreenPos(ImVec2(cursor.x-2, cursor.y));
+
+	ImGui::BeginChild("##LineNumbers", ImVec2(lineNumMaxWidth, size.y + 2), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+	for (unsigned int i = firstLine; i <= lastLine; i++) {
+		sprintf(buf, "%u | ", i + 1);
+
+		const float currentLineNumWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf).x;
+		ImVec2 pos(cursor.x + lineNumMaxWidth - currentLineNumWidth, cursor.y + (i - firstLine) * charAdvance.y);
+
+		drawList->AddText(pos, palette.LineNumber, buf);
+	}
+
+	ImGui::EndChild();
+
+
+
+	ImGui::PopStyleVar();
+	ImGui::PopStyleColor();
+
+
+	return false;
+}
