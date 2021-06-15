@@ -25,9 +25,9 @@
 #if defined( _WIN32 )
 #include <io.h>
 #define pipe( Pipe ) _pipe( Pipe, 64 * 1024, O_BINARY )
-#else // _WIN32
+#elif defined( __unix__ ) // _WIN32
 #include <unistd.h>
-#endif // !_WIN32
+#endif // __unix__
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -89,7 +89,8 @@ void OutputWindow::Show( bool* pOpen )
 	{
 		Capture();
 
-		ImGui::TextUnformatted( m_pCaptured ? m_pCaptured : "" );
+		if( m_pCaptured )
+			ImGui::TextUnformatted( m_pCaptured, m_pCaptured + m_CapturedSize );
 
 	} ImGui::End();
 
@@ -101,7 +102,8 @@ void OutputWindow::ClearCapture( void )
 {
 	free( m_pCaptured );
 
-	m_pCaptured = nullptr;
+	m_pCaptured    = nullptr;
+	m_CapturedSize = 0;
 
 } // ClearCapture
 
