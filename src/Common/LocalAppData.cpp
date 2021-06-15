@@ -87,11 +87,3 @@ LocalAppData::LocalAppData( void )
 #endif // __linux__
 
 } // LocalAppData
-
-//////////////////////////////////////////////////////////////////////////
-
-std::filesystem::path LocalAppData::operator/( PathStringView RelativePath ) const
-{
-	return ( m_Path / RelativePath ).lexically_normal();
-
-} // operator/

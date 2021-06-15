@@ -14,6 +14,7 @@
  *    being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
+
 #include "Common/Process.h"
 
 #include "Common/Platform/Win32/Win32Error.h"

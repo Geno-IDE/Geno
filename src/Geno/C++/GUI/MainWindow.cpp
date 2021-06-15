@@ -37,9 +37,6 @@
 
 #if defined( _WIN32 )
 #include "win32-resource.h"
-#endif // _WIN32
-
-#if defined( _WIN32 )
 #define sscanf sscanf_s
 #endif // _WIN32
 
