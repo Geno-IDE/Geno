@@ -37,6 +37,8 @@ app( 'Geno' )
 
 	filter 'system:windows'
 		links {
+			'shell32',
+			'gdi32',
 			'opengl32',
 		}
 
