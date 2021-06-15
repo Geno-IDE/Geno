@@ -9,6 +9,7 @@
 /obj/
 
 /*.gradle
+/*.gwks
 /*.iml
 /*.sln
 /*.workspace

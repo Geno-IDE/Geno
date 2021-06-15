@@ -7,3 +7,6 @@
 [submodule "third_party/stb"]
 	path = third_party/stb
 	url = https://github.com/nothings/stb.git
+[submodule "premake/premake-geno"]
+	path = premake/premake-geno
+	url = https://github.com/Geno-IDE/premake-geno.git

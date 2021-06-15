@@ -1,3 +1,4 @@
+require 'premake/premake-geno'
 require 'premake/app'
 require 'premake/customizations'
 require 'premake/defaults'
