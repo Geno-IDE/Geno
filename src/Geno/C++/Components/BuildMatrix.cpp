@@ -17,6 +17,9 @@
 
 #include "BuildMatrix.h"
 
+#include "Compilers/CompilerGCC.h"
+#include "Compilers/CompilerMSVC.h"
+
 #include <Common/Intrinsics.h>
 
 #include <algorithm>
@@ -64,7 +67,7 @@ Configuration BuildMatrix::CurrentConfiguration( void ) const
 		if( CurrentConfiguration == rColumn.Configurations.end() )
 			continue;
 
-		Result.CombineWith( CurrentConfiguration->second );
+		Result.Override( CurrentConfiguration->second );
 	}
 
 	return Result;
@@ -77,24 +80,39 @@ BuildMatrix BuildMatrix::PlatformDefault( void )
 {
 	BuildMatrix Matrix;
 
-	Column PlatformColumn;
-	PlatformColumn.Name = "Platform";
-	PlatformColumn.Configurations.try_emplace( std::string( Intrinsics::TargetMachine() ) );
-	Matrix.m_Columns.emplace_back( std::move( PlatformColumn ) );
+	// Target
+	{
+		Column Target;
+		Target.Name = "Target";
+	#if defined( _WIN32 )
+		Target.Configurations[ "Windows" ].m_Compiler = std::make_shared< CompilerMSVC >();
+	#elif defined( __linux__ ) // _WIN32
+		Target.Configurations[ "Linux"   ].m_Compiler = std::make_shared< CompilerGCC >();
+	#endif // __linux__
 
-	Column OptimizationColumn;
-	OptimizationColumn.Name = "Optimization";
-	OptimizationColumn.Configurations.try_emplace( "Full" );
-	OptimizationColumn.Configurations.try_emplace( "Favor Size" );
-	OptimizationColumn.Configurations.try_emplace( "Favor Speed" );
-	OptimizationColumn.Configurations.try_emplace( "Off" );
-	Matrix.m_Columns.emplace_back( std::move( OptimizationColumn ) );
+	}
 
-	Column SymbolsColumn;
-	SymbolsColumn.Name = "Debug Symbols";
-	SymbolsColumn.Configurations.try_emplace( "On" );
-	SymbolsColumn.Configurations.try_emplace( "Off" );
-	Matrix.m_Columns.emplace_back( std::move( SymbolsColumn ) );
+	// Architecture
+	{
+		Column Platform;
+		Platform.Name = "Architecture";
+		Platform.Configurations.try_emplace( "x86" );
+		Platform.Configurations.try_emplace( "x86_64" );
+		Platform.Configurations.try_emplace( "ARM" );
+		Platform.Configurations.try_emplace( "ARM64" );
+		Matrix.m_Columns.emplace_back( std::move( Platform ) );
+	}
+
+	// Optimization
+	{
+		Column Optimization;
+		Optimization.Name = "Optimization";
+		Optimization.Configurations.try_emplace( "Off" );
+		Optimization.Configurations[ "Favor Size"  ].m_Optimization = Configuration::Optimization::FavorSize;
+		Optimization.Configurations[ "Favor Speed" ].m_Optimization = Configuration::Optimization::FavorSpeed;
+		Optimization.Configurations[ "Full"        ].m_Optimization = Configuration::Optimization::Full;
+		Matrix.m_Columns.emplace_back( std::move( Optimization ) );
+	}
 
 	return Matrix;
 

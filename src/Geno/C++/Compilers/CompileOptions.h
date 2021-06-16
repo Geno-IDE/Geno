@@ -63,6 +63,7 @@ struct CompileOptions
 	Action                               Action            = Action::All;
 	uint32_t                             AssemblerFlags    = 0;
 	uint32_t                             PreprocessorFlags = 0;
+	uint32_t                             Optimization      = 0; // see Configuration::Optimization
 	bool                                 Verbose           = false;
 
 }; // CompileOptions

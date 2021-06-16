@@ -66,12 +66,11 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	BuildMatrix                  m_BuildMatrix;
-	std::filesystem::path        m_Location;
-	std::string                  m_Name;
-	std::vector< Project >       m_Projects;
-	std::unique_ptr< ICompiler > m_Compiler;
-	std::vector< std::string >   m_ProjectsLeftToBuild;
+	BuildMatrix                m_BuildMatrix;
+	std::filesystem::path      m_Location;
+	std::string                m_Name;
+	std::vector< Project >     m_Projects;
+	std::vector< std::string > m_ProjectsLeftToBuild;
 
 //////////////////////////////////////////////////////////////////////////
 
