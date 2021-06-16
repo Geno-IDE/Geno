@@ -23,6 +23,8 @@
 #include <string>
 #include <vector>
 
+#include <imgui.h>
+
 class  Drop;
 struct ImGuiTabBar;
 
@@ -38,6 +40,11 @@ public:
 		unsigned int String;
 		unsigned int Comment;
 		unsigned int LineNumber;
+		unsigned int Cursor;
+		unsigned int Selection;
+		unsigned int CurrentLine;
+		unsigned int CurrentLineInactive;
+		unsigned int CurrentLineEdge;
 	};
 
 	struct Glyph {
@@ -60,6 +67,21 @@ public:
 
 	}; // File
 
+	struct Coordinate {
+		unsigned int x;
+		unsigned int y;
+
+		Coordinate() : x(0), y(0) {}
+		Coordinate(unsigned int x, unsigned int y) : x(x) , y(y) {}
+	};
+
+	struct State {
+		Coordinate selectionStart;
+		Coordinate selectionEnd;
+		std::vector<Coordinate> cursorPositions;
+
+	} state;
+
 //////////////////////////////////////////////////////////////////////////
 
 	TextEdit( void );
@@ -76,8 +98,13 @@ private:
 
 	void SplitLines(File& file);
 	bool RenderEditor(File& file);
+	void HandleInputs();
+	bool HasSelection() const;
+	float GetCursorDistance(const File& file, unsigned int cursor) const;
 
 	Palette palette;
+
+	unsigned int cursorBlink = 500;
 
 //////////////////////////////////////////////////////////////////////////
 
