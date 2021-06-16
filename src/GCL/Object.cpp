@@ -48,31 +48,33 @@ GCL::Object& GCL::Object::operator=( Object&& rrOther ) noexcept
 
 //////////////////////////////////////////////////////////////////////////
 
-void GCL::Object::SetString( std::string String )
+GCL::Object::StringType& GCL::Object::SetString( std::string String )
 {
 	if( IsString() )
-		std::get< StringType >( m_Value ).assign( std::move( String ) );
+		return std::get< StringType >( m_Value ).assign( std::move( String ) );
 	else
-		m_Value.emplace< StringType >( std::move( String ) );
+		return m_Value.emplace< StringType >( std::move( String ) );
 
 } // SetString
 
 //////////////////////////////////////////////////////////////////////////
 
-void GCL::Object::SetTable( void )
+GCL::Object::TableType& GCL::Object::SetTable( void )
 {
-	if( !IsTable() )
-		m_Value.emplace< TableType >();
+	if( IsTable() )
+		return std::get< TableType >( m_Value );
+	else
+		return m_Value.emplace< TableType >();
 
 } // SetTable
 
 //////////////////////////////////////////////////////////////////////////
 
-void GCL::Object::AddChild( Object Child )
+GCL::Object& GCL::Object::AddChild( Object Child )
 {
-	TableType& table = std::get< TableType >( m_Value );
+	TableType& rTable = std::get< TableType >( m_Value );
 
-	table.emplace_back( std::move( Child ) );
+	return rTable.emplace_back( std::move( Child ) );
 
 } // AddChild
 
