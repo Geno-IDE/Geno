@@ -16,12 +16,12 @@
  */
 
 #pragma once
+#include "Compilers/ICompiler.h"
+
 #include <Common/Macros.h>
 
-#include <filesystem>
-#include <string>
-#include <string_view>
-#include <vector>
+#include <optional>
+#include <memory>
 
 class Configuration
 {
@@ -32,14 +32,54 @@ class Configuration
 
 public:
 
+	enum class Optimization
+	{
+		FavorSize,
+		FavorSpeed,
+		Full,
+
+	}; // Optimization
+
+//////////////////////////////////////////////////////////////////////////
+
 	Configuration( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 
-	void CombineWith( const Configuration& rOther );
+	void Override( const Configuration& rOther );
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::vector< std::filesystem::path > m_Files;
+	std::shared_ptr< ICompiler >  m_Compiler;
+	std::optional< Optimization > m_Optimization;
 
 }; // Configuration
+
+//////////////////////////////////////////////////////////////////////////
+
+namespace Reflection
+{
+
+constexpr std::string_view EnumToString( Configuration::Optimization Value )
+{
+	switch( Value )
+	{
+		case Configuration::Optimization::FavorSize:  return "FavorSize";
+		case Configuration::Optimization::FavorSpeed: return "FavorSpeed";
+		case Configuration::Optimization::Full:       return "Full";
+		default:                                      return "Unknown";
+	}
+
+} // EnumToString
+
+//////////////////////////////////////////////////////////////////////////
+
+constexpr void EnumFromString( std::string_view String, Configuration::Optimization& rValue )
+{
+	if(      String == "FavorSize"  ) rValue = Configuration::Optimization::FavorSize;
+	else if( String == "FavorSpeed" ) rValue = Configuration::Optimization::FavorSpeed;
+	else if( String == "Full"       ) rValue = Configuration::Optimization::Full;
+
+} // EnumFromString
+
+} // Reflection

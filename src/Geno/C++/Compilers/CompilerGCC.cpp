@@ -17,6 +17,8 @@
 
 #include "CompilerGCC.h"
 
+#include "Components/Project.h"
+
 //////////////////////////////////////////////////////////////////////////
 
 std::wstring CompilerGCC::MakeCommandLineString( const CompileOptions& rOptions )
@@ -88,7 +90,9 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 	std::wstring Command;
 	Command.reserve( 256 );
 
-	switch( rOptions.Kind )
+	const Project::Kind Kind = static_cast< Project::Kind >( rOptions.OutputType );
+
+	switch( Kind )
 	{
 		case Project::Kind::Application:
 		case Project::Kind::DynamicLibrary:
@@ -97,7 +101,7 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 			Command += L"g++";
 
 			// Create a shared library
-			if( rOptions.Kind == Project::Kind::DynamicLibrary )
+			if( Kind == Project::Kind::DynamicLibrary )
 				Command += L" -shared";
 
 			// Linker options
@@ -126,25 +130,13 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 			{
 				std::filesystem::path OutputFile = rOptions.OutputFile;
 
-				switch( rOptions.Kind )
+				switch( Kind )
 				{
 					case Project::Kind::Application:
 					{
 
 					#if defined( _WIN32 )
 						OutputFile.replace_extension( L".exe" );
-					#endif // _WIN32
-
-					} break;
-
-					case Project::Kind::StaticLibrary:
-					{
-
-					#if defined( _WIN32 )
-						OutputFile.replace_extension( L".lib" );
-					#else // _WIN32
-						OutputFile.replace_filename(  L"lib" + OutputFile.filename().wstring() );
-						OutputFile.replace_extension( L".a" );
 					#endif // _WIN32
 
 					} break;

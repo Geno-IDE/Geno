@@ -16,8 +16,6 @@
  */
 
 #pragma once
-#include "Components/Project.h"
-
 #include <filesystem>
 
 struct LinkOptions
@@ -35,7 +33,7 @@ struct LinkOptions
 	std::vector< std::filesystem::path > LibraryDirectories;
 	std::vector< std::string >           Libraries;
 	std::filesystem::path                OutputFile;
-	uint32_t                             Flags            = 0;
-	Project::Kind                        Kind             = Project::Kind::Application;
+	uint32_t                             OutputType = 0; // See Project::Kind
+	uint32_t                             Flags      = 0;
 
 }; // LinkOptions

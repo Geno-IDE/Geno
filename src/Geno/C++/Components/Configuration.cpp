@@ -19,8 +19,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-void Configuration::CombineWith( const Configuration& rOther )
+void Configuration::Override( const Configuration& rOther )
 {
-	m_Files.insert( m_Files.end(), rOther.m_Files.begin(), rOther.m_Files.end() );
+	if( rOther.m_Compiler     ) m_Compiler     = rOther.m_Compiler;
+	if( rOther.m_Optimization ) m_Optimization = rOther.m_Optimization;
 
-} // CombineWith
+} // Override
