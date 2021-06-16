@@ -128,7 +128,7 @@ MainWindow::MainWindow( void )
 	m_pImGuiContext->SettingsHandlers.push_back( IniHandler );
 
 	ImGui_ImplGlfw_InitForOpenGL( m_pWindow, true );
-	ImGui_ImplOpenGL3_Init( "#version 130" );
+	ImGui_ImplOpenGL3_Init( "#version 330 core" );
 
 	// Create widgets
 	pMenuBar           = new MainMenuBar();
