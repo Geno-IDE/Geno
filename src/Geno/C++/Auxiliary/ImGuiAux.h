@@ -26,7 +26,7 @@ namespace ImGuiAux
 {
 
 extern bool PushTreeWithIcon    ( const char* pLabel, const Texture2D& rTexture, const bool DrawArrow = true );
-extern bool BeginChildHorizontal( const ImGuiID ID, const ImVec2& rSize, const ImGuiWindowFlags Flags = 0 );
+extern bool BeginChildHorizontal( const ImGuiID ID, const ImVec2& rSize, const bool Border = false, const ImGuiWindowFlags Flags = 0 );
 extern void TextCentered        ( const char* pText );
 
 } // ImGuiAux
