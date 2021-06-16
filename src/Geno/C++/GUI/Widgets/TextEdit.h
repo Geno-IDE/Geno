@@ -31,8 +31,6 @@ struct ImGuiTabBar;
 class TextEdit
 {
 public:
-
-
 	struct Palette {
 		unsigned int Default;
 		unsigned int Keyword;
@@ -75,11 +73,18 @@ public:
 		Coordinate(unsigned int x, unsigned int y) : x(x) , y(y) {}
 	};
 
+	struct Cursor {
+		Coordinate position;
+
+		float distance;
+	};
+
 	struct State {
 		Coordinate selectionStart;
 		Coordinate selectionEnd;
-		std::vector<Coordinate> cursorPositions;
+		std::vector<Cursor> cursors;
 
+		File* currentFile;
 	} state;
 
 //////////////////////////////////////////////////////////////////////////
@@ -96,15 +101,24 @@ public:
 
 private:
 
+	struct Properties {
+		float charAdvanceY;
+		ImVec2 scroll;
+	} props;
+
 	void SplitLines(File& file);
 	bool RenderEditor(File& file);
 	void HandleInputs();
 	bool HasSelection() const;
-	float GetCursorDistance(const File& file, unsigned int cursor) const;
+	float GetCursorDistance(unsigned int cursor) const;
+	void SetSelectionLine(unsigned int line);
+	void SetSelection(Coordinate start, Coordinate end);
+	Coordinate GetMouseCoordinate(float* distance = nullptr);
 
 	Palette palette;
 
 	unsigned int cursorBlink = 500;
+
 
 //////////////////////////////////////////////////////////////////////////
 
