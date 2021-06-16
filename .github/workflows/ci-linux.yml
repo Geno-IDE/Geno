@@ -11,8 +11,8 @@ jobs:
       with:
         submodules: true
 
-    - name: Generate Project Files
+    - name: Generate project files
       run: premake5 gmake2
 
-    - name: Build Project
+    - name: Build project
       run: make -j
