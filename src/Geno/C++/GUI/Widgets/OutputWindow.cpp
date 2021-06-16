@@ -59,8 +59,8 @@ OutputWindow::OutputWindow( void )
 	GENO_ASSERT( pipe( m_Pipe ) != -1 );
 
 	// Associate stdout and stderr with the output pipe
-	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdOut ) == 0 );
-	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdErr ) == 0 );
+	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdOut ) >= 0 );
+	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdErr ) >= 0 );
 
 } // OutputWidget
 
@@ -68,8 +68,8 @@ OutputWindow::OutputWindow( void )
 
 OutputWindow::~OutputWindow( void )
 {
-	GENO_ASSERT( dup2( m_OldStdOut, m_StdOut ) == 0 );
-	GENO_ASSERT( dup2( m_OldStdErr, m_StdErr ) == 0 );
+	GENO_ASSERT( dup2( m_OldStdOut, m_StdOut ) >= 0 );
+	GENO_ASSERT( dup2( m_OldStdErr, m_StdErr ) >= 0 );
 
 	if( m_OldStdOut > 0 ) close( m_OldStdOut );
 	if( m_OldStdErr > 0 ) close( m_OldStdErr );
