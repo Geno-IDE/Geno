@@ -8,6 +8,7 @@
 <p align="center">
 	<a href="https://github.com/Geno-IDE/Geno/actions/workflows/ci-windows.yml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Geno-IDE/Geno/CI%20(Windows)?label=Windows&logo=Windows&logoColor=FFF&style=for-the-badge"></a>
 	<a href="https://github.com/Geno-IDE/Geno/actions/workflows/ci-linux.yml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Geno-IDE/Geno/CI%20(Linux)?label=Linux&logo=Linux&logoColor=FFF&style=for-the-badge"></a>
+	<a href="https://github.com/Geno-IDE/Geno/actions/workflows/ci-macos.yml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/Geno-IDE/Geno/CI%20(macOS)?label=macOS&logo=Apple&logoColor=FFF&style=for-the-badge"></a>
 </p>
 <br>
 
