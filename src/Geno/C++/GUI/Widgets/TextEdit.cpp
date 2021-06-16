@@ -27,7 +27,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <imgui.h>
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
@@ -45,13 +44,20 @@ TextEdit::TextEdit( void )
 		m_pTabBar->ID          = ID;
 	}
 
-	palette.Default		= 0xFFf4f4f4;
-	palette.Keyword		= 0xFF0000F0;
-	palette.Number		= 0xFF303030;
-	palette.String		= 0xFF9E5817;
-	palette.Comment		= 0xFF0f5904;
-	palette.LineNumber	= 0xFFF0F0F0;
+	palette.Default				= 0xFFf4f4f4;
+	palette.Keyword				= 0xFF0000F0;
+	palette.Number				= 0xFF303030;
+	palette.String				= 0xFF9E5817;
+	palette.Comment				= 0xFF0f5904;
+	palette.LineNumber			= 0xFFF0F0F0;
+	palette.Selection			= 0x80a06020;
+	palette.CurrentLine			= 0x40000000;
+	palette.CurrentLineInactive = 0x40808080;
+	palette.CurrentLineEdge		= 0x40a0a0a0;
 
+	state.cursorPositions.resize(1);
+
+	state.cursorPositions[0].x = 3;
 } // TextEdit
 
 //////////////////////////////////////////////////////////////////////////
@@ -295,8 +301,43 @@ bool TextEdit::RenderEditor(File& file) {
 
 	for (unsigned int i = firstLine; i <= lastLine; i++) {
 		ImVec2 pos(cursor.x + lineNumMaxWidth - scroll.x, cursor.y + (i - firstLine) * charAdvance.y);
-
 		Line& line = file.Lines[i];
+
+		for (unsigned int j = 0; j < state.cursorPositions.size(); j++) {
+			Coordinate c = state.cursorPositions[j];
+
+			if (c.y == i) {
+
+				bool focus = ImGui::IsWindowFocused();
+
+				if (!HasSelection()) {
+					ImVec2 start(cursor.x + lineNumMaxWidth, pos.y);
+					ImVec2 end(cursor.x + size.x, pos.y + charAdvance.y);
+
+					drawList->AddRectFilled(start, end, focus ? palette.CurrentLine : palette.CurrentLineInactive);
+					drawList->AddRect(start, end, palette.CurrentLineEdge);
+				}
+
+				if (focus) {
+					static auto start = std::chrono::system_clock::now();
+					auto now = std::chrono::system_clock::now();
+					long long elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
+
+					if (elapsed >= cursorBlink) {
+						elapsed -= cursorBlink;
+
+						float cursorPos = GetCursorDistance(file, j);
+						ImVec2 cStart(pos.x + cursorPos, pos.y);
+						ImVec2 cEnd(cStart.x + 1.0f, cStart.y + charAdvance.y - 1);
+
+						drawList->AddRectFilled(cStart, cEnd, palette.Cursor);
+
+						if (elapsed >= cursorBlink)
+							start = now;
+					}
+				}
+			}
+		}
 
 		std::string stringBuffer;
 
@@ -336,8 +377,9 @@ bool TextEdit::RenderEditor(File& file) {
 	ImGui::PopAllowKeyboardFocus();
 	ImGui::EndChild();
 
-	ImGui::SetCursorScreenPos(ImVec2(cursor.x-2, cursor.y));
 
+	//Render line numbers
+	ImGui::SetCursorScreenPos(ImVec2(cursor.x-2, cursor.y));
 	ImGui::BeginChild("##LineNumbers", ImVec2(lineNumMaxWidth, size.y + 2), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 	for (unsigned int i = firstLine; i <= lastLine; i++) {
@@ -352,10 +394,48 @@ bool TextEdit::RenderEditor(File& file) {
 	ImGui::EndChild();
 
 
-
 	ImGui::PopStyleVar();
 	ImGui::PopStyleColor();
 
 
 	return false;
+}
+
+void TextEdit::HandleInputs() {
+	ImGuiIO& io = ImGui::GetIO();
+
+	bool shift = io.KeyShift;
+	bool ctrl = io.KeyCtrl;
+	bool alt = io.KeyAlt;
+
+	if (ImGui::IsWindowHovered()) {
+
+	}
+}
+
+bool TextEdit::HasSelection() const {
+	if (state.selectionStart.y != state.selectionEnd.y)
+		return state.selectionEnd.y > state.selectionStart.y;
+
+	return state.selectionEnd.x > state.selectionStart.x;
+}
+
+float TextEdit::GetCursorDistance(const File& file, unsigned int cursor) const {
+	Coordinate c = state.cursorPositions[cursor];
+
+	const Line& line = file.Lines[c.y];
+
+	char* string = new char[c.x + 1];
+
+	string[c.x] = 0;
+
+	for (unsigned int i = 0; i < c.x; i++) {
+		string[i] = line[i].c;
+	}
+
+	float res = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, string).x;
+
+	delete[] string;
+
+	return res;
 }
