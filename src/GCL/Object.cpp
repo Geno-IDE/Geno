@@ -17,8 +17,8 @@
 
 #include "GCL/Object.h"
 
-#include <Common/Macros.h>
-#include <Common/TypeTraits.h>
+#include "Common/Macros.h"
+#include "Common/TypeTraits.h"
 
 //////////////////////////////////////////////////////////////////////////
 

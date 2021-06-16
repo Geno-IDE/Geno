@@ -51,3 +51,12 @@ app( 'Geno' )
 			'GL',
 			'X11',
 		}
+
+	filter 'system:macosx'
+		links {
+			'CoreGraphics.framework',
+			'IOKit.framework',
+			'AppKit.framework',
+			'OpenGL.framework',
+			'GLKit.framework',
+		}

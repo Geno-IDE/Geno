@@ -28,10 +28,10 @@
 #if defined( _WIN32 )
 #include <io.h>
 #define open _wopen
-#elif defined( __unix__ ) // _WIN32
+#elif defined( __unix__ ) || defined( __APPLE__ ) // _WIN32
 #include <unistd.h>
 #define O_BINARY 0
-#endif // __unix__
+#endif // __unix__ || __APPLE__
 
 //////////////////////////////////////////////////////////////////////////
 

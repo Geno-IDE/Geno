@@ -25,9 +25,9 @@
 #if defined( _WIN32 )
 #include <io.h>
 #define pipe( Pipe ) _pipe( Pipe, 64 * 1024, O_BINARY )
-#elif defined( __unix__ ) // _WIN32
+#elif defined( __unix__ ) || defined( __APPLE__ ) // _WIN32
 #include <unistd.h>
-#endif // __unix__
+#endif // __unix__ || __APPLE__
 
 //////////////////////////////////////////////////////////////////////////
 
