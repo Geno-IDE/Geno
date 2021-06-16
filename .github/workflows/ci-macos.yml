@@ -14,5 +14,8 @@ jobs:
     - name: Generate Project Files
       run: premake5 xcode4
 
-    - name: Build Project
+    - name: Clean project
+      run: xcodebuild clean -workspace "Geno.xcworkspace" -scheme "Geno"
+
+    - name: Build project
       run: xcodebuild build -workspace "Geno.xcworkspace" -scheme "Geno" -configuration Release | xcpretty
