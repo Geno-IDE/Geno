@@ -19,7 +19,7 @@
 
 #include "GCL/Object.h"
 
-#include <Common/Platform/POSIX/POSIXError.h>
+#include "Common/Platform/POSIX/POSIXError.h"
 
 #include <iostream>
 
@@ -28,10 +28,10 @@
 #if defined( _WIN32 )
 #include <corecrt_io.h>
 #define open  _wopen
-#elif defined( __unix__ ) // _WIN32
+#elif defined( __unix__ ) || defined( __APPLE__ ) // _WIN32
 #include <unistd.h>
 #define O_BINARY 0
-#endif // __unix__
+#endif // __unix__ || __APPLE__
 
 //////////////////////////////////////////////////////////////////////////
 

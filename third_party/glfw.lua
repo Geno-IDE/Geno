@@ -41,6 +41,11 @@ return function()
 	}
 	files {
 		'third_party/glfw/src/cocoa_*.c',
+		'third_party/glfw/src/cocoa_*.m',
+		'third_party/glfw/src/nsgl_*.m',
 		'third_party/glfw/src/posix_*.c',
+	}
+	removefiles {
+		'third_party/glfw/src/posix_time.c',
 	}
 end

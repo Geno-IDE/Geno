@@ -58,7 +58,12 @@ MainWindow::MainWindow( void )
 	m_Height                 = 3 * rMonitor.Height() / 4;
 
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
-	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 0 );
+	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 );
+	
+#if defined( __APPLE__ )
+	glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
+	glfwWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE );
+#endif // __APPLE__
 
 	if( ( m_pWindow = glfwCreateWindow( m_Width, m_Height, "Geno", nullptr, nullptr ) ) == nullptr )
 		return;
@@ -70,6 +75,7 @@ MainWindow::MainWindow( void )
 	glfwSwapInterval( 1 );
 
 	// Initialize GLEW after creating our graphics context
+	glewExperimental = GL_TRUE;
 	if( GLenum Result = glewInit(); Result != GLEW_OK )
 	{
 		std::cerr << "glewInit failed: " << ( const char* )glewGetErrorString( Result ) << "\n";
