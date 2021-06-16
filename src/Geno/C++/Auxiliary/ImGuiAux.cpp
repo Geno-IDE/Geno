@@ -86,9 +86,9 @@ bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, 
 
 //////////////////////////////////////////////////////////////////////////
 
-bool ImGuiAux::BeginChildHorizontal( const ImGuiID ID, const ImVec2& rSize, const ImGuiWindowFlags Flags )
+bool ImGuiAux::BeginChildHorizontal( const ImGuiID ID, const ImVec2& rSize, const bool Border, const ImGuiWindowFlags Flags )
 {
-	if( ImGui::BeginChild( ID, rSize, false, Flags ) )
+	if( ImGui::BeginChild( ID, rSize, Border, Flags ) )
 	{
 		ImGuiWindow* pWindow       = ImGui::GetCurrentWindow();
 		pWindow->DC.LayoutType     = ImGuiLayoutType_Horizontal;

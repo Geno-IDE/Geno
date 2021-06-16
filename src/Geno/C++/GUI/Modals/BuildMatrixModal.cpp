@@ -18,6 +18,8 @@
 #include "BuildMatrixModal.h"
 
 #include "Auxiliary/ImGuiAux.h"
+#include "Compilers/CompilerGCC.h"
+#include "Compilers/CompilerMSVC.h"
 #include "Application.h"
 
 #include <imgui.h>
@@ -58,9 +60,11 @@ void BuildMatrixModal::UpdateDerived( void )
 		return;
 	}
 
+	const bool ShowSidebar = !m_SelectedColumn.empty() && !m_SelectedConfiguration.empty();
+
 	ImGuiID ID = 0;
 
-	if( ImGuiAux::BeginChildHorizontal( ++ID, ImVec2( -200, -20 ), ImGuiWindowFlags_HorizontalScrollbar ) )
+	if( ImGuiAux::BeginChildHorizontal( ++ID, ImVec2( ShowSidebar ? -200.0f : 0.0f, -20.0f ), false, ImGuiWindowFlags_HorizontalScrollbar ) )
 	{
 		for( const BuildMatrix::Column& rColumn : pWorkspace->m_BuildMatrix.m_Columns )
 		{
@@ -116,15 +120,38 @@ void BuildMatrixModal::UpdateDerived( void )
 		
 	} ImGui::EndChild();
 
-	ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 1, 0, 0, 1 ) );
-
-	ImGui::SameLine();
-	if( ImGuiAux::BeginChildHorizontal( ++ID, ImVec2( 200, -20 ) ) )
+	if( ShowSidebar )
 	{
-	} ImGui::EndChild();
+		ImGui::SameLine();
+		ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 10, 10 ) );
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.2f, 0.2f, 0.2f, 0.4f ) );
+		if( ImGui::BeginChild( ++ID, ImVec2( 200, -20 ), true ) )
+		{
+			const char* pCompilerNames[] = { "None", "MSVC", "GCC" };
+			auto        Column           = std::find_if( pWorkspace->m_BuildMatrix.m_Columns.begin(), pWorkspace->m_BuildMatrix.m_Columns.end(), [ this ]( const BuildMatrix::Column& rColumn ) { return rColumn.Name == m_SelectedColumn; } );
+			auto        Configuration    = Column->Configurations.find( m_SelectedConfiguration );
+			int         Index            = Configuration->second.m_Compiler ? static_cast< int >( std::distance( std::begin( pCompilerNames ), std::find_if( std::begin( pCompilerNames ), std::end( pCompilerNames ), [ &Configuration ]( const char* pName ) { return pName == Configuration->second.m_Compiler->GetName(); } ) ) ) : 0;
 
-	ImGui::PopStyleColor();
+			ImGui::TextUnformatted( "Compiler" );
 
+			if( ImGui::Combo( "##COMPILER", &Index, pCompilerNames, static_cast< int >( std::size( pCompilerNames ) ) ) )
+			{
+				switch( Index )
+				{
+					case 0: { Configuration->second.m_Compiler.reset();                              } break;
+					case 1: { Configuration->second.m_Compiler = std::make_shared< CompilerMSVC >(); } break;
+					case 2: { Configuration->second.m_Compiler = std::make_shared< CompilerGCC  >(); } break;
+				}
+
+				pWorkspace->Serialize();
+			}
+
+		} ImGui::EndChild();
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar();
+	}
+
+	ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.3f, 0.3f, 0.3f, 0.4f ) );
 	if( ImGui::BeginChild( ++ID ) )
 	{
 		if( ImGui::Button( "Save & Close" ) )
@@ -133,5 +160,6 @@ void BuildMatrixModal::UpdateDerived( void )
 		}
 
 	} ImGui::EndChild();
+	ImGui::PopStyleColor();
 
 } // UpdateDerived
