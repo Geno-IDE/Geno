@@ -58,5 +58,4 @@ app( 'Geno' )
 			'IOKit.framework',
 			'AppKit.framework',
 			'OpenGL.framework',
-			'GLKit.framework',
 		}
