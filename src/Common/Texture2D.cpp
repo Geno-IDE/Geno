@@ -47,7 +47,7 @@ void Texture2D::SetPixels( GLint InternalFormat, GLsizei Width, GLsizei Height, 
 
 void Texture2D::CreateTexture( void )
 {
-	glCreateTextures( GL_TEXTURE_2D, 1, &m_ID );
+	glGenTextures( GL_TEXTURE_2D, 1, &m_ID );
 	glBindTexture( GL_TEXTURE_2D, m_ID );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
