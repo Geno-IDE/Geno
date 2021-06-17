@@ -291,6 +291,9 @@ void BuildMatrixModal::DrawColumns( void )
 
 void BuildMatrixModal::DrawSidebar( void )
 {
+	if( m_SelectedColumnIndex == -1 || m_SelectedConfigurationIndex == -1 )
+		return;
+
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 	if( !pWorkspace )
 		return;
