@@ -18,6 +18,7 @@
 #include "WorkspaceOutliner.h"
 
 #include "Auxiliary/ImGuiAux.h"
+#include "Auxiliary/STBAux.h"
 #include "Components/Project.h"
 #include "GUI/Modals/BuildMatrixModal.h"
 #include "GUI/Modals/NewItemModal.h"
@@ -36,27 +37,11 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-static void LoadTexture( const char* pFilePath, Texture2D& rTexture )
-{
-	int      Width;
-	int      Height;
-	stbi_uc* pData = stbi_load( pFilePath, &Width, &Height, nullptr, STBI_rgb_alpha );
-
-	if( pData )
-	{
-		rTexture.SetPixels( GL_RGBA8, Width, Height, GL_RGBA, pData );
-		free( pData );
-	}
-
-} // LoadTexture
-
-//////////////////////////////////////////////////////////////////////////
-
 WorkspaceOutliner::WorkspaceOutliner( void )
+	: m_IconTextureWorkspace ( STBAux::LoadImageTexture( "Icons/Workspace.png" ) )
+	, m_IconTextureProject   ( STBAux::LoadImageTexture( "Icons/Project.png" ) )
+	, m_IconTextureSourceFile( STBAux::LoadImageTexture( "Icons/SourceFile.png" ) )
 {
-	LoadTexture( "Icons/Workspace.png",  m_IconTextureWorkspace );
-	LoadTexture( "Icons/Project.png",    m_IconTextureProject );
-	LoadTexture( "Icons/SourceFile.png", m_IconTextureSourceFile );
 
 } // WorkspaceOutliner
 
