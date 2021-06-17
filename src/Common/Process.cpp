@@ -17,69 +17,75 @@
 
 #include "Common/Process.h"
 
+#if defined( _WIN32 )
 #include "Common/Platform/Win32/Win32Error.h"
 #include "Common/Platform/Win32/Win32ProcessInfo.h"
 
-#if defined( _WIN32 )
 #include <corecrt_io.h>
 #include <Windows.h>
 #endif // _WIN32
 
+#include "Common/Platform/UNIXFeatures.h"
+
 #include <chrono>
 #include <codecvt>
+#include <locale>
 #include <thread>
-
 //////////////////////////////////////////////////////////////////////////
 
-#if defined( _WIN32 )
-
-static int Run( const std::wstring& rCommandLine, HANDLE StdIn, HANDLE StdOut, HANDLE StdErr )
-{
+static int StartProcess(const std::wstring CommandLine, FILE* OutputStream) {
+	#if defined( _WIN32 )
 	STARTUPINFOW StartupInfo = { };
 	StartupInfo.cb          = sizeof( STARTUPINFO );
 	StartupInfo.wShowWindow = SW_HIDE;
 	StartupInfo.dwFlags     = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
-	StartupInfo.hStdInput   = StdIn;
-	StartupInfo.hStdOutput  = StdOut;
-	StartupInfo.hStdError   = StdErr;
+	StartupInfo.hStdOutput  = static_cast<HANDLE>( _get_osfhandle( fileno( OutputStream ) ));
+	StartupInfo.hStdError   = static_cast<HANDLE>( _get_osfhandle( fileno( OutputStream ) ));
 
 	Win32ProcessInfo ProcessInfo;
-	if( WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( rCommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) ) )
+	WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( rCommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) );
+	return ProcessInfo.dwProcessID;	
+
+	#else
+	pid_t pid = fork();
+
+    if(!pid) // The child
 	{
-		BOOL  Result;
-		DWORD ExitCode;
+		// Take control of output
+		dup2(fileno(OutputStream), 1);
+		dup2(fileno(OutputStream), 2);
 
-		while( WIN32_CALL( Result = GetExitCodeProcess( ProcessInfo->hProcess, &ExitCode ) ) && ExitCode == STILL_ACTIVE )
-			Sleep( 1 );
+        execl("/bin/sh", "/bin/sh", "-c", std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(CommandLine).c_str(), NULL);
 
-		return Result ? static_cast< int >( ExitCode ) : -1;
-	}
+		exit(EXIT_FAILURE);
+    }
 
-	return -1;
+	return pid;
+	#endif
+}
 
-} // Run
+static int WaitProcess(int pid) {
+	#if defined( _WIN32 )
+	BOOL  Result;
+	DWORD ExitCode;
 
-#endif // _WIN32
+	while( WIN32_CALL( Result = GetExitCodeProcess( ProcessInfo->hProcess, &ExitCode ) ) && ExitCode == STILL_ACTIVE )
+		Sleep( 1 );
+
+	return Result ? static_cast< int >( ExitCode ) : -1;
+	#else
+	int status;
+	waitpid(pid, &status, 0);
+	return status;
+	#endif
+}
 
 //////////////////////////////////////////////////////////////////////////
 
 int Process::ResultOf( const std::wstring& rCommandLine )
 {
-
-#if defined( _WIN32 )
-
-	HANDLE StdOut = ( HANDLE )_get_osfhandle( fileno( stdout ) );
-	HANDLE StdIn  = ( HANDLE )_get_osfhandle( fileno( stdin ) );
-	HANDLE StdErr = ( HANDLE )_get_osfhandle( fileno( stderr ) );
-
-	return Run( rCommandLine, StdIn, StdOut, StdErr );
-
-#else // _WIN32
-
-	return 0;
-
-#endif // !_WIN32
-
+	int pid = StartProcess(rCommandLine, stdout);
+	return WaitProcess(pid);
 } // ResultOf
 
 //////////////////////////////////////////////////////////////////////////
@@ -119,11 +125,29 @@ std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 
 		return Output;
 	}
+#else
+#define READ_CHUNK_LEN 1024 // TODO: This is kind of arbitrary?
 
-#endif // _WIN32
+	int fds[2];
+	pipe(fds);
+	fcntl(fds[0], F_SETFL, O_NONBLOCK); // Don't want to block on read
+	FILE* stream = fdopen(fds[1], "w");
+	int pid = StartProcess(rCommandLine, stream);
+	rResult = WaitProcess(pid);
 
-	return std::wstring();
+	std::string output{};
+	char tmp[READ_CHUNK_LEN + 1];
+	ssize_t length = 0;
+	while((length = read(fds[0], tmp, READ_CHUNK_LEN)) > 0) {
+		tmp[length] = '\0';
+		output += tmp;
+	}
+	
+	fclose(stream);
+	close(fds[0]);
 
+	return std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(output);
+#endif
 } // OutputOf
 
 //////////////////////////////////////////////////////////////////////////
