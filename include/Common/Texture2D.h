@@ -16,15 +16,25 @@
  */
 
 #pragma once
+#include "Common/Macros.h"
+
 #include <GL/glew.h>
 
 #include <cstdint>
 
 class Texture2D
 {
+	GENO_DISABLE_COPY( Texture2D );
+
+//////////////////////////////////////////////////////////////////////////
+
 public:
 
+	 Texture2D( void ) = default;
+	 Texture2D( Texture2D&& rrOther );
 	~Texture2D( void );
+
+	Texture2D& operator=( Texture2D&& rrOther );
 
 //////////////////////////////////////////////////////////////////////////
 

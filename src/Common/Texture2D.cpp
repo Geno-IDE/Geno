@@ -19,12 +19,37 @@
 
 //////////////////////////////////////////////////////////////////////////
 
+Texture2D::Texture2D( Texture2D&& rrOther )
+{
+	std::swap( rrOther.m_ID,     m_ID );
+	std::swap( rrOther.m_Width,  m_Width );
+	std::swap( rrOther.m_Height, m_Height );
+
+} // Texture2D
+
+//////////////////////////////////////////////////////////////////////////
+
 Texture2D::~Texture2D( void )
 {
 	if( m_ID )
 		glDeleteTextures( 1, &m_ID );
 
 } // ~Texture2D
+
+//////////////////////////////////////////////////////////////////////////
+
+Texture2D& Texture2D::operator=( Texture2D&& rrOther )
+{
+	if( m_ID )
+		glDeleteTextures( 1, &m_ID );
+
+	std::swap( rrOther.m_ID,     m_ID );
+	std::swap( rrOther.m_Width,  m_Width  = 0 );
+	std::swap( rrOther.m_Height, m_Height = 0 );
+
+	return *this;
+
+} // operator=
 
 //////////////////////////////////////////////////////////////////////////
 
