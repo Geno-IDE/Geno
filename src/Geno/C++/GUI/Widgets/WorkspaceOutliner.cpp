@@ -24,6 +24,7 @@
 #include "GUI/Modals/ProjectSettingsModal.h"
 #include "GUI/Modals/WorkspaceSettingsModal.h"
 #include "GUI/Widgets/TextEdit.h"
+#include "GUI/Widgets/MainMenuBar.h"
 #include "GUI/MainWindow.h"
 #include "Application.h"
 
@@ -107,6 +108,13 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 								if( ImGui::IsItemClicked() )
 								{
+									auto& ShowTextEdit = MainWindow::Instance().pMenuBar->ShowTextEdit;
+									if( !ShowTextEdit )
+									{
+										ShowTextEdit = true;
+										MainWindow::Instance().pTextEdit->Show( &ShowTextEdit );
+									}
+									
 									MainWindow::Instance().pTextEdit->AddFile( rFile );
 								}
 							}
