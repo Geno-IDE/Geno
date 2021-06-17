@@ -23,6 +23,7 @@
 
 #include <iostream>
 
+#include <sys/stat.h>
 #include <fcntl.h>
 
 #if defined( _WIN32 )
