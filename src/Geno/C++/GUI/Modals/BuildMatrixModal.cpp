@@ -18,6 +18,7 @@
 #include "BuildMatrixModal.h"
 
 #include "Auxiliary/ImGuiAux.h"
+#include "Auxiliary/STBAux.h"
 #include "Compilers/CompilerGCC.h"
 #include "Compilers/CompilerMSVC.h"
 #include "Application.h"
@@ -25,6 +26,19 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
+
+//////////////////////////////////////////////////////////////////////////
+
+constexpr float COLUMN_WIDTH = 128.0f;
+
+//////////////////////////////////////////////////////////////////////////
+
+BuildMatrixModal::BuildMatrixModal( void )
+	: m_TextureColumnMenuIcon( STBAux::LoadImageTexture( "Icons/ColumnMenu.png" ) )
+	, m_TextureNewColumn     ( STBAux::LoadImageTexture( "Icons/NewColumn.png" ) )
+{
+
+} // BuildMatrixModal
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -61,16 +75,36 @@ void BuildMatrixModal::UpdateDerived( void )
 		return;
 	}
 
-	const bool ShowSidebar = !m_SelectedColumn.empty() && !m_SelectedConfiguration.empty();
+	const bool ShowSidebar = m_SelectedColumnIndex >= 0 && m_SelectedConfigurationIndex >= 0;
 
 	if( ImGuiAux::BeginChildHorizontal( ImGui::GetID( "Columns" ), ImVec2( ShowSidebar ? -200.0f : 0.0f, -20.0f ), false, ImGuiWindowFlags_HorizontalScrollbar ) )
 	{
-		for( const BuildMatrix::Column& rColumn : pWorkspace->m_BuildMatrix.m_Columns )
+		DrawColumns();
+
+		// Draw ghost column with a button that lets the user create a new column
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.15f, 0.15f, 0.15f, 0.4f ) );
+		if( ImGui::BeginChild( "GhostColumn", ImVec2( COLUMN_WIDTH, 0 ) ) )
 		{
-			DrawColumn( rColumn );
-			ImGui::Separator();
-		}
-		
+			const ImVec2 ButtonSize( COLUMN_WIDTH * 0.5f, COLUMN_WIDTH * 0.5f );
+
+			ImGui::SetCursorPos( ( ImGui::GetWindowSize() - ButtonSize ) * 0.5f );
+
+			const ImRect Rect( ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + ButtonSize );
+			bool         Hovering;
+			bool         Held;
+
+			if( ImGui::ButtonBehavior( Rect, ImGui::GetID( "ImageButton" ), &Hovering, &Held ) )
+			{
+				BuildMatrix::Column NewColumn;
+				NewColumn.Name = "New Column";
+				pWorkspace->m_BuildMatrix.m_Columns.emplace_back( std::move( NewColumn ) );
+			}
+
+			ImGui::Image( m_TextureNewColumn.GetID(), ButtonSize, ImVec2( Held ? 0.5f : 0.0f, 0.0f ), ImVec2( Held ? 1.0f : 0.5f, 1.0f ), Hovering ? ImVec4( 1, 1, 1, 1 ) : ImVec4( 0.8f, 0.8f, 0.8f, 1 ) );
+
+		} ImGui::EndChild();
+		ImGui::PopStyleColor();
+
 	} ImGui::EndChild();
 
 	if( ShowSidebar )
@@ -95,59 +129,163 @@ void BuildMatrixModal::UpdateDerived( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void BuildMatrixModal::DrawColumn( const BuildMatrix::Column& rColumn )
+void BuildMatrixModal::DrawColumns( void )
 {
-	ImGuiID ID = ImGui::GetID( &rColumn );
+	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
+	if( !pWorkspace )
+		return;
 
-	if( ImGui::BeginChild( ID++, ImVec2( 128, 0 ), false, ImGuiWindowFlags_NoScrollbar ) )
+	BuildMatrix::ColumnVector& rColumns      = pWorkspace->m_BuildMatrix.m_Columns;
+	ImGuiID                    ID            = ImGui::GetID( &rColumns );
+	intptr_t                   IndexToRemove = -1;
+
+	for( size_t i = 0; i < pWorkspace->m_BuildMatrix.m_Columns.size(); ++i )
 	{
-		if( ImGui::BeginChild( ID++, ImVec2( 0, 20 ) ) )
-		{
-			ImGuiAux::TextCentered( rColumn.Name.c_str() );
-			ImGui::Separator();
+		BuildMatrix::Column& rColumn = rColumns[ i ];
 
-		} ImGui::EndChild();
-
-		if( ImGui::BeginChild( ID++ ) )
+		if( ImGui::BeginChild( ID++, ImVec2( COLUMN_WIDTH, 0 ), false, ImGuiWindowFlags_NoScrollbar ) )
 		{
-			for( const auto&[ rName, rConfiguration ] : rColumn.Configurations )
+			if( ImGui::BeginChild( ID++, ImVec2( 0, 20 ) ) )
 			{
-				ImGuiWindow* pWindow   = ImGui::GetCurrentWindow();
-				const ImVec2 TextSize  = ImGui::CalcTextSize( rName.c_str() );
-				const ImVec2 CursorPos = pWindow->DC.CursorPos;
-				const bool   Selected  = rColumn.Name == m_SelectedColumn && rName == m_SelectedConfiguration;
-
-				ImGui::PushStyleColor( ImGuiCol_ChildBg, ImGui::GetStyleColorVec4( ImGuiCol_ChildBg ) + ( Selected ? ImVec4( 0.5f, 0.5f, 0.5f, 0.5f ) : ImVec4( 0, 0, 0, 0 ) ) );
-
-				if( ImGui::BeginChild( ID++, ImVec2( 0, TextSize.y ) ) )
+				if( static_cast< ptrdiff_t >( i ) == m_ColumnNameEditedIndex )
 				{
-					if( ImGui::IsWindowHovered() )
-					{
-						ImGui::SetMouseCursor( ImGuiMouseCursor_Hand );
-						ImGui::RenderArrow( pWindow->DrawList, CursorPos + ImVec2( 0.0f,                                   0.0f ), 0xFFFFFFFF, ImGuiDir_Right );
-						ImGui::RenderArrow( pWindow->DrawList, CursorPos + ImVec2( pWindow->Size.x - ImGui::GetFontSize(), 0.0f ), 0xFFFFFFFF, ImGuiDir_Left );
+					const ImVec2 TextSize = ImGui::CalcTextSize( m_ColumnNameEditText.c_str() );
 
-						if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) )
+					ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 0, 0 ) );
+					ImGui::PushStyleColor( ImGuiCol_FrameBg, ImGui::GetStyleColorVec4( ImGuiCol_ChildBg ) );
+
+					ImGui::SetCursorPosX( ( ImGui::GetWindowWidth() - TextSize.x ) * 0.5f );
+					ImGui::SetNextItemWidth( COLUMN_WIDTH );
+					ImGui::SetKeyboardFocusHere();
+					if( ImGui::InputText( "##COLUMN_NAME_EDIT", &m_ColumnNameEditText, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue ) )
+					{
+						if( !m_ColumnNameEditText.empty() )
+							rColumn.Name = m_ColumnNameEditText;
+
+						m_ColumnNameEditedIndex = -1;
+					}
+
+					ImGui::PopStyleColor();
+					ImGui::PopStyleVar();
+				}
+				else
+				{
+					ImGuiAux::TextCentered( rColumn.Name.c_str() );
+				}
+
+				const ImVec2 ImageSize( ImGui::GetFontSize(), ImGui::GetFontSize() );
+				ImGui::SameLine( COLUMN_WIDTH - 12.0f );
+				ImGui::Image( m_TextureColumnMenuIcon.GetID(), ImageSize );
+
+				if( ImGui::IsItemHovered() )
+				{
+					ImGui::SetMouseCursor( ImGuiMouseCursor_Hand );
+
+					if( ImGui::IsItemClicked() )
+						ImGui::OpenPopup( "Menu" );
+				}
+
+				if( ImGui::BeginPopup( "Menu", ImGuiPopupFlags_MouseButtonLeft ) )
+				{
+					if( ImGui::MenuItem( "Rename" ) )
+					{
+						m_ColumnNameEditedIndex = static_cast< ptrdiff_t >( i );
+						m_ColumnNameEditText    = rColumn.Name;
+						ImGui::CloseCurrentPopup();
+					}
+
+					if( ImGui::MenuItem( "Add Configuration" ) )
+					{
+						rColumn.Configurations.emplace_back( "New Configuration", Configuration() );
+
+						ImGui::CloseCurrentPopup();
+					}
+
+					if( rColumns.size() > 1 )
+					{
+						if( i > 0 && ImGui::MenuItem( "Move Left" ) )
 						{
-							m_SelectedColumn        = rColumn.Name;
-							m_SelectedConfiguration = rName;
-							m_NameEditText          = rName;
+							std::swap( rColumns[ i - 1 ], rColumns[ i ] );
+							ImGui::CloseCurrentPopup();
+						}
+
+						if( i < ( rColumns.size() - 1 ) && ImGui::MenuItem( "Move Right" ) )
+						{
+							std::swap( rColumns[ i ], rColumns[ i + 1 ] );
+							ImGui::CloseCurrentPopup();
 						}
 					}
 
-					ImGui::SetCursorPosX( ( pWindow->Size.x - TextSize.x ) * 0.5f );
-					ImGui::Text( rName.c_str() );
+					ImGui::Separator();
 
-				} ImGui::EndChild();
+					if( ImGui::MenuItem( "Remove" ) )
+					{
+						IndexToRemove = static_cast< intptr_t >( i );
+						ImGui::CloseCurrentPopup();
+					}
 
-				ImGui::PopStyleColor();
-			}
+					ImGui::EndPopup();
+				}
+
+				ImGui::Separator();
+
+			} ImGui::EndChild();
+
+			if( ImGui::BeginChild( ID++ ) )
+			{
+				for( size_t j = 0; j < rColumn.Configurations.size(); ++j )
+				{
+					auto&        rConfiguration = rColumn.Configurations[ j ];
+					ImGuiWindow* pWindow        = ImGui::GetCurrentWindow();
+					const ImVec2 TextSize       = ImGui::CalcTextSize( rConfiguration.first.c_str() );
+					const ImVec2 CursorPos      = pWindow->DC.CursorPos;
+					const bool   Selected       = static_cast< ptrdiff_t >( i ) == m_SelectedColumnIndex && static_cast< ptrdiff_t >( j ) == m_SelectedConfigurationIndex;
+
+					ImGui::PushStyleColor( ImGuiCol_ChildBg, ImGui::GetStyleColorVec4( ImGuiCol_ChildBg ) + ( Selected ? ImVec4( 0.5f, 0.5f, 0.5f, 0.5f ) : ImVec4( 0, 0, 0, 0 ) ) );
+
+					if( ImGui::BeginChild( ID++, ImVec2( 0, TextSize.y ) ) )
+					{
+						if( ImGui::IsWindowHovered() )
+						{
+							ImGui::SetMouseCursor( ImGuiMouseCursor_Hand );
+							ImGui::RenderArrow( pWindow->DrawList, CursorPos + ImVec2( 0.0f,                                   0.0f ), 0xFFFFFFFF, ImGuiDir_Right );
+							ImGui::RenderArrow( pWindow->DrawList, CursorPos + ImVec2( pWindow->Size.x - ImGui::GetFontSize(), 0.0f ), 0xFFFFFFFF, ImGuiDir_Left );
+
+							if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) )
+							{
+								m_SelectedColumnIndex        = i;
+								m_SelectedConfigurationIndex = j;
+								m_NameEditText               = rConfiguration.first;
+							}
+						}
+
+						ImGui::SetCursorPosX( ( pWindow->Size.x - TextSize.x ) * 0.5f );
+						ImGui::Text( rConfiguration.first.c_str() );
+
+					} ImGui::EndChild();
+
+					ImGui::PopStyleColor();
+				}
+
+			} ImGui::EndChild();
 
 		} ImGui::EndChild();
+		ImGui::Separator();
+	}
 
-	} ImGui::EndChild();
+	// Remove column that was removed by the user
+	if( IndexToRemove >= 0 )
+	{
+		if( m_SelectedColumnIndex == IndexToRemove )
+		{
+			m_SelectedColumnIndex        = -1;
+			m_SelectedConfigurationIndex = -1;
+		}
 
-} // DrawColumn
+		rColumns.erase( rColumns.begin() + IndexToRemove );
+	}
+
+} // DrawColumns
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -164,15 +302,17 @@ void BuildMatrixModal::DrawSidebar( void )
 
 	if( ImGui::BeginChild( ID, ImVec2( 200, -20 ), true ) )
 	{
-		auto Column        = std::find_if( pWorkspace->m_BuildMatrix.m_Columns.begin(), pWorkspace->m_BuildMatrix.m_Columns.end(), [ this ]( const BuildMatrix::Column& rColumn ) { return rColumn.Name == m_SelectedColumn; } );
-		auto Configuration = Column->Configurations.find( m_SelectedConfiguration );
+		BuildMatrix::Column&             rColumn        = pWorkspace->m_BuildMatrix.m_Columns[ m_SelectedColumnIndex ];
+		BuildMatrix::NamedConfiguration& rConfiguration = rColumn.Configurations[ m_SelectedConfigurationIndex ];
 
 		// Name
 		{
 			bool NameIsValid = !m_NameEditText.empty();
 			{
-				auto ConflictingConfiguration = Column->Configurations.find( m_NameEditText );
-				if( ConflictingConfiguration != Column->Configurations.end() && ConflictingConfiguration != Configuration )
+				auto      ConflictingConfiguration      = std::find_if( rColumn.Configurations.begin(), rColumn.Configurations.end(), [ this ]( const BuildMatrix::NamedConfiguration& rPair ) { return rPair.first == m_NameEditText; } );
+				ptrdiff_t ConflictingConfigurationIndex = std::distance( rColumn.Configurations.begin(), ConflictingConfiguration );
+
+				if( ConflictingConfiguration != rColumn.Configurations.end() && ConflictingConfigurationIndex != m_SelectedConfigurationIndex )
 					NameIsValid = false;
 			}
 
@@ -183,35 +323,32 @@ void BuildMatrixModal::DrawSidebar( void )
 			ImGui::PushStyleColor( ImGuiCol_FrameBg, EditBackgroundColor );
 
 			// #TODO: Name could technically be changed the same frame as the user presses Enter, which will allow for invalid names to pass through
-			if( ImGui::InputText( "##NAME", &m_NameEditText, ImGuiInputTextFlags_EnterReturnsTrue ) )
+			if( ImGui::InputText( "##NAME", &m_NameEditText, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue ) )
 			{
 				// Name could technically have changed the same frame as the user presses the Enter key
-				NameIsValid = !m_NameEditText.empty() && Column->Configurations.find( m_NameEditText ) == Column->Configurations.end();
+				auto ConflictingConfiguration = std::find_if( rColumn.Configurations.begin(), rColumn.Configurations.end(), [ this ]( const BuildMatrix::NamedConfiguration& rPair ) { return rPair.first == m_NameEditText; } );
+				NameIsValid = !m_NameEditText.empty() && ConflictingConfiguration == rColumn.Configurations.end();
 
 				if( NameIsValid )
 				{
-					// Move configuration into a new key
-					::Configuration Temp = std::move( Configuration->second );
-					Column->Configurations.erase( Configuration );
-					Configuration = Column->Configurations.emplace( m_NameEditText, std::move( Temp ) ).first;
-
-					// Update selected configuration now that its name has changed
-					m_SelectedConfiguration = m_NameEditText;
+					rConfiguration.first = m_NameEditText;
 				}
 				else
 				{
 					// Reset name edit text to signify that it wasn't changed successfully
-					m_NameEditText = m_SelectedConfiguration;
+					m_NameEditText = rConfiguration.first;
 				}
 			}
 
 			ImGui::PopStyleColor();
 		}
 
+		ImGui::SetCursorPosY( ImGui::GetCursorPosY() + 10.0f );
+
 		// Compiler
 		{
 			const char* pCompilerNames[] = { "None", "MSVC", "GCC" };
-			int         Index            = Configuration->second.m_Compiler ? static_cast< int >( std::distance( std::begin( pCompilerNames ), std::find_if( std::begin( pCompilerNames ), std::end( pCompilerNames ), [ &Configuration ]( const char* pName ) { return pName == Configuration->second.m_Compiler->GetName(); } ) ) ) : 0;
+			int         Index            = rConfiguration.second.m_Compiler ? static_cast< int >( std::distance( std::begin( pCompilerNames ), std::find_if( std::begin( pCompilerNames ), std::end( pCompilerNames ), [ &rConfiguration ]( const char* pName ) { return pName == rConfiguration.second.m_Compiler->GetName(); } ) ) ) : 0;
 
 			ImGui::TextUnformatted( "Compiler" );
 
@@ -219,10 +356,24 @@ void BuildMatrixModal::DrawSidebar( void )
 			{
 				switch( Index )
 				{
-					case 0: { Configuration->second.m_Compiler.reset();                              } break;
-					case 1: { Configuration->second.m_Compiler = std::make_shared< CompilerMSVC >(); } break;
-					case 2: { Configuration->second.m_Compiler = std::make_shared< CompilerGCC  >(); } break;
+					case 0: { rConfiguration.second.m_Compiler.reset();                              } break;
+					case 1: { rConfiguration.second.m_Compiler = std::make_shared< CompilerMSVC >(); } break;
+					case 2: { rConfiguration.second.m_Compiler = std::make_shared< CompilerGCC  >(); } break;
 				}
+			}
+		}
+
+		// Delete button
+		{
+			ImGui::SetCursorPosY( ImGui::GetWindowHeight() - 24 );
+			ImGui::SetCursorPosX( ( 200 - 60 ) / 2 );
+
+			if( ImGui::Button( "Delete##DELETE_CONFIGURATION", ImVec2( 60, 20 ) ) )
+			{
+				rColumn.Configurations.erase( rColumn.Configurations.begin() + m_SelectedConfigurationIndex );
+
+				m_SelectedColumnIndex        = -1;
+				m_SelectedConfigurationIndex = -1;
 			}
 		}
 

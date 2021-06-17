@@ -43,7 +43,7 @@ void BuildMatrix::NewConfiguration( std::string_view WhichColumn, std::string Co
 	{
 		if( column.Name == WhichColumn )
 		{
-			column.Configurations.try_emplace( std::move( Configuration ) );
+			column.Configurations.emplace_back( std::move( Configuration ), ::Configuration() );
 			return;
 		}
 	}
@@ -63,7 +63,7 @@ Configuration BuildMatrix::CurrentConfiguration( void ) const
 			continue;
 
 		// Find the current configuration
-		auto CurrentConfiguration = rColumn.Configurations.find( rColumn.CurrentConfiguration );
+		auto CurrentConfiguration = std::find_if( rColumn.Configurations.begin(), rColumn.Configurations.end(), [ &rColumn ]( const auto& rPair ) { return rPair.first == rColumn.CurrentConfiguration; } );
 		if( CurrentConfiguration == rColumn.Configurations.end() )
 			continue;
 
@@ -84,22 +84,32 @@ BuildMatrix BuildMatrix::PlatformDefault( void )
 	{
 		Column Target;
 		Target.Name = "Target";
+
 	#if defined( _WIN32 )
-		Target.Configurations[ "Windows" ].m_Compiler = std::make_shared< CompilerMSVC >();
+		{
+			Configuration WindowsConfiguration;
+			WindowsConfiguration.m_Compiler = std::make_shared< CompilerMSVC >();
+			Target.Configurations.emplace_back( "Windows", std::move( WindowsConfiguration ) );
+		}
 	#elif defined( __linux__ ) // _WIN32
-		Target.Configurations[ "Linux"   ].m_Compiler = std::make_shared< CompilerGCC >();
+		{
+			Configuration LinuxConfiguration;
+			LinuxConfiguration.m_Compiler = std::make_shared< CompilerGCC >();
+			Target.Configurations.emplace_back( "Linux", std::move( LinuxConfiguration ) );
+		}
 	#endif // __linux__
 
+		Matrix.m_Columns.emplace_back( std::move( Target ) );
 	}
 
 	// Architecture
 	{
 		Column Platform;
 		Platform.Name = "Architecture";
-		Platform.Configurations.try_emplace( "x86" );
-		Platform.Configurations.try_emplace( "x86_64" );
-		Platform.Configurations.try_emplace( "ARM" );
-		Platform.Configurations.try_emplace( "ARM64" );
+		Platform.Configurations.emplace_back( "x86",    Configuration() );
+		Platform.Configurations.emplace_back( "x86_64", Configuration() );
+		Platform.Configurations.emplace_back( "ARM",    Configuration() );
+		Platform.Configurations.emplace_back( "ARM64",  Configuration() );
 		Matrix.m_Columns.emplace_back( std::move( Platform ) );
 	}
 
@@ -107,10 +117,10 @@ BuildMatrix BuildMatrix::PlatformDefault( void )
 	{
 		Column Optimization;
 		Optimization.Name = "Optimization";
-		Optimization.Configurations.try_emplace( "Off" );
-		Optimization.Configurations[ "Favor Size"  ].m_Optimization = Configuration::Optimization::FavorSize;
-		Optimization.Configurations[ "Favor Speed" ].m_Optimization = Configuration::Optimization::FavorSpeed;
-		Optimization.Configurations[ "Full"        ].m_Optimization = Configuration::Optimization::Full;
+		Optimization.Configurations.emplace_back( "Off",         Configuration() );
+		Optimization.Configurations.emplace_back( "Favor Size",  Configuration() ).second.m_Optimization = Configuration::Optimization::FavorSize;
+		Optimization.Configurations.emplace_back( "Favor Speed", Configuration() ).second.m_Optimization = Configuration::Optimization::FavorSpeed;
+		Optimization.Configurations.emplace_back( "Full",        Configuration() ).second.m_Optimization = Configuration::Optimization::Full;
 		Matrix.m_Columns.emplace_back( std::move( Optimization ) );
 	}
 

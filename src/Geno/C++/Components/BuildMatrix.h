@@ -19,7 +19,7 @@
 #include "Components/Configuration.h"
 
 #include <string>
-#include <unordered_map>
+#include <utility>
 #include <vector>
 
 class BuildMatrix
@@ -31,7 +31,8 @@ class BuildMatrix
 
 public:
 
-	using ConfigurationMap = std::unordered_map< std::string, Configuration >;
+	using NamedConfiguration  = std::pair< std::string, Configuration >;
+	using ConfigurationVector = std::vector< NamedConfiguration >;
 
 	struct Column
 	{
@@ -39,9 +40,9 @@ public:
 
 		Column( void ) = default;
 
-		ConfigurationMap Configurations;
-		std::string      Name;
-		std::string      CurrentConfiguration;
+		ConfigurationVector Configurations;
+		std::string         Name;
+		std::string         CurrentConfiguration;
 
 	}; // Column
 
