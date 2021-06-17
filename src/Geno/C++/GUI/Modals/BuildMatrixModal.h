@@ -17,6 +17,7 @@
 
 #pragma once
 #include "Common/Macros.h"
+#include "Components/BuildMatrix.h"
 #include "GUI/Modals/IModal.h"
 
 class BuildMatrixModal : public IModal
@@ -41,7 +42,13 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
+	void DrawColumn ( const BuildMatrix::Column& rColumn );
+	void DrawSidebar( void );
+
+//////////////////////////////////////////////////////////////////////////
+
 	std::string m_SelectedColumn;
 	std::string m_SelectedConfiguration;
+	std::string m_NameEditText;
 
 }; // BuildMatrixModal
