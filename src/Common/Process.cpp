@@ -23,9 +23,11 @@
 
 #include <corecrt_io.h>
 #include <Windows.h>
+#else
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/wait.h>
 #endif // _WIN32
-
-#include "Common/Platform/UNIXFeatures.h"
 
 #include <chrono>
 #include <codecvt>
