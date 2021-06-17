@@ -37,7 +37,7 @@
 
 GCL::Serializer::Serializer( const std::filesystem::path& rPath )
 {
-	m_FileDescriptor = open( rPath.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_BINARY );
+	m_FileDescriptor = open( rPath.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, S_IREAD | S_IWRITE );
 
 } // Serializer
 
