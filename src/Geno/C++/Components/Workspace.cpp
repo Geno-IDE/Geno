@@ -298,7 +298,7 @@ void Workspace::DeserializeBuildMatrixColumn( BuildMatrix::Column& rColumn, cons
 			}
 		}
 
-		rColumn.Configurations.emplace( std::string( rConfigurationObj.Name() ), std::move( Configuration ) );
+		rColumn.Configurations.emplace_back( rConfigurationObj.Name(), std::move( Configuration ) );
 	}
 
 } // DeserializeBuildMatrixColumn

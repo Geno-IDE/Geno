@@ -17,6 +17,7 @@
 
 #pragma once
 #include "Common/Macros.h"
+#include "Common/Texture2D.h"
 #include "Components/BuildMatrix.h"
 #include "GUI/Modals/IModal.h"
 
@@ -24,7 +25,7 @@ class BuildMatrixModal : public IModal
 {
 	GENO_SINGLETON( BuildMatrixModal );
 
-	BuildMatrixModal( void ) = default;
+	BuildMatrixModal( void );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -42,13 +43,19 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-	void DrawColumn ( const BuildMatrix::Column& rColumn );
+	void DrawColumns( void );
 	void DrawSidebar( void );
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::string m_SelectedColumn;
-	std::string m_SelectedConfiguration;
+	Texture2D   m_TextureColumnMenuIcon;
+	Texture2D   m_TextureNewColumn;
+
 	std::string m_NameEditText;
+	std::string m_ColumnNameEditText;
+
+	ptrdiff_t   m_SelectedColumnIndex        = -1;
+	ptrdiff_t   m_SelectedConfigurationIndex = -1;
+	ptrdiff_t   m_ColumnNameEditedIndex      = -1;
 
 }; // BuildMatrixModal
