@@ -63,9 +63,7 @@ void BuildMatrixModal::UpdateDerived( void )
 
 	const bool ShowSidebar = !m_SelectedColumn.empty() && !m_SelectedConfiguration.empty();
 
-	ImGuiID ID = 0;
-
-	if( ImGuiAux::BeginChildHorizontal( ++ID, ImVec2( ShowSidebar ? -200.0f : 0.0f, -20.0f ), false, ImGuiWindowFlags_HorizontalScrollbar ) )
+	if( ImGuiAux::BeginChildHorizontal( ImGui::GetID( "Columns" ), ImVec2( ShowSidebar ? -200.0f : 0.0f, -20.0f ), false, ImGuiWindowFlags_HorizontalScrollbar ) )
 	{
 		for( const BuildMatrix::Column& rColumn : pWorkspace->m_BuildMatrix.m_Columns )
 		{
@@ -82,7 +80,7 @@ void BuildMatrixModal::UpdateDerived( void )
 	}
 
 	ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.3f, 0.3f, 0.3f, 0.4f ) );
-	if( ImGui::BeginChild( ++ID ) )
+	if( ImGui::BeginChild( ImGui::GetID( "BottomBar" ) ) )
 	{
 		if( ImGui::Button( "Save & Close" ) )
 		{
@@ -99,7 +97,7 @@ void BuildMatrixModal::UpdateDerived( void )
 
 void BuildMatrixModal::DrawColumn( const BuildMatrix::Column& rColumn )
 {
-	ImGuiID ID = ImGui::GetID( rColumn.Name.c_str() );
+	ImGuiID ID = ImGui::GetID( &rColumn );
 
 	if( ImGui::BeginChild( ID++, ImVec2( 128, 0 ), false, ImGuiWindowFlags_NoScrollbar ) )
 	{
