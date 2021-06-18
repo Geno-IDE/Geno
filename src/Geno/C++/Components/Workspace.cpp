@@ -32,21 +32,13 @@ Workspace::Workspace( std::filesystem::path Location )
 	, m_Name    ( "MyWorkspace" )
 {
 
-#if defined( _WIN32 )
-	m_Compiler = std::make_unique< CompilerMSVC >();
-#else // _WIN32
-	m_Compiler = std::make_unique< CompilerGCC >();
-#endif // !_WIN32
-
 } // Workspace
 
 //////////////////////////////////////////////////////////////////////////
 
 void Workspace::Build( void )
 {
-	Configuration Configuration = m_BuildMatrix.CurrentConfiguration();
-
-	if( m_Compiler && !m_Projects.empty() )
+	if( !m_Projects.empty() )
 	{
 		m_ProjectsLeftToBuild.clear();
 
@@ -210,28 +202,39 @@ void Workspace::BuildNextProject( void )
 	}
 	else
 	{
-		std::cout << "=== Started building " << ProjectIt->m_Name << " ===\n";
+		Configuration Configuration = m_BuildMatrix.CurrentConfiguration();
 
-		ProjectIt->Events.BuildFinished += [ this ]( Project& rProject, std::filesystem::path OutputFile, bool Success )
+		if( Configuration.m_Compiler )
 		{
-			if( Success ) std::cout << "=== " << rProject.m_Name << " finished successfully ===\n";
-			else          std::cerr << "=== " << rProject.m_Name << " finished with errors ===\n";
+			std::cout << "=== Started building " << ProjectIt->m_Name << " ===\n";
 
-			auto NextProject = std::find( m_ProjectsLeftToBuild.begin(), m_ProjectsLeftToBuild.end(), rProject.m_Name );
-			if( NextProject != m_ProjectsLeftToBuild.end() )
+			ProjectIt->Events.BuildFinished += [ this ]( Project& rProject, std::filesystem::path OutputFile, bool Success )
 			{
-				m_ProjectsLeftToBuild.erase( NextProject );
+				if( Success ) std::cout << "=== " << rProject.m_Name << " finished successfully ===\n";
+				else          std::cerr << "=== " << rProject.m_Name << " finished with errors ===\n";
 
-				if( m_ProjectsLeftToBuild.empty() ) OnBuildFinished( OutputFile, Success );
-				else                                BuildNextProject();
-			}
-			else
-			{
-				std::cerr << "Project was preemptively popped from list\n";
-			}
-		};
+				auto NextProject = std::find( m_ProjectsLeftToBuild.begin(), m_ProjectsLeftToBuild.end(), rProject.m_Name );
+				if( NextProject != m_ProjectsLeftToBuild.end() )
+				{
+					m_ProjectsLeftToBuild.erase( NextProject );
 
-		ProjectIt->Build( *m_Compiler );
+					if( m_ProjectsLeftToBuild.empty() ) OnBuildFinished( OutputFile, Success );
+					else                                BuildNextProject();
+				}
+				else
+				{
+					std::cerr << "Project was preemptively popped from list\n";
+				}
+			};
+
+			ProjectIt->Build( *Configuration.m_Compiler );
+		}
+		else
+		{
+			std::cerr << "No compiler set when building project '" << ProjectIt->m_Name << "'.\n";
+			m_ProjectsLeftToBuild.pop_back();
+			BuildNextProject();
+		}
 	}
 
 } // BuildNextProject
@@ -250,18 +253,19 @@ void Workspace::SerializeBuildMatrixColumn( GCL::Object& rObject, const BuildMat
 {
 	GCL::Object ColumnObj( rColumn.Name, std::in_place_type< GCL::Object::TableType > );
 
-	for( const BuildMatrix::NamedConfiguration& rConfiguration : rColumn.Configurations )
+	for( const auto&[ rName, rConfiguration ] : rColumn.Configurations )
 	{
-		GCL::Object ConfigurationObj( rConfiguration.Name );
+		GCL::Object ConfigurationObj( rName );
 
-		if( !rConfiguration.ExclusiveColumns.empty() )
+		if( rConfiguration.m_Compiler || rConfiguration.m_Optimization )
 		{
-			ConfigurationObj.SetTable();
+			GCL::Object::TableType& rTable = ConfigurationObj.SetTable();
 
-			for( const BuildMatrix::Column& rExclusiveColumn : rConfiguration.ExclusiveColumns )
-			{
-				SerializeBuildMatrixColumn( ConfigurationObj, rExclusiveColumn );
-			}
+			if( rConfiguration.m_Compiler )
+				rTable.emplace_back( "Compiler" ).SetString( std::string( rConfiguration.m_Compiler->GetName() ) );
+
+			if( rConfiguration.m_Optimization )
+				rTable.emplace_back( "Optimization" ).SetString( std::string( Reflection::EnumToString( *rConfiguration.m_Optimization ) ) );
 		}
 
 		ColumnObj.AddChild( std::move( ConfigurationObj ) );
@@ -277,23 +281,27 @@ void Workspace::DeserializeBuildMatrixColumn( BuildMatrix::Column& rColumn, cons
 {
 	for( const GCL::Object& rConfigurationObj : rObject.Table() )
 	{
-		BuildMatrix::NamedConfiguration NewConfiguration;
-		NewConfiguration.Name = rConfigurationObj.Name();
+		::Configuration Configuration;
 
 		if( rConfigurationObj.IsTable() )
 		{
-			for( const GCL::Object& rExclusiveColumnObj : rConfigurationObj.Table() )
+			const GCL::Object::TableType& rTable = rConfigurationObj.Table();
+
+			if( auto Compiler = std::find_if( rTable.begin(), rTable.end(), []( const GCL::Object& rObject ) { return rObject.Name() == "Compiler"; } )
+			;   Compiler != rTable.end() && Compiler->IsString() )
 			{
-				BuildMatrix::Column ExclusiveColumn;
-				ExclusiveColumn.Name = rExclusiveColumnObj.Name();
+				const GCL::Object::StringType& rCompilerValue = Compiler->String();
 
-				DeserializeBuildMatrixColumn( ExclusiveColumn, rExclusiveColumnObj );
-
-				NewConfiguration.ExclusiveColumns.emplace_back( std::move( ExclusiveColumn ) );
+				if( false );
+#if defined( _WIN32 )
+				else if( rCompilerValue == "MSVC" ) { Configuration.m_Compiler = std::make_shared< CompilerMSVC >(); }
+#endif // _WIN32
+				else if( rCompilerValue == "GCC"  ) { Configuration.m_Compiler = std::make_shared< CompilerGCC  >(); }
+				else                                { std::cerr << "Unrecognized compiler '" << rCompilerValue << "' for this workspace.\n"; }
 			}
 		}
 
-		rColumn.Configurations.emplace_back( std::move( NewConfiguration ) );
+		rColumn.Configurations.emplace_back( rConfigurationObj.Name(), std::move( Configuration ) );
 	}
 
 } // DeserializeBuildMatrixColumn

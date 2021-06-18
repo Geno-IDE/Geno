@@ -16,21 +16,16 @@
  */
 
 #pragma once
+#include "Common/Macros.h"
+#include "Common/Texture2D.h"
 #include "Components/BuildMatrix.h"
 #include "GUI/Modals/IModal.h"
 
-#include <filesystem>
-#include <string>
-
-#include <Common/Macros.h>
-
-class Workspace;
-
-class WorkspaceSettingsModal : public IModal
+class BuildMatrixModal : public IModal
 {
-	GENO_SINGLETON( WorkspaceSettingsModal );
+	GENO_SINGLETON( BuildMatrixModal );
 
-	WorkspaceSettingsModal( void ) = default;
+	BuildMatrixModal( void );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -42,17 +37,25 @@ public:
 
 private:
 
-	std::string PopupID      ( void ) override { return "WorkspaceSettings"; }
-	std::string Title        ( void ) override { return "Workspace Settings"; }
+	std::string PopupID      ( void ) override;
+	std::string Title        ( void ) override;
 	void        UpdateDerived( void ) override;
-	void        OnClose      ( void ) override;
 
 //////////////////////////////////////////////////////////////////////////
 
-	void ShowConfigurationColumn( BuildMatrix::Column& rColumn, std::string IDPrefix );
+	void DrawColumns( void );
+	void DrawSidebar( void );
 
 //////////////////////////////////////////////////////////////////////////
 
-	int m_CurrentCategory = -1;
+	Texture2D   m_TextureColumnMenuIcon;
+	Texture2D   m_TextureNewColumn;
 
-}; // WorkspaceSettingsModal
+	std::string m_NameEditText;
+	std::string m_ColumnNameEditText;
+
+	ptrdiff_t   m_SelectedColumnIndex        = -1;
+	ptrdiff_t   m_SelectedConfigurationIndex = -1;
+	ptrdiff_t   m_ColumnNameEditedIndex      = -1;
+
+}; // BuildMatrixModal

@@ -22,11 +22,11 @@ class CompilerGCC : public ICompiler
 {
 public:
 
-	CompilerGCC( void ) = default;
+	std::string_view GetName( void ) const override { return "GCC"; }
 
 //////////////////////////////////////////////////////////////////////////
 
-public:
+private:
 
 	std::wstring MakeCommandLineString( const CompileOptions& rOptions ) override;
 	std::wstring MakeCommandLineString( const LinkOptions& rOptions ) override;

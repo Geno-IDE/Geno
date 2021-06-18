@@ -15,14 +15,32 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#define STBI_NO_GIF
-#define STBI_NO_LINEAR
-#define STBI_NO_HDR
-
 #define STB_IMAGE_IMPLEMENTATION
-
 #define STBI_ONLY_PNG
 
+#if defined( _MSC_VER )
 #pragma warning( disable: 4505 )
+#endif // _MSC_VER
+
+#include "STBAux.h"
 
 #include <stb_image.h>
+
+//////////////////////////////////////////////////////////////////////////
+
+Texture2D STBAux::LoadImageTexture( const char* pPath )
+{
+	Texture2D Texture;
+	int       Width;
+	int       Height;
+	stbi_uc*  pData = stbi_load( pPath, &Width, &Height, nullptr, STBI_rgb_alpha );
+
+	if( pData )
+	{
+		Texture.SetPixels( GL_RGBA8, Width, Height, GL_RGBA, pData );
+		free( pData );
+	}
+
+	return Texture;
+
+} // LoadImageTexture

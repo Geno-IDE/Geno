@@ -17,6 +17,9 @@
 
 #include "BuildMatrix.h"
 
+#include "Compilers/CompilerGCC.h"
+#include "Compilers/CompilerMSVC.h"
+
 #include <Common/Intrinsics.h>
 
 #include <algorithm>
@@ -40,7 +43,7 @@ void BuildMatrix::NewConfiguration( std::string_view WhichColumn, std::string Co
 	{
 		if( column.Name == WhichColumn )
 		{
-			column.Configurations.push_back( { std::move( Configuration ) } );
+			column.Configurations.emplace_back( std::move( Configuration ), ::Configuration() );
 			return;
 		}
 	}
@@ -60,17 +63,11 @@ Configuration BuildMatrix::CurrentConfiguration( void ) const
 			continue;
 
 		// Find the current configuration
-		auto CurrentConfiguration = std::find_if( rColumn.Configurations.begin(), rColumn.Configurations.end(),
-			[ &rColumn ]( const NamedConfiguration& cfg )
-			{
-				return cfg.Name == rColumn.CurrentConfiguration;
-			}
-		);
-
+		auto CurrentConfiguration = std::find_if( rColumn.Configurations.begin(), rColumn.Configurations.end(), [ &rColumn ]( const auto& rPair ) { return rPair.first == rColumn.CurrentConfiguration; } );
 		if( CurrentConfiguration == rColumn.Configurations.end() )
 			continue;
 
-		Result.CombineWith( CurrentConfiguration->Configuration );
+		Result.Override( CurrentConfiguration->second );
 	}
 
 	return Result;
@@ -83,24 +80,49 @@ BuildMatrix BuildMatrix::PlatformDefault( void )
 {
 	BuildMatrix Matrix;
 
-	Column PlatformColumn;
-	PlatformColumn.Name = "Platform";
-	PlatformColumn.Configurations.push_back( { ( std::string )Intrinsics::TargetMachine() } );
-	Matrix.m_Columns.emplace_back( std::move( PlatformColumn ) );
+	// Target
+	{
+		Column Target;
+		Target.Name = "Target";
 
-	Column OptimizationColumn;
-	OptimizationColumn.Name = "Optimization";
-	OptimizationColumn.Configurations.push_back( { "Full" } );
-	OptimizationColumn.Configurations.push_back( { "Favor Size" } );
-	OptimizationColumn.Configurations.push_back( { "Favor Speed" } );
-	OptimizationColumn.Configurations.push_back( { "Off" } );
-	Matrix.m_Columns.emplace_back( std::move( OptimizationColumn ) );
+	#if defined( _WIN32 )
+		{
+			Configuration WindowsConfiguration;
+			WindowsConfiguration.m_Compiler = std::make_shared< CompilerMSVC >();
+			Target.Configurations.emplace_back( "Windows", std::move( WindowsConfiguration ) );
+		}
+	#elif defined( __linux__ ) // _WIN32
+		{
+			Configuration LinuxConfiguration;
+			LinuxConfiguration.m_Compiler = std::make_shared< CompilerGCC >();
+			Target.Configurations.emplace_back( "Linux", std::move( LinuxConfiguration ) );
+		}
+	#endif // __linux__
 
-	Column SymbolsColumn;
-	SymbolsColumn.Name = "Debug Symbols";
-	SymbolsColumn.Configurations.push_back( { "On" } );
-	SymbolsColumn.Configurations.push_back( { "Off" } );
-	Matrix.m_Columns.emplace_back( std::move( SymbolsColumn ) );
+		Matrix.m_Columns.emplace_back( std::move( Target ) );
+	}
+
+	// Architecture
+	{
+		Column Platform;
+		Platform.Name = "Architecture";
+		Platform.Configurations.emplace_back( "x86",    Configuration() );
+		Platform.Configurations.emplace_back( "x86_64", Configuration() );
+		Platform.Configurations.emplace_back( "ARM",    Configuration() );
+		Platform.Configurations.emplace_back( "ARM64",  Configuration() );
+		Matrix.m_Columns.emplace_back( std::move( Platform ) );
+	}
+
+	// Optimization
+	{
+		Column Optimization;
+		Optimization.Name = "Optimization";
+		Optimization.Configurations.emplace_back( "Off",         Configuration() );
+		Optimization.Configurations.emplace_back( "Favor Size",  Configuration() ).second.m_Optimization = Configuration::Optimization::FavorSize;
+		Optimization.Configurations.emplace_back( "Favor Speed", Configuration() ).second.m_Optimization = Configuration::Optimization::FavorSpeed;
+		Optimization.Configurations.emplace_back( "Full",        Configuration() ).second.m_Optimization = Configuration::Optimization::Full;
+		Matrix.m_Columns.emplace_back( std::move( Optimization ) );
+	}
 
 	return Matrix;
 

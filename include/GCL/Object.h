@@ -48,9 +48,9 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	void SetString( std::string String );
-	void SetTable ( void );
-	void AddChild ( Object Child );
+	StringType& SetString( std::string String );
+	TableType&  SetTable ( void );
+	Object&     AddChild ( Object Child );
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -19,7 +19,6 @@
 
 #include "Common/Texture2D.h"
 
-#include <imgui.h>
 #include <imgui_internal.h>
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,3 +83,31 @@ bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, 
 	return Opened;
 
 } // PushTreeWithIcon
+
+//////////////////////////////////////////////////////////////////////////
+
+bool ImGuiAux::BeginChildHorizontal( const ImGuiID ID, const ImVec2& rSize, const bool Border, const ImGuiWindowFlags Flags )
+{
+	if( ImGui::BeginChild( ID, rSize, Border, Flags ) )
+	{
+		ImGuiWindow* pWindow       = ImGui::GetCurrentWindow();
+		pWindow->DC.LayoutType     = ImGuiLayoutType_Horizontal;
+		pWindow->DC.CurrLineSize.y = pWindow->Size.y;
+
+		return true;
+	}
+
+	return false;
+
+} // BeginChildHorizontal
+
+//////////////////////////////////////////////////////////////////////////
+
+void ImGuiAux::TextCentered( const char* pText )
+{
+	const ImVec2 TextSize = ImGui::CalcTextSize( pText );
+
+	ImGui::SetCursorPosX( ( ImGui::GetWindowWidth() - TextSize.x ) * 0.5f );
+	ImGui::Text( pText );
+
+} // TextCentered

@@ -52,7 +52,6 @@ Project& Project::operator=( Project&& rrOther )
 	m_LibraryDirectories = std::move( rrOther.m_LibraryDirectories );
 	m_Defines            = std::move( rrOther.m_Defines );
 	m_Libraries          = std::move( rrOther.m_Libraries );
-	m_Configurations     = std::move( rrOther.m_Configurations );
 	m_FilesLeftToBuild   = std::move( rrOther.m_FilesLeftToBuild );
 	m_FilesToLink        = std::move( rrOther.m_FilesToLink );
 
@@ -375,7 +374,7 @@ void Project::Link( ICompiler& rCompiler )
 	Options.LibraryDirectories = m_LibraryDirectories;
 	Options.Libraries          = m_Libraries;
 	Options.OutputFile         = m_Location / m_Name;
-	Options.Kind               = m_Kind;
+	Options.OutputType         = static_cast< uint32_t >( m_Kind );
 
 	rCompiler.Link( Options );
 

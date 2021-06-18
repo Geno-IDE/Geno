@@ -16,24 +16,13 @@
  */
 
 #pragma once
-#include <filesystem>
-
-struct LinkOptions
-{
-	enum Flags
-	{
-		LinkerFlagNoDefaultLibs = 0x01,
-		LinkerFlagNoSymbolTable = 0x02,
-
-	}; // Flags
+#include "Common/Texture2D.h"
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::vector< std::filesystem::path > ObjectFiles;
-	std::vector< std::filesystem::path > LibraryDirectories;
-	std::vector< std::string >           Libraries;
-	std::filesystem::path                OutputFile;
-	uint32_t                             OutputType = 0; // See Project::Kind
-	uint32_t                             Flags      = 0;
+namespace STBAux
+{
 
-}; // LinkOptions
+extern Texture2D LoadImageTexture( const char* pPath );
+
+} // STBAux

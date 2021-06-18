@@ -19,6 +19,8 @@
 
 #include "CompilerMSVC.h"
 
+#include "Components/Project.h"
+
 #include <Common/Process.h>
 
 #include <Windows.h>
@@ -177,7 +179,9 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 
 	CommandLine += L"\"" + ( MSVCDir / "bin" / HOST / "x64" / "link.exe" ).wstring() + L"\"";
 
-	switch( rOptions.Kind )
+	const Project::Kind Kind = static_cast< Project::Kind >( rOptions.OutputType );
+
+	switch( Kind )
 	{
 		case Project::Kind::Application:
 		{

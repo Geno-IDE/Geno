@@ -21,6 +21,12 @@
 
 class CompilerMSVC : public ICompiler
 {
+public:
+
+	std::string_view GetName( void ) const override { return "MSVC"; }
+
+//////////////////////////////////////////////////////////////////////////
+
 private:
 
 	std::wstring MakeCommandLineString( const CompileOptions& rOptions ) override;

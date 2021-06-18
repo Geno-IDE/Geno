@@ -18,8 +18,8 @@
 #pragma once
 #include "Components/Configuration.h"
 
-#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 class BuildMatrix
@@ -31,25 +31,22 @@ class BuildMatrix
 
 public:
 
-	struct NamedConfiguration;
+	using NamedConfiguration  = std::pair< std::string, Configuration >;
+	using ConfigurationVector = std::vector< NamedConfiguration >;
 
 	struct Column
 	{
-		std::string                       Name;
-		std::vector< NamedConfiguration > Configurations;
-		std::string                       CurrentConfiguration;
+		GENO_DEFAULT_MOVE( Column );
+
+		Column( void ) = default;
+
+		ConfigurationVector Configurations;
+		std::string         Name;
+		std::string         CurrentConfiguration;
 
 	}; // Column
 
 	using ColumnVector = std::vector< Column >;
-
-	struct NamedConfiguration
-	{
-		std::string     Name;
-		::Configuration Configuration;
-		ColumnVector    ExclusiveColumns;
-
-	}; // NamedConfiguration
 
 //////////////////////////////////////////////////////////////////////////
 
