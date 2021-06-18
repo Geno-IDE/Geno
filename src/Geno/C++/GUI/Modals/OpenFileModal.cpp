@@ -19,6 +19,8 @@
 
 #include "GUI/MainWindow.h"
 
+#include "Auxiliary/StringAux.h"
+
 #include <Common/LocalAppData.h>
 
 #include <fstream>
@@ -97,10 +99,38 @@ void OpenFileModal::OnClose( void )
 
 } // OnClose
 
+void OpenFileModal::UpdateSplitStingBuffer()
+{
+	m_SplitStringBuffer.clear();
+	m_SplitStringBuffer = StringAux::SplitString( m_CurrentDirectory.string(), "/\\" );
+
+} // UpdateSplitStingBuffer
+
 //////////////////////////////////////////////////////////////////////////
 
 void OpenFileModal::UpdateDerived( void )
 {
+	UpdateSplitStingBuffer();
+
+	for ( const std::string& buttonName : m_TempSplitStringBuffer )
+	{
+		if ( ImGui::Button( buttonName.c_str() ) )
+		{
+			const std::string DrawingPath = m_CurrentDirectory.string();
+			m_CurrentDirectory = DrawingPath.substr( 0, DrawingPath.find( buttonName ) + buttonName.size() );
+			UpdateSplitStingBuffer();
+		}
+
+		ImGui::SameLine( 0, 1.0f ); // This handles the spacing between the buttons
+		ImGui::TextUnformatted( "/" );
+		ImGui::SameLine( 0, 1.0f ); // ^^
+	}
+
+	// Yes this is needed, removing this will generate a redundant `/` at the end
+	ImGui::TextUnformatted( "" );
+
+	m_TempSplitStringBuffer = m_SplitStringBuffer;
+
 	if( ImGui::BeginChild( 1 , ImVec2( 0, -24 ) ) )
 	{
 		MainWindow::Instance().PushHorizontalLayout();
@@ -223,7 +253,9 @@ void OpenFileModal::UpdateDerived( void )
 				if( m_CurrentDirectory.has_parent_path() )
 				{
 					if( ImGui::Selectable( ".." ) )
+					{
 						m_CurrentDirectory = m_CurrentDirectory.parent_path();
+					}
 				}
 
 				for( const std::filesystem::directory_entry& rEntry : RootDirectoryIterator )
@@ -245,15 +277,12 @@ void OpenFileModal::UpdateDerived( void )
 							const bool DoubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
 
 							if( DoubleClicked ) m_CurrentDirectory = rDirectoryEntry;
-							else                m_SelectedPath     = rDirectoryEntry;
+							else                m_SelectedPath = rDirectoryEntry;
 						}
 					}
 					else
 					{
-						if( ImGui::Selectable( FileName.c_str() ) )
-						{
-							m_CurrentDirectory = rDirectoryEntry;
-						}
+						if( ImGui::Selectable( FileName.c_str() ) ) m_CurrentDirectory = rDirectoryEntry;
 					}
 				}
 

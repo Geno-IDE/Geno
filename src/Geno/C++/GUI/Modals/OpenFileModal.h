@@ -50,10 +50,11 @@ public:
 
 private:
 
-	std::string PopupID      ( void ) override { return "OpenFile"; }
-	std::string Title        ( void ) override { return m_Title; }
-	void        UpdateDerived( void ) override;
-	void        OnClose      ( void ) override;
+	std::string PopupID               ( void ) override { return "OpenFile"; }
+	std::string Title                 ( void ) override { return m_Title; }
+	void        UpdateDerived         ( void ) override;
+	void        OnClose               ( void ) override;
+	void        UpdateSplitStingBuffer( void );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -65,6 +66,9 @@ private:
 	std::filesystem::path     m_CurrentDirectory;
 	std::filesystem::path     m_SelectedPath;
 	std::filesystem::path     m_EditingPath;
+
+	std::vector< std::string > m_SplitStringBuffer;
+	std::vector< std::string > m_TempSplitStringBuffer;
 
 	Callback                  m_Callback            = nullptr;
 	void*                     m_pUser               = nullptr;
