@@ -292,7 +292,10 @@ void Workspace::DeserializeBuildMatrixColumn( BuildMatrix::Column& rColumn, cons
 			{
 				const GCL::Object::StringType& rCompilerValue = Compiler->String();
 
-				if(      rCompilerValue == "MSVC" ) { Configuration.m_Compiler = std::make_shared< CompilerMSVC >(); }
+				if( false );
+#if defined( _WIN32 )
+				else if( rCompilerValue == "MSVC" ) { Configuration.m_Compiler = std::make_shared< CompilerMSVC >(); }
+#endif // _WIN32
 				else if( rCompilerValue == "GCC"  ) { Configuration.m_Compiler = std::make_shared< CompilerGCC  >(); }
 				else                                { std::cerr << "Unrecognized compiler '" << rCompilerValue << "' for this workspace.\n"; }
 			}
