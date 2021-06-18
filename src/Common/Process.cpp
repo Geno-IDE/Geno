@@ -17,10 +17,10 @@
 
 #include "Common/Process.h"
 
-#if defined( _WIN32 )
 #include "Common/Platform/Win32/Win32Error.h"
 #include "Common/Platform/Win32/Win32ProcessInfo.h"
 
+#if defined( _WIN32 )
 #include <Windows.h>
 #include <corecrt_io.h>
 #else
@@ -129,9 +129,9 @@ std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 		return Output;
 	}
 #else
-#define READ_CHUNK_LEN 1024 // TODO: This is kind of arbitrary?
+	constexpr size_t READ_CHUNK_LEN = 1024; // TODO: This is kind of arbitrary?
 
-	int fds [ 2 ];
+	int              fds [ 2 ];
 	pipe( fds );
 	fcntl( fds [ 0 ], F_SETFL, O_NONBLOCK ); // Don't want to block on read
 	FILE* stream = fdopen( fds [ 1 ], "w" );
