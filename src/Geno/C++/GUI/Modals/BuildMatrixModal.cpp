@@ -350,19 +350,27 @@ void BuildMatrixModal::DrawSidebar( void )
 
 		// Compiler
 		{
-			const char* pCompilerNames[] = { "None", "MSVC", "GCC" };
-			int         Index            = rConfiguration.second.m_Compiler ? static_cast< int >( std::distance( std::begin( pCompilerNames ), std::find_if( std::begin( pCompilerNames ), std::end( pCompilerNames ), [ &rConfiguration ]( const char* pName ) { return pName == rConfiguration.second.m_Compiler->GetName(); } ) ) ) : 0;
+			const char* pCompilerNames[]
+			{
+				"None",
+#if defined( _WIN32 )
+				"MSVC",
+#endif // _WIN32
+				"GCC",
+			};
+
+			int Index = rConfiguration.second.m_Compiler ? static_cast< int >( std::distance( std::begin( pCompilerNames ), std::find_if( std::begin( pCompilerNames ), std::end( pCompilerNames ), [ &rConfiguration ]( const char* pName ) { return pName == rConfiguration.second.m_Compiler->GetName(); } ) ) ) : 0;
 
 			ImGui::TextUnformatted( "Compiler" );
 
 			if( ImGui::Combo( "##COMPILER", &Index, pCompilerNames, static_cast< int >( std::size( pCompilerNames ) ) ) )
 			{
-				switch( Index )
-				{
-					case 0: { rConfiguration.second.m_Compiler.reset();                              } break;
-					case 1: { rConfiguration.second.m_Compiler = std::make_shared< CompilerMSVC >(); } break;
-					case 2: { rConfiguration.second.m_Compiler = std::make_shared< CompilerGCC  >(); } break;
-				}
+				if( false );
+#if defined( _WIN32 )
+				else if( strcmp( pCompilerNames[ Index ], "MSVC" ) == 0 ) { rConfiguration.second.m_Compiler = std::make_shared< CompilerMSVC >(); }
+#endif // _WIN32
+				else if( strcmp( pCompilerNames[ Index ], "GCC"  ) == 0 ) { rConfiguration.second.m_Compiler = std::make_shared< CompilerGCC >(); }
+				else                                                      { rConfiguration.second.m_Compiler.reset(); }
 			}
 		}
 
