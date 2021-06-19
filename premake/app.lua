@@ -8,14 +8,13 @@ function app( name )
 	group 'Apps'
 	project( name )
 
-	debugdir 'src/%{prj.name}/Assets'
 	includedirs { 'src/%{prj.name}/C++' }
 	kind 'WindowedApp'
 	links( libraries )
 	links( third_party_libraries )
 	location 'build/%{_ACTION}'
 	sysincludedirs { 'include' }
-	xcodebuildresources 'src/%{prj.name}/Assets'
+	xcodebuildresources 'data'
 
 	files {
 		'src/%{prj.name}/C++/**.cpp',
@@ -43,7 +42,7 @@ function app( name )
 		linkoptions { '-Wl,-rpath=\\$$ORIGIN' }
 
 	filter 'system:ios'
-		files { 'src/%{prj.name}/Resources/Info.plist', 'src/%{prj.name}/Assets' }
+		files { 'src/%{prj.name}/Resources/Info.plist' }
 
 	filter { 'system:macosx or ios', 'files:**.cpp' }
 		compileas 'Objective-C++'

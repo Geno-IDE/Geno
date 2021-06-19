@@ -58,3 +58,8 @@ app( 'Geno' )
 			'AppKit.framework',
 			'OpenGL.framework',
 		}
+
+	filter 'system:ios'
+		files {
+			'data'
+		}
