@@ -3,7 +3,6 @@ require 'customizations'
 
 cdialect 'C11'
 cppdialect 'C++17'
-debugdir '../assets'
 exceptionhandling 'Off'
 flags { 'MultiProcessorCompile' }
 includedirs { '../include/' }

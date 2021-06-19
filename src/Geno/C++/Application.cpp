@@ -147,8 +147,7 @@ void Application::HandleCommandLineArgs( int NumArgs, char** ppArgs )
 	{
 		default:
 		{
-			[[ fallthrough ]];
-		}
+		} [[ fallthrough ]];
 
 		case 2:
 		{
@@ -161,20 +160,22 @@ void Application::HandleCommandLineArgs( int NumArgs, char** ppArgs )
 			if( !LoadWorkspace( WorkspacePath ) )
 				exit( 1 );
 
-			[[ fallthrough ]];
-		}
+		} [[ fallthrough ]];
 
 		case 1:
 		{
 			m_Location = ppArgs[ 0 ];
 
-			[[ fallthrough ]];
-		}
+			const std::filesystem::path DataDirectory = m_Location.parent_path().parent_path().parent_path().parent_path() / L"data";
+			std::error_code             Error;
+
+			std::filesystem::current_path( DataDirectory, Error );
+
+		} [[ fallthrough ]];
 
 		case 0:
 		{
-			break;
-		}
+		} break;
 	}
 
 } // HandleCommandLineArgs
