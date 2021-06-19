@@ -125,6 +125,7 @@ class TextEdit
 		std::vector< Line > Lines;
 
 		bool Open = true;
+		bool Changed = false;
 
 		std::vector< Cursor > cursors;
 

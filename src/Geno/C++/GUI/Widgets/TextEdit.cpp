@@ -141,7 +141,11 @@ void TextEdit::Show( bool* pOpen )
 		{
 			for( File& rFile: m_Files )
 			{
-				const std::string FileString = rFile.Path.filename().string();
+				std::string FileString = rFile.Path.filename().string();
+
+				if (rFile.Changed) {
+					FileString.append("*");
+				}
 
 				if( ImGui::BeginTabItem( FileString.c_str(), &rFile.Open ) )
 				{
@@ -149,7 +153,9 @@ void TextEdit::Show( bool* pOpen )
 
 					ImGui::PushFont( MainWindow::Instance().GetFontMono() );
 
-					RenderEditor( rFile );
+					if (RenderEditor(rFile)) {
+						rFile.Changed = true;
+					}
 
 					ImGui::PopFont();
 					ImGui::EndTabItem();
