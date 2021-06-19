@@ -265,6 +265,7 @@ void TextEdit::SplitLines( File& file )
 
 bool TextEdit::RenderEditor( File& file )
 {
+	props.Changes = false;
 	ImGui::PushStyleColor( ImGuiCol_ChildBg, ImGui::ColorConvertU32ToFloat4( 0xFF101010 ) );
 	ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 0.0f, 0.0f ) );
 
