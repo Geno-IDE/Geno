@@ -23,8 +23,6 @@
 #include <string>
 #include <vector>
 
-#include <imgui.h>
-
 class  Drop;
 struct ImGuiTabBar;
 
@@ -52,25 +50,12 @@ public:
 		Glyph(char c, unsigned int color) : c(c), color(color) {}
 	};
 
-	typedef std::vector<Glyph> Line;
-
-	struct File
-	{
-		std::filesystem::path Path;
-		std::string           Text;
-
-		std::vector<Line>	  Lines;
-
-		bool                  Open = true;
-
-	}; // File
-
 	struct Coordinate {
 		unsigned int x;
 		unsigned int y;
 
 		Coordinate() : x(0), y(0) {}
-		Coordinate(unsigned int x, unsigned int y) : x(x) , y(y) {}
+		Coordinate(unsigned int x, unsigned int y) : x(x), y(y) {}
 
 		bool operator==(const Coordinate& other) const {
 			return x == other.x && y == other.y;
@@ -110,11 +95,22 @@ public:
 		bool disabled = false;
 	};
 
-	struct State {
+	typedef std::vector<Glyph> Line;
+
+	struct File
+	{
+		std::filesystem::path Path;
+		std::string           Text;
+
+		std::vector<Line>	  Lines;
+
+		bool                  Open = true;
+
 		std::vector<Cursor> cursors;
 
-		File* currentFile;
-	} state;
+	}; // File
+
+
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -128,44 +124,49 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
+	static float fontSize;
 private:
+
+
+	typedef Coordinate Scroll;
 
 	struct Properties {
 		float charAdvanceY;
-		ImVec2 scroll;
+		float lineNumMaxWidth;
+		Scroll scroll;
 		bool changes;
 		unsigned int cursorBlink = 400;
+
 	} props;
 
 	void SplitLines(File& file);
 	bool RenderEditor(File& file);
-	void HandleKeyboardInputs();
-	void HandleMouseInputs();
-	bool HasSelection(unsigned int cursor) const;
-	bool IsCoordinateInSelection(Coordinate coordinate, bool includePosition);
-	bool IsLineSelected(unsigned int line, Coordinate* start, Coordinate* end) const;
-	float GetCursorDistance(unsigned int cursor) const;
-	float GetDistance(Coordinate position) const;
-	std::string GetWordAt(Cursor& cursor) const;
-	std::string GetWordAt(Coordinate position, Coordinate* start, Coordinate* end) const;
-	void SetSelectionLine(unsigned int line);
-	void SetSelection(Coordinate start, Coordinate end, unsigned int cursor);
-	Coordinate GetMouseCoordinate(float* distance = nullptr);
-	void AdjustCursors(unsigned int cursor, unsigned int xOffset, unsigned int yOffset);
-	void YeetDuplicateCursors();
-	void DisableIntersectingSelections(unsigned int cursor);
-	void Enter(unsigned int cursor);
-	void Backspace(unsigned int cursor);
-	void EnterTextStuff(char c);
+	void HandleKeyboardInputs(File& file);
+	void HandleMouseInputs(File& file);
+	void CalculeteLineNumMaxWidth(File& file);
+	bool HasSelection(File& file, unsigned int cursor) const;
+	bool IsCoordinateInSelection(File& file, Coordinate coordinate, bool includePosition);
+	bool IsLineSelected(File& file, unsigned int line, Coordinate* start, Coordinate* end) const;
+	float GetCursorDistance(File& file, unsigned int cursor) const;
+	float GetDistance(File& file, Coordinate position) const;
+	std::string GetWordAt(File& file, Cursor& cursor) const;
+	std::string GetWordAt(File& file, Coordinate position, Coordinate* start, Coordinate* end) const;
+	void SetSelectionLine(File& file, unsigned int line);
+	void SetSelection(File& file, Coordinate start, Coordinate end, unsigned int cursor);
+	Coordinate GetMouseCoordinate(File& file, float* distance = nullptr);
+	void AdjustCursors(File& file, unsigned int cursor, unsigned int xOffset, unsigned int yOffset);
+	void YeetDuplicateCursors(File& file);
+	void DisableIntersectingSelections(File& file, unsigned int cursor);
+	void Enter(File& file, unsigned int cursor);
+	void Backspace(File& file, unsigned int cursor);
+	void EnterTextStuff(File& file, char c);
 
-	void MoveUp();
-	void MoveDown();
-	void MoveRight();
-	void MoveLeft();
+	void MoveUp(File& file);
+	void MoveDown(File& file);
+	void MoveRight(File& file);
+	void MoveLeft(File& file);
 
 	Palette palette;
-
-
 
 //////////////////////////////////////////////////////////////////////////
 
