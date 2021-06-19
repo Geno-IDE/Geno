@@ -344,8 +344,8 @@ bool TextEdit::RenderEditor(File& file) {
 					auto now = std::chrono::system_clock::now();
 					long long elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
 
-					if (elapsed >= cursorBlink) {
-						elapsed -= cursorBlink;
+					if (elapsed >= props.cursorBlink) {
+						elapsed -= props.cursorBlink;
 
 						float cursorPos = GetCursorDistance(j);
 						ImVec2 cStart(pos.x + cursorPos, pos.y);
@@ -353,7 +353,7 @@ bool TextEdit::RenderEditor(File& file) {
 
 						drawList->AddRectFilled(cStart, cEnd, palette.Cursor);
 
-						if (elapsed >= cursorBlink)
+						if (elapsed >= props.cursorBlink)
 							start = now;
 					}
 				}
@@ -517,6 +517,8 @@ void TextEdit::HandleMouseInputs() {
 				DisableIntersectingSelections(state.cursors.size() - 1);
 			}
 		}
+
+
 	}
 }
 
