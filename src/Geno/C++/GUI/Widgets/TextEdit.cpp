@@ -15,7 +15,6 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#define _CRT_SECURE_NO_WARNINGS
 #include "TextEdit.h"
 
 #include "Common/Drop.h"
@@ -27,10 +26,13 @@
 #include <fstream>
 #include <iostream>
 
+#include <imgui.h>
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
 const char* WINDOW_NAME = "Text Edit";
+
+float TextEdit::fontSize = 15.0f;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -54,8 +56,6 @@ TextEdit::TextEdit( void )
 	palette.CurrentLine			= 0x40000000;
 	palette.CurrentLineInactive = 0x40808080;
 	palette.CurrentLineEdge		= 0x40a0a0a0;
-
-	state.cursors.resize(1);
 } // TextEdit
 
 //////////////////////////////////////////////////////////////////////////
@@ -148,12 +148,6 @@ void TextEdit::Show( bool* pOpen )
 					const int InputTextFlags = ImGuiInputTextFlags_AllowTabInput;
 
 					ImGui::PushFont( MainWindow::Instance().GetFontMono() );
-
-					/*if( ImGui::InputTextMultiline( "##TextEditor", &rFile.Text, ImVec2( -0.01f, -0.01f ), InputTextFlags ) )
-					{
-						std::ofstream ofs( rFile.Path, std::ios::binary | std::ios::trunc );
-						ofs << rFile.Text;
-					}*/
 
 					RenderEditor(rFile);
 
@@ -266,27 +260,18 @@ void TextEdit::SplitLines(File& file) {
 }
 
 bool TextEdit::RenderEditor(File& file) {
-	state.currentFile = &file;
 	props.changes = false;
 
 	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::ColorConvertU32ToFloat4(0xFF101010));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 
-	const float fontSize = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, "#").x;
-	props.charAdvanceY = ImGui::GetTextLineHeightWithSpacing();
-
 	ImGui::PushAllowKeyboardFocus(true);
 
-	HandleKeyboardInputs();
+	HandleKeyboardInputs(file);
 
-	unsigned int totalLines = (unsigned int)file.Lines.size();
+	CalculeteLineNumMaxWidth(file);
 
-	char buf[16];
-	sprintf(buf, " %u | ", totalLines);
-
-	const float lineNumMaxWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf).x;
-
-	memset(buf, 0, sizeof(buf));
+	props.charAdvanceY = ImGui::GetTextLineHeightWithSpacing();
 
 	ImVec2 size = ImGui::GetContentRegionMax();
 	ImVec2 cursor = ImGui::GetCursorScreenPos();
@@ -294,34 +279,34 @@ bool TextEdit::RenderEditor(File& file) {
 
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-	ImGui::SetCursorScreenPos(ImVec2(cursor.x + lineNumMaxWidth, cursor.y));
-	ImGui::BeginChild("##TextEditor", ImVec2(size.x - lineNumMaxWidth, 0), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar );
+	ImGui::SetCursorScreenPos(ImVec2(cursor.x + props.lineNumMaxWidth, cursor.y));
+	ImGui::BeginChild("##TextEditor", ImVec2(size.x - props.lineNumMaxWidth, 0), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar );
 
-	HandleMouseInputs();
+	HandleMouseInputs(file);
 
-	props.scroll = ImVec2(ImGui::GetScrollX(), ImGui::GetScrollY());
+	props.scroll = Scroll(ImGui::GetScrollX(), ImGui::GetScrollY());
 
 	unsigned int firstLine = (unsigned int)(props.scroll.y / props.charAdvanceY);
-	unsigned int lastLine = std::min(firstLine + (unsigned int)(size.y / props.charAdvanceY + 2), totalLines - 1);
+	unsigned int lastLine = std::min(firstLine + (unsigned int)(size.y / props.charAdvanceY + 2), (unsigned int)file.Lines.size() - 1);
 
 	float longest = 0.0f;
 
 	for (unsigned int i = firstLine; i <= lastLine; i++) {
-		ImVec2 pos(cursor.x + lineNumMaxWidth - props.scroll.x, cursor.y + (i - firstLine) * props.charAdvanceY);
+		ImVec2 pos(cursor.x + props.lineNumMaxWidth - props.scroll.x, cursor.y + (i - firstLine) * props.charAdvanceY);
 		Line& line = file.Lines[i];
 
 		Coordinate selectedStart;
 		Coordinate selectedEnd;
 
-		if (IsLineSelected(i, &selectedStart, &selectedEnd)) {
-			ImVec2 start(cursor.x + lineNumMaxWidth + GetDistance(selectedStart), pos.y);
-			ImVec2 end(cursor.x + lineNumMaxWidth + GetDistance(selectedEnd), pos.y + props.charAdvanceY);
+		if (IsLineSelected(file, i, &selectedStart, &selectedEnd)) {
+			ImVec2 start(cursor.x + props.lineNumMaxWidth + GetDistance(file, selectedStart), pos.y);
+			ImVec2 end(cursor.x + props.lineNumMaxWidth + GetDistance(file, selectedEnd), pos.y + props.charAdvanceY);
 
 			drawList->AddRectFilled(start, end, palette.Selection);
 		}
 
-		for (unsigned int j = 0; j < state.cursors.size(); j++) {
-			Cursor c = state.cursors[j];
+		for (unsigned int j = 0; j < file.cursors.size(); j++) {
+			Cursor c = file.cursors[j];
 
 			if (c.disabled) continue;
 
@@ -329,8 +314,8 @@ bool TextEdit::RenderEditor(File& file) {
 
 				bool focus = ImGui::IsWindowFocused();
 
-				if (!HasSelection(j))  {
-					ImVec2 start(cursor.x + lineNumMaxWidth, pos.y);
+				if (!HasSelection(file, j))  {
+					ImVec2 start(cursor.x + props.lineNumMaxWidth, pos.y);
 					ImVec2 end(cursor.x + size.x, pos.y + props.charAdvanceY);
 
 					drawList->AddRectFilled(start, end, focus ? palette.CurrentLine : palette.CurrentLineInactive);
@@ -347,7 +332,7 @@ bool TextEdit::RenderEditor(File& file) {
 					if (elapsed >= props.cursorBlink) {
 						elapsed -= props.cursorBlink;
 
-						float cursorPos = GetCursorDistance(j);
+						float cursorPos = GetCursorDistance(file, j);
 						ImVec2 cStart(pos.x + cursorPos, pos.y);
 						ImVec2 cEnd(cStart.x + 1.0f, cStart.y + props.charAdvanceY - 1);
 
@@ -388,12 +373,9 @@ bool TextEdit::RenderEditor(File& file) {
 
 		if (xOffset > longest) longest = xOffset;
 
-
 	}
 
-
-
-	ImGui::Dummy(ImVec2(longest + 10, (totalLines + 10) * props.charAdvanceY));
+	ImGui::Dummy(ImVec2(longest + 10, (file.Lines.size() + 10) * props.charAdvanceY));
 
 	ImGui::PopAllowKeyboardFocus();
 	ImGui::EndChild();
@@ -401,13 +383,15 @@ bool TextEdit::RenderEditor(File& file) {
 
 	//Render line numbers
 	ImGui::SetCursorScreenPos(ImVec2(cursor.x-2, cursor.y));
-	ImGui::BeginChild("##LineNumbers", ImVec2(lineNumMaxWidth, size.y + 2), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+	ImGui::BeginChild("##LineNumbers", ImVec2(props.lineNumMaxWidth, size.y + 2), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+	char buf[32];
 
 	for (unsigned int i = firstLine; i <= lastLine; i++) {
 		sprintf(buf, "%u | ", i + 1);
 
 		const float currentLineNumWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf).x;
-		ImVec2 pos(cursor.x + lineNumMaxWidth - currentLineNumWidth, cursor.y + (i - firstLine) * props.charAdvanceY);
+		ImVec2 pos(cursor.x + props.lineNumMaxWidth - currentLineNumWidth, cursor.y + (i - firstLine) * props.charAdvanceY);
 
 		drawList->AddText(pos, palette.LineNumber, buf);
 	}
@@ -418,12 +402,10 @@ bool TextEdit::RenderEditor(File& file) {
 	ImGui::PopStyleVar();
 	ImGui::PopStyleColor();
 
-	state.currentFile = nullptr;
-
 	return props.changes;
 }
 
-void TextEdit::HandleKeyboardInputs() {
+void TextEdit::HandleKeyboardInputs(File& file) {
 	ImGuiIO& io = ImGui::GetIO();
 
 	bool shift = io.KeyShift;
@@ -435,26 +417,26 @@ void TextEdit::HandleKeyboardInputs() {
 	io.WantTextInput = true;
 
 	if (!shift && !ctrl & !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)))
-		EnterTextStuff(ImGuiKey_Enter);
+		EnterTextStuff(file, ImGuiKey_Enter);
 	else if (!shift && !ctrl && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Backspace)))
-		EnterTextStuff(ImGuiKey_Backspace);
+		EnterTextStuff(file, ImGuiKey_Backspace);
 	else if (!shift && !ctrl && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow)))
-		MoveUp();
+		MoveUp(file);
 	else if (!shift && !ctrl && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow)))
-		MoveDown();
+		MoveDown(file);
 	else if (!shift && !ctrl && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow)))
-		MoveRight();
+		MoveRight(file);
 	else if (!shift && !ctrl && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftArrow)))
-		MoveLeft();
+		MoveLeft(file);
 
 	for (int i = 0; i < io.InputQueueCharacters.Size; i++) {
 		char c = (char)io.InputQueueCharacters[i];
 
-		EnterTextStuff(c);
+		EnterTextStuff(file, c);
 	}
 }
 
-void TextEdit::HandleMouseInputs() {
+void TextEdit::HandleMouseInputs(File& file) {
 	ImGuiIO& io = ImGui::GetIO();
 
 	bool shift = io.KeyShift;
@@ -462,7 +444,7 @@ void TextEdit::HandleMouseInputs() {
 	bool alt = io.KeyAlt;
 
 	if (ImGui::IsWindowHovered()) {
-			// Mouse Inputs
+		// Mouse Inputs
 		ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);
 
 		bool clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
@@ -470,38 +452,45 @@ void TextEdit::HandleMouseInputs() {
 		bool dragged = ImGui::IsMouseDragging(ImGuiMouseButton_Left);
 
 		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) || props.changes) {
-			state.cursors[state.cursors.size() - 1].selectionOrigin = props.changes ? GetMouseCoordinate() : Coordinate(~0, ~0);
+			file.cursors[file.cursors.size() - 1].selectionOrigin = props.changes ? GetMouseCoordinate(file) : Coordinate(~0, ~0);
 
 
-			for (unsigned int i = 0; i < state.cursors.size(); i++) {
-				if (state.cursors[i].disabled) state.cursors.erase(state.cursors.begin() + i--);
+			for (unsigned int i = 0; i < file.cursors.size(); i++) {
+				if (file.cursors[i].disabled) file.cursors.erase(file.cursors.begin() + i--);
 			}
 		}
 
 		if (doubleClicked) {
-			Cursor& lastCursor = state.cursors[state.cursors.size() - 1];
+			Cursor& lastCursor = file.cursors[file.cursors.size() - 1];
 
-			std::string word = GetWordAt(lastCursor);
+			std::string word = GetWordAt(file, lastCursor);
 
 			if (word.empty()) return;
 
 			lastCursor.position = lastCursor.selectionEnd;
 
 		} else if (clicked) {
+			Cursor c;
+			c.position = c.selectionOrigin = GetMouseCoordinate(file);
+
 			if (ctrl && !(alt || shift)) {
 
+			} else if (shift && !(alt || ctrl)) {
+				file.cursors.erase(file.cursors.begin() + 1, file.cursors.end());
+
+				Cursor& cur = file.cursors[0];
+
+				cur.selectionStart = cur.selectionOrigin = cur.position;
+				cur.selectionEnd = cur.position = c.position;
 			} else {
-				Cursor c;
-				c.position = c.selectionOrigin = GetMouseCoordinate();
+				if (!(ctrl && alt)) file.cursors.clear();
 
-				if (!(ctrl && alt)) state.cursors.clear();
-
-				if (!IsCoordinateInSelection(c.position, true))
-					state.cursors.push_back(c);
+				if (!IsCoordinateInSelection(file, c.position, true))
+					file.cursors.push_back(c);
 			}
 		} else if (dragged) {
-			Coordinate pos = GetMouseCoordinate();
-			Cursor& cursor = state.cursors[state.cursors.size() - 1];
+			Coordinate pos = GetMouseCoordinate(file);
+			Cursor& cursor = file.cursors[file.cursors.size() - 1];
 
 			if (cursor.selectionOrigin != Coordinate(~0, ~0)) {
 				if (pos > cursor.selectionOrigin) {
@@ -514,18 +503,26 @@ void TextEdit::HandleMouseInputs() {
 
 				cursor.position = pos;
 
-				DisableIntersectingSelections(state.cursors.size() - 1);
+				DisableIntersectingSelections(file, file.cursors.size() - 1);
 			}
 		}
 
-
+		if (io.MouseWheel != 0 && io.KeyCtrl && !io.KeyAlt && !io.KeyShift)
+			fontSize += io.MouseWheel;
 	}
 }
 
-bool TextEdit::HasSelection(unsigned int cursor) const {
-	GENO_ASSERT(cursor < state.cursors.size());
+void TextEdit::CalculeteLineNumMaxWidth(File& file) {
+	unsigned int totalLines = (unsigned int)file.Lines.size();
 
-	const Cursor& c = state.cursors[cursor];
+	char buf[32];
+	sprintf(buf, " %u | ", totalLines);
+
+	props.lineNumMaxWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf).x;
+}
+
+bool TextEdit::HasSelection(File& file, unsigned int cursor) const {
+	const Cursor& c = file.cursors[cursor];
 
 	if (c.disabled) return false;
 
@@ -535,10 +532,10 @@ bool TextEdit::HasSelection(unsigned int cursor) const {
 	return c.selectionEnd.x > c.selectionStart.x;
 }
 
-bool TextEdit::IsCoordinateInSelection(Coordinate coordinate, bool includePosition) {
+bool TextEdit::IsCoordinateInSelection(File& file, Coordinate coordinate, bool includePosition) {
 
-	for (unsigned int i = 0; i < state.cursors.size(); i++) {
-		Cursor& c = state.cursors[i];
+	for (unsigned int i = 0; i < file.cursors.size(); i++) {
+		Cursor& c = file.cursors[i];
 
 		if ((coordinate > c.selectionStart && coordinate < c.selectionEnd) || (coordinate == c.position))
 			return true;
@@ -547,11 +544,9 @@ bool TextEdit::IsCoordinateInSelection(Coordinate coordinate, bool includePositi
 	return false;
 }
 
-bool TextEdit::IsLineSelected(unsigned int line, Coordinate* start, Coordinate* end) const {
-	GENO_ASSERT(state.currentFile != nullptr);
-
-	for (unsigned int i = 0; i < state.cursors.size(); i++) {
-		const Cursor& c = state.cursors[i];
+bool TextEdit::IsLineSelected(File& file, unsigned int line, Coordinate* start, Coordinate* end) const {
+	for (unsigned int i = 0; i < file.cursors.size(); i++) {
+		const Cursor& c = file.cursors[i];
 
 		if (c.selectionStart == c.selectionEnd || c.disabled) continue;
 
@@ -562,7 +557,7 @@ bool TextEdit::IsLineSelected(unsigned int line, Coordinate* start, Coordinate* 
 				*end = c.selectionEnd;
 			} else {
 				end->y = line;
-				end->x = state.currentFile->Lines[line].size();
+				end->x = file.Lines[line].size();
 			}
 
 			return true;
@@ -574,7 +569,7 @@ bool TextEdit::IsLineSelected(unsigned int line, Coordinate* start, Coordinate* 
 				*end = c.selectionEnd;
 			} else {
 				end->y = line;
-				end->x = state.currentFile->Lines[line].size();
+				end->x = file.Lines[line].size();
 			}
 
 			return true;
@@ -585,15 +580,12 @@ bool TextEdit::IsLineSelected(unsigned int line, Coordinate* start, Coordinate* 
 	return false;
 }
 
-float TextEdit::GetCursorDistance(unsigned int cursor) const {
-	GENO_ASSERT(cursor < state.cursors.size());
-	return GetDistance(state.cursors[cursor].position);
+float TextEdit::GetCursorDistance(File& file, unsigned int cursor) const {
+	return GetDistance(file, file.cursors[cursor].position);
 }
 
-float TextEdit::GetDistance(Coordinate position) const {
-	GENO_ASSERT(state.currentFile != nullptr);
-
-	const Line& line = state.currentFile->Lines[position.y];
+float TextEdit::GetDistance(File& file, Coordinate position) const {
+	const Line& line = file.Lines[position.y];
 
 	char* string = new char[position.x + 1];
 
@@ -610,14 +602,12 @@ float TextEdit::GetDistance(Coordinate position) const {
 	return res;
 }
 
-std::string TextEdit::GetWordAt(Cursor& cursor) const {
-	return GetWordAt(cursor.position, &cursor.selectionStart, &cursor.selectionEnd);
+std::string TextEdit::GetWordAt(File& file, Cursor& cursor) const {
+	return GetWordAt(file, cursor.position, &cursor.selectionStart, &cursor.selectionEnd);
 }
 
-std::string TextEdit::GetWordAt(Coordinate position, Coordinate* start, Coordinate* end) const {
-	GENO_ASSERT(state.currentFile != nullptr);
-
-	const Line& l = state.currentFile->Lines[position.y];
+std::string TextEdit::GetWordAt(File& file, Coordinate position, Coordinate* start, Coordinate* end) const {
+	const Line& l = file.Lines[position.y];
 
 	if (position.x >= l.size()) return std::string();
 
@@ -660,24 +650,22 @@ std::string TextEdit::GetWordAt(Coordinate position, Coordinate* start, Coordina
 	return std::string();
 }
 
-void TextEdit::SetSelectionLine(unsigned int line) {
-	GENO_ASSERT(state.currentFile != nullptr);
-	if (line >= state.currentFile->Lines.size()) return;
+void TextEdit::SetSelectionLine(File& file, unsigned int line) {
+	if (line >= file.Lines.size()) return;
 
-	Line& l = state.currentFile->Lines[line];
+	Line& l = file.Lines[line];
 
 	Coordinate start(0, line);
 	Coordinate end(l.size(), line);
 
-	SetSelection(start, end, 0);
+	SetSelection(file, start, end, 0);
 }
 
-void TextEdit::SetSelection(Coordinate start, Coordinate end, unsigned int cursor) {
-	GENO_ASSERT(state.currentFile != nullptr);
+void TextEdit::SetSelection(File& file, Coordinate start, Coordinate end, unsigned int cursor) {
 	GENO_ASSERT(start.x < end.x && start.y < end.y);
-	GENO_ASSERT(cursor < state.cursors.size());
+	GENO_ASSERT(cursor < file.cursors.size());
 
-	auto& lines = state.currentFile->Lines;
+	auto& lines = file.Lines;
 
 	if (start.y >= lines.size()) return;
 
@@ -689,15 +677,14 @@ void TextEdit::SetSelection(Coordinate start, Coordinate end, unsigned int curso
 		end.x = lines[end.y].size();
 	}
 
-	Cursor& c = state.cursors[cursor];
+	Cursor& c = file.cursors[cursor];
 
 	c.selectionStart = start;
 	c.selectionEnd = end;
 
 }
 
-TextEdit::Coordinate TextEdit::GetMouseCoordinate(float* distance) {
-	GENO_ASSERT(state.currentFile != nullptr);
+TextEdit::Coordinate TextEdit::GetMouseCoordinate(File& file, float* distance) {
 	ImVec2 origin = ImGui::GetCursorScreenPos();
 	ImVec2 mousePos = ImGui::GetMousePos();
 
@@ -706,13 +693,13 @@ TextEdit::Coordinate TextEdit::GetMouseCoordinate(float* distance) {
 
 	unsigned int line = (unsigned int)((mousePos.y + props.scroll.y) / props.charAdvanceY) - (props.scroll.y / props.charAdvanceY);
 
-	unsigned int numLines = state.currentFile->Lines.size();
+	unsigned int numLines = file.Lines.size();
 
 	if (line > numLines - 1) {
 		line = numLines - 1;
 	}
 
-	const Line& l = state.currentFile->Lines[line];
+	const Line& l = file.Lines[line];
 
 	unsigned int lineSize = (unsigned int)l.size();
 
@@ -743,12 +730,12 @@ TextEdit::Coordinate TextEdit::GetMouseCoordinate(float* distance) {
 	return Coordinate(l.size(), line);
 }
 
-void TextEdit::AdjustCursors(unsigned int cursor, unsigned int xOffset, unsigned int yOffset) {
-	Cursor& c = state.cursors[cursor];
-	for (unsigned int j = 0; j < state.cursors.size(); j++) {
+void TextEdit::AdjustCursors(File& file, unsigned int cursor, unsigned int xOffset, unsigned int yOffset) {
+	Cursor& c = file.cursors[cursor];
+	for (unsigned int j = 0; j < file.cursors.size(); j++) {
 		if (j == cursor) continue;
 
-		Cursor& other = state.cursors[j];
+		Cursor& other = file.cursors[j];
 
 		if (other.selectionStart > c.selectionStart) {
 			if (other.selectionStart.y == c.selectionStart.y) {
@@ -773,26 +760,26 @@ void TextEdit::AdjustCursors(unsigned int cursor, unsigned int xOffset, unsigned
 	}
 }
 
-void TextEdit::YeetDuplicateCursors() {
-	for (unsigned int i = 0; i < state.cursors.size(); i++) {
-		Cursor& c = state.cursors[i];
-		for (unsigned int j = i+1; j < state.cursors.size(); j++) {
-			Cursor& tmpC = state.cursors[j];
+void TextEdit::YeetDuplicateCursors(File& file) {
+	for (unsigned int i = 0; i < file.cursors.size(); i++) {
+		Cursor& c = file.cursors[i];
+		for (unsigned int j = i+1; j < file.cursors.size(); j++) {
+			Cursor& tmpC = file.cursors[j];
 
 			if (tmpC.position == c.position) {
-				state.cursors.erase(state.cursors.begin() + j);
+				file.cursors.erase(file.cursors.begin() + j);
 			}
 		}
 	}
 }
 
-void TextEdit::DisableIntersectingSelections(unsigned int cursor) {
-	Cursor& c = state.cursors[cursor];
+void TextEdit::DisableIntersectingSelections(File& file, unsigned int cursor) {
+	Cursor& c = file.cursors[cursor];
 
-	for (unsigned int i = 0; i < state.cursors.size(); i++) {
+	for (unsigned int i = 0; i < file.cursors.size(); i++) {
 		if (i == cursor) continue;
 
-		Cursor& c2 = state.cursors[i];
+		Cursor& c2 = file.cursors[i];
 
 		if ((c2.selectionStart > c.selectionStart && c2.selectionStart < c.selectionEnd) || (c2.selectionEnd > c.selectionStart && c2.selectionEnd < c.selectionEnd)) {
 			c2.disabled = true;
@@ -802,10 +789,10 @@ void TextEdit::DisableIntersectingSelections(unsigned int cursor) {
 	}
 }
 
-void TextEdit::Enter(unsigned int cursor) {
-	Cursor& c = state.cursors[cursor];
+void TextEdit::Enter(File& file, unsigned int cursor) {
+	Cursor& c = file.cursors[cursor];
 
-	auto& lines = state.currentFile->Lines;
+	auto& lines = file.Lines;
 
 	Line newLine;
 	Line& line = lines[c.position.y];
@@ -818,21 +805,19 @@ void TextEdit::Enter(unsigned int cursor) {
 		line.erase(start, line.end());
 	}
 
-	AdjustCursors(cursor, c.position.x, ass ? -1 : 0);
+	AdjustCursors(file, cursor, c.position.x, ass ? -1 : 0);
 
 	c.position.y++;
 	c.position.x = 0;
 	lines.insert(lines.begin() + c.position.y, newLine);
 }
 
-void TextEdit::Backspace(unsigned int cursor) {
-	GENO_ASSERT(state.currentFile != nullptr);
+void TextEdit::Backspace(File& file, unsigned int cursor) {
+	Cursor& c = file.cursors[cursor];
 
-	Cursor& c = state.cursors[cursor];
+	auto& lines = file.Lines;
 
-	auto& lines = state.currentFile->Lines;
-
-	if (HasSelection(cursor)) {
+	if (HasSelection(file, cursor)) {
 		Line& l = lines[c.selectionStart.y];
 
 		unsigned int yOffset = 0;
@@ -868,7 +853,7 @@ void TextEdit::Backspace(unsigned int cursor) {
 		}
 
 
-		AdjustCursors(cursor, xOffset, yOffset);
+		AdjustCursors(file, cursor, xOffset, yOffset);
 
 		c.position = c.selectionStart;
 
@@ -888,7 +873,7 @@ void TextEdit::Backspace(unsigned int cursor) {
 
 			lines.erase(lines.begin() + c.position.y);
 
-			AdjustCursors(cursor, -x, 1);
+			AdjustCursors(file, cursor, -x, 1);
 
 			c.position.x = x;
 			c.position.y--;
@@ -896,88 +881,86 @@ void TextEdit::Backspace(unsigned int cursor) {
 			c.position.x--;
 			line.erase(line.begin() + c.position.x);
 
-			AdjustCursors(cursor, 1, 0);
+			AdjustCursors(file, cursor, 1, 0);
 		}
 
-		YeetDuplicateCursors();
+		YeetDuplicateCursors(file);
 
 	}
 
 }
 
-void TextEdit::EnterTextStuff(char c) {
-	GENO_ASSERT(state.currentFile != nullptr);
-
+void TextEdit::EnterTextStuff(File& file, char c) {
 	props.changes = true;
 
-	for (unsigned int i = 0; i < state.cursors.size(); i++) {
-		Cursor& cursor = state.cursors[i];
+	for (unsigned int i = 0; i < file.cursors.size(); i++) {
+		Cursor& cursor = file.cursors[i];
 
-		if (HasSelection(i))
-			Backspace(i);
+		if (HasSelection(file, i))
+			Backspace(file, i);
 
 		if (c == ImGuiKey_Enter) {
-			Enter(i);
+			Enter(file, i);
 			continue;
 		} else if (c == ImGuiKey_Backspace) {
-			Backspace(i);
+			Backspace(file, i);
 			continue;
 		}
 
-		Line& l = state.currentFile->Lines[cursor.position.y];
+		Line& l = file.Lines[cursor.position.y];
 
 		l.insert(l.begin() + cursor.position.x, Glyph(c, palette.Default));
 
 		cursor.position.x++;
 
-		AdjustCursors(i, -1, 0);
+		AdjustCursors(file, i, -1, 0);
 	}
 
 }
 
-void TextEdit::MoveUp() {
-	for (unsigned int i = 0; i < state.cursors.size(); i++) {
-		Cursor& c = state.cursors[i];
+void TextEdit::MoveUp(File& file) {
+	for (unsigned int i = 0; i < file.cursors.size(); i++) {
+		Cursor& c = file.cursors[i];
 
 		if (c.position.y == 0) continue;
 
 		c.position.y--;
 
-		Line& line = state.currentFile->Lines[c.position.y];
+		Line& line = file.Lines[c.position.y];
 
 		if (c.position.x > line.size()) c.position.x = line.size();
 
 		c.selectionStart = c.selectionEnd = { 0, 0 };
 	}
 
-	YeetDuplicateCursors();
+	YeetDuplicateCursors(file);
 }
 
-void TextEdit::MoveDown() {
-	for (unsigned int i = 0; i < state.cursors.size(); i++) {
-		Cursor& c = state.cursors[i];
+void TextEdit::MoveDown(File& file) {
+	for (unsigned int i = 0; i < file.cursors.size(); i++) {
+		Cursor& c = file.cursors[i];
 
-		if (c.position.y == state.currentFile->Lines.size()-1) continue;
+		if (c.position.y == file.Lines.size()-1) continue;
 
 		c.position.y++;
 
-		Line& line = state.currentFile->Lines[c.position.y];
+		Line& line = file.Lines[c.position.y];
 
 		if (c.position.x > line.size()) c.position.x = line.size();
 
 		c.selectionStart = c.selectionEnd = { 0, 0 };
 	}
 
-	YeetDuplicateCursors();
+	YeetDuplicateCursors(file);
 }
 
-void TextEdit::MoveRight() {
-	for (unsigned int i = 0; i < state.cursors.size(); i++) {
-		Cursor& c = state.cursors[i];
+void TextEdit::MoveRight(File& file) {
+	for (unsigned int i = 0; i < file.cursors.size(); i++) {
+		Cursor& c = file.cursors[i];
 
-		Line& line = state.currentFile->Lines[c.position.y];
+		Line& line = file.Lines[c.position.y];
 
-		if (c.position.x == line.size() && c.position.y != state.currentFile->Lines.size()) {
+		if (c.position.x == line.size() && c.position.y != file.Lines.size()) {
 			c.position.x = 0;
 			c.position.y++;
 		} else {
@@ -987,15 +970,15 @@ void TextEdit::MoveRight() {
 		c.selectionStart = c.selectionEnd = { 0, 0 };
 	}
 
-	YeetDuplicateCursors();
+	YeetDuplicateCursors(file);
 }
 
-void TextEdit::MoveLeft() {
-	for (unsigned int i = 0; i < state.cursors.size(); i++) {
-		Cursor& c = state.cursors[i];
+void TextEdit::MoveLeft(File& file) {
+	for (unsigned int i = 0; i < file.cursors.size(); i++) {
+		Cursor& c = file.cursors[i];
 
 		if (c.position.x == 0 && c.position.y != 0) {
-			Line& line = state.currentFile->Lines[--c.position.y];
+			Line& line = file.Lines[--c.position.y];
 			c.position.x = line.size();
 		} else {
 			c.position.x--;
@@ -1004,5 +987,6 @@ void TextEdit::MoveLeft() {
 		c.selectionStart = c.selectionEnd = { 0, 0 };
 	}
 
-	YeetDuplicateCursors();
+	YeetDuplicateCursors(file);
 }
+
