@@ -71,17 +71,46 @@ public:
 
 		Coordinate() : x(0), y(0) {}
 		Coordinate(unsigned int x, unsigned int y) : x(x) , y(y) {}
+
+		bool operator==(const Coordinate& other) const {
+			return x == other.x && y == other.y;
+		}
+
+		bool operator!=(const Coordinate& other) const {
+			return !operator==(other);
+		}
+
+		bool operator>(const Coordinate& other) const {
+			if (y > other.y) return true;
+			if (y < other.y) return false;
+
+			return x > other.x;
+		}
+
+		bool operator<(const Coordinate& other) const {
+			return !operator>(other);
+		}
+
+		bool operator>=(const Coordinate& other) const {
+			return operator>(other) || operator==(other);
+		}
+
+		bool operator<=(const Coordinate& other) const {
+			return operator<(other) || operator==(other);
+		}
+
 	};
 
 	struct Cursor {
+		Coordinate selectionStart;
+		Coordinate selectionEnd;
 		Coordinate position;
+		Coordinate selectionOrigin = Coordinate(~0, ~0);
 
-		float distance;
+		bool disabled = false;
 	};
 
 	struct State {
-		Coordinate selectionStart;
-		Coordinate selectionEnd;
 		std::vector<Cursor> cursors;
 
 		File* currentFile;
@@ -104,20 +133,38 @@ private:
 	struct Properties {
 		float charAdvanceY;
 		ImVec2 scroll;
+		bool changes;
 	} props;
 
 	void SplitLines(File& file);
 	bool RenderEditor(File& file);
-	void HandleInputs();
-	bool HasSelection() const;
+	void HandleKeyboardInputs();
+	void HandleMouseInputs();
+	bool HasSelection(unsigned int cursor) const;
+	bool IsCoordinateInSelection(Coordinate coordinate, bool includePosition);
+	bool IsLineSelected(unsigned int line, Coordinate* start, Coordinate* end) const;
 	float GetCursorDistance(unsigned int cursor) const;
+	float GetDistance(Coordinate position) const;
+	std::string GetWordAt(Cursor& cursor) const;
+	std::string GetWordAt(Coordinate position, Coordinate* start, Coordinate* end) const;
 	void SetSelectionLine(unsigned int line);
-	void SetSelection(Coordinate start, Coordinate end);
+	void SetSelection(Coordinate start, Coordinate end, unsigned int cursor);
 	Coordinate GetMouseCoordinate(float* distance = nullptr);
+	void AdjustCursors(unsigned int cursor, unsigned int xOffset, unsigned int yOffset);
+	void YeetDuplicateCursors();
+	void DisableIntersectingSelections(unsigned int cursor);
+	void Enter(unsigned int cursor);
+	void Backspace(unsigned int cursor);
+	void EnterTextStuff(char c);
+
+	void MoveUp();
+	void MoveDown();
+	void MoveRight();
+	void MoveLeft();
 
 	Palette palette;
 
-	unsigned int cursorBlink = 500;
+	unsigned int cursorBlink = 400;
 
 
 //////////////////////////////////////////////////////////////////////////
