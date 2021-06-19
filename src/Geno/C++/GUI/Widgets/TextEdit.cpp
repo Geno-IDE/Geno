@@ -660,50 +660,63 @@ std::string TextEdit::GetWordAt( File& file, Coordinate position, Coordinate* st
 {
 	const Line& l = file.Lines [ position.y ];
 
-	if( position.x >= l.size() ) return std::string();
+	if (position.x >= (int)l.size()) position.x -= position.x == 0 ? 0 : 1;
 
 	char c = l [ position.x ].c;
 
-	auto cmp = []( char c ) -> bool {
-		return ( c >= 'A' && c <= 'Z' ) || ( c >= 'a' && c <= 'z' ) || ( c >= '0' && c <= '9' );
-	};
+	std::string buffer;
 
-	if( cmp( c ) )
-	{
-		std::string buffer;
+	auto getRegion = [&buffer, &l, &position, start, end](bool(*cmpFunc)(char c)) -> std::string {
+		int len = (int)l.size();
+		int x0 = 0;
+		int x1 = len;
 
-		int len = ( int )l.size();
-		int x0  = 0;
-		int x1  = len;
-
-		for( int i = position.x + 1; i < len; i++ )
-		{
-			char chr = l [ i ].c;
-			if( !cmp( chr ) )
-			{
+		for (int i = position.x + 1; i < len; i++) {
+			char chr = l[i].c;
+			if (!cmpFunc(chr)) {
 				x1 = i;
 				break;
 			}
 
-			buffer.push_back( chr );
+			buffer.push_back(chr);
 		}
 
-		for( int i = position.x; i > 0; i-- )
-		{
-			char chr = l [ i ].c;
-			if( !cmp( chr ) )
-			{
+		for (int i = position.x; i > 0; i--) {
+			char chr = l[i].c;
+			if (!cmpFunc(chr)) {
 				x0 = i + 1;
 				break;
 			}
 
-			buffer.insert( buffer.begin(), chr );
+			buffer.insert(buffer.begin(), chr);
 		}
 
-		if( start ) *start = Coordinate( x0, position.y );
-		if( end ) *end = Coordinate( x1, position.y );
+		if (start) *start = Coordinate(x0, position.y);
+		if (end) *end = Coordinate(x1, position.y);
 
-		return std::move( buffer );
+		return std::move(buffer);
+	};
+
+	auto cmpCharsNum = []( char c ) -> bool {
+		return ( c >= 'A' && c <= 'Z' ) || ( c >= 'a' && c <= 'z' ) || ( c >= '0' && c <= '9' );
+	};
+
+	auto cmpWhitespace = [](char c) -> bool {
+		return c == ' ' || c == '\t';
+	};
+
+	if( cmpCharsNum( c ) )
+	{
+		return getRegion(cmpCharsNum);
+	} else if (cmpWhitespace(c)) {
+		char lc = position.x == 0 ? ' ' : l[position.x - 1].c;
+
+		if (cmpWhitespace(lc)) {
+			return getRegion(cmpWhitespace);
+		} else {
+			position.x--;
+			return getRegion(cmpCharsNum);
+		}
 	}
 
 	return std::string();
