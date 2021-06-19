@@ -134,6 +134,7 @@ private:
 		float charAdvanceY;
 		ImVec2 scroll;
 		bool changes;
+		unsigned int cursorBlink = 400;
 	} props;
 
 	void SplitLines(File& file);
@@ -164,7 +165,6 @@ private:
 
 	Palette palette;
 
-	unsigned int cursorBlink = 400;
 
 
 //////////////////////////////////////////////////////////////////////////
