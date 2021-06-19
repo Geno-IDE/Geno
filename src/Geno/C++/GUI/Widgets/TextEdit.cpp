@@ -267,12 +267,17 @@ void TextEdit::SplitLines(File& file) {
 
 bool TextEdit::RenderEditor(File& file) {
 	state.currentFile = &file;
+	props.changes = false;
 
 	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::ColorConvertU32ToFloat4(0xFF101010));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 
 	const float fontSize = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, "#").x;
 	props.charAdvanceY = ImGui::GetTextLineHeightWithSpacing();
+
+	ImGui::PushAllowKeyboardFocus(true);
+
+	HandleKeyboardInputs();
 
 	unsigned int totalLines = (unsigned int)file.Lines.size();
 
@@ -291,9 +296,8 @@ bool TextEdit::RenderEditor(File& file) {
 
 	ImGui::SetCursorScreenPos(ImVec2(cursor.x + lineNumMaxWidth, cursor.y));
 	ImGui::BeginChild("##TextEditor", ImVec2(size.x - lineNumMaxWidth, 0), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar );
-	ImGui::PushAllowKeyboardFocus(true);
 
-	HandleInputs();
+	HandleMouseInputs();
 
 	props.scroll = ImVec2(ImGui::GetScrollX(), ImGui::GetScrollY());
 
@@ -306,20 +310,34 @@ bool TextEdit::RenderEditor(File& file) {
 		ImVec2 pos(cursor.x + lineNumMaxWidth - props.scroll.x, cursor.y + (i - firstLine) * props.charAdvanceY);
 		Line& line = file.Lines[i];
 
+		Coordinate selectedStart;
+		Coordinate selectedEnd;
+
+		if (IsLineSelected(i, &selectedStart, &selectedEnd)) {
+			ImVec2 start(cursor.x + lineNumMaxWidth + GetDistance(selectedStart), pos.y);
+			ImVec2 end(cursor.x + lineNumMaxWidth + GetDistance(selectedEnd), pos.y + props.charAdvanceY);
+
+			drawList->AddRectFilled(start, end, palette.Selection);
+		}
+
 		for (unsigned int j = 0; j < state.cursors.size(); j++) {
 			Cursor c = state.cursors[j];
+
+			if (c.disabled) continue;
 
 			if (c.position.y == i) {
 
 				bool focus = ImGui::IsWindowFocused();
 
-				if (!HasSelection()) {
+				if (!HasSelection(j))  {
 					ImVec2 start(cursor.x + lineNumMaxWidth, pos.y);
 					ImVec2 end(cursor.x + size.x, pos.y + props.charAdvanceY);
 
 					drawList->AddRectFilled(start, end, focus ? palette.CurrentLine : palette.CurrentLineInactive);
 					drawList->AddRect(start, end, palette.CurrentLineEdge);
 				}
+
+
 
 				if (focus) {
 					static auto start = std::chrono::system_clock::now();
@@ -402,10 +420,41 @@ bool TextEdit::RenderEditor(File& file) {
 
 	state.currentFile = nullptr;
 
-	return false;
+	return props.changes;
 }
 
-void TextEdit::HandleInputs() {
+void TextEdit::HandleKeyboardInputs() {
+	ImGuiIO& io = ImGui::GetIO();
+
+	bool shift = io.KeyShift;
+	bool ctrl = io.KeyCtrl;
+	bool alt = io.KeyAlt;
+
+	// Keyboard Inputs
+	io.WantCaptureKeyboard = true;
+	io.WantTextInput = true;
+
+	if (!shift && !ctrl & !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)))
+		EnterTextStuff(ImGuiKey_Enter);
+	else if (!shift && !ctrl && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Backspace)))
+		EnterTextStuff(ImGuiKey_Backspace);
+	else if (!shift && !ctrl && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow)))
+		MoveUp();
+	else if (!shift && !ctrl && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow)))
+		MoveDown();
+	else if (!shift && !ctrl && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow)))
+		MoveRight();
+	else if (!shift && !ctrl && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftArrow)))
+		MoveLeft();
+
+	for (int i = 0; i < io.InputQueueCharacters.Size; i++) {
+		char c = (char)io.InputQueueCharacters[i];
+
+		EnterTextStuff(c);
+	}
+}
+
+void TextEdit::HandleMouseInputs() {
 	ImGuiIO& io = ImGui::GetIO();
 
 	bool shift = io.KeyShift;
@@ -413,46 +462,142 @@ void TextEdit::HandleInputs() {
 	bool alt = io.KeyAlt;
 
 	if (ImGui::IsWindowHovered()) {
-		// Mouse Inputs
+			// Mouse Inputs
 		ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);
 
 		bool clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
 		bool doubleClicked = ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+		bool dragged = ImGui::IsMouseDragging(ImGuiMouseButton_Left);
 
-		if (!shift && !ctrl) {
-			if (doubleClicked) {
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) || props.changes) {
+			state.cursors[state.cursors.size() - 1].selectionOrigin = props.changes ? GetMouseCoordinate() : Coordinate(~0, ~0);
 
-			} else if (clicked) {
-				Cursor c;
-				c.position = GetMouseCoordinate(&c.distance);
 
-				state.cursors.clear();
-				state.cursors.push_back(c);
+			for (unsigned int i = 0; i < state.cursors.size(); i++) {
+				if (state.cursors[i].disabled) state.cursors.erase(state.cursors.begin() + i--);
 			}
 		}
 
+		if (doubleClicked) {
+			Cursor& lastCursor = state.cursors[state.cursors.size() - 1];
 
+			std::string word = GetWordAt(lastCursor);
+
+			if (word.empty()) return;
+
+			lastCursor.position = lastCursor.selectionEnd;
+
+		} else if (clicked) {
+			if (ctrl && !(alt || shift)) {
+
+			} else {
+				Cursor c;
+				c.position = c.selectionOrigin = GetMouseCoordinate();
+
+				if (!(ctrl && alt)) state.cursors.clear();
+
+				if (!IsCoordinateInSelection(c.position, true))
+					state.cursors.push_back(c);
+			}
+		} else if (dragged) {
+			Coordinate pos = GetMouseCoordinate();
+			Cursor& cursor = state.cursors[state.cursors.size() - 1];
+
+			if (cursor.selectionOrigin != Coordinate(~0, ~0)) {
+				if (pos > cursor.selectionOrigin) {
+					cursor.selectionEnd = pos;
+					cursor.selectionStart = cursor.selectionOrigin;
+				} else {
+					cursor.selectionStart = pos;
+					cursor.selectionEnd = cursor.selectionOrigin;
+				}
+
+				cursor.position = pos;
+
+				DisableIntersectingSelections(state.cursors.size() - 1);
+			}
+		}
 	}
 }
 
-bool TextEdit::HasSelection() const {
-	if (state.selectionStart.y != state.selectionEnd.y)
-		return state.selectionEnd.y > state.selectionStart.y;
+bool TextEdit::HasSelection(unsigned int cursor) const {
+	GENO_ASSERT(cursor < state.cursors.size());
 
-	return state.selectionEnd.x > state.selectionStart.x;
+	const Cursor& c = state.cursors[cursor];
+
+	if (c.disabled) return false;
+
+	if (c.selectionStart.y != c.selectionEnd.y)
+		return c.selectionEnd.y > c.selectionStart.y;
+
+	return c.selectionEnd.x > c.selectionStart.x;
+}
+
+bool TextEdit::IsCoordinateInSelection(Coordinate coordinate, bool includePosition) {
+
+	for (unsigned int i = 0; i < state.cursors.size(); i++) {
+		Cursor& c = state.cursors[i];
+
+		if ((coordinate > c.selectionStart && coordinate < c.selectionEnd) || (coordinate == c.position))
+			return true;
+	}
+
+	return false;
+}
+
+bool TextEdit::IsLineSelected(unsigned int line, Coordinate* start, Coordinate* end) const {
+	GENO_ASSERT(state.currentFile != nullptr);
+
+	for (unsigned int i = 0; i < state.cursors.size(); i++) {
+		const Cursor& c = state.cursors[i];
+
+		if (c.selectionStart == c.selectionEnd || c.disabled) continue;
+
+		if (line == c.selectionStart.y) {
+			*start = c.selectionStart;
+
+			if (line == c.selectionEnd.y) {
+				*end = c.selectionEnd;
+			} else {
+				end->y = line;
+				end->x = state.currentFile->Lines[line].size();
+			}
+
+			return true;
+		} else if (line >= c.selectionStart.y && line <= c.selectionEnd.y) {
+			start->x = 0;
+			start->y = line;
+
+			if (line == c.selectionEnd.y) {
+				*end = c.selectionEnd;
+			} else {
+				end->y = line;
+				end->x = state.currentFile->Lines[line].size();
+			}
+
+			return true;
+		}
+	}
+
+
+	return false;
 }
 
 float TextEdit::GetCursorDistance(unsigned int cursor) const {
-	/*GENO_ASSERT(state.currentFile != nullptr);
-	Coordinate c = state.cursors[cursor];
+	GENO_ASSERT(cursor < state.cursors.size());
+	return GetDistance(state.cursors[cursor].position);
+}
 
-	const Line& line = state.currentFile->Lines[c.y];
+float TextEdit::GetDistance(Coordinate position) const {
+	GENO_ASSERT(state.currentFile != nullptr);
 
-	char* string = new char[c.x + 1];
+	const Line& line = state.currentFile->Lines[position.y];
 
-	string[c.x] = 0;
+	char* string = new char[position.x + 1];
 
-	for (unsigned int i = 0; i < c.x; i++) {
+	string[position.x] = 0;
+
+	for (unsigned int i = 0; i < position.x; i++) {
 		string[i] = line[i].c;
 	}
 
@@ -460,11 +605,57 @@ float TextEdit::GetCursorDistance(unsigned int cursor) const {
 
 	delete[] string;
 
-	return res;*/
+	return res;
+}
 
-	GENO_ASSERT(cursor < state.cursors.size());
+std::string TextEdit::GetWordAt(Cursor& cursor) const {
+	return GetWordAt(cursor.position, &cursor.selectionStart, &cursor.selectionEnd);
+}
 
-	return state.cursors[cursor].distance;
+std::string TextEdit::GetWordAt(Coordinate position, Coordinate* start, Coordinate* end) const {
+	GENO_ASSERT(state.currentFile != nullptr);
+
+	const Line& l = state.currentFile->Lines[position.y];
+
+	if (position.x >= l.size()) return std::string();
+
+	char c = l[position.x].c;
+
+	auto cmp = [](char c) -> bool { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'); };
+
+	if (cmp(c)) {
+		std::string buffer;
+
+		unsigned int len = l.size();
+		unsigned int x0 = 0, x1 = len;
+
+		for (unsigned int i = position.x+1; i < len; i++) {
+			char chr = l[i].c;
+			if (!cmp(chr)) {
+				x1 = i;
+				break;
+			}
+
+			buffer.push_back(chr);
+		}
+
+		for (unsigned int i = position.x; i > 0; i--) {
+			char chr = l[i].c;
+			if (!cmp(chr)) {
+				x0 = i+1;
+				break;
+			}
+
+			buffer.insert(buffer.begin(), chr);
+		}
+
+		if (start) *start = { x0, position.y };
+		if (end) *end = { x1, position.y };
+
+		return std::move(buffer);
+	}
+
+	return std::string();
 }
 
 void TextEdit::SetSelectionLine(unsigned int line) {
@@ -476,12 +667,13 @@ void TextEdit::SetSelectionLine(unsigned int line) {
 	Coordinate start(0, line);
 	Coordinate end(l.size(), line);
 
-	SetSelection(start, end);
+	SetSelection(start, end, 0);
 }
 
-void TextEdit::SetSelection(Coordinate start, Coordinate end) {
+void TextEdit::SetSelection(Coordinate start, Coordinate end, unsigned int cursor) {
 	GENO_ASSERT(state.currentFile != nullptr);
 	GENO_ASSERT(start.x < end.x && start.y < end.y);
+	GENO_ASSERT(cursor < state.cursors.size());
 
 	auto& lines = state.currentFile->Lines;
 
@@ -495,9 +687,10 @@ void TextEdit::SetSelection(Coordinate start, Coordinate end) {
 		end.x = lines[end.y].size();
 	}
 
-	state.selectionStart = start;
-	state.selectionEnd = end;
+	Cursor& c = state.cursors[cursor];
 
+	c.selectionStart = start;
+	c.selectionEnd = end;
 
 }
 
@@ -546,4 +739,268 @@ TextEdit::Coordinate TextEdit::GetMouseCoordinate(float* distance) {
 	if (distance) *distance = length;
 
 	return Coordinate(l.size(), line);
+}
+
+void TextEdit::AdjustCursors(unsigned int cursor, unsigned int xOffset, unsigned int yOffset) {
+	Cursor& c = state.cursors[cursor];
+	for (unsigned int j = 0; j < state.cursors.size(); j++) {
+		if (j == cursor) continue;
+
+		Cursor& other = state.cursors[j];
+
+		if (other.selectionStart > c.selectionStart) {
+			if (other.selectionStart.y == c.selectionStart.y) {
+				other.selectionStart.x -= c.selectionStart.x;
+
+				if (other.selectionEnd.y == c.selectionStart.y) {
+					other.selectionStart.x -= c.selectionStart.x;
+				}
+			} else {
+				other.selectionStart.y -= yOffset;
+				other.selectionEnd.y -= yOffset;
+			}
+		}
+
+		if (other.position > c.position) {
+			if (other.position.y == c.position.y) {
+				other.position.x -= xOffset;
+			}
+
+			other.position.y -= yOffset;
+		}
+	}
+}
+
+void TextEdit::YeetDuplicateCursors() {
+	for (unsigned int i = 0; i < state.cursors.size(); i++) {
+		Cursor& c = state.cursors[i];
+		for (unsigned int j = i+1; j < state.cursors.size(); j++) {
+			Cursor& tmpC = state.cursors[j];
+
+			if (tmpC.position == c.position) {
+				state.cursors.erase(state.cursors.begin() + j);
+			}
+		}
+	}
+}
+
+void TextEdit::DisableIntersectingSelections(unsigned int cursor) {
+	Cursor& c = state.cursors[cursor];
+
+	for (unsigned int i = 0; i < state.cursors.size(); i++) {
+		if (i == cursor) continue;
+
+		Cursor& c2 = state.cursors[i];
+
+		if ((c2.selectionStart > c.selectionStart && c2.selectionStart < c.selectionEnd) || (c2.selectionEnd > c.selectionStart && c2.selectionEnd < c.selectionEnd)) {
+			c2.disabled = true;
+		} else {
+			c2.disabled = false;
+		}
+	}
+}
+
+void TextEdit::Enter(unsigned int cursor) {
+	Cursor& c = state.cursors[cursor];
+
+	auto& lines = state.currentFile->Lines;
+
+	Line newLine;
+	Line& line = lines[c.position.y];
+
+	bool ass = c.position.x != line.size();
+
+	if (ass) {
+		auto start = line.begin() + c.position.x;
+		newLine.insert(newLine.begin(), start, line.end());
+		line.erase(start, line.end());
+	}
+
+	AdjustCursors(cursor, c.position.x, ass ? -1 : 0);
+
+	c.position.y++;
+	c.position.x = 0;
+	lines.insert(lines.begin() + c.position.y, newLine);
+}
+
+void TextEdit::Backspace(unsigned int cursor) {
+	GENO_ASSERT(state.currentFile != nullptr);
+
+	Cursor& c = state.cursors[cursor];
+
+	auto& lines = state.currentFile->Lines;
+
+	if (HasSelection(cursor)) {
+		Line& l = lines[c.selectionStart.y];
+
+		unsigned int yOffset = 0;
+		unsigned int xOffset = 0;
+
+		if (c.selectionEnd.y == c.selectionStart.y) {
+			l.erase(l.begin() + c.selectionStart.x, l.begin() + c.selectionEnd.x);
+
+			xOffset = c.selectionEnd.x - c.selectionStart.x;
+		} else {
+			l.erase(l.begin() + c.selectionStart.x, l.end());
+
+			int numLines = (int)c.selectionEnd.y - c.selectionStart.y - 1;
+
+			if (numLines > 0) {
+				lines.erase(lines.begin() + c.selectionStart.y + 1, lines.begin() + c.selectionStart.y + numLines + 1);
+			}
+
+			Line& l2 = lines[c.selectionStart.y + 1];
+
+			yOffset = numLines + 1;
+			xOffset = c.selectionEnd.x - 1;
+
+			if (xOffset == ~0) xOffset++;
+
+			l2.erase(l2.begin(), l2.begin() + xOffset);
+
+			if (!l2.empty()) {
+				l.insert(l.begin(), l2.begin(), l2.end());
+			}
+
+			lines.erase(lines.begin() + c.selectionStart.y + 1);
+		}
+
+
+		AdjustCursors(cursor, xOffset, yOffset);
+
+		c.position = c.selectionStart;
+
+		c.selectionStart = { 0, 0 };
+		c.selectionEnd = { 0, 0 };
+	} else {
+		Line& line = lines[c.position.y];
+
+		if (c.position.x == 0 && c.position.y != 0) {
+			Line& lineAbove = lines[c.position.y - 1];
+
+			unsigned int x = lineAbove.size();
+
+			if (!line.empty()) {
+				lineAbove.insert(lineAbove.end(), line.begin(), line.end());
+			}
+
+			lines.erase(lines.begin() + c.position.y);
+
+			AdjustCursors(cursor, -x, 1);
+
+			c.position.x = x;
+			c.position.y--;
+		} else if (!(c.position.y == 0 && c.position.x == 0)) {
+			c.position.x--;
+			line.erase(line.begin() + c.position.x);
+
+			AdjustCursors(cursor, 1, 0);
+		}
+
+		YeetDuplicateCursors();
+
+	}
+
+}
+
+void TextEdit::EnterTextStuff(char c) {
+	GENO_ASSERT(state.currentFile != nullptr);
+
+	props.changes = true;
+
+	for (unsigned int i = 0; i < state.cursors.size(); i++) {
+		Cursor& cursor = state.cursors[i];
+
+		if (HasSelection(i))
+			Backspace(i);
+
+		if (c == ImGuiKey_Enter) {
+			Enter(i);
+			continue;
+		} else if (c == ImGuiKey_Backspace) {
+			Backspace(i);
+			continue;
+		}
+
+		Line& l = state.currentFile->Lines[cursor.position.y];
+
+		l.insert(l.begin() + cursor.position.x, Glyph(c, palette.Default));
+
+		cursor.position.x++;
+
+		AdjustCursors(i, -1, 0);
+	}
+
+}
+
+void TextEdit::MoveUp() {
+	for (unsigned int i = 0; i < state.cursors.size(); i++) {
+		Cursor& c = state.cursors[i];
+
+		if (c.position.y == 0) continue;
+
+		c.position.y--;
+
+		Line& line = state.currentFile->Lines[c.position.y];
+
+		if (c.position.x > line.size()) c.position.x = line.size();
+
+		c.selectionStart = c.selectionEnd = { 0, 0 };
+	}
+
+	YeetDuplicateCursors();
+}
+
+void TextEdit::MoveDown() {
+	for (unsigned int i = 0; i < state.cursors.size(); i++) {
+		Cursor& c = state.cursors[i];
+
+		if (c.position.y == state.currentFile->Lines.size()-1) continue;
+
+		c.position.y++;
+
+		Line& line = state.currentFile->Lines[c.position.y];
+
+		if (c.position.x > line.size()) c.position.x = line.size();
+
+		c.selectionStart = c.selectionEnd = { 0, 0 };
+	}
+
+	YeetDuplicateCursors();
+}
+
+void TextEdit::MoveRight() {
+	for (unsigned int i = 0; i < state.cursors.size(); i++) {
+		Cursor& c = state.cursors[i];
+
+		Line& line = state.currentFile->Lines[c.position.y];
+
+		if (c.position.x == line.size() && c.position.y != state.currentFile->Lines.size()) {
+			c.position.x = 0;
+			c.position.y++;
+		} else {
+			c.position.x++;
+		}
+
+		c.selectionStart = c.selectionEnd = { 0, 0 };
+	}
+
+	YeetDuplicateCursors();
+}
+
+void TextEdit::MoveLeft() {
+	for (unsigned int i = 0; i < state.cursors.size(); i++) {
+		Cursor& c = state.cursors[i];
+
+		if (c.position.x == 0 && c.position.y != 0) {
+			Line& line = state.currentFile->Lines[--c.position.y];
+			c.position.x = line.size();
+		} else {
+			c.position.x--;
+		}
+
+		c.selectionStart = c.selectionEnd = { 0, 0 };
+	}
+
+	YeetDuplicateCursors();
 }
