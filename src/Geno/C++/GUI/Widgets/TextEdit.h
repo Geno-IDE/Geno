@@ -57,15 +57,15 @@ class TextEdit
 
 	struct Coordinate
 	{
-		unsigned int x;
-		unsigned int y;
+		int x;
+		int y;
 
 		Coordinate()
 		 : x( 0 )
 		 , y( 0 )
 		{
 		}
-		Coordinate( unsigned int x, unsigned int y )
+		Coordinate( int x, int y )
 		 : x( x )
 		 , y( y )
 		{
@@ -149,11 +149,12 @@ class TextEdit
 
 	struct Properties
 	{
-		float        charAdvanceY;
-		float        lineNumMaxWidth;
-		Scroll       scroll;
-		bool         changes;
-		unsigned int cursorBlink = 400;
+		float CharAdvanceY;
+		float LineNumMaxWidth;
+		float ScrollX;
+		float ScrollY;
+		bool  Changes;
+		int   CursorBlink = 400;
 
 	} props;
 
@@ -162,21 +163,21 @@ class TextEdit
 	void        HandleKeyboardInputs( File& file );
 	void        HandleMouseInputs( File& file );
 	void        CalculeteLineNumMaxWidth( File& file );
-	bool        HasSelection( File& file, unsigned int cursor ) const;
-	bool        IsCoordinateInSelection( File& file, Coordinate coordinate, bool includePosition );
-	bool        IsLineSelected( File& file, unsigned int line, Coordinate* start, Coordinate* end ) const;
-	float       GetCursorDistance( File& file, unsigned int cursor ) const;
+	bool        HasSelection( File& file, int cursor ) const;
+	bool        IsCoordinateInSelection( File& file, Coordinate coordinate );
+	bool        IsLineSelected( File& file, int line, Coordinate* start, Coordinate* end ) const;
+	float       GetCursorDistance( File& file, int cursor ) const;
 	float       GetDistance( File& file, Coordinate position ) const;
 	std::string GetWordAt( File& file, Cursor& cursor ) const;
 	std::string GetWordAt( File& file, Coordinate position, Coordinate* start, Coordinate* end ) const;
-	void        SetSelectionLine( File& file, unsigned int line );
-	void        SetSelection( File& file, Coordinate start, Coordinate end, unsigned int cursor );
+	void        SetSelectionLine( File& file, int line );
+	void        SetSelection( File& file, Coordinate start, Coordinate end, int cursor );
 	Coordinate  GetMouseCoordinate( File& file, float* distance = nullptr );
-	void        AdjustCursors( File& file, unsigned int cursor, unsigned int xOffset, unsigned int yOffset );
+	void        AdjustCursors( File& file, int cursor, int xOffset, int yOffset );
 	void        YeetDuplicateCursors( File& file );
-	void        DisableIntersectingSelections( File& file, unsigned int cursor );
-	void        Enter( File& file, unsigned int cursor );
-	void        Backspace( File& file, unsigned int cursor );
+	void        DisableIntersectingSelections( File& file, int cursor );
+	void        Enter( File& file, int cursor );
+	void        Backspace( File& file, int cursor );
 	void        EnterTextStuff( File& file, char c );
 	void        MoveUp( File& file );
 	void        MoveDown( File& file );
