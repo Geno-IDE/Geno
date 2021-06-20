@@ -454,6 +454,8 @@ void TextEdit::HandleKeyboardInputs( File& file )
 		Del( file );
 	else if( !alt && !ctrl && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Tab ) ) )
 		Tab( file, shift );
+	else if( !alt && !ctrl && !shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Escape ) ) )
+		file.cursors.erase( file.cursors.begin() + 1, file.cursors.end() );
 
 	for( int i = 0; i < io.InputQueueCharacters.Size; i++ )
 	{
