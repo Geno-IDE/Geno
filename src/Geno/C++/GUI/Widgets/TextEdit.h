@@ -180,7 +180,8 @@ class TextEdit
 	void        DeleteDisabledCursor( File& file );
 	void        Enter( File& file, int cursor );
 	void        Backspace( File& file, int cursor );
-	void        EnterTextStuff( File& file, char c );
+	void        Del( File& file, int cursor );
+	void        EnterTextStuff( File& file, char c, bool shift = false );
 	void        MoveUp( File& file, bool shift );
 	void        MoveDown( File& file, bool shift );
 	void        MoveRight( File& file, bool ctrl, bool shift );

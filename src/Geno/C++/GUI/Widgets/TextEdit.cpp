@@ -450,6 +450,8 @@ void TextEdit::HandleKeyboardInputs( File& file )
 		MoveRight( file, ctrl, shift );
 	else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_LeftArrow ) ) )
 		MoveLeft( file, ctrl, shift );
+	else if( !alt && !ctrl && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Delete ) ) )
+		EnterTextStuff( file, ImGuiKey_Delete, shift );
 
 	for( int i = 0; i < io.InputQueueCharacters.Size; i++ )
 	{
@@ -1057,7 +1059,25 @@ void TextEdit::Backspace( File& file, int cursor )
 	}
 }
 
-void TextEdit::EnterTextStuff( File& file, char c )
+void TextEdit::Del( File& file, int cursor )
+{
+	props.Changes = true;
+
+	if( HasSelection( file, cursor ) )
+	{
+		Backspace( file, cursor );
+	}
+	else
+	{
+		Cursor& c = file.cursors [ cursor ];
+
+		Line& l = file.Lines [ c.position.y ];
+
+		l.erase( l.begin() + c.position.x );
+	}
+}
+
+void TextEdit::EnterTextStuff( File& file, char c, bool shift )
 {
 	props.Changes = true;
 
@@ -1065,7 +1085,7 @@ void TextEdit::EnterTextStuff( File& file, char c )
 	{
 		Cursor& cursor = file.cursors [ i ];
 
-		if( HasSelection( file, i ) && c != ImGuiKey_Backspace )
+		if( HasSelection( file, i ) && !( c == ImGuiKey_Backspace || c == ImGuiKey_Delete ) )
 		{
 			Backspace( file, i );
 		}
@@ -1078,6 +1098,11 @@ void TextEdit::EnterTextStuff( File& file, char c )
 		else if( c == ImGuiKey_Backspace )
 		{
 			Backspace( file, i );
+			continue;
+		}
+		else if( c == ImGuiKey_Delete )
+		{
+			Del( file, i );
 			continue;
 		}
 
