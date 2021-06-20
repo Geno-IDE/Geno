@@ -124,7 +124,7 @@ class TextEdit
 
 		std::vector< Line > Lines;
 
-		bool Open = true;
+		bool Open    = true;
 		bool Changed = false;
 
 		std::vector< Cursor > cursors;
@@ -165,8 +165,8 @@ class TextEdit
 	void        HandleMouseInputs( File& file );
 	void        CalculeteLineNumMaxWidth( File& file );
 	bool        HasSelection( File& file, int cursor ) const;
-	bool        IsCoordinateInSelection( File& file, Coordinate coordinate );
-	bool        IsLineSelected( File& file, int line, Coordinate* start, Coordinate* end ) const;
+	Cursor*     IsCoordinateInSelection( File& file, Coordinate coordinate, int offset = 0 );
+	int         IsLineSelected( File& file, int line, Coordinate* start, Coordinate* end ) const;
 	float       GetCursorDistance( File& file, int cursor ) const;
 	float       GetDistance( File& file, Coordinate position ) const;
 	std::string GetWordAt( File& file, Cursor& cursor ) const;
@@ -177,13 +177,14 @@ class TextEdit
 	void        AdjustCursors( File& file, int cursor, int xOffset, int yOffset );
 	void        YeetDuplicateCursors( File& file );
 	void        DisableIntersectingSelections( File& file, int cursor );
+	void        DeleteDisabledCursor( File& file );
 	void        Enter( File& file, int cursor );
 	void        Backspace( File& file, int cursor );
 	void        EnterTextStuff( File& file, char c );
-	void        MoveUp( File& file );
-	void        MoveDown( File& file );
-	void        MoveRight( File& file );
-	void        MoveLeft( File& file );
+	void        MoveUp( File& file, bool shift );
+	void        MoveDown( File& file, bool shift );
+	void        MoveRight( File& file, bool ctrl, bool shift );
+	void        MoveLeft( File& file, bool ctrl, bool shift );
 
 	Palette palette;
 

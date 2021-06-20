@@ -442,14 +442,14 @@ void TextEdit::HandleKeyboardInputs( File& file )
 		EnterTextStuff( file, ImGuiKey_Enter );
 	else if( !shift && !ctrl && !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Backspace ) ) )
 		EnterTextStuff( file, ImGuiKey_Backspace );
-	else if( !shift && !ctrl && !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
-		MoveUp( file );
-	else if( !shift && !ctrl && !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
-		MoveDown( file );
-	else if( !shift && !ctrl && !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_RightArrow ) ) )
-		MoveRight( file );
-	else if( !shift && !ctrl && !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_LeftArrow ) ) )
-		MoveLeft( file );
+	else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
+		MoveUp( file, shift );
+	else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
+		MoveDown( file, shift );
+	else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_RightArrow ) ) )
+		MoveRight( file, ctrl, shift );
+	else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_LeftArrow ) ) )
+		MoveLeft( file, ctrl, shift );
 
 	for( int i = 0; i < io.InputQueueCharacters.Size; i++ )
 	{
@@ -478,12 +478,10 @@ void TextEdit::HandleMouseInputs( File& file )
 
 		if( ImGui::IsMouseReleased( ImGuiMouseButton_Left ) || props.Changes )
 		{
-			file.cursors [ file.cursors.size() - 1 ].selectionOrigin = props.Changes ? GetMouseCoordinate( file ) : Coordinate( ~0, ~0 );
+			if( props.Changes )
+				file.cursors [ file.cursors.size() - 1 ].selectionOrigin = GetMouseCoordinate( file );
 
-			for( int i = 0; i < file.cursors.size(); i++ )
-			{
-				if( file.cursors [ i ].disabled ) file.cursors.erase( file.cursors.begin() + i-- );
-			}
+			DeleteDisabledCursor( file );
 		}
 
 		if( doubleClicked )
@@ -517,7 +515,7 @@ void TextEdit::HandleMouseInputs( File& file )
 			{
 				if( !( ctrl && alt ) ) file.cursors.clear();
 
-				if( !IsCoordinateInSelection( file, c.position ) )
+				if( IsCoordinateInSelection( file, c.position ) == nullptr )
 					file.cursors.push_back( c );
 			}
 		}
@@ -572,14 +570,20 @@ bool TextEdit::HasSelection( File& file, int cursor ) const
 	return c.selectionEnd.x > c.selectionStart.x;
 }
 
-bool TextEdit::IsCoordinateInSelection( File& file, Coordinate coordinate )
+TextEdit::Cursor* TextEdit::IsCoordinateInSelection( File& file, Coordinate coordinate, int offset )
 {
-	for( int i = 0; i < file.cursors.size(); i++ )
+	GENO_ASSERT( offset <= file.cursors.size() );
+
+	for( int i = offset; i < file.cursors.size(); i++ )
 	{
 		Cursor& c = file.cursors [ i ];
 
+		if( c.disabled ) continue;
+
 		if( ( coordinate > c.selectionStart && coordinate < c.selectionEnd ) || ( coordinate == c.position ) )
-			return true;
+		{
+			return &c;
+		}
 	}
 
 	return false;
@@ -630,7 +634,7 @@ int TextEdit::IsLineSelected( File& file, int line, Coordinate* start, Coordinat
 		}
 	}
 
-	return false;
+	return count;
 }
 
 float TextEdit::GetCursorDistance( File& file, int cursor ) const
@@ -760,6 +764,11 @@ std::string TextEdit::GetWordAt( File& file, Coordinate position, Coordinate* st
 	{
 		if( start ) *start = Coordinate( position.x, position.y );
 		if( end ) *end = Coordinate( position.x + 1, position.y );
+
+		std::string res;
+		res.push_back( c );
+
+		return std::move( res );
 	}
 
 	return std::string();
@@ -862,11 +871,11 @@ void TextEdit::AdjustCursors( File& file, int cursor, int xOffset, int yOffset )
 		{
 			if( other.selectionStart.y == c.selectionStart.y )
 			{
-				other.selectionStart.x -= c.selectionStart.x;
+				other.selectionStart.x -= xOffset;
 
 				if( other.selectionEnd.y == c.selectionStart.y )
 				{
-					other.selectionStart.x -= c.selectionStart.x;
+					other.selectionEnd.x -= xOffset;
 				}
 			}
 			else
@@ -923,6 +932,14 @@ void TextEdit::DisableIntersectingSelections( File& file, int cursor )
 		{
 			c2.disabled = false;
 		}
+	}
+}
+
+void TextEdit::DeleteDisabledCursor( File& file )
+{
+	for( int i = 0; i < file.cursors.size(); i++ )
+	{
+		if( file.cursors [ i ].disabled ) file.cursors.erase( file.cursors.begin() + i-- );
 	}
 }
 
@@ -1002,8 +1019,9 @@ void TextEdit::Backspace( File& file, int cursor )
 
 		c.position = c.selectionStart;
 
-		c.selectionStart = { 0, 0 };
-		c.selectionEnd   = { 0, 0 };
+		c.selectionStart  = { 0, 0 };
+		c.selectionEnd    = { 0, 0 };
+		c.selectionOrigin = { -1, -1 };
 	}
 	else
 	{
@@ -1073,7 +1091,7 @@ void TextEdit::EnterTextStuff( File& file, char c )
 	}
 }
 
-void TextEdit::MoveUp( File& file )
+void TextEdit::MoveUp( File& file, bool shift )
 {
 	for( int i = 0; i < file.cursors.size(); i++ )
 	{
@@ -1081,19 +1099,57 @@ void TextEdit::MoveUp( File& file )
 
 		if( c.position.y == 0 ) continue;
 
+		if( c.selectionOrigin == Coordinate( -1, -1 ) && shift )
+		{
+			c.selectionEnd = c.selectionOrigin = c.position;
+		}
+
 		c.position.y--;
 
 		Line& line = file.Lines [ c.position.y ];
 
 		if( c.position.x > ( int )line.size() ) c.position.x = ( int )line.size();
 
+		if( shift )
+		{
+			if( c.position < c.selectionOrigin )
+			{
+				c.selectionStart = c.position;
+				c.selectionEnd   = c.selectionOrigin;
+			}
+			else
+			{
+				c.selectionEnd   = c.position;
+				c.selectionStart = c.selectionOrigin;
+			}
+
+			Cursor* champ  = &c;
+			int     offset = 0;
+			while( Cursor* other = IsCoordinateInSelection( file, champ->position, offset ) )
+			{
+				if( other == champ )
+				{
+					offset++;
+					continue;
+				}
+				other->selectionEnd = other->selectionOrigin = champ->selectionEnd;
+
+				champ->disabled = true;
+				champ           = other;
+			}
+
+			continue;
+		}
+
 		c.selectionStart = c.selectionEnd = { 0, 0 };
+		c.selectionOrigin                 = { -1, -1 };
 	}
 
+	DeleteDisabledCursor( file );
 	YeetDuplicateCursors( file );
 }
 
-void TextEdit::MoveDown( File& file )
+void TextEdit::MoveDown( File& file, bool shift )
 {
 	for( int i = 0; i < file.cursors.size(); i++ )
 	{
@@ -1101,23 +1157,66 @@ void TextEdit::MoveDown( File& file )
 
 		if( c.position.y == ( int )file.Lines.size() - 1 ) continue;
 
+		if( c.selectionOrigin == Coordinate( -1, -1 ) && shift )
+		{
+			c.selectionStart = c.selectionOrigin = c.position;
+		}
+
 		c.position.y++;
 
 		Line& line = file.Lines [ c.position.y ];
 
 		if( c.position.x > ( int )line.size() ) c.position.x = ( int )line.size();
 
+		if( shift )
+		{
+			if( c.position < c.selectionOrigin )
+			{
+				c.selectionStart = c.position;
+				c.selectionEnd   = c.selectionOrigin;
+			}
+			else
+			{
+				c.selectionEnd   = c.position;
+				c.selectionStart = c.selectionOrigin;
+			}
+
+			Cursor* champ  = &c;
+			int     offset = 0;
+			while( Cursor* other = IsCoordinateInSelection( file, champ->position, offset ) )
+			{
+				if( other == champ )
+				{
+					offset++;
+					continue;
+				}
+				other->selectionStart = other->selectionOrigin = champ->selectionStart;
+
+				champ->disabled = true;
+				champ           = other;
+			}
+
+			continue;
+		}
+
 		c.selectionStart = c.selectionEnd = { 0, 0 };
+		c.selectionOrigin                 = { -1, -1 };
 	}
 
+	DeleteDisabledCursor( file );
 	YeetDuplicateCursors( file );
 }
 
-void TextEdit::MoveRight( File& file )
+void TextEdit::MoveRight( File& file, bool ctrl, bool shift )
 {
 	for( int i = 0; i < file.cursors.size(); i++ )
 	{
 		Cursor& c = file.cursors [ i ];
+
+		if( c.selectionOrigin == Coordinate( -1, -1 ) && shift )
+		{
+			c.selectionStart = c.selectionOrigin = c.position;
+		}
 
 		Line& line = file.Lines [ c.position.y ];
 
@@ -1131,30 +1230,103 @@ void TextEdit::MoveRight( File& file )
 			c.position.x++;
 		}
 
+		if( shift )
+		{
+			if( c.position > c.selectionOrigin )
+			{
+				c.selectionStart = c.selectionOrigin;
+				c.selectionEnd   = c.position;
+			}
+			else
+			{
+				c.selectionEnd   = c.selectionOrigin;
+				c.selectionStart = c.position;
+			}
+
+			Cursor* champ  = &c;
+			int     offset = 0;
+			while( Cursor* other = IsCoordinateInSelection( file, champ->position, offset ) )
+			{
+				if( other == champ )
+				{
+					offset++;
+					continue;
+				}
+				other->selectionStart = other->selectionOrigin = champ->selectionStart;
+
+				champ->disabled = true;
+				champ           = other;
+			}
+
+			continue;
+		}
+
 		c.selectionStart = c.selectionEnd = { 0, 0 };
+		c.selectionOrigin                 = { -1, -1 };
 	}
 
+	DeleteDisabledCursor( file );
 	YeetDuplicateCursors( file );
 }
 
-void TextEdit::MoveLeft( File& file )
+void TextEdit::MoveLeft( File& file, bool ctrl, bool shift )
 {
 	for( int i = 0; i < file.cursors.size(); i++ )
 	{
 		Cursor& c = file.cursors [ i ];
 
+		if( c.selectionOrigin == Coordinate( -1, -1 ) && shift )
+		{
+			c.selectionEnd = c.selectionOrigin = c.position;
+		}
+
+		int lineSize = -1;
+
 		if( c.position.x == 0 && c.position.y != 0 )
 		{
 			Line& line   = file.Lines [ --c.position.y ];
-			c.position.x = ( int )line.size();
+			c.position.x = lineSize = ( int )line.size();
 		}
 		else
 		{
 			c.position.x--;
 		}
 
+		if( shift )
+		{
+			if( c.position > c.selectionOrigin )
+			{
+				c.selectionStart = c.selectionOrigin;
+				c.selectionEnd   = c.position;
+			}
+			else
+			{
+				c.selectionEnd   = c.selectionOrigin;
+				c.selectionStart = c.position;
+			}
+
+			Cursor* champ  = &c;
+			int     offset = 0;
+			while( Cursor* other = IsCoordinateInSelection( file, champ->position, offset ) )
+			{
+				if( other == champ )
+				{
+					offset++;
+					continue;
+				}
+				other->selectionEnd = other->selectionOrigin = champ->selectionEnd;
+
+				champ->disabled = true;
+				champ           = other;
+			}
+
+			continue;
+		}
+
 		c.selectionStart = c.selectionEnd = { 0, 0 };
+		c.selectionOrigin                 = { -1, -1 };
 	}
 
+	DeleteDisabledCursor( file );
 	YeetDuplicateCursors( file );
 }
