@@ -20,12 +20,12 @@
 #include "Common/Platform/Win32/Win32Error.h"
 #include "Common/Platform/Win32/Win32ProcessInfo.h"
 
+#include <fcntl.h>
 #if defined( _WIN32 )
 #include <Windows.h>
 #include <corecrt_io.h>
 #define fdopen _fdopen
 #else
-#include <fcntl.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #endif // _WIN32
@@ -34,9 +34,17 @@
 #include <codecvt>
 #include <locale>
 #include <thread>
+
+#if defined(_WIN32)
+#include <Windows.h>
+typedef HANDLE ProcessID;
+#else
+typedef pid_t ProcessID;
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 
-static int StartProcess( const std::wstring rCommandLine, FILE* OutputStream )
+static ProcessID StartProcess( const std::wstring rCommandLine, FILE* OutputStream )
 {
 #if defined( _WIN32 )
 	STARTUPINFOW StartupInfo = {};
@@ -48,10 +56,10 @@ static int StartProcess( const std::wstring rCommandLine, FILE* OutputStream )
 
 	Win32ProcessInfo ProcessInfo;
 	WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( rCommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) );
-	return ProcessInfo->dwProcessId;
+	return ProcessInfo->hProcess;
 
 #else
-	pid_t pid = fork();
+	ProcessID pid = fork();
 
 	if( !pid ) // The child
 	{
@@ -68,14 +76,13 @@ static int StartProcess( const std::wstring rCommandLine, FILE* OutputStream )
 #endif
 }
 
-static int WaitProcess( int pid )
+static int WaitProcess( ProcessID pid )
 {
 #if defined( _WIN32 )
 	BOOL  Result;
 	DWORD ExitCode;
 
-	HANDLE proc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-	while( WIN32_CALL( Result = GetExitCodeProcess( proc, &ExitCode ) ) && ExitCode == STILL_ACTIVE )
+	while( WIN32_CALL( Result = GetExitCodeProcess( pid, &ExitCode ) ) && ExitCode == STILL_ACTIVE )
 		Sleep( 1 );
 
 	return Result ? static_cast< int >( ExitCode ) : -1;
@@ -90,7 +97,7 @@ static int WaitProcess( int pid )
 
 int Process::ResultOf( const std::wstring& rCommandLine )
 {
-	int pid = StartProcess( rCommandLine, stdout );
+	ProcessID pid = StartProcess( rCommandLine, stdout );
 	return WaitProcess( pid );
 } // ResultOf
 
@@ -113,8 +120,8 @@ std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 		std::wstring Output;
 		std::string  AnsiBuffer;
 
-		FILE* ProcOutputHandle = fdopen( _open_osfhandle( Write, _O_APPEND ) );
-		int pid = StartProcess( rCommandLine, ProcOutputHandle );
+		FILE* ProcOutputHandle = fdopen( _open_osfhandle( Write, _O_APPEND ), "w" );
+		ProcessID pid = StartProcess( rCommandLine, ProcOutputHandle );
 		rResult = WaitProcess( pid );
 		fclose(ProcOutputHandle);
 
@@ -140,7 +147,7 @@ std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 	pipe( fds );
 	fcntl( fds [ 0 ], F_SETFL, O_NONBLOCK ); // Don't want to block on read
 	FILE* stream = fdopen( fds [ 1 ], "w" );
-	int   pid    = StartProcess( rCommandLine, stream );
+	ProcessID   pid    = StartProcess( rCommandLine, stream );
 	rResult      = WaitProcess( pid );
 
 	std::string output{};
