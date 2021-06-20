@@ -476,7 +476,7 @@ void TextEdit::HandleMouseInputs( File& file )
 		bool doubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
 		bool dragged       = ImGui::IsMouseDragging( ImGuiMouseButton_Left );
 
-		if( ImGui::IsMouseReleased( ImGuiMouseButton_Left ) || props.Changes )
+		if( ImGui::IsMouseReleased( ImGuiMouseButton_Left ) || (props.Changes && ImGui::IsMouseDown(ImGuiMouseButton_Left)))
 		{
 			if( props.Changes )
 				file.cursors [ file.cursors.size() - 1 ].selectionOrigin = GetMouseCoordinate( file );
