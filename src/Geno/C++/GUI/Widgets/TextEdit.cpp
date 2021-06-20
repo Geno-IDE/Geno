@@ -308,15 +308,18 @@ bool TextEdit::RenderEditor( File& file )
 		ImVec2 pos( cursor.x + props.LineNumMaxWidth - props.ScrollX, cursor.y + ( i - firstLine ) * props.CharAdvanceY );
 		Line&  line = file.Lines [ i ];
 
-		Coordinate selectedStart;
-		Coordinate selectedEnd;
+		Coordinate selectedStart [ 16 ];
+		Coordinate selectedEnd [ 16 ];
 
-		if( IsLineSelected( file, i, &selectedStart, &selectedEnd ) )
+		if( int count = IsLineSelected( file, i, selectedStart, selectedEnd ) )
 		{
-			ImVec2 start( cursor.x + props.LineNumMaxWidth + GetDistance( file, selectedStart ), pos.y );
-			ImVec2 end( cursor.x + props.LineNumMaxWidth + GetDistance( file, selectedEnd ), pos.y + props.CharAdvanceY );
+			for( int j = 0; j < count; j++ )
+			{
+				ImVec2 start( cursor.x + props.LineNumMaxWidth + GetDistance( file, selectedStart [ j ] ), pos.y );
+				ImVec2 end( cursor.x + props.LineNumMaxWidth + GetDistance( file, selectedEnd [ j ] ), pos.y + props.CharAdvanceY );
 
-			drawList->AddRectFilled( start, end, palette.Selection );
+				drawList->AddRectFilled( start, end, palette.Selection );
+			}
 		}
 
 		for( int j = 0; j < file.cursors.size(); j++ )
@@ -582,8 +585,10 @@ bool TextEdit::IsCoordinateInSelection( File& file, Coordinate coordinate )
 	return false;
 }
 
-bool TextEdit::IsLineSelected( File& file, int line, Coordinate* start, Coordinate* end ) const
+int TextEdit::IsLineSelected( File& file, int line, Coordinate* start, Coordinate* end ) const
 {
+	int count = 0;
+
 	for( int i = 0; i < file.cursors.size(); i++ )
 	{
 		const Cursor& c = file.cursors [ i ];
@@ -592,36 +597,36 @@ bool TextEdit::IsLineSelected( File& file, int line, Coordinate* start, Coordina
 
 		if( line == c.selectionStart.y )
 		{
-			*start = c.selectionStart;
+			*( start + count ) = c.selectionStart;
 
 			if( line == c.selectionEnd.y )
 			{
-				*end = c.selectionEnd;
+				*( end + count ) = c.selectionEnd;
 			}
 			else
 			{
-				end->y = line;
-				end->x = ( int )file.Lines [ line ].size();
+				( end + count )->y = line;
+				( end + count )->x = ( int )file.Lines [ line ].size();
 			}
 
-			return true;
+			count++;
 		}
 		else if( line >= c.selectionStart.y && line <= c.selectionEnd.y )
 		{
-			start->x = 0;
-			start->y = line;
+			( start + count )->x = 0;
+			( start + count )->y = line;
 
 			if( line == c.selectionEnd.y )
 			{
-				*end = c.selectionEnd;
+				*( end + count ) = c.selectionEnd;
 			}
 			else
 			{
-				end->y = line;
-				end->x = ( int )file.Lines [ line ].size();
+				( end + count )->y = line;
+				( end + count )->x = ( int )file.Lines [ line ].size();
 			}
 
-			return true;
+			count++;
 		}
 	}
 
