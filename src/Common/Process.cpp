@@ -120,7 +120,7 @@ std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 		std::wstring Output;
 		std::string  AnsiBuffer;
 
-		FILE* ProcOutputHandle = fdopen( _open_osfhandle( Write, _O_APPEND ), "w" );
+		FILE* ProcOutputHandle = fdopen( _open_osfhandle( reinterpret_cast< long > ( Write ), _O_APPEND ), "w" );
 		ProcessID pid = StartProcess( rCommandLine, ProcOutputHandle );
 		rResult = WaitProcess( pid );
 		fclose(ProcOutputHandle);
