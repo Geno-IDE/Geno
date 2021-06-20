@@ -1042,19 +1042,19 @@ void TextEdit::EnterTextStuff( File& file, char c )
 	{
 		Cursor& cursor = file.cursors [ i ];
 
-		if( HasSelection( file, i ) )
+		if( HasSelection( file, i ) && c != ImGuiKey_Backspace )
 		{
 			Backspace( file, i );
-		}
-		else if( c == ImGuiKey_Backspace )
-		{
-			Backspace( file, i );
-			continue;
 		}
 
 		if( c == ImGuiKey_Enter )
 		{
 			Enter( file, i );
+			continue;
+		}
+		else if( c == ImGuiKey_Backspace )
+		{
+			Backspace( file, i );
 			continue;
 		}
 
