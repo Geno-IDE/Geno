@@ -478,7 +478,7 @@ void TextEdit::HandleMouseInputs( File& file )
 		bool doubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
 		bool dragged       = ImGui::IsMouseDragging( ImGuiMouseButton_Left );
 
-		if( ImGui::IsMouseReleased( ImGuiMouseButton_Left ) || (props.Changes && ImGui::IsMouseDown(ImGuiMouseButton_Left)))
+		if( ImGui::IsMouseReleased( ImGuiMouseButton_Left ) || ( props.Changes && ImGui::IsMouseDown( ImGuiMouseButton_Left ) ) )
 		{
 			if( props.Changes )
 				file.cursors [ file.cursors.size() - 1 ].selectionOrigin = GetMouseCoordinate( file );
@@ -1249,10 +1249,22 @@ void TextEdit::MoveRight( File& file, bool ctrl, bool shift )
 		{
 			c.position.x = 0;
 			c.position.y++;
+			ctrl = false;
 		}
-		else
+		else if( !ctrl )
 		{
 			c.position.x++;
+		}
+
+		if( ctrl )
+		{
+			Coordinate start;
+			Coordinate end;
+			GetWordAt( file, c.position, &start, &end );
+
+			if( c.position.x == end.x ) c.position.x++;
+			else
+				c.position.x = end.x;
 		}
 
 		if( shift )
@@ -1312,9 +1324,31 @@ void TextEdit::MoveLeft( File& file, bool ctrl, bool shift )
 			Line& line   = file.Lines [ --c.position.y ];
 			c.position.x = lineSize = ( int )line.size();
 		}
-		else
+		else if( !ctrl )
 		{
 			c.position.x--;
+		}
+
+		if( ctrl && lineSize == -1 )
+		{
+			Coordinate start;
+			Coordinate end;
+			GetWordAt( file, c.position, &start, &end );
+
+			if( c.position.x == start.x )
+			{
+				if( c.position.x != 0 )
+				{
+					c.position.x--;
+					GetWordAt( file, c.position, &start, &end );
+
+					c.position.x = start.x;
+				}
+			}
+			else
+			{
+				c.position.x = start.x;
+			}
 		}
 
 		if( shift )
