@@ -1127,7 +1127,26 @@ void TextEdit::Tab( File& file, bool shift )
 		{
 			if( HasSelection( file, i ) )
 			{
-				DeleteSelection( file, i );
+				if( c.selectionStart.y == c.selectionEnd.y )
+				{
+					DeleteSelection( file, i );
+				}
+				else
+				{
+					for( int j = c.selectionStart.y; j <= c.selectionEnd.y; j++ )
+					{
+						Line& l = file.Lines [ j ];
+
+						l.insert( l.begin(), Glyph( '\t', palette.Default ) );
+					}
+
+					c.position.x++;
+					c.selectionStart.x++;
+					c.selectionEnd.x++;
+					c.selectionOrigin.x++;
+
+					continue;
+				}
 			}
 
 			Line& l = file.Lines [ c.position.y ];
