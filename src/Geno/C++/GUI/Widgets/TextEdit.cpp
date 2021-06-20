@@ -315,8 +315,8 @@ bool TextEdit::RenderEditor( File& file )
 		{
 			for( int j = 0; j < count; j++ )
 			{
-				ImVec2 start( cursor.x + props.LineNumMaxWidth + GetDistance( file, selectedStart [ j ] ), pos.y );
-				ImVec2 end( cursor.x + props.LineNumMaxWidth + GetDistance( file, selectedEnd [ j ] ), pos.y + props.CharAdvanceY );
+				ImVec2 start( cursor.x + props.LineNumMaxWidth + GetDistance( file, selectedStart [ j ] ) - props.ScrollX, pos.y );
+				ImVec2 end( cursor.x + props.LineNumMaxWidth + GetDistance( file, selectedEnd [ j ] ) - props.ScrollX, pos.y + props.CharAdvanceY );
 
 				drawList->AddRectFilled( start, end, palette.Selection );
 			}
