@@ -452,6 +452,8 @@ void TextEdit::HandleKeyboardInputs( File& file )
 		MoveLeft( file, ctrl, shift );
 	else if( !alt && !ctrl && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Delete ) ) )
 		EnterTextStuff( file, ImGuiKey_Delete, shift );
+	else if( !alt && !ctrl && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Tab ) ) )
+		EnterTextStuff( file, '\t', shift );
 
 	for( int i = 0; i < io.InputQueueCharacters.Size; i++ )
 	{
