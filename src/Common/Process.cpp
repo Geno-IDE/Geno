@@ -23,6 +23,7 @@
 #if defined( _WIN32 )
 #include <Windows.h>
 #include <corecrt_io.h>
+#define fdopen _fdopen
 #else
 #include <fcntl.h>
 #include <sys/wait.h>
@@ -47,7 +48,7 @@ static int StartProcess( const std::wstring rCommandLine, FILE* OutputStream )
 
 	Win32ProcessInfo ProcessInfo;
 	WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( rCommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) );
-	return ProcessInfo.dwProcessId;
+	return ProcessInfo->dwProcessId;
 
 #else
 	pid_t pid = fork();
@@ -112,7 +113,10 @@ std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 		std::wstring Output;
 		std::string  AnsiBuffer;
 
-		rResult = Run( rCommandLine, nullptr, Write, Write );
+		FILE* ProcOutputHandle = fdopen( _open_osfhandle( Write, _O_APPEND ) );
+		int pid = StartProcess( rCommandLine, ProcOutputHandle );
+		rResult = WaitProcess( pid );
+		fclose(ProcOutputHandle);
 
 		DWORD BytesAvailable;
 		if( PeekNamedPipe( Read, nullptr, 0, nullptr, &BytesAvailable, nullptr ) && BytesAvailable )
