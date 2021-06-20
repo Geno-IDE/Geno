@@ -1005,7 +1005,7 @@ void TextEdit::Backspace( File& file, int cursor )
 			Line& l2 = lines [ c.selectionStart.y + 1 ];
 
 			yOffset = numLines + 1;
-			xOffset = c.selectionEnd.x - 1;
+			xOffset = c.selectionEnd.x;
 
 			if( xOffset == ~0 ) xOffset++;
 
@@ -1013,7 +1013,7 @@ void TextEdit::Backspace( File& file, int cursor )
 
 			if( !l2.empty() )
 			{
-				l.insert( l.begin(), l2.begin(), l2.end() );
+				l.insert( l.end(), l2.begin(), l2.end() );
 			}
 
 			lines.erase( lines.begin() + c.selectionStart.y + 1 );
