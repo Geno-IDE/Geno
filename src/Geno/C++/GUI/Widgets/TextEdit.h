@@ -178,9 +178,11 @@ class TextEdit
 	void        YeetDuplicateCursors( File& file );
 	void        DisableIntersectingSelections( File& file, int cursor );
 	void        DeleteDisabledCursor( File& file );
-	void        Enter( File& file, int cursor );
-	void        Backspace( File& file, int cursor );
-	void        Del( File& file, int cursor );
+	void        DeleteSelection( File& file, int cursor );
+	void        Enter( File& file );
+	void        Backspace( File& file );
+	void        Del( File& file );
+	void        Tab( File& file, bool shift );
 	void        EnterTextStuff( File& file, char c, bool shift = false );
 	void        MoveUp( File& file, bool shift );
 	void        MoveDown( File& file, bool shift );
