@@ -35,19 +35,19 @@
 #include <thread>
 //////////////////////////////////////////////////////////////////////////
 
-static int StartProcess( const std::wstring CommandLine, FILE* OutputStream )
+static int StartProcess( const std::wstring rCommandLine, FILE* OutputStream )
 {
 #if defined( _WIN32 )
 	STARTUPINFOW StartupInfo = {};
 	StartupInfo.cb           = sizeof( STARTUPINFO );
 	StartupInfo.wShowWindow  = SW_HIDE;
 	StartupInfo.dwFlags      = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
-	StartupInfo.hStdOutput   = static_cast< HANDLE >( _get_osfhandle( fileno( OutputStream ) ) );
-	StartupInfo.hStdError    = static_cast< HANDLE >( _get_osfhandle( fileno( OutputStream ) ) );
+	StartupInfo.hStdOutput   = reinterpret_cast< HANDLE >( _get_osfhandle( fileno( OutputStream ) ) );
+	StartupInfo.hStdError    = reinterpret_cast< HANDLE >( _get_osfhandle( fileno( OutputStream ) ) );
 
 	Win32ProcessInfo ProcessInfo;
 	WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( rCommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) );
-	return ProcessInfo.dwProcessID;
+	return ProcessInfo.dwProcessId;
 
 #else
 	pid_t pid = fork();
@@ -58,7 +58,7 @@ static int StartProcess( const std::wstring CommandLine, FILE* OutputStream )
 		dup2( fileno( OutputStream ), 1 );
 		dup2( fileno( OutputStream ), 2 );
 
-		execl( "/bin/sh", "/bin/sh", "-c", std::wstring_convert< std::codecvt_utf8< wchar_t > >().to_bytes( CommandLine ).c_str(), NULL );
+		execl( "/bin/sh", "/bin/sh", "-c", std::wstring_convert< std::codecvt_utf8< wchar_t > >().to_bytes( rCommandLine ).c_str(), NULL );
 
 		exit( EXIT_FAILURE );
 	}
@@ -73,7 +73,8 @@ static int WaitProcess( int pid )
 	BOOL  Result;
 	DWORD ExitCode;
 
-	while( WIN32_CALL( Result = GetExitCodeProcess( ProcessInfo->hProcess, &ExitCode ) ) && ExitCode == STILL_ACTIVE )
+	HANDLE proc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+	while( WIN32_CALL( Result = GetExitCodeProcess( proc, &ExitCode ) ) && ExitCode == STILL_ACTIVE )
 		Sleep( 1 );
 
 	return Result ? static_cast< int >( ExitCode ) : -1;
