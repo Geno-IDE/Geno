@@ -439,9 +439,9 @@ void TextEdit::HandleKeyboardInputs( File& file )
 	io.WantTextInput       = true;
 
 	if( !shift && !ctrl & !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Enter ) ) )
-		EnterTextStuff( file, ImGuiKey_Enter );
+		Enter( file );
 	else if( !shift && !ctrl && !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Backspace ) ) )
-		EnterTextStuff( file, ImGuiKey_Backspace );
+		Backspace( file );
 	else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
 		MoveUp( file, shift );
 	else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
@@ -451,9 +451,9 @@ void TextEdit::HandleKeyboardInputs( File& file )
 	else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_LeftArrow ) ) )
 		MoveLeft( file, ctrl, shift );
 	else if( !alt && !ctrl && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Delete ) ) )
-		EnterTextStuff( file, ImGuiKey_Delete, shift );
+		Del( file );
 	else if( !alt && !ctrl && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Tab ) ) )
-		EnterTextStuff( file, '\t', shift );
+		Tab( file, shift );
 
 	for( int i = 0; i < io.InputQueueCharacters.Size; i++ )
 	{
@@ -947,34 +947,11 @@ void TextEdit::DeleteDisabledCursor( File& file )
 	}
 }
 
-void TextEdit::Enter( File& file, int cursor )
+void TextEdit::DeleteSelection( File& file, int cursor )
 {
 	Cursor& c = file.cursors [ cursor ];
 
-	auto& lines = file.Lines;
-
-	Line  newLine;
-	Line& line = lines [ c.position.y ];
-
-	bool ass = c.position.x != line.size();
-
-	if( ass )
-	{
-		auto start = line.begin() + c.position.x;
-		newLine.insert( newLine.begin(), start, line.end() );
-		line.erase( start, line.end() );
-	}
-
-	AdjustCursors( file, cursor, c.position.x, ass ? -1 : 0 );
-
-	c.position.y++;
-	c.position.x = 0;
-	lines.insert( lines.begin() + c.position.y, newLine );
-}
-
-void TextEdit::Backspace( File& file, int cursor )
-{
-	Cursor& c = file.cursors [ cursor ];
+	if( c.disabled ) return;
 
 	auto& lines = file.Lines;
 
@@ -1027,55 +1004,138 @@ void TextEdit::Backspace( File& file, int cursor )
 		c.selectionEnd    = { 0, 0 };
 		c.selectionOrigin = { -1, -1 };
 	}
-	else
-	{
-		Line& line = lines [ c.position.y ];
-
-		if( c.position.x == 0 && c.position.y != 0 )
-		{
-			Line& lineAbove = lines [ c.position.y - 1 ];
-
-			int x = ( int )lineAbove.size();
-
-			if( !line.empty() )
-			{
-				lineAbove.insert( lineAbove.end(), line.begin(), line.end() );
-			}
-
-			lines.erase( lines.begin() + c.position.y );
-
-			AdjustCursors( file, cursor, -x, 1 );
-
-			c.position.x = x;
-			c.position.y--;
-		}
-		else if( !( c.position.y == 0 && c.position.x == 0 ) )
-		{
-			c.position.x--;
-			line.erase( line.begin() + c.position.x );
-
-			AdjustCursors( file, cursor, 1, 0 );
-		}
-
-		YeetDuplicateCursors( file );
-	}
 }
 
-void TextEdit::Del( File& file, int cursor )
+void TextEdit::Enter( File& file )
 {
 	props.Changes = true;
 
-	if( HasSelection( file, cursor ) )
+	for( int i = 0; i < file.cursors.size(); i++ )
 	{
-		Backspace( file, cursor );
+		Cursor& c = file.cursors [ i ];
+
+		if( c.disabled ) continue;
+
+		auto& lines = file.Lines;
+
+		Line  newLine;
+		Line& line = lines [ c.position.y ];
+
+		bool ass = c.position.x != line.size();
+
+		if( ass )
+		{
+			auto start = line.begin() + c.position.x;
+			newLine.insert( newLine.begin(), start, line.end() );
+			line.erase( start, line.end() );
+		}
+
+		AdjustCursors( file, i, c.position.x, ass ? -1 : 0 );
+
+		c.position.y++;
+		c.position.x = 0;
+		lines.insert( lines.begin() + c.position.y, newLine );
 	}
-	else
+}
+
+void TextEdit::Backspace( File& file )
+{
+	for( int i = 0; i < file.cursors.size(); i++ )
 	{
-		Cursor& c = file.cursors [ cursor ];
+		if( HasSelection( file, i ) )
+		{
+			DeleteSelection( file, i );
+		}
+		else
+		{
+			Cursor& c = file.cursors [ i ];
 
-		Line& l = file.Lines [ c.position.y ];
+			if( c.disabled ) continue;
 
-		l.erase( l.begin() + c.position.x );
+			auto& lines = file.Lines;
+
+			Line& line = lines [ c.position.y ];
+
+			if( c.position.x == 0 && c.position.y != 0 )
+			{
+				Line& lineAbove = lines [ c.position.y - 1 ];
+
+				int x = ( int )lineAbove.size();
+
+				if( !line.empty() )
+				{
+					lineAbove.insert( lineAbove.end(), line.begin(), line.end() );
+				}
+
+				lines.erase( lines.begin() + c.position.y );
+
+				AdjustCursors( file, i, -x, 1 );
+
+				c.position.x = x;
+				c.position.y--;
+			}
+			else if( !( c.position.y == 0 && c.position.x == 0 ) )
+			{
+				c.position.x--;
+				line.erase( line.begin() + c.position.x );
+
+				AdjustCursors( file, i, 1, 0 );
+			}
+
+			YeetDuplicateCursors( file );
+		}
+	}
+}
+
+void TextEdit::Del( File& file )
+{
+	props.Changes = true;
+
+	for( int i = 0; i < file.cursors.size(); i++ )
+	{
+		if( HasSelection( file, i ) )
+		{
+			DeleteSelection( file, i );
+		}
+		else
+		{
+			Cursor& c = file.cursors [ i ];
+
+			if( c.disabled ) continue;
+
+			Line& l = file.Lines [ c.position.y ];
+
+			l.erase( l.begin() + c.position.x );
+		}
+	}
+}
+
+void TextEdit::Tab( File& file, bool shift )
+{
+	for( int i = 0; i < file.cursors.size(); i++ )
+	{
+		Cursor& c = file.cursors [ i ];
+
+		if( c.disabled ) continue;
+
+		if( shift )
+		{
+		}
+		else
+		{
+			if( HasSelection( file, i ) )
+			{
+				DeleteSelection( file, i );
+			}
+
+			Line& l = file.Lines [ c.position.y ];
+
+			l.insert( l.begin() + c.position.x, Glyph( '\t', palette.Default ) );
+
+			c.position.x++;
+
+			AdjustCursors( file, i, -1, 0 );
+		}
 	}
 }
 
@@ -1087,25 +1147,11 @@ void TextEdit::EnterTextStuff( File& file, char c, bool shift )
 	{
 		Cursor& cursor = file.cursors [ i ];
 
-		if( HasSelection( file, i ) && !( c == ImGuiKey_Backspace || c == ImGuiKey_Delete ) )
-		{
-			Backspace( file, i );
-		}
+		if( cursor.disabled ) continue;
 
-		if( c == ImGuiKey_Enter )
+		if( HasSelection( file, i ) )
 		{
-			Enter( file, i );
-			continue;
-		}
-		else if( c == ImGuiKey_Backspace )
-		{
-			Backspace( file, i );
-			continue;
-		}
-		else if( c == ImGuiKey_Delete )
-		{
-			Del( file, i );
-			continue;
+			DeleteSelection( file, i );
 		}
 
 		Line& l = file.Lines [ cursor.position.y ];
