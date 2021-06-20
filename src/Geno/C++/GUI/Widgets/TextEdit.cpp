@@ -586,7 +586,7 @@ TextEdit::Cursor* TextEdit::IsCoordinateInSelection( File& file, Coordinate coor
 		}
 	}
 
-	return false;
+	return nullptr;
 }
 
 int TextEdit::IsLineSelected( File& file, int line, Coordinate* start, Coordinate* end ) const
