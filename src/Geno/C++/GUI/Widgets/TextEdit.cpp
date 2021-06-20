@@ -274,8 +274,6 @@ bool TextEdit::RenderEditor( File& file )
 
 	ImGui::PushAllowKeyboardFocus( true );
 
-	HandleKeyboardInputs( file );
-
 	CalculeteLineNumMaxWidth( file );
 
 	props.CharAdvanceY = ImGui::GetTextLineHeightWithSpacing();
@@ -287,7 +285,7 @@ bool TextEdit::RenderEditor( File& file )
 
 	ImGui::SetCursorScreenPos( ImVec2( cursor.x + props.LineNumMaxWidth, cursor.y ) );
 	ImGui::BeginChild( "##TextEditor", ImVec2( size.x - props.LineNumMaxWidth, 0 ), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar );
-
+	HandleKeyboardInputs( file );
 	HandleMouseInputs( file );
 
 	props.ScrollX = ImGui::GetScrollX();
@@ -423,40 +421,43 @@ bool TextEdit::RenderEditor( File& file )
 
 void TextEdit::HandleKeyboardInputs( File& file )
 {
-	ImGuiIO& io = ImGui::GetIO();
-
-	bool shift = io.KeyShift;
-	bool ctrl  = io.KeyCtrl;
-	bool alt   = io.KeyAlt;
-
-	// Keyboard Inputs
-	io.WantCaptureKeyboard = true;
-	io.WantTextInput       = true;
-
-	if( !shift && !ctrl & !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Enter ) ) )
-		Enter( file );
-	else if( !shift && !ctrl && !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Backspace ) ) )
-		Backspace( file );
-	else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
-		MoveUp( file, shift );
-	else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
-		MoveDown( file, shift );
-	else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_RightArrow ) ) )
-		MoveRight( file, ctrl, shift );
-	else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_LeftArrow ) ) )
-		MoveLeft( file, ctrl, shift );
-	else if( !alt && !ctrl && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Delete ) ) )
-		Del( file );
-	else if( !alt && !ctrl && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Tab ) ) )
-		Tab( file, shift );
-	else if( !alt && !ctrl && !shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Escape ) ) )
-		file.cursors.erase( file.cursors.begin() + 1, file.cursors.end() );
-
-	for( int i = 0; i < io.InputQueueCharacters.Size; i++ )
+	if( ImGui::IsWindowFocused() )
 	{
-		char c = ( char )io.InputQueueCharacters [ i ];
+		ImGuiIO& io = ImGui::GetIO();
 
-		EnterTextStuff( file, c );
+		bool shift = io.KeyShift;
+		bool ctrl  = io.KeyCtrl;
+		bool alt   = io.KeyAlt;
+
+		// Keyboard Inputs
+		io.WantCaptureKeyboard = true;
+		io.WantTextInput       = true;
+
+		if( !shift && !ctrl & !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Enter ) ) )
+			Enter( file );
+		else if( !shift && !ctrl && !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Backspace ) ) )
+			Backspace( file );
+		else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
+			MoveUp( file, shift );
+		else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
+			MoveDown( file, shift );
+		else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_RightArrow ) ) )
+			MoveRight( file, ctrl, shift );
+		else if( !alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_LeftArrow ) ) )
+			MoveLeft( file, ctrl, shift );
+		else if( !alt && !ctrl && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Delete ) ) )
+			Del( file );
+		else if( !alt && !ctrl && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Tab ) ) )
+			Tab( file, shift );
+		else if( !alt && !ctrl && !shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Escape ) ) )
+			file.cursors.erase( file.cursors.begin() + 1, file.cursors.end() );
+
+		for( int i = 0; i < io.InputQueueCharacters.Size; i++ )
+		{
+			char c = ( char )io.InputQueueCharacters [ i ];
+
+			EnterTextStuff( file, c );
+		}
 	}
 }
 
