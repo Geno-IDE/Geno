@@ -143,12 +143,7 @@ void TextEdit::Show( bool* pOpen )
 			{
 				std::string FileString = rFile.Path.filename().string();
 
-				if( rFile.Changed )
-				{
-					FileString.append( "*" );
-				}
-
-				if( ImGui::BeginTabItem( FileString.c_str(), &rFile.Open ) )
+				if( ImGui::BeginTabItem( FileString.c_str(), &rFile.Open, rFile.Changed ? ImGuiTabItemFlags_UnsavedDocument : 0 ) )
 				{
 					const int InputTextFlags = ImGuiInputTextFlags_AllowTabInput;
 
