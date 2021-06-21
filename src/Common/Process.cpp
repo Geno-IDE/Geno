@@ -17,103 +17,123 @@
 
 #include "Common/Process.h"
 
+#include "Common/Aliases.h"
 #include "Common/Platform/Win32/Win32Error.h"
 #include "Common/Platform/Win32/Win32ProcessInfo.h"
-
-#include <fcntl.h>
-#if defined( _WIN32 )
-#include <Windows.h>
-#include <corecrt_io.h>
-#define fdopen _fdopen
-#else
-#include <sys/wait.h>
-#include <unistd.h>
-#endif // _WIN32
 
 #include <chrono>
 #include <codecvt>
 #include <locale>
 #include <thread>
 
-#if defined(_WIN32)
+#include <fcntl.h>
+
+#if defined( _WIN32 )
 #include <Windows.h>
-typedef HANDLE ProcessID;
-#else
-typedef pid_t ProcessID;
-#endif
+#include <corecrt_io.h>
+#define fdopen _fdopen
+#elif defined( __unix__ ) // _WIN32
+#include <sys/wait.h>
+#include <unistd.h>
+#endif // __unix__
 
 //////////////////////////////////////////////////////////////////////////
 
-static ProcessID StartProcess( const std::wstring rCommandLine, FILE* OutputStream )
-{
 #if defined( _WIN32 )
-	STARTUPINFOW StartupInfo = {};
+using ProcessID = HANDLE;
+#elif defined( __unix__ ) // _WIN32
+using ProcessID = pid_t;
+#endif // __unix__
+
+//////////////////////////////////////////////////////////////////////////
+
+static ProcessID StartProcess( const std::wstring_view CommandLine, FILE* pOutputStream )
+{
+
+#if defined( _WIN32 )
+
+	STARTUPINFOW StartupInfo = { };
 	StartupInfo.cb           = sizeof( STARTUPINFO );
 	StartupInfo.wShowWindow  = SW_HIDE;
 	StartupInfo.dwFlags      = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
-	StartupInfo.hStdOutput   = reinterpret_cast< HANDLE >( _get_osfhandle( fileno( OutputStream ) ) );
-	StartupInfo.hStdError    = reinterpret_cast< HANDLE >( _get_osfhandle( fileno( OutputStream ) ) );
+	StartupInfo.hStdOutput   = reinterpret_cast< HANDLE >( _get_osfhandle( fileno( pOutputStream ) ) );
+	StartupInfo.hStdError    = reinterpret_cast< HANDLE >( _get_osfhandle( fileno( pOutputStream ) ) );
 
 	PROCESS_INFORMATION ProcessInfo;
-	WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( rCommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) );
+	WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( CommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) );
 	CloseHandle( ProcessInfo.hThread );
+
 	return ProcessInfo.hProcess;
 
-#else
-	ProcessID pid = fork();
+#elif defined( __unix__ ) // _WIN32
 
-	if( !pid ) // The child
+	ProcessID PID = fork();
+
+	if( !PID ) // The child
 	{
 		// Take control of output
-		dup2( fileno( OutputStream ), 1 );
-		dup2( fileno( OutputStream ), 2 );
+		dup2( fileno( pOutputStream ), 1 );
+		dup2( fileno( pOutputStream ), 2 );
 
-		execl( "/bin/sh", "/bin/sh", "-c", std::wstring_convert< std::codecvt_utf8< wchar_t > >().to_bytes( rCommandLine ).c_str(), NULL );
+		execl( "/bin/sh", "/bin/sh", "-c", std::wstring_convert< std::codecvt_utf8< wchar_t > >().to_bytes( CommandLine ).c_str(), NULL );
 
 		exit( EXIT_FAILURE );
 	}
 
-	return pid;
-#endif
-}
+	return PID;
 
-static int WaitProcess( ProcessID pid )
-{
-#if defined( _WIN32 )
-	BOOL  Result;
-	DWORD ExitCode;
+#endif // __unix__
 
-	while( WIN32_CALL( Result = GetExitCodeProcess( pid, &ExitCode ) ) && ExitCode == STILL_ACTIVE )
-		Sleep( 1 );
-
-	CloseHandle( pid );
-
-	return Result ? static_cast< int >( ExitCode ) : -1;
-#else
-	int status;
-	waitpid( pid, &status, 0 );
-	return status;
-#endif
-}
+} // StartProcess
 
 //////////////////////////////////////////////////////////////////////////
 
-int Process::ResultOf( const std::wstring& rCommandLine )
+static int WaitProcess( ProcessID PID )
 {
-	ProcessID pid = StartProcess( rCommandLine, stdout );
+
+#if defined( _WIN32 )
+
+	BOOL  Result;
+	DWORD ExitCode;
+
+	while( WIN32_CALL( Result = GetExitCodeProcess( PID, &ExitCode ) ) && ExitCode == STILL_ACTIVE )
+		Sleep( 1 );
+
+	CloseHandle( PID );
+
+	return Result ? static_cast< int >( ExitCode ) : -1;
+
+#elif defined( __unix__ ) // _WIN32
+
+	int status;
+	waitpid( PID, &status, 0 );
+
+	return status;
+
+#endif // __unix__
+
+} // WaitProcess
+
+//////////////////////////////////////////////////////////////////////////
+
+int Process::ResultOf( const std::wstring_view CommandLine )
+{
+	ProcessID pid = StartProcess( CommandLine, stdout );
+
 	return WaitProcess( pid );
+
 } // ResultOf
 
 //////////////////////////////////////////////////////////////////////////
 
-std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
+std::wstring Process::OutputOf( const std::wstring_view CommandLine, int& rResult )
 {
+
 #if defined( _WIN32 )
 
 	HANDLE              Read;
 	HANDLE              Write;
-
-	SECURITY_ATTRIBUTES SecurityAttributes;
+	SECURITY_ATTRIBUTES SecurityAttributes  = { };
 	SecurityAttributes.nLength              = sizeof( SECURITY_ATTRIBUTES );
 	SecurityAttributes.bInheritHandle       = TRUE;
 	SecurityAttributes.lpSecurityDescriptor = nullptr;
@@ -122,57 +142,60 @@ std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 	{
 		std::wstring Output;
 		std::string  AnsiBuffer;
-
-		FILE* ProcOutputHandle = fdopen( _open_osfhandle( reinterpret_cast< long > ( Write ), _O_APPEND ), "w" );
-		ProcessID pid = StartProcess( rCommandLine, ProcOutputHandle );
-		rResult = WaitProcess( pid );
+		FILE*        pProcOutputHandle = fdopen( _open_osfhandle( reinterpret_cast< intptr_t >( Write ), _O_APPEND ), "w" );
+		ProcessID    PID               = StartProcess( CommandLine, pProcOutputHandle );
+		rResult                        = WaitProcess( PID );
 
 		DWORD BytesAvailable;
 		if( PeekNamedPipe( Read, nullptr, 0, nullptr, &BytesAvailable, nullptr ) && BytesAvailable )
 		{
 			AnsiBuffer.resize( BytesAvailable );
-			Output.resize( BytesAvailable );
+			Output    .resize( BytesAvailable );
 
 			ReadFile( Read, AnsiBuffer.data(), BytesAvailable, nullptr, nullptr );
 			MultiByteToWideChar( CP_ACP, 0, AnsiBuffer.c_str(), BytesAvailable, Output.data(), BytesAvailable );
 		}
 
-		fclose(ProcOutputHandle);
+		CloseHandle( Write );
 		CloseHandle( Read );
 
 		return Output;
 	}
-#else
-	constexpr size_t READ_CHUNK_LEN = 1024; // TODO: This is kind of arbitrary?
 
-	int              fds [ 2 ];
-	pipe( fds );
-	fcntl( fds [ 0 ], F_SETFL, O_NONBLOCK ); // Don't want to block on read
-	FILE* stream = fdopen( fds [ 1 ], "w" );
-	ProcessID   pid    = StartProcess( rCommandLine, stream );
-	rResult      = WaitProcess( pid );
+#elif defined( __unix__ ) // _WIN32
 
-	std::string output{};
-	char        tmp [ READ_CHUNK_LEN + 1 ];
-	ssize_t     length = 0;
-	while( ( length = read( fds [ 0 ], tmp, READ_CHUNK_LEN ) ) > 0 )
+	int FileDescriptors[ 2 ];
+	pipe( FileDescriptors );
+	fcntl( FileDescriptors[ 0 ], F_SETFL, O_NONBLOCK ); // Don't want to block on read
+
+	FILE*     pStream = fdopen( FileDescriptors[ 1 ], "w" );
+	ProcessID PID     = StartProcess( CommandLine, pStream );
+	rResult           = WaitProcess( PID );
+
+	char        Buffer[ 1024 ];
+	ssize_t     Length;
+	std::string Output;
+
+	while( ( Length = read( FileDescriptors[ 0 ], Buffer, std::size( Buffer ) ) ) > 0 )
 	{
-		tmp [ length ] = '\0';
-		output += tmp;
+		Output.append( Buffer, Length );
 	}
 
-	fclose( stream );
-	close( fds [ 0 ] );
+	fclose( pStream );
+	close( FileDescriptors[ 0 ] );
 
-	return std::wstring_convert< std::codecvt_utf8< wchar_t > >().from_bytes( output );
-#endif
+	return UTF8Converter().from_bytes( output );
+
+#endif // __unix__
+
 } // OutputOf
 
 //////////////////////////////////////////////////////////////////////////
 
-std::wstring Process::OutputOf( const std::wstring& rCommandLine )
+std::wstring Process::OutputOf( const std::wstring_view CommandLine )
 {
 	int Result;
-	return OutputOf( rCommandLine, Result );
+
+	return OutputOf( CommandLine, Result );
 
 } // OutputOf

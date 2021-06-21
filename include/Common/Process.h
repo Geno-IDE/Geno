@@ -17,12 +17,13 @@
 
 #pragma once
 #include <string>
+#include <string_view>
 
 namespace Process
 {
 
-extern int          ResultOf( const std::wstring& rCommandLine );
-extern std::wstring OutputOf( const std::wstring& rCommandLine, int& rResult );
-extern std::wstring OutputOf( const std::wstring& rCommandLine );
+extern int          ResultOf( const std::wstring_view CommandLine );
+extern std::wstring OutputOf( const std::wstring_view CommandLine, int& rResult );
+extern std::wstring OutputOf( const std::wstring_view CommandLine );
 
-}; // ::Process
+}; // namespace Process
