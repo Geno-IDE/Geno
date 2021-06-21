@@ -54,9 +54,10 @@ static ProcessID StartProcess( const std::wstring rCommandLine, FILE* OutputStre
 	StartupInfo.hStdOutput   = reinterpret_cast< HANDLE >( _get_osfhandle( fileno( OutputStream ) ) );
 	StartupInfo.hStdError    = reinterpret_cast< HANDLE >( _get_osfhandle( fileno( OutputStream ) ) );
 
-	Win32ProcessInfo ProcessInfo;
+	PROCESS_INFORMATION ProcessInfo;
 	WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( rCommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) );
-	return ProcessInfo->hProcess;
+	CloseHandle( ProcessInfo.hThread );
+	return ProcessInfo.hProcess;
 
 #else
 	ProcessID pid = fork();
@@ -84,6 +85,8 @@ static int WaitProcess( ProcessID pid )
 
 	while( WIN32_CALL( Result = GetExitCodeProcess( pid, &ExitCode ) ) && ExitCode == STILL_ACTIVE )
 		Sleep( 1 );
+
+	CloseHandle( pid );
 
 	return Result ? static_cast< int >( ExitCode ) : -1;
 #else
@@ -123,7 +126,6 @@ std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 		FILE* ProcOutputHandle = fdopen( _open_osfhandle( reinterpret_cast< long > ( Write ), _O_APPEND ), "w" );
 		ProcessID pid = StartProcess( rCommandLine, ProcOutputHandle );
 		rResult = WaitProcess( pid );
-		fclose(ProcOutputHandle);
 
 		DWORD BytesAvailable;
 		if( PeekNamedPipe( Read, nullptr, 0, nullptr, &BytesAvailable, nullptr ) && BytesAvailable )
@@ -135,7 +137,7 @@ std::wstring Process::OutputOf( const std::wstring& rCommandLine, int& rResult )
 			MultiByteToWideChar( CP_ACP, 0, AnsiBuffer.c_str(), BytesAvailable, Output.data(), BytesAvailable );
 		}
 
-		CloseHandle( Write );
+		fclose(ProcOutputHandle);
 		CloseHandle( Read );
 
 		return Output;
