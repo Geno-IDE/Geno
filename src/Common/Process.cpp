@@ -75,7 +75,7 @@ static ProcessID StartProcess( const std::wstring_view CommandLine, FILE* pOutpu
 		dup2( fileno( pOutputStream ), 1 );
 		dup2( fileno( pOutputStream ), 2 );
 
-		execl( "/bin/sh", "/bin/sh", "-c", std::wstring_convert< std::codecvt_utf8< wchar_t > >().to_bytes( CommandLine ).c_str(), NULL );
+		execl( "/bin/sh", "/bin/sh", "-c", UTF8Converter().to_bytes( CommandLine.data(), CommandLine.data() + CommandLine.size() ).c_str(), NULL );
 
 		exit( EXIT_FAILURE );
 	}
@@ -184,7 +184,7 @@ std::wstring Process::OutputOf( const std::wstring_view CommandLine, int& rResul
 	fclose( pStream );
 	close( FileDescriptors[ 0 ] );
 
-	return UTF8Converter().from_bytes( output );
+	return UTF8Converter().from_bytes( Output );
 
 #endif // __unix__
 
