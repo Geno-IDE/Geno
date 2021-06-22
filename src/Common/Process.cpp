@@ -32,18 +32,18 @@
 #include <Windows.h>
 #include <corecrt_io.h>
 #define fdopen _fdopen
-#elif defined( __unix__ ) // _WIN32
+#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 #include <sys/wait.h>
 #include <unistd.h>
-#endif // __unix__
+#endif // __linux__ || __APPLE__
 
 //////////////////////////////////////////////////////////////////////////
 
 #if defined( _WIN32 )
 using ProcessID = HANDLE;
-#elif defined( __unix__ ) // _WIN32
+#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 using ProcessID = pid_t;
-#endif // __unix__
+#endif // __linux__ || __APPLE__
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -65,7 +65,7 @@ static ProcessID StartProcess( const std::wstring_view CommandLine, FILE* pOutpu
 
 	return ProcessInfo.hProcess;
 
-#elif defined( __unix__ ) // _WIN32
+#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 
 	ProcessID PID = fork();
 
@@ -82,7 +82,7 @@ static ProcessID StartProcess( const std::wstring_view CommandLine, FILE* pOutpu
 
 	return PID;
 
-#endif // __unix__
+#endif // __linux__ || __APPLE__
 
 } // StartProcess
 
@@ -103,14 +103,14 @@ static int WaitProcess( ProcessID PID )
 
 	return Result ? static_cast< int >( ExitCode ) : -1;
 
-#elif defined( __unix__ ) // _WIN32
+#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 
 	int status;
 	waitpid( PID, &status, 0 );
 
 	return status;
 
-#endif // __unix__
+#endif // __linux__ || __APPLE__
 
 } // WaitProcess
 
@@ -162,7 +162,7 @@ std::wstring Process::OutputOf( const std::wstring_view CommandLine, int& rResul
 		return Output;
 	}
 
-#elif defined( __unix__ ) // _WIN32
+#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 
 	int FileDescriptors[ 2 ];
 	pipe( FileDescriptors );
@@ -186,7 +186,7 @@ std::wstring Process::OutputOf( const std::wstring_view CommandLine, int& rResul
 
 	return UTF8Converter().from_bytes( Output );
 
-#endif // __unix__
+#endif // __linux__ || __APPLE__
 
 } // OutputOf
 
