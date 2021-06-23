@@ -62,6 +62,9 @@ OutputWindow::OutputWindow( void )
 	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdOut ) >= 0 );
 	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdErr ) >= 0 );
 
+	// Make reading operations non-blocking
+	fcntl( m_Pipe[ READ ], F_SETFL, O_NONBLOCK );
+
 } // OutputWidget
 
 //////////////////////////////////////////////////////////////////////////
@@ -135,15 +138,17 @@ void OutputWindow::RedirectOutputStream( int* pFileDescriptor, FILE* pFileStream
 } // RedirectOutputStream
 
 //////////////////////////////////////////////////////////////////////////
+
 void OutputWindow::Capture( void )
 {
-	const long   StartingOffset = lseek( m_Pipe[ READ ], 0, SEEK_CUR );
-	const size_t TargetSize     = lseek( m_Pipe[ READ ], 0, SEEK_END ) + m_CapturedSize;
+	char    Buffer[ 1024 ];
+	ssize_t BytesRead;
 
-	lseek( m_Pipe[ READ ], StartingOffset, SEEK_SET );
-
-	m_pCaptured = static_cast< char* >( realloc( m_pCaptured, TargetSize ) );
-
-	for( ; m_CapturedSize < TargetSize; m_CapturedSize += read( m_Pipe[ READ ], &m_pCaptured[ m_CapturedSize ], static_cast< uint32_t >( TargetSize - m_CapturedSize ) ) );
+	while( ( BytesRead = read( m_Pipe[ READ ], Buffer, std::size( Buffer ) ) ) > 0 )
+	{
+		m_pCaptured = static_cast< char* >( realloc( m_pCaptured, m_CapturedSize + BytesRead ) );
+		memcpy( &m_pCaptured[ m_CapturedSize ], Buffer, BytesRead );
+		m_CapturedSize += BytesRead;
+	}
 
 } // Capture
