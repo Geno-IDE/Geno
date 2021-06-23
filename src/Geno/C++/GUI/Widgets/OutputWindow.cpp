@@ -62,8 +62,10 @@ OutputWindow::OutputWindow( void )
 	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdOut ) >= 0 );
 	GENO_ASSERT( dup2( m_Pipe[ WRITE ], m_StdErr ) >= 0 );
 
+#if defined( __linux__ ) || defined( __APPLE__ )
 	// Make reading operations non-blocking
 	fcntl( m_Pipe[ READ ], F_SETFL, O_NONBLOCK );
+#endif // __linux__ || __APPLE__
 
 } // OutputWidget
 
@@ -141,8 +143,24 @@ void OutputWindow::RedirectOutputStream( int* pFileDescriptor, FILE* pFileStream
 
 void OutputWindow::Capture( void )
 {
-	char    Buffer[ 1024 ];
-	ssize_t BytesRead;
+
+#if defined( _WIN32 )
+
+	// We can't make anonymous pipes non-blocking on Windows, but we can seek in them to figure out how many bytes we can read.
+
+	const long BytesToRead = lseek( m_Pipe[ READ ], 0, SEEK_END );
+
+	if( BytesToRead > 0 )
+	{
+		m_pCaptured = static_cast< char* >( realloc( m_pCaptured, m_CapturedSize + BytesToRead ) );
+		read( m_Pipe[ READ ], &m_pCaptured[ m_CapturedSize ], BytesToRead );
+		m_CapturedSize += BytesToRead;
+	}
+
+#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
+
+	char      Buffer[ 1024 ];
+	ptrdiff_t BytesRead;
 
 	while( ( BytesRead = read( m_Pipe[ READ ], Buffer, std::size( Buffer ) ) ) > 0 )
 	{
@@ -150,5 +168,7 @@ void OutputWindow::Capture( void )
 		memcpy( &m_pCaptured[ m_CapturedSize ], Buffer, BytesRead );
 		m_CapturedSize += BytesRead;
 	}
+
+#endif // __linux__ || __APPLE__
 
 } // Capture

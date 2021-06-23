@@ -156,11 +156,13 @@ std::wstring Process::OutputOf( const std::wstring_view CommandLine, int& rResul
 			MultiByteToWideChar( CP_ACP, 0, AnsiBuffer.c_str(), BytesAvailable, Output.data(), BytesAvailable );
 		}
 
-		CloseHandle( Write );
+		fclose( pProcOutputHandle );
 		CloseHandle( Read );
 
 		return Output;
 	}
+
+	return std::wstring();
 
 #elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 
