@@ -97,7 +97,13 @@ BuildMatrix BuildMatrix::PlatformDefault( void )
 			LinuxConfiguration.m_Compiler = std::make_shared< CompilerGCC >();
 			Target.Configurations.emplace_back( "Linux", std::move( LinuxConfiguration ) );
 		}
-	#endif // __linux__
+	#elif defined( __APPLE__ ) // __linux__
+		{
+			Configuration MacOSConfiguration;
+			MacOSConfiguration.m_Compiler = nullptr;
+			Target.Configurations.emplace_back( "macOS", std::move( MacOSConfiguration ) );
+		}
+	#endif // __APPLE__
 
 		Matrix.m_Columns.emplace_back( std::move( Target ) );
 	}
