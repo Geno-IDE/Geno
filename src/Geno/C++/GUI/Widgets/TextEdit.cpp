@@ -53,6 +53,7 @@ TextEdit::TextEdit( void )
 	palette.String              = 0xFF9E5817;
 	palette.Comment             = 0xFF0f5904;
 	palette.LineNumber          = 0xFFF0F0F0;
+	palette.Cursor              = 0xFFf8f8f8;
 	palette.Selection           = 0x80a06020;
 	palette.CurrentLine         = 0x40000000;
 	palette.CurrentLineInactive = 0x40808080;
