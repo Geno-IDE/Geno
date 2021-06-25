@@ -703,6 +703,8 @@ float TextEdit::GetDistance( File& file, Coordinate position ) const
 
 	float xOffset = 0.0f;
 
+	position.x = position.x >= line.size() ? line.size() - 1 : position.x;
+
 	for( int i = 0; i < position.x; i++ )
 	{
 		char c = line [ i ].c;
