@@ -31,6 +31,8 @@
 
 const char* WINDOW_NAME = "Text Edit";
 
+constexpr float TabSize = 4.0f;
+
 float TextEdit::fontSize = 15.0f;
 
 //////////////////////////////////////////////////////////////////////////
@@ -277,6 +279,7 @@ bool TextEdit::RenderEditor( File& file )
 	CalculeteLineNumMaxWidth( file );
 
 	props.CharAdvanceY = ImGui::GetTextLineHeightWithSpacing();
+	props.SpaceSize    = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, " " ).x;
 
 	ImVec2 size   = ImGui::GetContentRegionMax();
 	ImVec2 cursor = ImGui::GetCursorScreenPos();
@@ -364,7 +367,7 @@ bool TextEdit::RenderEditor( File& file )
 
 		for( Glyph& glyph: line )
 		{
-			if( glyph.color != prevColor )
+			if( glyph.color != prevColor || glyph.c == '\t' )
 			{
 				drawList->AddText( ImVec2( pos.x + xOffset, pos.y ), prevColor, stringBuffer.c_str() );
 				float textWidth = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, stringBuffer.c_str() ).x;
@@ -372,6 +375,18 @@ bool TextEdit::RenderEditor( File& file )
 				stringBuffer.clear();
 
 				prevColor = glyph.color;
+
+				if( glyph.c == '\t' )
+				{
+					float tab = TabSize * props.SpaceSize;
+
+					xOffset += tab;
+
+					float fraction = xOffset / tab;
+					fraction       = fraction - floorf( fraction );
+
+					xOffset -= tab * fraction;
+				}
 			}
 			else
 			{
@@ -684,20 +699,40 @@ float TextEdit::GetDistance( File& file, Coordinate position ) const
 {
 	const Line& line = file.Lines [ position.y ];
 
-	char* string = new char [ position.x + 1 ];
+	std::string string;
 
-	string [ position.x ] = 0;
+	float xOffset = 0.0f;
 
 	for( int i = 0; i < position.x; i++ )
 	{
-		string [ i ] = line [ i ].c;
+		char c = line [ i ].c;
+
+		if( c == '\t' )
+		{
+			xOffset += ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, string.c_str() ).x;
+
+			float tab = TabSize * props.SpaceSize;
+
+			xOffset += tab;
+
+			float fraction = xOffset / tab;
+			fraction       = fraction - floorf( fraction );
+
+			xOffset -= fraction * tab;
+			string.clear();
+		}
+		else
+		{
+			string.push_back( c );
+		}
 	}
 
-	float res = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, string ).x;
+	if( !string.empty() )
+	{
+		xOffset += ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, string.c_str() ).x;
+	}
 
-	delete [] string;
-
-	return res;
+	return xOffset;
 }
 
 std::string TextEdit::GetWordAt( File& file, Cursor& cursor ) const
