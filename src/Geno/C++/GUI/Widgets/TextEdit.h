@@ -163,6 +163,7 @@ class TextEdit
 	bool        RenderEditor( File& file );
 	void        HandleKeyboardInputs( File& file );
 	void        HandleMouseInputs( File& file );
+	void        ScrollToCursor( File& file );
 	void        CalculeteLineNumMaxWidth( File& file );
 	bool        HasSelection( File& file, int cursor ) const;
 	Cursor*     IsCoordinateInSelection( File& file, Coordinate coordinate, int offset = 0 );
