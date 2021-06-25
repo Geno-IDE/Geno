@@ -458,6 +458,8 @@ void TextEdit::HandleKeyboardInputs( File& file )
 
 			EnterTextStuff( file, c );
 		}
+
+		ScrollToCursor( file );
 	}
 }
 
@@ -547,6 +549,42 @@ void TextEdit::HandleMouseInputs( File& file )
 
 		if( io.MouseWheel != 0 && io.KeyCtrl && !io.KeyAlt && !io.KeyShift )
 			fontSize += io.MouseWheel;
+	}
+}
+
+void TextEdit::ScrollToCursor( File& file )
+{
+	float yScroll = ImGui::GetScrollY();
+	float xScroll = ImGui::GetScrollX();
+
+	ImVec2 size = ImGui::GetContentRegionAvail();
+
+	float top    = yScroll;
+	float bottom = top + size.y - ( props.CharAdvanceY * 2 );
+	float left   = xScroll;
+	float right  = left + size.x - 10.0f;
+
+	Cursor& cursor = file.cursors [ 0 ];
+
+	float cx = GetDistance( file, cursor.position );
+	float cy = cursor.position.y * props.CharAdvanceY;
+
+	if( cy < top )
+	{
+		ImGui::SetScrollY( cursor.position.y * props.CharAdvanceY );
+	}
+	else if( cy > bottom )
+	{
+		ImGui::SetScrollY( cursor.position.y * props.CharAdvanceY - size.y + ( props.CharAdvanceY * 2 ) );
+	}
+
+	if( cx < left )
+	{
+		ImGui::SetScrollX( cx );
+	}
+	else if( cx > right )
+	{
+		ImGui::SetScrollX( cx - size.x + 10.0f );
 	}
 }
 
