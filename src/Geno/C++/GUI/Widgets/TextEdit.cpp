@@ -771,7 +771,7 @@ std::string TextEdit::GetWordAt( File& file, Coordinate position, Coordinate* st
 			buffer.push_back( chr );
 		}
 
-		for( int i = position.x; i > 0; i-- )
+		for( int i = position.x; i >= 0; i-- )
 		{
 			char chr = l [ i ].c;
 			if( !cmpFunc( chr ) )
