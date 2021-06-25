@@ -152,6 +152,7 @@ class TextEdit
 	{
 		float CharAdvanceY;
 		float LineNumMaxWidth;
+		float SpaceSize;
 		float ScrollX;
 		float ScrollY;
 		bool  Changes;
