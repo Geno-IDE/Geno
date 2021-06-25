@@ -458,8 +458,6 @@ void TextEdit::HandleKeyboardInputs( File& file )
 
 			EnterTextStuff( file, c );
 		}
-
-		ScrollToCursor( file );
 	}
 }
 
@@ -1072,6 +1070,8 @@ void TextEdit::Enter( File& file )
 		c.position.x = 0;
 		lines.insert( lines.begin() + c.position.y, newLine );
 	}
+
+	ScrollToCursor( file );
 }
 
 void TextEdit::Backspace( File& file )
@@ -1121,6 +1121,8 @@ void TextEdit::Backspace( File& file )
 			YeetDuplicateCursors( file );
 		}
 	}
+
+	ScrollToCursor( file );
 }
 
 void TextEdit::Del( File& file )
@@ -1144,6 +1146,8 @@ void TextEdit::Del( File& file )
 			l.erase( l.begin() + c.position.x );
 		}
 	}
+
+	ScrollToCursor( file );
 }
 
 void TextEdit::Tab( File& file, bool shift )
@@ -1192,6 +1196,8 @@ void TextEdit::Tab( File& file, bool shift )
 			AdjustCursors( file, i, -1, 0 );
 		}
 	}
+
+	ScrollToCursor( file );
 }
 
 void TextEdit::EnterTextStuff( File& file, char c, bool shift )
@@ -1217,6 +1223,8 @@ void TextEdit::EnterTextStuff( File& file, char c, bool shift )
 
 		AdjustCursors( file, i, -1, 0 );
 	}
+
+	ScrollToCursor( file );
 }
 
 void TextEdit::MoveUp( File& file, bool shift )
@@ -1275,6 +1283,7 @@ void TextEdit::MoveUp( File& file, bool shift )
 
 	DeleteDisabledCursor( file );
 	YeetDuplicateCursors( file );
+	ScrollToCursor( file );
 }
 
 void TextEdit::MoveDown( File& file, bool shift )
@@ -1333,6 +1342,7 @@ void TextEdit::MoveDown( File& file, bool shift )
 
 	DeleteDisabledCursor( file );
 	YeetDuplicateCursors( file );
+	ScrollToCursor( file );
 }
 
 void TextEdit::MoveRight( File& file, bool ctrl, bool shift )
@@ -1407,6 +1417,7 @@ void TextEdit::MoveRight( File& file, bool ctrl, bool shift )
 
 	DeleteDisabledCursor( file );
 	YeetDuplicateCursors( file );
+	ScrollToCursor( file );
 }
 
 void TextEdit::MoveLeft( File& file, bool ctrl, bool shift )
@@ -1491,4 +1502,5 @@ void TextEdit::MoveLeft( File& file, bool ctrl, bool shift )
 
 	DeleteDisabledCursor( file );
 	YeetDuplicateCursors( file );
+	ScrollToCursor( file );
 }
