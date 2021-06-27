@@ -1384,7 +1384,20 @@ void TextEdit::Del( File& rFile )
 
 			Line& rLine = rFile.Lines[ rCursor.Position.y ];
 
-			rLine.erase( rLine.begin() + rCursor.Position.x );
+			if( rCursor.Position.x >= rLine.size() )
+			{
+				if( rCursor.Position.y == rFile.Lines.size() - 1 ) continue;
+
+				Line& rNextLine = rFile.Lines[ rCursor.Position.y + 1 ];
+
+				rLine.insert( rLine.end(), rNextLine.begin(), rNextLine.end() );
+
+				rFile.Lines.erase( rFile.Lines.begin() + rCursor.Position.y + 1 );
+			}
+			else
+			{
+				rLine.erase( rLine.begin() + rCursor.Position.x );
+			}
 		}
 	}
 
