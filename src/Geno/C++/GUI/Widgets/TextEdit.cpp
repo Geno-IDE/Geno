@@ -274,8 +274,10 @@ void TextEdit::SplitLines( File& rFile )
 	{
 		const char c = rFile.Text[ i ];
 
-		if( c == '\n' )
+		if( c == '\n' || c == '\r' )
 		{
+			if( c == '\r' ) i++;
+
 			rFile.Lines.push_back( LineBuffer );
 			LineBuffer.clear();
 		}
