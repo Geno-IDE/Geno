@@ -30,7 +30,7 @@ struct ImGuiTabBar;
 
 class TextEdit
 {
-   public:
+public:
 	struct Palette
 	{
 		unsigned int Default;
@@ -52,8 +52,8 @@ class TextEdit
 		unsigned int Color;
 
 		Glyph( char C, unsigned int Color )
-		 : C( C )
-		 , Color( Color )
+			: C( C )
+			, Color( Color )
 		{
 		}
 	};
@@ -64,13 +64,13 @@ class TextEdit
 		int y;
 
 		Coordinate()
-		 : x( 0 )
-		 , y( 0 )
+			: x( 0 )
+			, y( 0 )
 		{
 		}
 		Coordinate( int x, int y )
-		 : x( x )
-		 , y( y )
+			: x( x )
+			, y( y )
 		{
 		}
 
@@ -151,7 +151,7 @@ class TextEdit
 
 	static float FontSize;
 
-   private:
+private:
 	typedef Coordinate Scroll;
 
 	struct Properties
