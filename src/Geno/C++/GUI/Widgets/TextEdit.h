@@ -19,6 +19,7 @@
 #include <Common/Macros.h>
 #include <Common/Texture2D.h>
 #include <filesystem>
+#include <imgui.h>
 #include <string>
 #include <vector>
 
@@ -157,7 +158,6 @@ class TextEdit
 		float ScrollY;
 		bool  Changes;
 		int   CursorBlink = 400;
-
 	} props;
 
 	void        SplitLines( File& file );
@@ -173,9 +173,14 @@ class TextEdit
 	float       GetDistance( File& file, Coordinate position ) const;
 	std::string GetWordAt( File& file, Cursor& cursor ) const;
 	std::string GetWordAt( File& file, Coordinate position, Coordinate* start, Coordinate* end ) const;
+	bool        IsCoordinateInText( File& file, Coordinate position );
+	void        AdjustCursorIfInText( File& file, Cursor& cursor, int line, int xOffset );
+	void        AdjustCursor( File& file, Cursor& cursor, int xOffset );
 	void        SetSelectionLine( File& file, int line );
 	void        SetSelection( File& file, Coordinate start, Coordinate end, int cursor );
 	Coordinate  GetCoordinate( File& file, ImVec2 position, bool relativeToEditor = false );
+	Coordinate  CalculateTabAlignment( File& file, Coordinate fromPosition );
+	float       CalculateTabAlignmentDistance( File& file, Coordinate fromPosition );
 	void        AdjustCursors( File& file, int cursor, int xOffset, int yOffset );
 	void        YeetDuplicateCursors( File& file );
 	void        DisableIntersectingSelections( File& file, int cursor );
