@@ -52,14 +52,12 @@ app( 'Geno' )
 		}
 
 	filter 'system:macosx'
+		files {
+			"data",
+		}
 		links {
 			'CoreGraphics.framework',
 			'IOKit.framework',
 			'AppKit.framework',
 			'OpenGL.framework',
-		}
-
-	filter 'system:ios'
-		files {
-			'data'
 		}
