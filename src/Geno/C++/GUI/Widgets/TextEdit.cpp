@@ -1032,19 +1032,6 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool
 
 	for( int i = 0; i < LineSize; i++ )
 	{
-		/*string[i] = l[i].c;
-
-		float currLength = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, string ).x;
-		float diff       = currLength - length;
-
-		if( currLength - ( diff / 2.0f ) > Position.x )
-		{
-			delete [] string;
-			return Coordinate( i, Line );
-		}
-
-		length = currLength;*/
-
 		string[ 0 ] = rLine[ i ].C;
 
 		float diff = 0.0f;
