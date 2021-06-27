@@ -23,6 +23,6 @@
 namespace STBAux
 {
 
-extern Texture2D LoadImageTexture( const char* pPath );
+extern Texture2D LoadImageTexture( const char* pRelativePath );
 
 } // STBAux

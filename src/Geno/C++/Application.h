@@ -44,6 +44,10 @@ public:
 	void       PopModal        ( void );
 	IModal*    NextModal       ( IModal* pPrevious );
 	Workspace* CurrentWorkspace( void );
+	
+//////////////////////////////////////////////////////////////////////////
+
+	const std::filesystem::path& GetDataDir( void ) const { return m_DataDir; }
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -55,6 +59,8 @@ private:
 
 	std::optional< Workspace > m_CurrentWorkspace;
 	std::vector< IModal* >     m_ModalStack;
-	std::filesystem::path      m_Location;
+	std::filesystem::path      m_ExePath;
+	std::filesystem::path      m_AppDir;
+	std::filesystem::path      m_DataDir;
 
 }; // Application

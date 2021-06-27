@@ -24,16 +24,18 @@
 
 #include "STBAux.h"
 
+#include "Application.h"
+
 #include <stb_image.h>
 
 //////////////////////////////////////////////////////////////////////////
 
-Texture2D STBAux::LoadImageTexture( const char* pPath )
+Texture2D STBAux::LoadImageTexture( const char* pRelativePath )
 {
 	Texture2D Texture;
 	int       Width;
 	int       Height;
-	stbi_uc*  pData = stbi_load( pPath, &Width, &Height, nullptr, STBI_rgb_alpha );
+	stbi_uc*  pData = stbi_load( ( Application::Instance().GetDataDir() / pRelativePath ).string().c_str(), &Width, &Height, nullptr, STBI_rgb_alpha );
 
 	if( pData )
 	{

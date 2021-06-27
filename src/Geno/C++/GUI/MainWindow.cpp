@@ -17,6 +17,7 @@
 
 #include "MainWindow.h"
 
+#include "Application.h"
 #include "Common/LocalAppData.h"
 #include "GUI/Platform/Win32/Win32DropTarget.h"
 #include "GUI/PrimaryMonitor.h"
@@ -113,8 +114,9 @@ MainWindow::MainWindow( void )
 	rIO.ConfigViewportsNoTaskBarIcon = true;
 
 	// Load custom fonts
-	m_pFontSans = rIO.Fonts->AddFontFromFileTTF( "Fonts/LieraSans/LieraSans-Regular.ttf", 15.0f );
-	m_pFontMono = rIO.Fonts->AddFontFromFileTTF( "Fonts/LVC-Mono/LVCMono.otf",            15.0f );
+	const std::filesystem::path FontsDir = Application::Instance().GetDataDir() / L"Fonts";
+	m_pFontSans = rIO.Fonts->AddFontFromFileTTF( ( FontsDir / L"LieraSans" / L"LieraSans-Regular.ttf" ).string().c_str(), 15.0f );
+	m_pFontMono = rIO.Fonts->AddFontFromFileTTF( ( FontsDir / L"LVC-Mono"  / L"LVCMono.otf"           ).string().c_str(), 15.0f );
 	rIO.Fonts->Build();
 
 	// Set up custom settings handler
