@@ -31,6 +31,7 @@
 const char* WINDOW_NAME = "Text Edit";
 
 constexpr float TabSize = 4.0f;
+constexpr float EmptyLineSelectionWidth = 4.0f;
 
 float TextEdit::fontSize = 15.0f;
 
@@ -311,8 +312,16 @@ bool TextEdit::RenderEditor( File& file )
 		{
 			for( int j = 0; j < count; j++ )
 			{
-				ImVec2 start( cursor.x + props.LineNumMaxWidth + GetDistance( file, selectedStart [ j ] ) - props.ScrollX, pos.y );
-				ImVec2 end( cursor.x + props.LineNumMaxWidth + GetDistance( file, selectedEnd [ j ] ) - props.ScrollX, pos.y + props.CharAdvanceY );
+				float startX = 0.0f;
+				float endX = EmptyLineSelectionWidth;
+
+				if (selectedStart[j] != selectedEnd[j]) {
+					startX = GetDistance(file, selectedStart[j]);
+					endX = GetDistance(file, selectedEnd[j]);
+				}
+
+				ImVec2 start( cursor.x + props.LineNumMaxWidth + startX - props.ScrollX, pos.y );
+				ImVec2 end( cursor.x + props.LineNumMaxWidth + endX - props.ScrollX, pos.y + props.CharAdvanceY );
 
 				drawList->AddRectFilled( start, end, palette.Selection );
 			}
