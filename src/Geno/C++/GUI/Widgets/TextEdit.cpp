@@ -24,8 +24,9 @@
 #include "GUI/Widgets/MainMenuBar.h"
 
 #include <fstream>
-#include <imgui_internal.h>
 #include <iostream>
+
+#include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
 const char* WINDOW_NAME = "Text Edit";
@@ -522,6 +523,10 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 			Del( rFile );
 		else if( !Alt && !Ctrl && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Tab ) ) )
 			Tab( rFile, Shift );
+		else if( !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Home ) ) )
+			Home( rFile, Ctrl, Shift );
+		else if( !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_End ) ) )
+			End( rFile, Ctrl, Shift );
 		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Escape ) ) )
 			rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
 
@@ -1707,7 +1712,7 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift )
 
 		if( rCursor.Position.x == ( int )rLine.size() )
 		{
-			if (rCursor.Position.y == (int)rFile.Lines.size() - 1) continue;
+			if( rCursor.Position.y == ( int )rFile.Lines.size() - 1 ) continue;
 
 			rCursor.Position.x = 0;
 			rCursor.Position.y++;
@@ -1861,5 +1866,143 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift )
 	ScrollToCursor( rFile );
 
 } // MoveLeft
+
+void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
+{
+	for( int i = 0; i < rFile.Cursors.size(); i++ )
+	{
+		Cursor& rCursor = rFile.Cursors[ i ];
+
+		if( rCursor.Disabled ) continue;
+
+		if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) && Shift )
+		{
+			rCursor.SelectionEnd = rCursor.SelectionOrigin = rCursor.Position;
+		}
+
+		Coordinate NewPos( 0, rCursor.Position.y );
+
+		if( !Ctrl )
+		{
+			Coordinate  End;
+			std::string Word = GetWordAt( rFile, NewPos, nullptr, &End );
+
+			if( !Word.empty() )
+			{
+				if( ( Word[ 0 ] == ' ' || Word[ 0 ] == '\t' ) && End != rCursor.Position )
+				{
+					NewPos = End;
+				}
+			}
+		}
+		else
+		{
+			NewPos.y = 0;
+		}
+
+		if( Shift )
+		{
+			rCursor.SelectionEnd = rCursor.SelectionOrigin;
+			rCursor.Position = rCursor.SelectionStart = NewPos;
+
+			Cursor* pChamp = &rCursor;
+			int     Offset = 0;
+
+			while( Cursor* pOther = IsCoordinateInSelection( rFile, pChamp->Position, Offset ) )
+			{
+				if( pOther == pChamp )
+				{
+					Offset++;
+					continue;
+				}
+
+				if( pChamp->SelectionEnd > pOther->SelectionEnd )
+				{
+					pOther->SelectionEnd = pOther->SelectionOrigin = pChamp->SelectionEnd;
+					pChamp->Disabled                               = true;
+					pChamp                                         = pOther;
+				}
+				else
+				{
+					pChamp->Disabled = true;
+					pChamp           = pOther;
+				}
+			}
+
+			continue;
+		}
+
+		rCursor.Position       = NewPos;
+		rCursor.SelectionStart = rCursor.SelectionEnd = Coordinate( 0, 0 );
+		rCursor.SelectionOrigin                       = Coordinate( -1, -1 );
+	}
+
+	DeleteDisabledCursor( rFile );
+	YeetDuplicateCursors( rFile );
+
+	if( Ctrl ) ScrollToCursor( rFile );
+
+} // Home
+
+void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
+{
+	for( int i = 0; i < rFile.Cursors.size(); i++ )
+	{
+		Cursor& rCursor = rFile.Cursors[ i ];
+
+		if( rCursor.Disabled ) continue;
+
+		if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) && Shift )
+		{
+			rCursor.SelectionStart = rCursor.SelectionOrigin = rCursor.Position;
+		}
+
+		Coordinate NewPos( 0, Ctrl ? ( int )rFile.Lines.size() - 1 : rCursor.Position.y );
+
+		NewPos.x = rFile.Lines[ NewPos.y ].size();
+
+		if( Shift )
+		{
+			rCursor.SelectionStart = rCursor.SelectionOrigin;
+			rCursor.Position = rCursor.SelectionEnd = NewPos;
+
+			Cursor* pChamp = &rCursor;
+			int     Offset = 0;
+
+			while( Cursor* pOther = IsCoordinateInSelection( rFile, pChamp->Position, Offset ) )
+			{
+				if( pOther == pChamp )
+				{
+					Offset++;
+					continue;
+				}
+
+				if( pChamp->SelectionStart < pOther->SelectionStart )
+				{
+					pOther->SelectionStart = pOther->SelectionOrigin = pChamp->SelectionStart;
+					pChamp->Disabled                                 = true;
+					pChamp                                           = pOther;
+				}
+				else
+				{
+					pChamp->Disabled = true;
+					pChamp           = pOther;
+				}
+			}
+
+			continue;
+		}
+
+		rCursor.Position       = NewPos;
+		rCursor.SelectionStart = rCursor.SelectionEnd = Coordinate( 0, 0 );
+		rCursor.SelectionOrigin                       = Coordinate( -1, -1 );
+	}
+
+	DeleteDisabledCursor( rFile );
+	YeetDuplicateCursors( rFile );
+
+	if( Ctrl ) ScrollToCursor( rFile );
+
+} // End
 
 //////////////////////////////////////////////////////////////////////////
