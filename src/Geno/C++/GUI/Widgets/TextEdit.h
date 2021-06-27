@@ -141,6 +141,9 @@ class TextEdit
 	void Show( bool* pOpen );
 	void AddFile( const std::filesystem::path& rPath );
 	void OnDragDrop( const Drop& rDrop, int X, int Y );
+	void SaveFile( File& file );
+	void SplitLines( File& file );
+	void JoinLines( File& file );
 
 	//////////////////////////////////////////////////////////////////////////
 
@@ -160,7 +163,6 @@ class TextEdit
 		int   CursorBlink = 400;
 	} props;
 
-	void        SplitLines( File& file );
 	bool        RenderEditor( File& file );
 	void        HandleKeyboardInputs( File& file );
 	void        HandleMouseInputs( File& file );
