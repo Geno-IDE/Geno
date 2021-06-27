@@ -1035,39 +1035,35 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool
 	}
 
 	int LineIndex = ( int )( ( ( Position.y + Props.ScrollY ) / Props.CharAdvanceY ) - ( Props.ScrollY / Props.CharAdvanceY ) );
-
-	int NumLines = ( int )rFile.Lines.size();
+	int NumLines  = ( int )rFile.Lines.size();
 
 	if( LineIndex > NumLines - 1 )
 	{
 		LineIndex = NumLines - 1;
 	}
 
-	const Line& rLine = rFile.Lines[ LineIndex ];
-
-	int LineSize = ( int )rLine.size();
-
-	char string[ 2 ] = { 0, 0 };
-
-	float length = 0.0f;
+	const Line& rLine       = rFile.Lines[ LineIndex ];
+	int         LineSize    = ( int )rLine.size();
+	char        String[ 2 ] = { 0, 0 };
+	float       Length      = 0.0f;
 
 	for( int i = 0; i < LineSize; i++ )
 	{
-		string[ 0 ] = rLine[ i ].C;
+		String[ 0 ] = rLine[ i ].C;
 
-		float diff = 0.0f;
+		float Diff = 0.0f;
 
-		if( string[ 0 ] == '\t' )
+		if( String[ 0 ] == '\t' )
 		{
-			diff   = TabSize * Props.SpaceSize;
-			length = CalculateTabAlignmentDistance( rFile, Coordinate( i + 1, LineIndex ) ) + diff;
+			Diff   = TabSize * Props.SpaceSize;
+			Length = CalculateTabAlignmentDistance( rFile, Coordinate( i + 1, LineIndex ) ) + Diff;
 		}
 		else
 		{
-			length += diff = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, string ).x;
+			Length += Diff = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, String ).x;
 		}
 
-		if( length - ( diff / 2.0f ) > Position.x )
+		if( Length - ( Diff / 2.0f ) > Position.x )
 		{
 			return Coordinate( i, LineIndex );
 		}
