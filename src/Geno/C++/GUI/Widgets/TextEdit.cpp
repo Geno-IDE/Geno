@@ -579,8 +579,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 		}
 		else if( Clicked )
 		{
-			Cursor cursor;
-			cursor.Position = cursor.SelectionOrigin = GetCoordinate( rFile, ImGui::GetMousePos() );
+			Coordinate NewPosition = GetCoordinate( rFile, ImGui::GetMousePos() );
 
 			if( Ctrl && !( Alt || Shift ) )
 			{
@@ -591,15 +590,46 @@ void TextEdit::HandleMouseInputs( File& rFile )
 
 				Cursor& rCursor = rFile.Cursors[ 0 ];
 
-				rCursor.SelectionStart = rCursor.SelectionOrigin = rCursor.Position;
-				rCursor.SelectionEnd = rCursor.Position = cursor.Position;
+				if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) )
+				{
+					if( NewPosition > rCursor.Position )
+					{
+						rCursor.SelectionOrigin = rCursor.SelectionStart = rCursor.Position;
+						rCursor.SelectionEnd = rCursor.Position = NewPosition;
+					}
+					else
+					{
+						rCursor.SelectionOrigin = rCursor.SelectionEnd = rCursor.Position;
+						rCursor.SelectionStart = rCursor.Position = NewPosition;
+					}
+				}
+				else
+				{
+					if( NewPosition > rCursor.SelectionOrigin )
+					{
+						rCursor.SelectionStart = rCursor.SelectionOrigin;
+						rCursor.SelectionEnd = rCursor.Position = NewPosition;
+					}
+					else
+					{
+						rCursor.SelectionEnd   = rCursor.SelectionOrigin;
+						rCursor.SelectionStart = rCursor.Position = NewPosition;
+					}
+				}
 			}
 			else
 			{
 				if( !( Ctrl && Alt ) ) rFile.Cursors.clear();
 
-				if( IsCoordinateInSelection( rFile, cursor.Position ) == nullptr )
-					rFile.Cursors.push_back( cursor );
+				if( IsCoordinateInSelection( rFile, NewPosition ) == nullptr )
+				{
+					Cursor NewCursor;
+
+					NewCursor.Position       = NewPosition;
+					NewCursor.SelectionStart = NewCursor.SelectionEnd = Coordinate( 0, 0 );
+
+					rFile.Cursors.push_back( NewCursor );
+				}
 			}
 		}
 		else if( Dragged )
@@ -622,7 +652,11 @@ void TextEdit::HandleMouseInputs( File& rFile )
 
 				rCursor.Position = Pos;
 
-				DisableIntersectingSelections( rFile, ( int )rFile.Cursors.size() - 1 );
+				DisableIntersectionsInSelection( rFile, ( int )rFile.Cursors.size() - 1 );
+			}
+			else
+			{
+				rCursor.SelectionOrigin = rCursor.Position;
 			}
 		}
 
@@ -1171,7 +1205,7 @@ void TextEdit::YeetDuplicateCursors( File& rFile )
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEdit::DisableIntersectingSelections( File& rFile, int CursorIndex )
+void TextEdit::DisableIntersectionsInSelection( File& rFile, int CursorIndex )
 {
 	Cursor& rCursor = rFile.Cursors[ CursorIndex ];
 
@@ -1181,7 +1215,7 @@ void TextEdit::DisableIntersectingSelections( File& rFile, int CursorIndex )
 
 		Cursor& rCursor2 = rFile.Cursors[ i ];
 
-		if( ( rCursor2.SelectionStart > rCursor.SelectionStart && rCursor2.SelectionStart < rCursor.SelectionEnd ) || ( rCursor2.SelectionEnd > rCursor.SelectionStart && rCursor2.SelectionEnd < rCursor.SelectionEnd ) )
+		if( ( rCursor2.SelectionStart > rCursor.SelectionStart && rCursor2.SelectionStart < rCursor.SelectionEnd ) || ( rCursor2.SelectionEnd > rCursor.SelectionStart && rCursor2.SelectionEnd < rCursor.SelectionEnd ) || ( rCursor2.Position >= rCursor.SelectionStart && rCursor2.Position <= rCursor.SelectionEnd ) )
 		{
 			rCursor2.Disabled = true;
 		}

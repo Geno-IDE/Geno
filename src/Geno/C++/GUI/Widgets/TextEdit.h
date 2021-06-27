@@ -187,7 +187,7 @@ private:
 	float       CalculateTabAlignmentDistance( File& rFile, Coordinate FromPosition );
 	void        AdjustCursors( File& rFile, int Cursor, int XOffset, int YOffset );
 	void        YeetDuplicateCursors( File& rFile );
-	void        DisableIntersectingSelections( File& rFile, int Cursor );
+	void        DisableIntersectionsInSelection( File& rFile, int Cursor );
 	void        DeleteDisabledCursor( File& rFile );
 	void        DeleteSelection( File& rFile, int Cursor );
 	void        Enter( File& rFile );
