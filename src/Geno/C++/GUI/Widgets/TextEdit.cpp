@@ -24,7 +24,6 @@
 #include "GUI/Widgets/MainMenuBar.h"
 
 #include <fstream>
-#include <imgui.h>
 #include <imgui_internal.h>
 #include <iostream>
 #include <misc/cpp/imgui_stdlib.h>
@@ -368,7 +367,7 @@ bool TextEdit::RenderEditor( File& file )
 
 		for( Glyph& glyph: line )
 		{
-			if( glyph.color != prevColor || glyph.c == '\t' )
+			if( glyph.color != prevColor || glyph.c == '\t' && !stringBuffer.empty() )
 			{
 				drawList->AddText( ImVec2( pos.x + xOffset, pos.y ), prevColor, stringBuffer.c_str() );
 				float textWidth = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, stringBuffer.c_str() ).x;
@@ -388,6 +387,10 @@ bool TextEdit::RenderEditor( File& file )
 
 					xOffset -= tab * fraction;
 				}
+			}
+			else if( glyph.c == '\t' )
+			{
+				xOffset += TabSize * props.SpaceSize;
 			}
 			else
 			{
@@ -712,11 +715,13 @@ float TextEdit::GetDistance( File& file, Coordinate position ) const
 
 		if( c == '\t' )
 		{
-			xOffset += ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, string.c_str() ).x;
-
 			float tab = TabSize * props.SpaceSize;
 
 			xOffset += tab;
+
+			if( string.empty() ) continue;
+
+			xOffset += ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, string.c_str() ).x;
 
 			float fraction = xOffset / tab;
 			fraction       = fraction - floorf( fraction );
@@ -850,6 +855,35 @@ std::string TextEdit::GetWordAt( File& file, Coordinate position, Coordinate* st
 	return std::string();
 }
 
+bool TextEdit::IsCoordinateInText( File& file, Coordinate position )
+{
+	if( position.x == 0 ) return false;
+
+	Coordinate start;
+
+	GetWordAt( file, Coordinate( position.x - 1, position.y ), &start, nullptr );
+
+	if( start.x == 0 ) return false;
+
+	return true;
+}
+
+void TextEdit::AdjustCursorIfInText( File& file, Cursor& cursor, int line, int xOffset )
+{
+	if( IsCoordinateInText( file, cursor.position ) && line == cursor.position.y ) cursor.position.x += xOffset;
+	if( IsCoordinateInText( file, cursor.selectionOrigin ) && line == cursor.selectionOrigin.y ) cursor.selectionOrigin.x += xOffset;
+	if( IsCoordinateInText( file, cursor.selectionStart ) && line == cursor.selectionStart.y ) cursor.selectionStart.x += xOffset;
+	if( IsCoordinateInText( file, cursor.selectionEnd ) && line == cursor.selectionEnd.y ) cursor.selectionEnd.x += xOffset;
+}
+
+void TextEdit::AdjustCursor( File& file, Cursor& cursor, int xOffset )
+{
+	cursor.position.x += xOffset;
+	cursor.selectionOrigin.x += xOffset;
+	cursor.selectionStart.x += xOffset;
+	cursor.selectionEnd.x += xOffset;
+}
+
 void TextEdit::SetSelectionLine( File& file, int line )
 {
 	if( line >= file.Lines.size() ) return;
@@ -944,6 +978,28 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& file, ImVec2 position, bool 
 	}
 
 	return Coordinate( ( int )l.size(), line );
+}
+
+TextEdit::Coordinate TextEdit::CalculateTabAlignment( File& file, Coordinate fromPosition )
+{
+	return GetCoordinate( file, ImVec2( CalculateTabAlignmentDistance(file, fromPosition), fromPosition.y * props.CharAdvanceY ), true );
+}
+
+float TextEdit::CalculateTabAlignmentDistance(File& file, Coordinate fromPosition) {
+	float dist = GetDistance(file, fromPosition);
+
+	float tab = TabSize * props.SpaceSize;
+
+	float fraction = dist / tab;
+	fraction = fraction - floorf(fraction) - 0.000001f;
+
+	if (fraction <= 0.0f) fraction = 1.0f;
+
+	float newDist = dist - fraction * tab;
+
+	if (newDist < 0.0f) newDist = 0.0f;
+
+	return newDist;
 }
 
 void TextEdit::AdjustCursors( File& file, int cursor, int xOffset, int yOffset )
@@ -1208,8 +1264,77 @@ void TextEdit::Tab( File& file, bool shift )
 
 		if( c.disabled ) continue;
 
+		bool selection = HasSelection( file, i );
+
 		if( shift )
 		{
+			if( selection && c.selectionStart.y != c.selectionEnd.y )
+			{
+				for( int j = c.selectionStart.y; j <= c.selectionEnd.y; j++ )
+				{
+					Line& l = file.Lines [ j ];
+
+					if( l.empty() ) continue;
+
+					Coordinate start;
+					Coordinate end;
+
+					std::string word = GetWordAt( file, Coordinate( 0, j ), &start, &end );
+
+					if( word.empty() ) continue;
+					if( word [ 0 ] != ' ' && word [ 0 ] != '\t' ) continue;
+
+					Coordinate newCoord = CalculateTabAlignment( file, end );
+
+					if( start.x > newCoord.x ) newCoord.x = start.x;
+
+					l.erase( l.begin() + newCoord.x, l.begin() + end.x );
+
+					AdjustCursorIfInText( file, c, j, newCoord.x - end.x );
+				}
+
+				continue;
+			}
+
+			Coordinate pos = selection ? c.selectionStart : c.position;
+
+			if( pos.x == 0 ) continue;
+
+			Line& l = file.Lines [ c.position.y ];
+
+			char chr = l [ pos.x - 1 ].c;
+
+			if( chr != ' ' && chr != '\t' ) continue;
+
+			Coordinate start;
+			Coordinate end;
+
+			GetWordAt( file, Coordinate( pos.x - 1, pos.y ), &start, &end );
+
+			if( end != pos )
+			{
+				start = end;
+				end   = pos;
+			}
+
+			Coordinate newCoord = CalculateTabAlignment( file, end );
+
+			if( start.x > newCoord.x ) newCoord.x = start.x;
+
+			l.erase( l.begin() + newCoord.x, l.begin() + end.x );
+
+			int offset = end.x - newCoord.x;
+
+			c.position.x -= offset;
+
+			if( selection )
+			{
+				c.selectionOrigin.x -= offset;
+				c.selectionStart.x -= offset;
+				c.selectionEnd.x -= offset;
+			}
+
+			AdjustCursors(file, i, offset, 0);
 		}
 		else
 		{
@@ -1226,12 +1351,9 @@ void TextEdit::Tab( File& file, bool shift )
 						Line& l = file.Lines [ j ];
 
 						l.insert( l.begin(), Glyph( '\t', palette.Default ) );
-					}
 
-					c.position.x++;
-					c.selectionStart.x++;
-					c.selectionEnd.x++;
-					c.selectionOrigin.x++;
+						AdjustCursorIfInText( file, c, j, 1 );
+					}
 
 					continue;
 				}
