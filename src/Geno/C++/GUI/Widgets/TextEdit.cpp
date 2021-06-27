@@ -245,6 +245,17 @@ void TextEdit::OnDragDrop( const Drop& rDrop, int X, int Y )
 
 } // OnDragDrop
 
+void TextEdit::SaveFile(File& file) {
+	if (!file.Changed) return;
+
+	JoinLines(file);
+
+	std::ofstream ofs(file.Path, std::ios::binary | std::ios::trunc);
+	ofs << file.Text;
+
+	file.Changed = false;
+}
+
 void TextEdit::SplitLines( File& file )
 {
 	file.Lines.clear();
@@ -267,6 +278,20 @@ void TextEdit::SplitLines( File& file )
 	}
 
 	file.Lines.push_back( lineBuffer );
+}
+
+void TextEdit::JoinLines(File& file) {
+	file.Text.clear();
+
+	for (size_t i = 0; i < file.Lines.size(); i++) {
+		Line& line = file.Lines[i];
+
+		for (size_t j = 0; j < line.size(); j++) {
+			file.Text.push_back(line[j].c);
+		}
+
+		file.Text.push_back('\n');
+	}
 }
 
 bool TextEdit::RenderEditor( File& file )
@@ -484,7 +509,12 @@ void TextEdit::HandleKeyboardInputs( File& file )
 		{
 			char c = ( char )io.InputQueueCharacters [ i ];
 
-			EnterTextStuff( file, c );
+			if (c == 'a') {
+				SaveFile(file);
+			} else {
+				EnterTextStuff( file, c );
+			}
+
 		}
 	}
 }
@@ -1153,6 +1183,8 @@ void TextEdit::DeleteSelection( File& file, int cursor )
 		c.selectionEnd    = { 0, 0 };
 		c.selectionOrigin = { -1, -1 };
 	}
+
+	props.Changes = true;
 }
 
 void TextEdit::Enter( File& file )
@@ -1184,6 +1216,8 @@ void TextEdit::Enter( File& file )
 		c.position.y++;
 		c.position.x = 0;
 		lines.insert( lines.begin() + c.position.y, newLine );
+
+		props.Changes = true;
 	}
 
 	ScrollToCursor( file );
@@ -1224,6 +1258,8 @@ void TextEdit::Backspace( File& file )
 
 				c.position.x = x;
 				c.position.y--;
+
+				props.Changes = true;
 			}
 			else if( !( c.position.y == 0 && c.position.x == 0 ) )
 			{
@@ -1231,7 +1267,11 @@ void TextEdit::Backspace( File& file )
 				line.erase( line.begin() + c.position.x );
 
 				AdjustCursors( file, i, 1, 0 );
+			} else {
+				continue;
 			}
+
+			props.Changes = true;
 
 			YeetDuplicateCursors( file );
 		}
@@ -1302,6 +1342,8 @@ void TextEdit::Tab( File& file, bool shift )
 					AdjustCursorIfInText( file, c, j, newCoord.x - end.x );
 				}
 
+				props.Changes = true;
+
 				continue;
 			}
 
@@ -1344,6 +1386,8 @@ void TextEdit::Tab( File& file, bool shift )
 			}
 
 			AdjustCursors(file, i, offset, 0);
+
+			props.Changes = true;
 		}
 		else
 		{
@@ -1364,6 +1408,8 @@ void TextEdit::Tab( File& file, bool shift )
 						AdjustCursorIfInText( file, c, j, 1 );
 					}
 
+					props.Changes = true;
+
 					continue;
 				}
 			}
@@ -1376,6 +1422,8 @@ void TextEdit::Tab( File& file, bool shift )
 			c.selectionOrigin = Coordinate( -1, -1 );
 
 			AdjustCursors( file, i, -1, 0 );
+
+			props.Changes = true;
 		}
 	}
 
