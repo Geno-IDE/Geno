@@ -175,7 +175,7 @@ class TextEdit
 	std::string GetWordAt( File& file, Coordinate position, Coordinate* start, Coordinate* end ) const;
 	void        SetSelectionLine( File& file, int line );
 	void        SetSelection( File& file, Coordinate start, Coordinate end, int cursor );
-	Coordinate  GetMouseCoordinate( File& file, float* distance = nullptr );
+	Coordinate  GetCoordinate( File& file, ImVec2 position, bool relativeToEditor = false );
 	void        AdjustCursors( File& file, int cursor, int xOffset, int yOffset );
 	void        YeetDuplicateCursors( File& file );
 	void        DisableIntersectingSelections( File& file, int cursor );
