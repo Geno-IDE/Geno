@@ -162,7 +162,7 @@ private:
 		float ScrollX;
 		float ScrollY;
 		bool  Changes;
-		int   CursorBlink = 400;
+		int   CursorBlink;
 	} Props;
 
 	bool        RenderEditor( File& rFile );

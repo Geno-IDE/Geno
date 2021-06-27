@@ -33,6 +33,7 @@ const char* WINDOW_NAME = "Text Edit";
 
 constexpr float TabSize                 = 4.0f;
 constexpr float EmptyLineSelectionWidth = 4.0f;
+constexpr int   CursorBlink             = 400;
 
 float TextEdit::FontSize = 15.0f;
 
@@ -407,8 +408,11 @@ bool TextEdit::RenderEditor( File& rFile )
 
 						pDrawList->AddRectFilled( cStart, cEnd, m_Palette.Cursor );
 
-						if( Elapsed >= Props.CursorBlink )
-							Start = Now;
+						if( Props.CursorBlink ? Elapsed >= Props.CursorBlink : Elapsed >= CursorBlink * 2 )
+						{
+							Start             = Now;
+							Props.CursorBlink = CursorBlink;
+						}
 					}
 				}
 			}
@@ -631,6 +635,8 @@ void TextEdit::HandleMouseInputs( File& rFile )
 					NewCursor.SelectionStart = NewCursor.SelectionEnd = Coordinate( 0, 0 );
 
 					rFile.Cursors.push_back( NewCursor );
+
+					Props.CursorBlink = 0;
 				}
 			}
 		}
@@ -651,6 +657,8 @@ void TextEdit::HandleMouseInputs( File& rFile )
 					rCursor.SelectionStart = Pos;
 					rCursor.SelectionEnd   = rCursor.SelectionOrigin;
 				}
+
+				if( rCursor.Position != Pos ) Props.CursorBlink = 0;
 
 				rCursor.Position = Pos;
 
@@ -1341,6 +1349,8 @@ void TextEdit::Enter( File& rFile )
 
 	ScrollToCursor( rFile );
 
+	Props.CursorBlink = 0;
+
 } // Enter
 
 //////////////////////////////////////////////////////////////////////////
@@ -1403,6 +1413,8 @@ void TextEdit::Backspace( File& rFile )
 
 	ScrollToCursor( rFile );
 
+	Props.CursorBlink = 0;
+
 } // Backspace
 
 //////////////////////////////////////////////////////////////////////////
@@ -1443,6 +1455,8 @@ void TextEdit::Del( File& rFile )
 	}
 
 	ScrollToCursor( rFile );
+
+	Props.CursorBlink = 0;
 
 } // Del
 
@@ -1572,6 +1586,8 @@ void TextEdit::Tab( File& rFile, bool Shift )
 
 	ScrollToCursor( rFile );
 
+	Props.CursorBlink = 0;
+
 } // Tab
 
 //////////////////////////////////////////////////////////////////////////
@@ -1602,6 +1618,8 @@ void TextEdit::EnterTextStuff( File& rFile, char C, bool Shift )
 	}
 
 	ScrollToCursor( rFile );
+
+	Props.CursorBlink = 0;
 
 } // EnterTextStuff
 
@@ -1666,6 +1684,8 @@ void TextEdit::MoveUp( File& rFile, bool Shift )
 	YeetDuplicateCursors( rFile );
 	ScrollToCursor( rFile );
 
+	Props.CursorBlink = 0;
+
 } // MoveUp
 
 //////////////////////////////////////////////////////////////////////////
@@ -1728,6 +1748,8 @@ void TextEdit::MoveDown( File& rFile, bool Shift )
 	DeleteDisabledCursor( rFile );
 	YeetDuplicateCursors( rFile );
 	ScrollToCursor( rFile );
+
+	Props.CursorBlink = 0;
 
 } // MoveDown
 
@@ -1810,6 +1832,8 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift )
 	DeleteDisabledCursor( rFile );
 	YeetDuplicateCursors( rFile );
 	ScrollToCursor( rFile );
+
+	Props.CursorBlink = 0;
 
 } // MoveRight
 
@@ -1901,6 +1925,8 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift )
 	YeetDuplicateCursors( rFile );
 	ScrollToCursor( rFile );
 
+	Props.CursorBlink = 0;
+
 } // MoveLeft
 
 void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
@@ -1978,6 +2004,8 @@ void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
 
 	if( Ctrl ) ScrollToCursor( rFile );
 
+	Props.CursorBlink = 0;
+
 } // Home
 
 void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
@@ -2038,6 +2066,8 @@ void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
 	YeetDuplicateCursors( rFile );
 
 	if( Ctrl ) ScrollToCursor( rFile );
+
+	Props.CursorBlink = 0;
 
 } // End
 
