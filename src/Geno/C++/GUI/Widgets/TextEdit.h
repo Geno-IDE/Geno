@@ -18,10 +18,12 @@
 #pragma once
 #include <Common/Macros.h>
 #include <Common/Texture2D.h>
+
 #include <filesystem>
-#include <imgui.h>
 #include <string>
 #include <vector>
+
+#include <imgui.h>
 
 class Drop;
 struct ImGuiTabBar;
