@@ -245,6 +245,8 @@ void TextEdit::OnDragDrop( const Drop& rDrop, int X, int Y )
 
 } // OnDragDrop
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::SaveFile( File& file )
 {
 	if( !file.Changed ) return;
@@ -256,6 +258,8 @@ void TextEdit::SaveFile( File& file )
 
 	file.Changed = false;
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::SplitLines( File& file )
 {
@@ -281,6 +285,8 @@ void TextEdit::SplitLines( File& file )
 	file.Lines.push_back( lineBuffer );
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::JoinLines( File& file )
 {
 	file.Text.clear();
@@ -297,6 +303,8 @@ void TextEdit::JoinLines( File& file )
 		file.Text.push_back( '\n' );
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 bool TextEdit::RenderEditor( File& file )
 {
@@ -477,6 +485,8 @@ bool TextEdit::RenderEditor( File& file )
 	return props.Changes;
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::HandleKeyboardInputs( File& file )
 {
 	if( ImGui::IsWindowFocused() )
@@ -518,6 +528,8 @@ void TextEdit::HandleKeyboardInputs( File& file )
 		}
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::HandleMouseInputs( File& file )
 {
@@ -608,6 +620,8 @@ void TextEdit::HandleMouseInputs( File& file )
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::ScrollToCursor( File& file )
 {
 	float yScroll = ImGui::GetScrollY();
@@ -644,6 +658,8 @@ void TextEdit::ScrollToCursor( File& file )
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::CalculeteLineNumMaxWidth( File& file )
 {
 	int totalLines = ( int )file.Lines.size();
@@ -653,6 +669,8 @@ void TextEdit::CalculeteLineNumMaxWidth( File& file )
 
 	props.LineNumMaxWidth = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, buf ).x;
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 bool TextEdit::HasSelection( File& file, int cursor ) const
 {
@@ -665,6 +683,8 @@ bool TextEdit::HasSelection( File& file, int cursor ) const
 
 	return c.selectionEnd.x > c.selectionStart.x;
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 TextEdit::Cursor* TextEdit::IsCoordinateInSelection( File& file, Coordinate coordinate, int offset )
 {
@@ -684,6 +704,8 @@ TextEdit::Cursor* TextEdit::IsCoordinateInSelection( File& file, Coordinate coor
 
 	return nullptr;
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 int TextEdit::IsLineSelected( File& file, int line, Coordinate* start, Coordinate* end ) const
 {
@@ -733,10 +755,14 @@ int TextEdit::IsLineSelected( File& file, int line, Coordinate* start, Coordinat
 	return count;
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 float TextEdit::GetCursorDistance( File& file, int cursor ) const
 {
 	return GetDistance( file, file.cursors [ cursor ].position );
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 float TextEdit::GetDistance( File& file, Coordinate position ) const
 {
@@ -782,10 +808,14 @@ float TextEdit::GetDistance( File& file, Coordinate position ) const
 	return xOffset;
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 std::string TextEdit::GetWordAt( File& file, Cursor& cursor ) const
 {
 	return GetWordAt( file, cursor.position, &cursor.selectionStart, &cursor.selectionEnd );
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 std::string TextEdit::GetWordAt( File& file, Coordinate position, Coordinate* start, Coordinate* end ) const
 {
@@ -894,6 +924,8 @@ std::string TextEdit::GetWordAt( File& file, Coordinate position, Coordinate* st
 	return std::string();
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 bool TextEdit::IsCoordinateInText( File& file, Coordinate position )
 {
 	if( position.x == 0 ) return false;
@@ -907,6 +939,8 @@ bool TextEdit::IsCoordinateInText( File& file, Coordinate position )
 	return true;
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::AdjustCursorIfInText( File& file, Cursor& cursor, int line, int xOffset )
 {
 	if( IsCoordinateInText( file, cursor.position ) && line == cursor.position.y ) cursor.position.x += xOffset;
@@ -915,6 +949,8 @@ void TextEdit::AdjustCursorIfInText( File& file, Cursor& cursor, int line, int x
 	if( IsCoordinateInText( file, cursor.selectionEnd ) && line == cursor.selectionEnd.y ) cursor.selectionEnd.x += xOffset;
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::AdjustCursor( File& file, Cursor& cursor, int xOffset )
 {
 	cursor.position.x += xOffset;
@@ -922,6 +958,8 @@ void TextEdit::AdjustCursor( File& file, Cursor& cursor, int xOffset )
 	cursor.selectionStart.x += xOffset;
 	cursor.selectionEnd.x += xOffset;
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::SetSelectionLine( File& file, int line )
 {
@@ -934,6 +972,8 @@ void TextEdit::SetSelectionLine( File& file, int line )
 
 	SetSelection( file, start, end, 0 );
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::SetSelection( File& file, Coordinate start, Coordinate end, int cursor )
 {
@@ -956,6 +996,8 @@ void TextEdit::SetSelection( File& file, Coordinate start, Coordinate end, int c
 	c.selectionStart = start;
 	c.selectionEnd   = end;
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 TextEdit::Coordinate TextEdit::GetCoordinate( File& file, ImVec2 position, bool relativeToEditor )
 {
@@ -1022,10 +1064,14 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& file, ImVec2 position, bool 
 	return Coordinate( ( int )l.size(), line );
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 TextEdit::Coordinate TextEdit::CalculateTabAlignment( File& file, Coordinate fromPosition )
 {
 	return GetCoordinate( file, ImVec2( CalculateTabAlignmentDistance( file, fromPosition ), fromPosition.y * props.CharAdvanceY ), true );
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 float TextEdit::CalculateTabAlignmentDistance( File& file, Coordinate fromPosition )
 {
@@ -1044,6 +1090,8 @@ float TextEdit::CalculateTabAlignmentDistance( File& file, Coordinate fromPositi
 
 	return newDist;
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::AdjustCursors( File& file, int cursor, int xOffset, int yOffset )
 {
@@ -1084,6 +1132,8 @@ void TextEdit::AdjustCursors( File& file, int cursor, int xOffset, int yOffset )
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::YeetDuplicateCursors( File& file )
 {
 	for( int i = 0; i < file.cursors.size(); i++ )
@@ -1100,6 +1150,8 @@ void TextEdit::YeetDuplicateCursors( File& file )
 		}
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::DisableIntersectingSelections( File& file, int cursor )
 {
@@ -1122,6 +1174,8 @@ void TextEdit::DisableIntersectingSelections( File& file, int cursor )
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::DeleteDisabledCursor( File& file )
 {
 	for( int i = 0; i < file.cursors.size(); i++ )
@@ -1129,6 +1183,8 @@ void TextEdit::DeleteDisabledCursor( File& file )
 		if( file.cursors [ i ].disabled ) file.cursors.erase( file.cursors.begin() + i-- );
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::DeleteSelection( File& file, int cursor )
 {
@@ -1191,6 +1247,8 @@ void TextEdit::DeleteSelection( File& file, int cursor )
 	props.Changes = true;
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::Enter( File& file )
 {
 	props.Changes = true;
@@ -1226,6 +1284,8 @@ void TextEdit::Enter( File& file )
 
 	ScrollToCursor( file );
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::Backspace( File& file )
 {
@@ -1286,6 +1346,8 @@ void TextEdit::Backspace( File& file )
 	ScrollToCursor( file );
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::Del( File& file )
 {
 	props.Changes = true;
@@ -1310,6 +1372,8 @@ void TextEdit::Del( File& file )
 
 	ScrollToCursor( file );
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::Tab( File& file, bool shift )
 {
@@ -1436,6 +1500,8 @@ void TextEdit::Tab( File& file, bool shift )
 	ScrollToCursor( file );
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::EnterTextStuff( File& file, char c, bool shift )
 {
 	props.Changes = true;
@@ -1463,6 +1529,8 @@ void TextEdit::EnterTextStuff( File& file, char c, bool shift )
 
 	ScrollToCursor( file );
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::MoveUp( File& file, bool shift )
 {
@@ -1523,6 +1591,8 @@ void TextEdit::MoveUp( File& file, bool shift )
 	ScrollToCursor( file );
 }
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::MoveDown( File& file, bool shift )
 {
 	for( int i = 0; i < file.cursors.size(); i++ )
@@ -1581,6 +1651,8 @@ void TextEdit::MoveDown( File& file, bool shift )
 	YeetDuplicateCursors( file );
 	ScrollToCursor( file );
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::MoveRight( File& file, bool ctrl, bool shift )
 {
@@ -1656,6 +1728,8 @@ void TextEdit::MoveRight( File& file, bool ctrl, bool shift )
 	YeetDuplicateCursors( file );
 	ScrollToCursor( file );
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::MoveLeft( File& file, bool ctrl, bool shift )
 {
@@ -1741,3 +1815,5 @@ void TextEdit::MoveLeft( File& file, bool ctrl, bool shift )
 	YeetDuplicateCursors( file );
 	ScrollToCursor( file );
 }
+
+//////////////////////////////////////////////////////////////////////////
