@@ -58,6 +58,7 @@ TextEdit::TextEdit( void )
 	m_Palette.CurrentLine         = 0x40000000;
 	m_Palette.CurrentLineInactive = 0x40808080;
 	m_Palette.CurrentLineEdge     = 0x40a0a0a0;
+
 } // TextEdit
 
 //////////////////////////////////////////////////////////////////////////
@@ -257,6 +258,7 @@ void TextEdit::SaveFile( File& rFile )
 	ofs << rFile.Text;
 
 	rFile.Changed = false;
+
 } // SaveFile
 
 //////////////////////////////////////////////////////////////////////////
@@ -283,6 +285,7 @@ void TextEdit::SplitLines( File& rFile )
 	}
 
 	rFile.Lines.push_back( LineBuffer );
+
 } // SplitLines
 
 //////////////////////////////////////////////////////////////////////////
@@ -302,6 +305,7 @@ void TextEdit::JoinLines( File& rFile )
 
 		rFile.Text.push_back( '\n' );
 	}
+
 } // JoinLines
 
 //////////////////////////////////////////////////////////////////////////
@@ -483,6 +487,7 @@ bool TextEdit::RenderEditor( File& rFile )
 	ImGui::PopStyleColor();
 
 	return Props.Changes;
+
 } // RenderEditor
 
 //////////////////////////////////////////////////////////////////////////
@@ -527,6 +532,7 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 			EnterTextStuff( rFile, c );
 		}
 	}
+
 } // HandleKeyboardInputs
 
 //////////////////////////////////////////////////////////////////////////
@@ -618,6 +624,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 		if( rIO.MouseWheel != 0 && rIO.KeyCtrl && !rIO.KeyAlt && !rIO.KeyShift )
 			FontSize += rIO.MouseWheel;
 	}
+
 } // HandleMouseInputs
 
 //////////////////////////////////////////////////////////////////////////
@@ -656,6 +663,7 @@ void TextEdit::ScrollToCursor( File& rFile )
 	{
 		ImGui::SetScrollX( CX - Size.x + 10.0f );
 	}
+
 } // ScrollToCursor
 
 //////////////////////////////////////////////////////////////////////////
@@ -668,6 +676,7 @@ void TextEdit::CalculeteLineNumMaxWidth( File& rFile )
 	sprintf( Buf, " %u | ", TotalLines );
 
 	Props.LineNumMaxWidth = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, Buf ).x;
+
 } // CalculeteLineNumMaxWidth
 
 //////////////////////////////////////////////////////////////////////////
@@ -682,6 +691,7 @@ bool TextEdit::HasSelection( File& rFile, int CursorIndex ) const
 		return rCursor.SelectionEnd.y > rCursor.SelectionStart.y;
 
 	return rCursor.SelectionEnd.x > rCursor.SelectionStart.x;
+
 } // HasSelection
 
 //////////////////////////////////////////////////////////////////////////
@@ -703,6 +713,7 @@ TextEdit::Cursor* TextEdit::IsCoordinateInSelection( File& rFile, Coordinate Coo
 	}
 
 	return nullptr;
+
 } // IsCoordinateInSelection
 
 //////////////////////////////////////////////////////////////////////////
@@ -753,6 +764,7 @@ int TextEdit::IsLineSelected( File& rFile, int LineIndex, Coordinate* pStart, Co
 	}
 
 	return Count;
+
 } // IsLineSelected
 
 //////////////////////////////////////////////////////////////////////////
@@ -760,6 +772,7 @@ int TextEdit::IsLineSelected( File& rFile, int LineIndex, Coordinate* pStart, Co
 float TextEdit::GetCursorDistance( File& rFile, int CursorIndex ) const
 {
 	return GetDistance( rFile, rFile.Cursors[ CursorIndex ].Position );
+
 } // GetCursorDistance
 
 //////////////////////////////////////////////////////////////////////////
@@ -806,6 +819,7 @@ float TextEdit::GetDistance( File& rFile, Coordinate Position ) const
 	}
 
 	return XOffset;
+
 } // GetDistance
 
 //////////////////////////////////////////////////////////////////////////
@@ -813,6 +827,7 @@ float TextEdit::GetDistance( File& rFile, Coordinate Position ) const
 std::string TextEdit::GetWordAt( File& rFile, Cursor& rCursor ) const
 {
 	return GetWordAt( rFile, rCursor.Position, &rCursor.SelectionStart, &rCursor.SelectionEnd );
+
 } // GetWordAt
 
 //////////////////////////////////////////////////////////////////////////
@@ -926,6 +941,7 @@ std::string TextEdit::GetWordAt( File& rFile, Coordinate Position, Coordinate* p
 	}
 
 	return std::string();
+
 } // GetWordAt
 
 //////////////////////////////////////////////////////////////////////////
@@ -941,6 +957,7 @@ bool TextEdit::IsCoordinateInText( File& rFile, Coordinate Position )
 	if( Start.x == 0 ) return false;
 
 	return true;
+
 } // IsCoordinateInText
 
 //////////////////////////////////////////////////////////////////////////
@@ -951,6 +968,7 @@ void TextEdit::AdjustCursorIfInText( File& rFile, Cursor& rCursor, int LineIndex
 	if( IsCoordinateInText( rFile, rCursor.SelectionOrigin ) && LineIndex == rCursor.SelectionOrigin.y ) rCursor.SelectionOrigin.x += XOffset;
 	if( IsCoordinateInText( rFile, rCursor.SelectionStart ) && LineIndex == rCursor.SelectionStart.y ) rCursor.SelectionStart.x += XOffset;
 	if( IsCoordinateInText( rFile, rCursor.SelectionEnd ) && LineIndex == rCursor.SelectionEnd.y ) rCursor.SelectionEnd.x += XOffset;
+
 } // AdjustCursorIfInText
 
 //////////////////////////////////////////////////////////////////////////
@@ -961,6 +979,7 @@ void TextEdit::AdjustCursor( File& rFile, Cursor& rCursor, int XOffset )
 	rCursor.SelectionOrigin.x += XOffset;
 	rCursor.SelectionStart.x += XOffset;
 	rCursor.SelectionEnd.x += XOffset;
+
 } // AdjustCursor
 
 //////////////////////////////////////////////////////////////////////////
@@ -975,6 +994,7 @@ void TextEdit::SetSelectionLine( File& rFile, int LineIndex )
 	Coordinate End( ( int )rLine.size(), LineIndex );
 
 	SetSelection( rFile, Start, End, 0 );
+
 } // SetSelectionLine
 
 //////////////////////////////////////////////////////////////////////////
@@ -999,6 +1019,7 @@ void TextEdit::SetSelection( File& rFile, Coordinate Start, Coordinate End, int 
 
 	rCursor.SelectionStart = Start;
 	rCursor.SelectionEnd   = End;
+
 } // SetSelectionLine
 
 //////////////////////////////////////////////////////////////////////////
@@ -1053,6 +1074,7 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool
 	}
 
 	return Coordinate( LineSize, LineIndex );
+
 } // GetCoordinate
 
 //////////////////////////////////////////////////////////////////////////
@@ -1060,6 +1082,7 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool
 TextEdit::Coordinate TextEdit::CalculateTabAlignment( File& rFile, Coordinate FromPosition )
 {
 	return GetCoordinate( rFile, ImVec2( CalculateTabAlignmentDistance( rFile, FromPosition ), FromPosition.y * Props.CharAdvanceY ), true );
+
 } // CalculateTabAlignment
 
 //////////////////////////////////////////////////////////////////////////
@@ -1080,6 +1103,7 @@ float TextEdit::CalculateTabAlignmentDistance( File& rFile, Coordinate FromPosit
 	if( NewDist < 0.0f ) NewDist = 0.0f;
 
 	return NewDist;
+
 } // CalculateTabAlignmentDistance
 
 //////////////////////////////////////////////////////////////////////////
@@ -1121,6 +1145,7 @@ void TextEdit::AdjustCursors( File& rFile, int CursorIndex, int XOffset, int YOf
 			rOther.Position.y -= YOffset;
 		}
 	}
+
 } // AdjustCursors
 
 //////////////////////////////////////////////////////////////////////////
@@ -1140,6 +1165,7 @@ void TextEdit::YeetDuplicateCursors( File& rFile )
 			}
 		}
 	}
+
 } // YeetDuplicateCursors
 
 //////////////////////////////////////////////////////////////////////////
@@ -1163,6 +1189,7 @@ void TextEdit::DisableIntersectingSelections( File& rFile, int CursorIndex )
 			rCursor2.Disabled = false;
 		}
 	}
+
 } // DisableIntersectingSelections
 
 //////////////////////////////////////////////////////////////////////////
@@ -1173,6 +1200,7 @@ void TextEdit::DeleteDisabledCursor( File& rFile )
 	{
 		if( rFile.Cursors[ i ].Disabled ) rFile.Cursors.erase( rFile.Cursors.begin() + i-- );
 	}
+
 } // DeleteDisabledCursor
 
 //////////////////////////////////////////////////////////////////////////
@@ -1236,6 +1264,7 @@ void TextEdit::DeleteSelection( File& rFile, int CursorIndex )
 	}
 
 	Props.Changes = true;
+
 } // DeleteSelection
 
 //////////////////////////////////////////////////////////////////////////
@@ -1274,6 +1303,7 @@ void TextEdit::Enter( File& rFile )
 	}
 
 	ScrollToCursor( rFile );
+
 } // Enter
 
 //////////////////////////////////////////////////////////////////////////
@@ -1335,6 +1365,7 @@ void TextEdit::Backspace( File& rFile )
 	}
 
 	ScrollToCursor( rFile );
+
 } // Backspace
 
 //////////////////////////////////////////////////////////////////////////
@@ -1362,6 +1393,7 @@ void TextEdit::Del( File& rFile )
 	}
 
 	ScrollToCursor( rFile );
+
 } // Del
 
 //////////////////////////////////////////////////////////////////////////
@@ -1489,6 +1521,7 @@ void TextEdit::Tab( File& rFile, bool Shift )
 	}
 
 	ScrollToCursor( rFile );
+
 } // Tab
 
 //////////////////////////////////////////////////////////////////////////
@@ -1519,6 +1552,7 @@ void TextEdit::EnterTextStuff( File& rFile, char C, bool Shift )
 	}
 
 	ScrollToCursor( rFile );
+
 } // EnterTextStuff
 
 //////////////////////////////////////////////////////////////////////////
@@ -1581,6 +1615,7 @@ void TextEdit::MoveUp( File& rFile, bool Shift )
 	DeleteDisabledCursor( rFile );
 	YeetDuplicateCursors( rFile );
 	ScrollToCursor( rFile );
+
 } // MoveUp
 
 //////////////////////////////////////////////////////////////////////////
@@ -1643,6 +1678,7 @@ void TextEdit::MoveDown( File& rFile, bool Shift )
 	DeleteDisabledCursor( rFile );
 	YeetDuplicateCursors( rFile );
 	ScrollToCursor( rFile );
+
 } // MoveDown
 
 //////////////////////////////////////////////////////////////////////////
@@ -1722,6 +1758,7 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift )
 	DeleteDisabledCursor( rFile );
 	YeetDuplicateCursors( rFile );
 	ScrollToCursor( rFile );
+
 } // MoveRight
 
 //////////////////////////////////////////////////////////////////////////
@@ -1811,6 +1848,7 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift )
 	DeleteDisabledCursor( rFile );
 	YeetDuplicateCursors( rFile );
 	ScrollToCursor( rFile );
+
 } // MoveLeft
 
 //////////////////////////////////////////////////////////////////////////
