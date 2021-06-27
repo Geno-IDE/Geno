@@ -1,11 +1,9 @@
 name: CI (macOS)
 
 on:
-  pull_request:
-    types: [ opened, reopened, synchronize ]
   push:
     branches: [ master ]
-    paths-ignore: [ .github/**, resources/**, .clang-format, .editorconfig, .gitignore, README.md, LICENSE ]
+  pull_request:
 
 jobs:
   build:
