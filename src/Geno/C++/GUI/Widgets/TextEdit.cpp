@@ -30,7 +30,7 @@
 
 const char* WINDOW_NAME = "Text Edit";
 
-constexpr float TabSize = 4.0f;
+constexpr float TabSize                 = 4.0f;
 constexpr float EmptyLineSelectionWidth = 4.0f;
 
 float TextEdit::fontSize = 15.0f;
@@ -245,12 +245,13 @@ void TextEdit::OnDragDrop( const Drop& rDrop, int X, int Y )
 
 } // OnDragDrop
 
-void TextEdit::SaveFile(File& file) {
-	if (!file.Changed) return;
+void TextEdit::SaveFile( File& file )
+{
+	if( !file.Changed ) return;
 
-	JoinLines(file);
+	JoinLines( file );
 
-	std::ofstream ofs(file.Path, std::ios::binary | std::ios::trunc);
+	std::ofstream ofs( file.Path, std::ios::binary | std::ios::trunc );
 	ofs << file.Text;
 
 	file.Changed = false;
@@ -280,17 +281,20 @@ void TextEdit::SplitLines( File& file )
 	file.Lines.push_back( lineBuffer );
 }
 
-void TextEdit::JoinLines(File& file) {
+void TextEdit::JoinLines( File& file )
+{
 	file.Text.clear();
 
-	for (size_t i = 0; i < file.Lines.size(); i++) {
-		Line& line = file.Lines[i];
+	for( size_t i = 0; i < file.Lines.size(); i++ )
+	{
+		Line& line = file.Lines [ i ];
 
-		for (size_t j = 0; j < line.size(); j++) {
-			file.Text.push_back(line[j].c);
+		for( size_t j = 0; j < line.size(); j++ )
+		{
+			file.Text.push_back( line [ j ].c );
 		}
 
-		file.Text.push_back('\n');
+		file.Text.push_back( '\n' );
 	}
 }
 
@@ -338,11 +342,12 @@ bool TextEdit::RenderEditor( File& file )
 			for( int j = 0; j < count; j++ )
 			{
 				float startX = 0.0f;
-				float endX = EmptyLineSelectionWidth;
+				float endX   = EmptyLineSelectionWidth;
 
-				if (selectedStart[j] != selectedEnd[j]) {
-					startX = GetDistance(file, selectedStart[j]);
-					endX = GetDistance(file, selectedEnd[j]);
+				if( selectedStart [ j ] != selectedEnd [ j ] )
+				{
+					startX = GetDistance( file, selectedStart [ j ] );
+					endX   = GetDistance( file, selectedEnd [ j ] );
 				}
 
 				ImVec2 start( cursor.x + props.LineNumMaxWidth + startX - props.ScrollX, pos.y );
@@ -509,12 +514,7 @@ void TextEdit::HandleKeyboardInputs( File& file )
 		{
 			char c = ( char )io.InputQueueCharacters [ i ];
 
-			if (c == 'a') {
-				SaveFile(file);
-			} else {
-				EnterTextStuff( file, c );
-			}
-
+			EnterTextStuff( file, c );
 		}
 	}
 }
@@ -980,7 +980,7 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& file, ImVec2 position, bool 
 
 	int lineSize = ( int )l.size();
 
-	char string[2] = { 0, 0 };
+	char string [ 2 ] = { 0, 0 };
 
 	float length = 0.0f;
 
@@ -999,21 +999,24 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& file, ImVec2 position, bool 
 
 		length = currLength;*/
 
-		string[0] = l[i].c;
+		string [ 0 ] = l [ i ].c;
 
 		float diff = 0.0f;
 
-		if (string[0] == '\t') {
-			diff = TabSize * props.SpaceSize;
-			length = CalculateTabAlignmentDistance(file, Coordinate(i+1, line)) + diff;
-		} else {
-			length += diff = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, string).x;
+		if( string [ 0 ] == '\t' )
+		{
+			diff   = TabSize * props.SpaceSize;
+			length = CalculateTabAlignmentDistance( file, Coordinate( i + 1, line ) ) + diff;
+		}
+		else
+		{
+			length += diff = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, string ).x;
 		}
 
-		if (length - (diff / 2.0f) > position.x) {
-			return Coordinate(i, line);
+		if( length - ( diff / 2.0f ) > position.x )
+		{
+			return Coordinate( i, line );
 		}
-
 	}
 
 	return Coordinate( ( int )l.size(), line );
@@ -1021,22 +1024,23 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& file, ImVec2 position, bool 
 
 TextEdit::Coordinate TextEdit::CalculateTabAlignment( File& file, Coordinate fromPosition )
 {
-	return GetCoordinate( file, ImVec2( CalculateTabAlignmentDistance(file, fromPosition), fromPosition.y * props.CharAdvanceY ), true );
+	return GetCoordinate( file, ImVec2( CalculateTabAlignmentDistance( file, fromPosition ), fromPosition.y * props.CharAdvanceY ), true );
 }
 
-float TextEdit::CalculateTabAlignmentDistance(File& file, Coordinate fromPosition) {
-	float dist = GetDistance(file, fromPosition);
+float TextEdit::CalculateTabAlignmentDistance( File& file, Coordinate fromPosition )
+{
+	float dist = GetDistance( file, fromPosition );
 
 	float tab = TabSize * props.SpaceSize;
 
 	float fraction = dist / tab;
-	fraction = fraction - floorf(fraction) - 0.000001f;
+	fraction       = fraction - floorf( fraction ) - 0.000001f;
 
-	if (fraction <= 0.0f) fraction = 1.0f;
+	if( fraction <= 0.0f ) fraction = 1.0f;
 
 	float newDist = dist - fraction * tab;
 
-	if (newDist < 0.0f) newDist = 0.0f;
+	if( newDist < 0.0f ) newDist = 0.0f;
 
 	return newDist;
 }
@@ -1267,7 +1271,9 @@ void TextEdit::Backspace( File& file )
 				line.erase( line.begin() + c.position.x );
 
 				AdjustCursors( file, i, 1, 0 );
-			} else {
+			}
+			else
+			{
 				continue;
 			}
 
@@ -1385,7 +1391,7 @@ void TextEdit::Tab( File& file, bool shift )
 				c.selectionEnd.x -= offset;
 			}
 
-			AdjustCursors(file, i, offset, 0);
+			AdjustCursors( file, i, offset, 0 );
 
 			props.Changes = true;
 		}
