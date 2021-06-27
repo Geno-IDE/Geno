@@ -497,7 +497,7 @@ void TextEdit::HandleMouseInputs( File& file )
 		if( ImGui::IsMouseReleased( ImGuiMouseButton_Left ) || ( props.Changes && ImGui::IsMouseDown( ImGuiMouseButton_Left ) ) )
 		{
 			if( props.Changes )
-				file.cursors [ file.cursors.size() - 1 ].selectionOrigin = GetMouseCoordinate( file );
+				file.cursors [ file.cursors.size() - 1 ].selectionOrigin = GetCoordinate( file, ImGui::GetMousePos() );
 
 			DeleteDisabledCursor( file );
 		}
@@ -515,7 +515,7 @@ void TextEdit::HandleMouseInputs( File& file )
 		else if( clicked )
 		{
 			Cursor c;
-			c.position = c.selectionOrigin = GetMouseCoordinate( file );
+			c.position = c.selectionOrigin = GetCoordinate( file, ImGui::GetMousePos() );
 
 			if( ctrl && !( alt || shift ) )
 			{
@@ -539,7 +539,7 @@ void TextEdit::HandleMouseInputs( File& file )
 		}
 		else if( dragged )
 		{
-			Coordinate pos    = GetMouseCoordinate( file );
+			Coordinate pos    = GetCoordinate( file, ImGui::GetMousePos() );
 			Cursor&    cursor = file.cursors [ file.cursors.size() - 1 ];
 
 			if( cursor.selectionOrigin != Coordinate( ~0, ~0 ) )
@@ -884,15 +884,17 @@ void TextEdit::SetSelection( File& file, Coordinate start, Coordinate end, int c
 	c.selectionEnd   = end;
 }
 
-TextEdit::Coordinate TextEdit::GetMouseCoordinate( File& file, float* distance )
+TextEdit::Coordinate TextEdit::GetCoordinate( File& file, ImVec2 position, bool relativeToEditor )
 {
-	ImVec2 origin   = ImGui::GetCursorScreenPos();
-	ImVec2 mousePos = ImGui::GetMousePos();
+	if( !relativeToEditor )
+	{
+		ImVec2 origin = ImGui::GetCursorScreenPos();
 
-	mousePos.x -= origin.x;
-	mousePos.y -= origin.y;
+		position.x -= origin.x;
+		position.y -= origin.y;
+	}
 
-	int line = ( int )( ( ( mousePos.y + props.ScrollY ) / props.CharAdvanceY ) - ( props.ScrollY / props.CharAdvanceY ) );
+	int line = ( int )( ( ( position.y + props.ScrollY ) / props.CharAdvanceY ) - ( props.ScrollY / props.CharAdvanceY ) );
 
 	int numLines = ( int )file.Lines.size();
 
@@ -905,31 +907,41 @@ TextEdit::Coordinate TextEdit::GetMouseCoordinate( File& file, float* distance )
 
 	int lineSize = ( int )l.size();
 
-	char* string = new char [ lineSize + 1 ];
-	memset( string, 0, lineSize + 1 );
+	char string[2] = { 0, 0 };
 
 	float length = 0.0f;
 
 	for( int i = 0; i < l.size(); i++ )
 	{
-		string [ i ] = l [ i ].c;
+		/*string[i] = l[i].c;
 
 		float currLength = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, string ).x;
 		float diff       = currLength - length;
 
-		if( currLength - ( diff / 2.0f ) > mousePos.x )
+		if( currLength - ( diff / 2.0f ) > position.x )
 		{
 			delete [] string;
-			if( distance ) *distance = length;
 			return Coordinate( i, line );
 		}
 
-		length = currLength;
+		length = currLength;*/
+
+		string[0] = l[i].c;
+
+		float diff = 0.0f;
+
+		if (string[0] == '\t') {
+			diff = TabSize * props.SpaceSize;
+			length = CalculateTabAlignmentDistance(file, Coordinate(i+1, line)) + diff;
+		} else {
+			length += diff = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, string).x;
+		}
+
+		if (length - (diff / 2.0f) > position.x) {
+			return Coordinate(i, line);
+		}
+
 	}
-
-	delete [] string;
-
-	if( distance ) *distance = length;
 
 	return Coordinate( ( int )l.size(), line );
 }
