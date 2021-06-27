@@ -1242,6 +1242,7 @@ void TextEdit::Tab( File& file, bool shift )
 			l.insert( l.begin() + c.position.x, Glyph( '\t', palette.Default ) );
 
 			c.position.x++;
+			c.selectionOrigin = Coordinate( -1, -1 );
 
 			AdjustCursors( file, i, -1, 0 );
 		}
@@ -1270,6 +1271,7 @@ void TextEdit::EnterTextStuff( File& file, char c, bool shift )
 		l.insert( l.begin() + cursor.position.x, Glyph( c, palette.Default ) );
 
 		cursor.position.x++;
+		cursor.selectionOrigin = Coordinate( -1, -1 );
 
 		AdjustCursors( file, i, -1, 0 );
 	}
