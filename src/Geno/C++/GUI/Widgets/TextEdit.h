@@ -199,6 +199,8 @@ private:
 	void        MoveDown( File& rFile, bool Shift );
 	void        MoveRight( File& rFile, bool Ctrl, bool Shift );
 	void        MoveLeft( File& rFile, bool Ctrl, bool Shift );
+	void        Home( File& rFile, bool Ctrl, bool Shift );
+	void        End(File& rFile, bool Ctrl, bool Shift);
 
 	Palette m_Palette;
 
