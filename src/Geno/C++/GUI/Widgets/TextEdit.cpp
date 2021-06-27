@@ -1705,8 +1705,10 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift )
 
 		Line& rLine = rFile.Lines[ rCursor.Position.y ];
 
-		if( rCursor.Position.x == ( int )rLine.size() && rCursor.Position.y != ( int )rFile.Lines.size() )
+		if( rCursor.Position.x == ( int )rLine.size() )
 		{
+			if (rCursor.Position.y == (int)rFile.Lines.size() - 1) continue;
+
 			rCursor.Position.x = 0;
 			rCursor.Position.y++;
 			Ctrl = false;
