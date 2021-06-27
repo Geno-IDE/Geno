@@ -46,12 +46,12 @@ class TextEdit
 
 	struct Glyph
 	{
-		char         c;
-		unsigned int color;
+		char         C;
+		unsigned int Color;
 
-		Glyph( char c, unsigned int color )
-		 : c( c )
-		 , color( color )
+		Glyph( char C, unsigned int Color )
+		 : C( C )
+		 , Color( Color )
 		{
 		}
 	};
@@ -72,48 +72,48 @@ class TextEdit
 		{
 		}
 
-		bool operator==( const Coordinate& other ) const
+		bool operator==( const Coordinate& Other ) const
 		{
-			return x == other.x && y == other.y;
+			return x == Other.x && y == Other.y;
 		}
 
-		bool operator!=( const Coordinate& other ) const
+		bool operator!=( const Coordinate& Other ) const
 		{
-			return !operator==( other );
+			return !operator==( Other );
 		}
 
-		bool operator>( const Coordinate& other ) const
+		bool operator>( const Coordinate& Other ) const
 		{
-			if( y > other.y ) return true;
-			if( y < other.y ) return false;
+			if( y > Other.y ) return true;
+			if( y < Other.y ) return false;
 
-			return x > other.x;
+			return x > Other.x;
 		}
 
-		bool operator<( const Coordinate& other ) const
+		bool operator<( const Coordinate& Other ) const
 		{
-			return !operator>( other );
+			return !operator>( Other );
 		}
 
-		bool operator>=( const Coordinate& other ) const
+		bool operator>=( const Coordinate& Other ) const
 		{
-			return operator>( other ) || operator==( other );
+			return operator>( Other ) || operator==( Other );
 		}
 
-		bool operator<=( const Coordinate& other ) const
+		bool operator<=( const Coordinate& Other ) const
 		{
-			return operator<( other ) || operator==( other );
+			return operator<( Other ) || operator==( Other );
 		}
 	};
 
 	struct Cursor
 	{
-		Coordinate selectionStart;
-		Coordinate selectionEnd;
-		Coordinate position;
-		Coordinate selectionOrigin = Coordinate( ~0, ~0 );
+		Coordinate SelectionStart;
+		Coordinate SelectionEnd;
+		Coordinate Position;
+		Coordinate SelectionOrigin = Coordinate( ~0, ~0 );
 
-		bool disabled = false;
+		bool Disabled = false;
 	};
 
 	typedef std::vector< Glyph > Line;
@@ -128,7 +128,7 @@ class TextEdit
 		bool Open    = true;
 		bool Changed = false;
 
-		std::vector< Cursor > cursors;
+		std::vector< Cursor > Cursors;
 
 	}; // File
 
@@ -141,13 +141,13 @@ class TextEdit
 	void Show( bool* pOpen );
 	void AddFile( const std::filesystem::path& rPath );
 	void OnDragDrop( const Drop& rDrop, int X, int Y );
-	void SaveFile( File& file );
-	void SplitLines( File& file );
-	void JoinLines( File& file );
+	void SaveFile( File& rFile );
+	void SplitLines( File& rFile );
+	void JoinLines( File& rFile );
 
 	//////////////////////////////////////////////////////////////////////////
 
-	static float fontSize;
+	static float FontSize;
 
    private:
 	typedef Coordinate Scroll;
@@ -161,44 +161,44 @@ class TextEdit
 		float ScrollY;
 		bool  Changes;
 		int   CursorBlink = 400;
-	} props;
+	} Props;
 
-	bool        RenderEditor( File& file );
-	void        HandleKeyboardInputs( File& file );
-	void        HandleMouseInputs( File& file );
-	void        ScrollToCursor( File& file );
-	void        CalculeteLineNumMaxWidth( File& file );
-	bool        HasSelection( File& file, int cursor ) const;
-	Cursor*     IsCoordinateInSelection( File& file, Coordinate coordinate, int offset = 0 );
-	int         IsLineSelected( File& file, int line, Coordinate* start, Coordinate* end ) const;
-	float       GetCursorDistance( File& file, int cursor ) const;
-	float       GetDistance( File& file, Coordinate position ) const;
-	std::string GetWordAt( File& file, Cursor& cursor ) const;
-	std::string GetWordAt( File& file, Coordinate position, Coordinate* start, Coordinate* end ) const;
-	bool        IsCoordinateInText( File& file, Coordinate position );
-	void        AdjustCursorIfInText( File& file, Cursor& cursor, int line, int xOffset );
-	void        AdjustCursor( File& file, Cursor& cursor, int xOffset );
-	void        SetSelectionLine( File& file, int line );
-	void        SetSelection( File& file, Coordinate start, Coordinate end, int cursor );
-	Coordinate  GetCoordinate( File& file, ImVec2 position, bool relativeToEditor = false );
-	Coordinate  CalculateTabAlignment( File& file, Coordinate fromPosition );
-	float       CalculateTabAlignmentDistance( File& file, Coordinate fromPosition );
-	void        AdjustCursors( File& file, int cursor, int xOffset, int yOffset );
-	void        YeetDuplicateCursors( File& file );
-	void        DisableIntersectingSelections( File& file, int cursor );
-	void        DeleteDisabledCursor( File& file );
-	void        DeleteSelection( File& file, int cursor );
-	void        Enter( File& file );
-	void        Backspace( File& file );
-	void        Del( File& file );
-	void        Tab( File& file, bool shift );
-	void        EnterTextStuff( File& file, char c, bool shift = false );
-	void        MoveUp( File& file, bool shift );
-	void        MoveDown( File& file, bool shift );
-	void        MoveRight( File& file, bool ctrl, bool shift );
-	void        MoveLeft( File& file, bool ctrl, bool shift );
+	bool        RenderEditor( File& rFile );
+	void        HandleKeyboardInputs( File& rFile );
+	void        HandleMouseInputs( File& rFile );
+	void        ScrollToCursor( File& rFile );
+	void        CalculeteLineNumMaxWidth( File& rFile );
+	bool        HasSelection( File& rFile, int cursor ) const;
+	Cursor*     IsCoordinateInSelection( File& rFile, Coordinate Coordinate, int Offset = 0 );
+	int         IsLineSelected( File& rFile, int line, Coordinate* pStart, Coordinate* pEnd ) const;
+	float       GetCursorDistance( File& rFile, int Cursor ) const;
+	float       GetDistance( File& rFile, Coordinate Position ) const;
+	std::string GetWordAt( File& rFile, Cursor& Cursor ) const;
+	std::string GetWordAt( File& rFile, Coordinate Position, Coordinate* pStart, Coordinate* pEnd ) const;
+	bool        IsCoordinateInText( File& rFile, Coordinate Position );
+	void        AdjustCursorIfInText( File& rFile, Cursor& rCursor, int Line, int XOffset );
+	void        AdjustCursor( File& rFile, Cursor& Cursor, int XOffset );
+	void        SetSelectionLine( File& rFile, int Line );
+	void        SetSelection( File& rFile, Coordinate Start, Coordinate End, int Cursor );
+	Coordinate  GetCoordinate( File& rFile, ImVec2 Position, bool RelativeToEditor = false );
+	Coordinate  CalculateTabAlignment( File& rFile, Coordinate FromPosition );
+	float       CalculateTabAlignmentDistance( File& rFile, Coordinate FromPosition );
+	void        AdjustCursors( File& rFile, int Cursor, int XOffset, int YOffset );
+	void        YeetDuplicateCursors( File& rFile );
+	void        DisableIntersectingSelections( File& rFile, int Cursor );
+	void        DeleteDisabledCursor( File& rFile );
+	void        DeleteSelection( File& rFile, int Cursor );
+	void        Enter( File& rFile );
+	void        Backspace( File& rFile );
+	void        Del( File& rFile );
+	void        Tab( File& rFile, bool Shift );
+	void        EnterTextStuff( File& rFile, char C, bool Shift = false );
+	void        MoveUp( File& rFile, bool Shift );
+	void        MoveDown( File& rFile, bool Shift );
+	void        MoveRight( File& rFile, bool Ctrl, bool Shift );
+	void        MoveLeft( File& rFile, bool Ctrl, bool Shift );
 
-	Palette palette;
+	Palette m_Palette;
 
 	//////////////////////////////////////////////////////////////////////////
 
