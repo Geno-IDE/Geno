@@ -1,6 +1,12 @@
 name: CI (Windows)
 
-on: [push, pull_request]
+on:
+  pull_request:
+    branches: [ master ]
+    types: [ opened, closed, reopened, synchronize ]
+  push:
+    branches-ignore: [ master ]
+    paths-ignore: [ .github/**, resources/**, .clang-format, .editorconfig, .gitignore, README.md, LICENSE ]
 
 jobs:
   build:
