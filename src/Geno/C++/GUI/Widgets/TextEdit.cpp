@@ -1080,10 +1080,12 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool
 		ImVec2 Origin = ImGui::GetCursorScreenPos();
 
 		Position.x -= Origin.x;
-		Position.y -= Origin.y;
+		Position.y -= Origin.y + Props.ScrollY;
 	}
 
-	int LineIndex = ( int )( ( ( Position.y + Props.ScrollY ) / Props.CharAdvanceY ) - ( Props.ScrollY / Props.CharAdvanceY ) );
+	float tmp = ((Position.y / Props.CharAdvanceY) + floorf(Props.ScrollY / Props.CharAdvanceY));
+	printf("%f\n", tmp);
+	int LineIndex = ( int )tmp;
 	int NumLines  = ( int )rFile.Lines.size();
 
 	if( LineIndex > NumLines - 1 )
