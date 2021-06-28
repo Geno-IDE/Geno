@@ -1521,10 +1521,14 @@ void TextEdit::Tab( File& rFile, bool Shift )
 
 			GetWordAt( rFile, Coordinate( Pos.x - 1, Pos.y ), &Start, &End );
 
-			if( End != Pos )
+			if( End != Pos)
 			{
-				Start = End;
-				End   = Pos;
+				if (End > Pos) {
+					End = Pos;
+				} else {
+					Start = End;
+					End = Pos;
+				}
 			}
 
 			Coordinate NewCoord = CalculateTabAlignment( rFile, End );
