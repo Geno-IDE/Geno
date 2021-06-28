@@ -1083,9 +1083,7 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool
 		Position.y -= Origin.y + Props.ScrollY;
 	}
 
-	float tmp = ((Position.y / Props.CharAdvanceY) + floorf(Props.ScrollY / Props.CharAdvanceY));
-	printf("%f\n", tmp);
-	int LineIndex = ( int )tmp;
+	int LineIndex = ( int )( ( Position.y / Props.CharAdvanceY ) + ( !RelativeToEditor ? floorf( Props.ScrollY / Props.CharAdvanceY ) : 0 ) );
 	int NumLines  = ( int )rFile.Lines.size();
 
 	if( LineIndex > NumLines - 1 )
@@ -1106,8 +1104,9 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool
 
 		if( String[ 0 ] == '\t' )
 		{
-			Diff   = TabSize * Props.SpaceSize;
-			Length = CalculateTabAlignmentDistance( rFile, Coordinate( i + 1, LineIndex ) ) + Diff;
+			float NewLen = CalculateTabAlignmentDistance( rFile, Coordinate( i + 1, LineIndex ) );
+			Diff         = NewLen - Length,
+			Length += Diff;
 		}
 		else
 		{
@@ -1141,9 +1140,10 @@ float TextEdit::CalculateTabAlignmentDistance( File& rFile, Coordinate FromPosit
 	float Tab = TabSize * Props.SpaceSize;
 
 	float Fraction = Dist / Tab;
-	Fraction       = Fraction - floorf( Fraction ) - 0.000001f;
 
-	if( Fraction <= 0.0f ) Fraction = 1.0f;
+	if( Fraction < 1.0f ) Fraction = 1.0f;
+	else
+		Fraction = Fraction - floorf( Fraction );
 
 	float NewDist = Dist - Fraction * Tab;
 
@@ -1492,13 +1492,15 @@ void TextEdit::Tab( File& rFile, bool Shift )
 					if( Word.empty() ) continue;
 					if( Word[ 0 ] != ' ' && Word[ 0 ] != '\t' ) continue;
 
-					Coordinate newCoord = CalculateTabAlignment( rFile, End );
+					Coordinate NewCoord = CalculateTabAlignment( rFile, End );
 
-					if( Start.x > newCoord.x ) newCoord.x = Start.x;
+					if( NewCoord == End ) NewCoord.x--;
 
-					rLine.erase( rLine.begin() + newCoord.x, rLine.begin() + End.x );
+					if( Start.x > NewCoord.x ) NewCoord.x = Start.x;
 
-					AdjustCursorIfInText( rFile, rCursor, j, newCoord.x - End.x );
+					rLine.erase( rLine.begin() + NewCoord.x, rLine.begin() + End.x );
+
+					AdjustCursorIfInText( rFile, rCursor, j, NewCoord.x - End.x );
 				}
 
 				Props.Changes = true;
@@ -1521,17 +1523,22 @@ void TextEdit::Tab( File& rFile, bool Shift )
 
 			GetWordAt( rFile, Coordinate( Pos.x - 1, Pos.y ), &Start, &End );
 
-			if( End != Pos)
+			if( End != Pos )
 			{
-				if (End > Pos) {
+				if( End > Pos )
+				{
 					End = Pos;
-				} else {
+				}
+				else
+				{
 					Start = End;
-					End = Pos;
+					End   = Pos;
 				}
 			}
 
 			Coordinate NewCoord = CalculateTabAlignment( rFile, End );
+
+			if( NewCoord == End ) NewCoord.x--;
 
 			if( Start.x > NewCoord.x ) NewCoord.x = Start.x;
 
