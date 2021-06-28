@@ -385,7 +385,7 @@ bool TextEdit::RenderEditor( File& rFile )
 
 				if( !HasSelection( rFile, j ) )
 				{
-					ImVec2 Start( ScreenCursor.x + Props.LineNumMaxWidth, Pos.y );
+					ImVec2 Start( ScreenCursor.x + Props.LineNumMaxWidth - 2, Pos.y );
 					ImVec2 End( ScreenCursor.x + Size.x, Pos.y + Props.CharAdvanceY );
 
 					pDrawList->AddRectFilled( Start, End, Focus ? m_Palette.CurrentLine : m_Palette.CurrentLineInactive );
