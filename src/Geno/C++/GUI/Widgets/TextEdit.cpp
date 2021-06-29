@@ -1013,10 +1013,26 @@ bool TextEdit::IsCoordinateInText( File& rFile, Coordinate Position )
 
 void TextEdit::AdjustCursorIfInText( File& rFile, Cursor& rCursor, int LineIndex, int XOffset )
 {
+	if( XOffset > 0 )
+	{
+		rCursor.Position.x += XOffset;
+		rCursor.SelectionOrigin.x += XOffset;
+		rCursor.SelectionStart.x += XOffset;
+		rCursor.SelectionEnd.x += XOffset;
+	}
+
 	if( IsCoordinateInText( rFile, rCursor.Position ) && LineIndex == rCursor.Position.y ) rCursor.Position.x += XOffset;
 	if( IsCoordinateInText( rFile, rCursor.SelectionOrigin ) && LineIndex == rCursor.SelectionOrigin.y ) rCursor.SelectionOrigin.x += XOffset;
 	if( IsCoordinateInText( rFile, rCursor.SelectionStart ) && LineIndex == rCursor.SelectionStart.y ) rCursor.SelectionStart.x += XOffset;
 	if( IsCoordinateInText( rFile, rCursor.SelectionEnd ) && LineIndex == rCursor.SelectionEnd.y ) rCursor.SelectionEnd.x += XOffset;
+
+	if( XOffset > 0 )
+	{
+		rCursor.Position.x -= XOffset;
+		rCursor.SelectionOrigin.x -= XOffset;
+		rCursor.SelectionStart.x -= XOffset;
+		rCursor.SelectionEnd.x -= XOffset;
+	}
 
 } // AdjustCursorIfInText
 
