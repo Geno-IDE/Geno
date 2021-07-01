@@ -18,6 +18,7 @@ third_party_library 'glfw'
 third_party_library 'imgui'
 third_party_library 'discordrpc'
 third_party_library 'llvm-clang-tablegen'
+third_party_library 'llvm-libclang'
 third_party_library 'llvm-libllvm'
 third_party_library 'llvm-tablegen'
 
