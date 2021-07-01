@@ -855,7 +855,7 @@ float TextEdit::GetDistance( File& rFile, Coordinate Position ) const
 
 	float XOffset = 0.0f;
 
-	Position.x = Position.x > ( int )rLine.size() ? ( int )rLine.size() - 1 : Position.x;
+	Position.x = Position.x > ( int )rLine.size() ? ( int )rLine.size() : Position.x;
 
 	for( int i = 0; i < Position.x; i++ )
 	{
@@ -904,12 +904,20 @@ std::string TextEdit::GetWordAt( File& rFile, Cursor& rCursor ) const
 
 std::string TextEdit::GetWordAt( File& rFile, Coordinate Position, Coordinate* pStart, Coordinate* pEnd ) const
 {
-	const Line& rLine = rFile.Lines[ Position.y ];
+	const Line& rLine    = rFile.Lines[ Position.y ];
+	int         LineSize = ( int )rLine.size();
 
-	if( Position.x >= ( int )rLine.size() )
+	if( LineSize == 0 )
 	{
-		if( Position.x == 0 ) return std::string();
-		Position.x -= 1;
+		if( pStart ) *pStart = Coordinate( 0, 0 );
+		if( pEnd ) *pEnd = Coordinate( 0, 0 );
+
+		return std::string();
+	}
+
+	if( Position.x >= LineSize )
+	{
+		Position.x = LineSize - 1;
 	}
 
 	char c = rLine[ Position.x ].C;
@@ -1020,11 +1028,14 @@ bool TextEdit::IsCoordinateInText( File& rFile, Coordinate Position )
 {
 	if( Position.x == 0 ) return false;
 
-	Coordinate Start;
+	Coordinate End;
 
-	GetWordAt( rFile, Coordinate( Position.x - 1, Position.y ), &Start, nullptr );
+	std::string Word = GetWordAt( rFile, Coordinate( 0, Position.y ), nullptr, &End );
 
-	if( Start.x == 0 ) return false;
+	if( Word[ 0 ] == ' ' || Word[ 0 ] == '\t' )
+	{
+		if( Position.x <= End.x ) return false;
+	}
 
 	return true;
 
