@@ -1152,7 +1152,7 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool
 
 		if( String[ 0 ] == '\t' )
 		{
-			float NewLen = CalculateTabAlignmentDistance( rFile, Coordinate( i + 1, LineIndex ) );
+			float NewLen = GetDistance( rFile, Coordinate( i + 1, LineIndex ) );
 			Diff         = NewLen - Length,
 			Length += Diff;
 		}
