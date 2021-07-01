@@ -20,10 +20,70 @@
 #include "Common/Texture2D.h"
 
 #include <imgui_internal.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 //////////////////////////////////////////////////////////////////////////
 
-bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, const bool DrawArrow )
+bool ImGuiAux::RenameTree( std::string& rNameToRename )
+{
+	bool               HighlightBorder;
+	static std::string Name;
+
+	if( Name.empty() )
+	{
+		Name = rNameToRename;
+	}
+
+	if( rNameToRename.empty() )
+		HighlightBorder = true;
+	else
+		HighlightBorder = false;
+
+	ImGui::SetNextItemWidth( ImGui::GetContentRegionAvailWidth() );
+
+	auto& BgColor = ImGui::GetStyle().Colors[ ImGuiCol_WindowBg ];
+
+	ImGui::PushStyleVar( ImGuiStyleVar_FrameRounding, 0.0f );
+	ImGui::PushStyleVar( ImGuiStyleVar_FrameBorderSize, 1.5f );
+	ImGui::PushStyleColor( ImGuiCol_FrameBg, BgColor );
+	ImGui::PushStyleColor( ImGuiCol_FrameBgActive, BgColor );
+	ImGui::PushStyleColor( ImGuiCol_FrameBgHovered, BgColor );
+
+	if( HighlightBorder )
+		ImGui::PushStyleColor( ImGuiCol_Border, ImVec4( 1.0f, 0.0, 0.0, 1.0f ) );
+
+	bool IsEnterPressed = ImGui::InputText( "##Rename", &rNameToRename, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue );
+
+	ImGui::PopStyleVar( 2 );
+	ImGui::PopStyleColor( HighlightBorder ? 4 : 3 );
+
+	if( IsEnterPressed && !HighlightBorder )
+	{
+		Name.clear();
+		return true;
+	}
+	else if( ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Escape ) ) )
+	{
+		Name.clear();
+		return true;
+	}
+	else if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) || ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
+	{
+		if( !( ImGui::IsItemClicked( ImGuiMouseButton_Right ) || ImGui::IsItemClicked( ImGuiMouseButton_Left ) ) )
+		{
+			rNameToRename = Name;
+			Name.clear();
+			return true;
+		}
+	}
+
+	return false;
+
+} //RenameTree
+
+//////////////////////////////////////////////////////////////////////////
+
+bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, bool& rRename, const bool DrawArrow )
 {
 	const float   Height    = ImGui::GetFontSize();
 	ImGuiWindow*  pWindow   = ImGui::GetCurrentWindow();
@@ -38,11 +98,14 @@ bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, 
 		bool Hovered;
 		bool Held;
 
-		if( ImGui::ButtonBehavior( Bounds, ID, &Hovered, &Held, true ) )
-			pWindow->DC.StateStorage->SetInt( ID, Opened ? 0 : 1 );
+		if( !rRename )
+		{
+			if( ImGui::ButtonBehavior( Bounds, ID, &Hovered, &Held, true ) )
+				pWindow->DC.StateStorage->SetInt( ID, Opened ? 0 : 1 );
 
-		if( Hovered || Held )
-			pWindow->DrawList->AddRectFilled( Bounds.Min, Bounds.Max, ImGui::GetColorU32( Held ? ImGuiCol_HeaderActive : ImGuiCol_HeaderHovered ) );
+			if( Hovered || Held )
+				pWindow->DrawList->AddRectFilled( Bounds.Min, Bounds.Max, ImGui::GetColorU32( Held ? ImGuiCol_HeaderActive : ImGuiCol_HeaderHovered ) );
+		}
 	}
 
 	// Arrow
@@ -71,14 +134,26 @@ bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, 
 	{
 		const ImVec2 Pos = CursorPos + rStyle.FramePadding; // + rStyle.ItemInnerSpacing;
 
-		ImGui::RenderText( Pos, pLabel );
+		if( !rRename )
+			ImGui::RenderText( Pos, pLabel );
 	}
 
-	ImGui::ItemSize( Bounds, rStyle.FramePadding.y );
-	ImGui::ItemAdd( Bounds, ID );
+	if( !rRename )
+	{
+		ImGui::ItemSize( Bounds, rStyle.FramePadding.y );
+		ImGui::ItemAdd( Bounds, ID );
+	}
+
+	float Offset = ImGui::GetCursorPosX() + 25.0f; // 25 As Image Size
+
+	if( DrawArrow )
+		Offset += ImGui::GetFontSize(); // If The Tree Have Arrow Add ArrowSize = FontSize
 
 	if( Opened )
 		ImGui::TreePush( pLabel );
+
+	if( rRename )
+		ImGui::SetCursorPosX( Offset );
 
 	return Opened;
 

@@ -151,6 +151,8 @@ void TextEdit::Show( bool* pOpen )
 
 				if( ImGui::BeginTabItem( FileString.c_str(), &rFile.Open, rFile.Changed ? ImGuiTabItemFlags_UnsavedDocument : 0 ) )
 				{
+					m_ActiveFilePath = rFile.Path;
+
 					const int InputTextFlags = ImGuiInputTextFlags_AllowTabInput;
 
 					ImGui::PushFont( MainWindow::Instance().GetFontMono() );
@@ -163,6 +165,9 @@ void TextEdit::Show( bool* pOpen )
 					ImGui::PopFont();
 					ImGui::EndTabItem();
 				}
+
+				if( m_ActiveFilePath == rFile.Path && !rFile.Open )
+					m_ActiveFilePath.clear();
 			}
 
 			// Clear closed files from list
@@ -247,6 +252,22 @@ void TextEdit::OnDragDrop( const Drop& rDrop, int X, int Y )
 	}
 
 } // OnDragDrop
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::ReplaceFile( const std::filesystem::path& rOldPath, const std::filesystem::path& rNewPath )
+{
+	// Replace Renamed File
+	for( auto& rFile : m_Files )
+	{
+		if( rFile.Path == rOldPath )
+		{
+			rFile.Path = rNewPath;
+			break;
+		}
+	}
+
+} //ReplaceFile
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -41,7 +41,7 @@ private:
 	Texture2D             m_IconTextureSourceFile   = { };
 
 	std::filesystem::path m_SelectedFile            = { };
-	std::string           m_PopupText               = { };
+	std::string           m_RenameText              = { };
 	std::string           m_SelectedProjectName     = { };
 	std::string           m_ProjectNodeToBeExpanded = { };
 
