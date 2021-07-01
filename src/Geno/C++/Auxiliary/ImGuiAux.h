@@ -17,6 +17,7 @@
 
 #pragma once
 #include <imgui.h>
+#include <string>
 
 class Texture2D;
 
@@ -25,7 +26,8 @@ class Texture2D;
 namespace ImGuiAux
 {
 
-extern bool PushTreeWithIcon    ( const char* pLabel, const Texture2D& rTexture, const bool DrawArrow = true );
+extern bool RenameTree          ( std::string& rNameToRename );
+extern bool PushTreeWithIcon    ( const char* pLabel, const Texture2D& rTexture, bool& rRename, const bool DrawArrow = true );
 extern bool BeginChildHorizontal( const ImGuiID ID, const ImVec2& rSize, const bool Border = false, const ImGuiWindowFlags Flags = 0 );
 extern void TextCentered        ( const char* pText );
 

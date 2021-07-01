@@ -25,6 +25,10 @@
 
 #include <imgui.h>
 
+#if defined( _WIN32 )
+#undef ReplaceFile
+#endif // _WIN32
+
 class Drop;
 struct ImGuiTabBar;
 
@@ -146,6 +150,9 @@ public:
 	void SaveFile( File& rFile );
 	void SplitLines( File& rFile );
 	void JoinLines( File& rFile );
+	void ReplaceFile( const std::filesystem::path& rOldPath, const std::filesystem::path& rNewPath );
+
+	const std::filesystem::path& GetActiveFilePath() const { return m_ActiveFilePath; }
 
 	//////////////////////////////////////////////////////////////////////////
 
@@ -211,5 +218,7 @@ private:
 	Texture2D m_DraggedBitmapTexture = {};
 
 	std::vector< File > m_Files = {};
+
+	std::filesystem::path m_ActiveFilePath = {};
 
 }; // TextEdit
