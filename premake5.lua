@@ -17,6 +17,7 @@ third_party_library 'glew'
 third_party_library 'glfw'
 third_party_library 'imgui'
 third_party_library 'discordrpc'
+third_party_library 'llvm-tablegen'
 
 library 'Common'
 	sysincludedirs {
