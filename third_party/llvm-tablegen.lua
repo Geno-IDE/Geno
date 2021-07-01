@@ -5,11 +5,10 @@ return function()
 		'third_party/llvm-project/llvm/include',
 	}
 	files {
-		'third_party/llvm-project/llvm/lib/Demangle/**.cpp',
-		'third_party/llvm-project/llvm/lib/Support/**.c',
-		'third_party/llvm-project/llvm/lib/Support/**.cpp',
-		'third_party/llvm-project/llvm/lib/TableGen/**.cpp',
 		'third_party/llvm-project/llvm/utils/TableGen/**.cpp',
+	}
+	links {
+		'llvm-libllvm',
 	}
 
 	filter 'toolset:msc'
