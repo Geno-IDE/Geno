@@ -1,6 +1,7 @@
 return function()
 	dependson {
 		'llvm-tablegen',
+		'llvm-libllvm-ir',
 	}
 	sysincludedirs {
 		'third_party/.config',
