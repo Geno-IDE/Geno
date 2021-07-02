@@ -307,7 +307,7 @@
 //#define HOST_LINK_VERSION
 
 // Target triple LLVM will generate code for by default
-#define LLVM_DEFAULT_TARGET_TRIPLE ""
+#define LLVM_DEFAULT_TARGET_TRIPLE LLVM_HOST_TRIPLE
 
 // zlib compression is available
 #define LLVM_ENABLE_ZLIB __has_include( <zlib.h> )

@@ -12,9 +12,10 @@ targetdir '../%{iif(prj.kind == "StaticLib" or prj.kind == "SharedLib","lib","bi
 warnings 'Extra'
 
 defines {
+	'CINDEX_NO_EXPORTS',
 	'GLEW_STATIC',
-	'IMGUI_IMPL_OPENGL_LOADER_GLEW',
 	'IMGUI_DEFINE_MATH_OPERATORS',
+	'IMGUI_IMPL_OPENGL_LOADER_GLEW',
 	'ImTextureID=unsigned int',
 }
 

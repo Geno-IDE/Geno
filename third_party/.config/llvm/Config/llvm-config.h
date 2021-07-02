@@ -20,8 +20,39 @@
 // Has atomic intrinsics
 #define LLVM_HAS_ATOMICS 1
 
+// Host architecture
+#if defined( __aarch64__ )
+#define LLVM_HOST_ARCH "aarch64"
+#elif defined( __arm__ ) || defined( _M_ARM ) // __aarch64__
+#define LLVM_HOST_ARCH "arm"
+#elif defined( __mips__ ) // __arm__ || _M_ARM
+#define LLVM_HOST_ARCH "mips"
+#elif defined( __powerpc__ ) || defined( _M_PPC ) // __mips__
+#define LLVM_HOST_ARCH "ppc"
+#elif defined( __x86_64__ ) || defined( _M_X64 ) // __powerpc__ || _M_PPC
+#define LLVM_HOST_ARCH "x86_64"
+#elif defined( __i386__ ) || defined( _M_IX86 ) // __x86_64__ || _M_X64
+#define LLVM_HOST_ARCH "x86"
+#endif // __i386__ || _M_IX86
+
+// Host vendor
+#if defined( __APPLE__ )
+#define LLVM_HOST_VENDOR "Apple"
+#else // __APPLE__
+#define LLVM_HOST_VENDOR "unknown"
+#endif // __APPLE__
+
+// Host operating system
+#if defined( _WIN32 )
+#define LLVM_HOST_OS "Win32"
+#elif defined( __linux__ ) // _WIN32
+#define LLVM_HOST_OS "Linux"
+#elif defined( __darwin__ ) // __linux__
+#define LLVM_HOST_OS "Darwin"
+#endif // __darwin__
+
 // Host triple LLVM will be executed on
-#define LLVM_HOST_TRIPLE "unknown-unknown-unknown"
+#define LLVM_HOST_TRIPLE LLVM_HOST_ARCH "-" LLVM_HOST_VENDOR "-" LLVM_HOST_OS
 
 // Check if Unixish platform
 #if defined( __unix__ ) || defined( __unix )
@@ -36,5 +67,8 @@
 
 // Check if <sysexits.h> is available
 #define HAVE_SYSEXITS_H __has_include( <sysexits.h> )
+
+// Enable the experimental new pass manager by default
+#define LLVM_ENABLE_NEW_PASS_MANAGER 1
 
 #endif // LLVM_CONFIG_H
