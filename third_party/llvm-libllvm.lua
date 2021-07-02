@@ -9,7 +9,6 @@ return function()
 		'third_party/llvm-project/llvm/lib/Demangle/**.cpp',
 		'third_party/llvm-project/llvm/lib/MC/**.cpp',
 		'third_party/llvm-project/llvm/lib/Option/**.cpp',
-		'third_party/llvm-project/llvm/lib/ProfileData/**.cpp',
 		'third_party/llvm-project/llvm/lib/Remarks/**.cpp',
 		'third_party/llvm-project/llvm/lib/Support/**.c',
 		'third_party/llvm-project/llvm/lib/Support/**.cpp',

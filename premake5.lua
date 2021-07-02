@@ -28,6 +28,8 @@ third_party_library 'discordrpc'
 third_party_library 'llvm-clang-tablegen'
 third_party_library 'llvm-libclang'
 third_party_library 'llvm-libllvm'
+third_party_library 'llvm-libllvm-ir'
+third_party_library 'llvm-libllvm-omp'
 third_party_library 'llvm-libllvm-target'
 third_party_library 'llvm-tablegen'
 

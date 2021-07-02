@@ -6,6 +6,7 @@ return function()
 
 	dependson {
 		'llvm-tablegen',
+		'llvm-clang-tablegen',
 	}
 	includedirs {
 		'third_party/llvm-project/clang/lib/Basic',
@@ -16,30 +17,13 @@ return function()
 		'third_party/llvm-project/clang/include',
 		'third_party/llvm-project/llvm/include',
 	}
-	files {
-		'third_party/llvm-project/clang/lib/AST/**.cpp',
-		'third_party/llvm-project/clang/lib/Analysis/*.cpp', -- No plugins
-		'third_party/llvm-project/clang/lib/Basic/**.cpp',
-		'third_party/llvm-project/clang/lib/Driver/**.cpp',
-		'third_party/llvm-project/clang/lib/Edit/**.cpp',
-		'third_party/llvm-project/clang/lib/Format/**.cpp',
-		'third_party/llvm-project/clang/lib/Frontend/**.cpp',
-		'third_party/llvm-project/clang/lib/Index/**.cpp',
-		'third_party/llvm-project/clang/lib/Lex/**.cpp',
-		'third_party/llvm-project/clang/lib/Parse/**.cpp',
-		'third_party/llvm-project/clang/lib/Rewrite/**.cpp',
-		'third_party/llvm-project/clang/lib/Sema/**.cpp',
-		'third_party/llvm-project/clang/lib/Serialization/**.cpp',
-		'third_party/llvm-project/clang/lib/Tooling/**.cpp',
-		'third_party/llvm-project/clang/tools/libclang/**.cpp',
-	}
 	prebuildcommands {
 		tablegen( '../../../clang/include/clang/Driver/Options.inc', '../../../clang/include/clang/Driver/Options.td', '--gen-opt-parser-defs -I "%{path.join(wks.location,"third_party/llvm-project/llvm/include")}"' ),
 		tablegen( 'Frontend/OpenMP/OMP.h.inc',                       'Frontend/OpenMP/OMP.td',                         '--gen-directive-decl -I "%{path.join(wks.location,"third_party/llvm-project/llvm/include")}"' ),
 		tablegen( 'Frontend/OpenMP/OMP.inc',                         'Frontend/OpenMP/OMP.td',                         '--gen-directive-gen -I "%{path.join(wks.location,"third_party/llvm-project/llvm/include")}"' ),
 
-		clang_tablegen( '../../lib/AST/Interp/Opcodes.inc',                '--gen-clang-opcodes',                        '../../lib/AST/Interp/Opcodes.td' ),
-		clang_tablegen( '../../lib/Sema/OpenCLBuiltins.inc',               '--gen-clang-opencl-builtins',                '../../lib/Sema/OpenCLBuiltins.td' ),
+		clang_tablegen( '../../lib/AST/Interp/Opcodes.inc',                '../../lib/AST/Interp/Opcodes.td',            '--gen-clang-opcodes -I "%{path.join(wks.location,"third_party/llvm-project/clang/include")}"' ),
+		clang_tablegen( '../../lib/Sema/OpenCLBuiltins.inc',               '../../lib/Sema/OpenCLBuiltins.td',           '--gen-clang-opencl-builtins -I "%{path.join(wks.location,"third_party/llvm-project/clang/include")}"' ),
 		clang_tablegen( 'AST/AbstractBasicReader.inc',                     'AST/PropertiesBase.td',                      '--gen-clang-basic-reader -I "%{path.join(wks.location,"third_party/llvm-project/clang/include")}"' ),
 		clang_tablegen( 'AST/AbstractBasicWriter.inc',                     'AST/PropertiesBase.td',                      '--gen-clang-basic-writer -I "%{path.join(wks.location,"third_party/llvm-project/clang/include")}"' ),
 		clang_tablegen( 'AST/AbstractTypeReader.inc',                      'AST/TypeProperties.td',                      '--gen-clang-type-reader -I "%{path.join(wks.location,"third_party/llvm-project/clang/include")}"' ),
@@ -103,6 +87,23 @@ return function()
 		clang_diag_gen( 'Refactoring' ),
 		clang_diag_gen( 'Sema' ),
 		clang_diag_gen( 'Serialization' ),
+	}
+	files {
+		'third_party/llvm-project/clang/lib/AST/**.cpp',
+		'third_party/llvm-project/clang/lib/Analysis/*.cpp', -- No plugins
+		'third_party/llvm-project/clang/lib/Basic/**.cpp',
+		'third_party/llvm-project/clang/lib/Driver/**.cpp',
+		'third_party/llvm-project/clang/lib/Edit/**.cpp',
+		'third_party/llvm-project/clang/lib/Format/**.cpp',
+		'third_party/llvm-project/clang/lib/Frontend/**.cpp',
+		'third_party/llvm-project/clang/lib/Index/**.cpp',
+		'third_party/llvm-project/clang/lib/Lex/**.cpp',
+		'third_party/llvm-project/clang/lib/Parse/**.cpp',
+		'third_party/llvm-project/clang/lib/Rewrite/**.cpp',
+		'third_party/llvm-project/clang/lib/Sema/**.cpp',
+		'third_party/llvm-project/clang/lib/Serialization/**.cpp',
+		'third_party/llvm-project/clang/lib/Tooling/**.cpp',
+		'third_party/llvm-project/clang/tools/libclang/**.cpp',
 	}
 
 	filter 'toolset:msc'
