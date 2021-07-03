@@ -16,37 +16,36 @@
  */
 
 #pragma once
-#include "Common/Macros.h"
-#include "Common/Texture2D.h"
+#include "GUI/Modals/IModal.h"
 
 #include <filesystem>
 #include <string>
 
-class WorkspaceOutliner
+#include <Common/Macros.h>
+
+class FileFilterSettingsModal : public IModal
 {
+	GENO_SINGLETON( FileFilterSettingsModal );
+
+	FileFilterSettingsModal( void ) = default;
+	
+//////////////////////////////////////////////////////////////////////////
+
 public:
+	void Show( std::string Project, std::filesystem::path FileFilter );
 
-	WorkspaceOutliner( void );
-
-//////////////////////////////////////////////////////////////////////////
-
-	void Show( bool* pOpen );
-
-//////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
 
 private:
+	std::string PopupID( void ) override { return "FileFilterSettings"; }
+	std::string Title( void ) override { return "File Filter Settings"; }
+	void        UpdateDerived( void ) override;
+	void        OnClose( void ) override;
 
-	Texture2D             m_IconTextureWorkspace    = { };
-	Texture2D             m_IconTextureProject      = { };
-	Texture2D             m_IconTextureFileFilter   = { };
-	Texture2D             m_IconTextureSourceFile   = { };
+	static void FileFilterPathCallback( const std::filesystem::path& rPath, void* pUser );
 
-	std::filesystem::path m_SelectedFile            = { };
-	std::filesystem::path m_SelectedFileFilterName  = { };
-	std::string           m_RenameText              = { };
-	std::string           m_SelectedProjectName     = { };
-	std::string           m_ProjectNodeToBeExpanded = { };
+	//////////////////////////////////////////////////////////////////////////
 
-	bool                  m_ExpandWorkspaceNode     = false;
-
-}; // WorkspaceWidget
+	std::string           m_EditedProject;
+	std::filesystem::path m_EditedFileFilter;
+};
