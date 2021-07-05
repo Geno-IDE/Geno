@@ -556,6 +556,8 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 			End( rFile, Ctrl, Shift );
 		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Escape ) ) )
 			rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+		else if( !Alt && !Shift && Ctrl && ImGui::IsKeyPressed( 'S' ) )
+			SaveFile( rFile );
 
 		for( int i = 0; i < rIO.InputQueueCharacters.Size; i++ )
 		{
