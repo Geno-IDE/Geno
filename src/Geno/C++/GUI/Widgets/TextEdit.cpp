@@ -1358,6 +1358,8 @@ void TextEdit::DeleteSelection( File& rFile, int CursorIndex )
 		rCursor.SelectionStart  = { 0, 0 };
 		rCursor.SelectionEnd    = { 0, 0 };
 		rCursor.SelectionOrigin = { -1, -1 };
+	} else {
+		return;
 	}
 
 	Props.Changes = true;
