@@ -1234,7 +1234,7 @@ void TextEdit::AdjustCursors( File& rFile, int CursorIndex, int XOffset, int YOf
 
 		if( rOther.Position > rCursor.Position )
 		{
-			if( rOther.Position.y == rCursor.Position.y )
+			if( rOther.Position.y == rCursor.Position.y || YOffset > 0 ? rOther.Position.y - YOffset == rCursor.Position.y : false )
 			{
 				rOther.Position.x -= XOffset;
 			}
@@ -1358,7 +1358,9 @@ void TextEdit::DeleteSelection( File& rFile, int CursorIndex )
 		rCursor.SelectionStart  = { 0, 0 };
 		rCursor.SelectionEnd    = { 0, 0 };
 		rCursor.SelectionOrigin = { -1, -1 };
-	} else {
+	}
+	else
+	{
 		return;
 	}
 
@@ -1475,43 +1477,53 @@ void TextEdit::Backspace( File& rFile )
 
 void TextEdit::Del( File& rFile )
 {
-	Props.Changes = true;
-
 	for( int i = 0; i < rFile.Cursors.size(); i++ )
 	{
-		if( HasSelection( rFile, i ) )
+		Del( rFile, i );
+	}
+
+} // Del
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::Del( File& rFile, int CursorIndex )
+{
+	Cursor& rCursor = rFile.Cursors[ CursorIndex ];
+
+	if( rCursor.Disabled ) return;
+
+	if( HasSelection( rFile, CursorIndex ) )
+	{
+		DeleteSelection( rFile, CursorIndex );
+	}
+	else
+	{
+		Line& rLine = rFile.Lines[ rCursor.Position.y ];
+
+		if( rCursor.Position.x >= rLine.size() )
 		{
-			DeleteSelection( rFile, i );
+			if( rCursor.Position.y == rFile.Lines.size() - 1 ) return;
+
+			Line& rNextLine = rFile.Lines[ rCursor.Position.y + 1 ];
+
+			rLine.insert( rLine.end(), rNextLine.begin(), rNextLine.end() );
+
+			rFile.Lines.erase( rFile.Lines.begin() + rCursor.Position.y + 1 );
+
+			AdjustCursors( rFile, CursorIndex, -rCursor.Position.x, 1 );
 		}
 		else
 		{
-			Cursor& rCursor = rFile.Cursors[ i ];
-
-			if( rCursor.Disabled ) continue;
-
-			Line& rLine = rFile.Lines[ rCursor.Position.y ];
-
-			if( rCursor.Position.x >= rLine.size() )
-			{
-				if( rCursor.Position.y == rFile.Lines.size() - 1 ) continue;
-
-				Line& rNextLine = rFile.Lines[ rCursor.Position.y + 1 ];
-
-				rLine.insert( rLine.end(), rNextLine.begin(), rNextLine.end() );
-
-				rFile.Lines.erase( rFile.Lines.begin() + rCursor.Position.y + 1 );
-			}
-			else
-			{
-				rLine.erase( rLine.begin() + rCursor.Position.x );
-			}
+			rLine.erase( rLine.begin() + rCursor.Position.x );
+			AdjustCursors( rFile, CursorIndex, 1, 0 );
 		}
+
+		Props.Changes = true;
 	}
 
 	ScrollToCursor( rFile );
 
 	Props.CursorBlink = 0;
-
 } // Del
 
 //////////////////////////////////////////////////////////////////////////
