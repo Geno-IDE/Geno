@@ -2006,6 +2006,8 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift )
 
 } // MoveLeft
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
 {
 	for( int i = 0; i < rFile.Cursors.size(); i++ )
@@ -2084,6 +2086,8 @@ void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
 	Props.CursorBlink = 0;
 
 } // Home
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
 {
