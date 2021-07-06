@@ -28,9 +28,9 @@ class ICompiler;
 
 struct FileFilter
 {
-	std::filesystem::path                m_Name;
-	std::filesystem::path                m_Path;
-	std::vector< std::filesystem::path > m_Files;
+	std::filesystem::path                Name;
+	std::filesystem::path                Path;
+	std::vector< std::filesystem::path > Files;
 
 }; // FileFilter
 

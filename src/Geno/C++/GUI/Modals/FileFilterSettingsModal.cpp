@@ -73,15 +73,15 @@ void FileFilterSettingsModal::UpdateDerived( void )
 		{
 			if( ImGui::BeginTable( "##PATH_TABLE", 3 ) )
 			{
-				// TODO(MarcasRealAccount): Fix width of ImGui::InputText in the modal
 				ImGui::TableSetupColumn( "##PATH_TABLE_1", ImGuiTableColumnFlags_WidthFixed );
 				ImGui::TableSetupColumn( "##PATH_TABLE_2", ImGuiTableColumnFlags_WidthStretch );
 				ImGui::TableSetupColumn( "##PATH_TABLE_3", ImGuiTableColumnFlags_WidthFixed );
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted( "Path" );
 				ImGui::TableNextColumn();
-				std::filesystem::path FileFilterPath = std::filesystem::canonical(pProject->m_Location / pFileFilter->m_Path);
+				std::filesystem::path FileFilterPath = std::filesystem::canonical(pProject->m_Location / pFileFilter->Path);
 				std::string FileFilterPathString = FileFilterPath.string();
+				ImGui::SetNextItemWidth( -FLT_MIN );
 				ImGui::InputText( "##PATH", &FileFilterPathString );
 				ImGui::TableNextColumn();
 				if( ImGui::Button( "Browse" ) )
@@ -91,7 +91,7 @@ void FileFilterSettingsModal::UpdateDerived( void )
 				}
 				else
 				{
-					pFileFilter->m_Path = std::filesystem::relative( FileFilterPathString, pProject->m_Location );
+					pFileFilter->Path = std::filesystem::relative( FileFilterPathString, pProject->m_Location );
 				}
 				ImGui::EndTable();
 			}
@@ -139,7 +139,7 @@ void FileFilterSettingsModal::FileFilterPathCallback( const std::filesystem::pat
 		return;
 	}
 
-	pFileFilter->m_Path = std::filesystem::relative( rPath, pProject->m_Location );
+	pFileFilter->Path = std::filesystem::relative( rPath, pProject->m_Location );
 }
 
 //////////////////////////////////////////////////////////////////////////
