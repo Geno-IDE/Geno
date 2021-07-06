@@ -148,8 +148,6 @@ public:
 	void AddFile( const std::filesystem::path& rPath );
 	void OnDragDrop( const Drop& rDrop, int X, int Y );
 	void SaveFile( File& rFile );
-	void SplitLines( File& rFile );
-	void JoinLines( File& rFile );
 	void ReplaceFile( const std::filesystem::path& rOldPath, const std::filesystem::path& rNewPath );
 
 	const std::filesystem::path& GetActiveFilePath() const { return m_ActiveFilePath; }
@@ -159,6 +157,11 @@ public:
 	static float FontSize;
 
 private:
+	void                SplitLines( File& rFile );
+	std::vector< Line > SplitLines( const std::string string );
+	void                JoinLines( File& rFile );
+	std::string         GetString( const Line& rLine, int Start, int End );
+
 	typedef Coordinate Scroll;
 
 	struct Properties
@@ -200,6 +203,7 @@ private:
 	void        Enter( File& rFile );
 	void        Backspace( File& rFile );
 	void        Del( File& rFile );
+	void        Del( File& rFile, int CursorIndex );
 	void        Tab( File& rFile, bool Shift );
 	void        EnterTextStuff( File& rFile, char C, bool Shift = false );
 	void        MoveUp( File& rFile, bool Shift );
@@ -207,7 +211,9 @@ private:
 	void        MoveRight( File& rFile, bool Ctrl, bool Shift );
 	void        MoveLeft( File& rFile, bool Ctrl, bool Shift );
 	void        Home( File& rFile, bool Ctrl, bool Shift );
-	void        End(File& rFile, bool Ctrl, bool Shift);
+	void        End( File& rFile, bool Ctrl, bool Shift );
+	void        Copy( File& rFile, bool Cut );
+	void        Paste( File& rFile );
 
 	Palette m_Palette;
 
