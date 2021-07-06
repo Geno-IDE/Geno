@@ -135,13 +135,13 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				if( ImGuiAux::RenameTree( m_RenameText ) )
 				{
 					Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName );
-					FileFilter* pFilter = pProject->FileFilterByName( m_RenameText );
-					if( !pFilter || m_RenameText == m_SelectedFileFilterName )
+					FileFilter* pFileFilter = pProject->FileFilterByName( m_RenameText );
+					if( !pFileFilter || m_RenameText == m_SelectedFileFilterName )
 					{
-						pFilter = pProject->FileFilterByName( m_SelectedFileFilterName );
+						pFileFilter = pProject->FileFilterByName( m_SelectedFileFilterName );
 						if (m_RenameText != m_SelectedFileFilterName)
 						{
-							pFilter->m_Name = std::move(m_RenameText);
+							pFileFilter->Name = std::move( m_RenameText );
 							pProject->SortFileFilters();
 							pProject->Serialize();
 						}
@@ -158,10 +158,10 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				}
 			};
 
-			auto PushFilterFunc = [ & ]( Project& rProject, FileFilter& rFilter, std::string_view Name ) -> bool
+			auto PushFilterFunc = [ & ]( Project& rProject, FileFilter& rFileFilter, std::string_view Name ) -> bool
 			{
 				const std::string FilterIDString = std::string( Name ) + "##FILTER_" + std::string( Name );
-				bool              ToRenameFilter = RenameFileFilter && rFilter.m_Name == m_SelectedFileFilterName;
+				bool              ToRenameFilter = RenameFileFilter && rFileFilter.Name == m_SelectedFileFilterName;
 
 				if( ImGuiAux::PushTreeWithIcon( FilterIDString.c_str(), m_IconTextureFileFilter, ToRenameFilter ) )
 				{
@@ -172,7 +172,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					{
 						ShowFileFilterContextMenu = true;
 						m_SelectedProjectName     = rProject.m_Name;
-						m_SelectedFileFilterName  = rFilter.m_Name;
+						m_SelectedFileFilterName  = rFileFilter.Name;
 					}
 
 					return true;
@@ -186,16 +186,16 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					{
 						ShowFileFilterContextMenu = true;
 						m_SelectedProjectName     = rProject.m_Name;
-						m_SelectedFileFilterName  = rFilter.m_Name;
+						m_SelectedFileFilterName  = rFileFilter.Name;
 					}
 
 					return false;
 				}
 			};
 
-			auto PushFilterFilesFunc = [ & ]( Project& rProject, FileFilter& rFilter )
+			auto PushFilterFilesFunc = [ & ]( Project& rProject, FileFilter& rFileFilter )
 			{
-				for( std::filesystem::path& rFile : rFilter.m_Files )
+				for( std::filesystem::path& rFile : rFileFilter.Files )
 				{
 					const std::string FileString    = rFile.filename().string();
 					bool              ToRenameFile  = RenameFile && rFile == m_SelectedFile;
@@ -214,8 +214,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 						if( ImGuiAux::RenameTree( m_RenameText ) )
 						{
 							Project*    pProject            = pWorkspace->ProjectByName( m_SelectedProjectName );
-							FileFilter* pFilter             = pProject->FileFilterByName( m_SelectedFileFilterName );
-							bool        FileExistsInProject = std::filesystem::exists( pProject->m_Location / pFilter->m_Path / m_RenameText );
+							FileFilter* pFileFilter         = pProject->FileFilterByName( m_SelectedFileFilterName );
+							bool        FileExistsInProject = std::filesystem::exists( pProject->m_Location / pFileFilter->Path / m_RenameText );
 
 							if( !FileExistsInProject || m_RenameText == m_SelectedFile.filename().string() )
 							{
@@ -225,11 +225,11 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 									if( std::filesystem::exists( OldPath ) )
 									{
-										const std::filesystem::path NewPath = pProject->m_Location / pFilter->m_Path / m_RenameText;
+										const std::filesystem::path NewPath = pProject->m_Location / pFileFilter->Path / m_RenameText;
 										std::filesystem::rename( OldPath, NewPath );
 									}
 
-									rFile = pProject->m_Location / pFilter->m_Path / m_RenameText;
+									rFile = pProject->m_Location / pFileFilter->Path / m_RenameText;
 									pProject->SortFileFilters();
 									pProject->Serialize();
 
@@ -267,7 +267,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					if( ImGui::IsItemClicked( ImGuiMouseButton_Right ) )
 					{
 						ShowFileContextMenu      = true;
-						m_SelectedFileFilterName = rFilter.m_Name;
+						m_SelectedFileFilterName = rFileFilter.Name;
 						m_SelectedFile           = rFile;
 						m_SelectedProjectName    = rProject.m_Name;
 					}
@@ -310,16 +310,16 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 						for( FileFilter& rFileFilter : rProject.m_FileFilters )
 						{
-							if( !rFileFilter.m_Name.empty() )
+							if( !rFileFilter.Name.empty() )
 							{
 								if( PreviousFileFilters.empty() )
 								{
-									const std::string FilterName = rFileFilter.m_Name.string();
+									const std::string FilterName = rFileFilter.Name.string();
 									PreviousFileFilters.push_back( { &rFileFilter, PushFilterFunc( rProject, rFileFilter, FilterName ) } );
 								}
 								else
 								{
-									std::string RelativeNameString = std::filesystem::relative( rFileFilter.m_Name, PreviousFileFilters.back().first->m_Name ).string();
+									std::string RelativeNameString = std::filesystem::relative( rFileFilter.Name, PreviousFileFilters.back().first->Name ).string();
 									std::replace( RelativeNameString.begin(), RelativeNameString.end(), static_cast< char >( std::filesystem::path::preferred_separator ), '/' );
 
 									while( RelativeNameString.find( "../" ) < RelativeNameString.size() )
@@ -334,11 +334,11 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 										if( PreviousFileFilters.empty() )
 										{
-											RelativeNameString = rFileFilter.m_Name.string();
+											RelativeNameString = rFileFilter.Name.string();
 										}
 										else
 										{
-											RelativeNameString = std::filesystem::relative( rFileFilter.m_Name, PreviousFileFilters.back().first->m_Name ).string();
+											RelativeNameString = std::filesystem::relative( rFileFilter.Name, PreviousFileFilters.back().first->Name ).string();
 											std::replace( RelativeNameString.begin(), RelativeNameString.end(), static_cast< char >( std::filesystem::path::preferred_separator ), '/' );
 										}
 									}
@@ -469,7 +469,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					size_t Count = 0;
 					for( FileFilter& rFileFilter : pProject->m_FileFilters )
 					{
-						if( rFileFilter.m_Name == "File Filter" + std::to_string( Count ) )
+						if( rFileFilter.Name == "File Filter" + std::to_string( Count ) )
 						{
 							Count++;
 						}
@@ -506,7 +506,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 										{
 											pFileFilter = pProject->NewFileFilter( "" );
 										}
-										pFileFilter->m_Files.push_back( FilePath );
+										pFileFilter->Files.push_back( FilePath );
 										pProject->Serialize();
 									}
 								}
@@ -532,7 +532,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 								{
 									pFileFilter = pProject->NewFileFilter( "" );
 								}
-								pFileFilter->m_Files.push_back( rPath );
+								pFileFilter->Files.push_back( rPath );
 								pProject->Serialize();
 							}
 
@@ -583,13 +583,13 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					size_t Count = 0;
 					for( FileFilter& rFileFilter : pProject->m_FileFilters )
 					{
-						if( rFileFilter.m_Name == pFileFilter->m_Name.string() + "/File Filter" + std::to_string( Count ) )
+						if( rFileFilter.Name == pFileFilter->Name.string() + "/File Filter" + std::to_string( Count ) )
 						{
 							Count++;
 						}
 					}
 
-					std::string FileFilterName = pFileFilter->m_Name.string() + "/File Filter" + std::to_string( Count );
+					std::string FileFilterName = pFileFilter->Name.string() + "/File Filter" + std::to_string( Count );
 					pProject->NewFileFilter( FileFilterName );
 					RenameFileFilter         = true;
 					m_RenameText             = FileFilterName;
@@ -603,7 +603,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					Project*    pProject    = pWorkspace->ProjectByName( m_SelectedProjectName );
 					FileFilter* pFileFilter = pProject->FileFilterByName( m_SelectedFileFilterName );
 
-					NewItemModal::Instance().RequestPath( "New File", std::filesystem::canonical( pProject->m_Location / pFileFilter->m_Path ), this, []( std::string Name, std::filesystem::path Location, void* pUser )
+					NewItemModal::Instance().RequestPath( "New File", std::filesystem::canonical( pProject->m_Location / pFileFilter->Path ), this, []( std::string Name, std::filesystem::path Location, void* pUser )
 						{
 							WorkspaceOutliner* pSelf = static_cast< WorkspaceOutliner* >( pUser );
 
@@ -618,7 +618,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 										if( OutputFileStream.is_open() )
 										{
-											pFileFilter->m_Files.emplace_back( FilePath );
+											pFileFilter->Files.emplace_back( FilePath );
 											pProject->SortFileFilters();
 											pProject->Serialize();
 										}
@@ -642,7 +642,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 								Project*    pProject = pWorkspace->ProjectByName( pSelf->m_SelectedProjectName );
 								FileFilter* pFileFilter  = pProject->FileFilterByName( pSelf->m_SelectedFileFilterName );
 
-								pFileFilter->m_Files.push_back( rPath );
+								pFileFilter->Files.push_back( rPath );
 								pProject->SortFileFilters();
 								pProject->Serialize();
 							}
@@ -681,11 +681,11 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					{
 						if( FileFilter* pSelectedFileFilter = pSelectedProject->FileFilterByName( m_SelectedFileFilterName ) )
 						{
-							auto SelectedFileIt = std::find_if( pSelectedFileFilter->m_Files.begin(), pSelectedFileFilter->m_Files.end(), [ this ]( const std::filesystem::path& rPath )
+							auto SelectedFileIt = std::find_if( pSelectedFileFilter->Files.begin(), pSelectedFileFilter->Files.end(), [ this ]( const std::filesystem::path& rPath )
 								{ return rPath == m_SelectedFile; } );
-							if( SelectedFileIt != pSelectedFileFilter->m_Files.end() )
+							if( SelectedFileIt != pSelectedFileFilter->Files.end() )
 							{
-								pSelectedFileFilter->m_Files.erase( SelectedFileIt );
+								pSelectedFileFilter->Files.erase( SelectedFileIt );
 							}
 						}
 					}

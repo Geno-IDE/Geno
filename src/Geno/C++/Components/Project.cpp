@@ -73,7 +73,7 @@ void Project::Build( ICompiler& rCompiler )
 
 	for( const FileFilter& rFileFilter : m_FileFilters )
 	{
-		for( const std::filesystem::path& rFile : rFileFilter.m_Files )
+		for( const std::filesystem::path& rFile : rFileFilter.Files )
 		{
 			std::filesystem::path Extension = rFile.extension();
 
@@ -154,11 +154,11 @@ bool Project::Serialize( void )
 
 		for( const FileFilter& rFileFilter : m_FileFilters )
 		{
-			if( !rFileFilter.m_Name.empty() )
+			if( !rFileFilter.Name.empty() )
 			{
-				GCL::Object FileFilter( rFileFilter.m_Name.string(), std::in_place_type< GCL::Object::TableType > );
+				GCL::Object FileFilter( rFileFilter.Name.string(), std::in_place_type< GCL::Object::TableType > );
 	
-				std::string FilterPathString = rFileFilter.m_Path.string();
+				std::string FilterPathString = rFileFilter.Path.string();
 				if( !FilterPathString.empty() )
 				{
 					GCL::Object FilterPath( "Path", std::in_place_type< GCL::Object::StringType > );
@@ -166,10 +166,10 @@ bool Project::Serialize( void )
 					FileFilter.AddChild( std::move( FilterPath ) );
 				}
 	
-				if( !rFileFilter.m_Files.empty() )
+				if( !rFileFilter.Files.empty() )
 				{
 					GCL::Object Files( "Files", std::in_place_type< GCL::Object::TableType > );
-					for( const std::filesystem::path& rFile : rFileFilter.m_Files )
+					for( const std::filesystem::path& rFile : rFileFilter.Files )
 					{
 						const std::filesystem::path RelativePath = rFile.lexically_relative( m_Location );
 	
@@ -188,11 +188,11 @@ bool Project::Serialize( void )
 	// Files
 	if( FileFilter* pEmptyFileFilter = FileFilterByName( "" ) )
 	{
-		if( !pEmptyFileFilter->m_Files.empty() )
+		if( !pEmptyFileFilter->Files.empty() )
 		{
 			GCL::Object Files( "Files", std::in_place_type< GCL::Object::TableType > );
 
-			for( const std::filesystem::path& rFile : pEmptyFileFilter->m_Files )
+			for( const std::filesystem::path& rFile : pEmptyFileFilter->Files )
 			{
 				const std::filesystem::path RelativePath = rFile.lexically_relative( m_Location );
 
@@ -287,18 +287,18 @@ bool Project::Deserialize( void )
 
 	if( FileFilter* pEmptyFileFilter = FileFilterByName( "" ) )
 	{
-		auto it = pEmptyFileFilter->m_Files.begin();
-		while( it != pEmptyFileFilter->m_Files.end())
+		auto it = pEmptyFileFilter->Files.begin();
+		while( it != pEmptyFileFilter->Files.end())
 		{
 			bool Found = false;
 			for( FileFilter& rFileFilter : m_FileFilters )
 			{
-				if( rFileFilter.m_Name.empty() )
+				if( rFileFilter.Name.empty() )
 				{
 					continue;
 				}
 
-				for( std::filesystem::path& rrFile : rFileFilter.m_Files )
+				for( std::filesystem::path& rrFile : rFileFilter.Files )
 				{
 					if( std::filesystem::equivalent( *it, rrFile ) )
 					{
@@ -315,7 +315,7 @@ bool Project::Deserialize( void )
 
 			if( Found )
 			{
-				it = pEmptyFileFilter->m_Files.erase( it );
+				it = pEmptyFileFilter->Files.erase( it );
 			}
 			else
 			{
@@ -323,7 +323,7 @@ bool Project::Deserialize( void )
 			}
 		}
 
-		if( pEmptyFileFilter->m_Files.empty() )
+		if( pEmptyFileFilter->Files.empty() )
 		{
 			RemoveFileFilter( "" );
 		}
@@ -332,7 +332,7 @@ bool Project::Deserialize( void )
 	FileFilter EmptyFileFilter = {};
 	
 
-	if( !EmptyFileFilter.m_Files.empty() )
+	if( !EmptyFileFilter.Files.empty() )
 	{
 		m_FileFilters.emplace_back( std::move( EmptyFileFilter ) );
 	}
@@ -345,7 +345,7 @@ bool Project::Deserialize( void )
 
 static bool AlphabeticCompare( std::string_view a, std::string_view b )
 {
-	if( a.size() == 0 )
+	if( a.empty() )
 	{
 		return false;
 	}
@@ -398,7 +398,7 @@ void Project::SortFileFilters( void )
 {
 	for( FileFilter& rFileFilter : m_FileFilters )
 	{
-		std::sort( rFileFilter.m_Files.begin(), rFileFilter.m_Files.end(), []( const std::filesystem::path& a, const std::filesystem::path& b )
+		std::sort( rFileFilter.Files.begin(), rFileFilter.Files.end(), []( const std::filesystem::path& a, const std::filesystem::path& b )
 			{
 				return AlphabeticCompare( a.filename().string(), b.filename().string() );
 			} );
@@ -406,7 +406,7 @@ void Project::SortFileFilters( void )
 
 	std::sort( m_FileFilters.begin(), m_FileFilters.end(), []( const FileFilter& a, const FileFilter& b )
 		{
-			return AlphabeticCompare( a.m_Name.string(), b.m_Name.string() );
+			return AlphabeticCompare( a.Name.string(), b.Name.string() );
 		} );
 
 } // SortFileFilters
@@ -422,7 +422,7 @@ FileFilter* Project::NewFileFilter( const std::filesystem::path& Name )
 
 	m_FileFilters.push_back( { Name } );
 	SortFileFilters();
-	return &m_FileFilters.back();
+	return FileFilterByName( Name );
 
 } // NewFileFilter
 
@@ -432,7 +432,7 @@ void Project::RemoveFileFilter( const std::filesystem::path& Name )
 {
 	auto it = std::find_if( m_FileFilters.begin(), m_FileFilters.end(), [ & ]( const FileFilter& FileFilter ) -> bool
 	{
-		return FileFilter.m_Name == Name;
+		return FileFilter.Name == Name;
 	} );
 
 	if( it != m_FileFilters.end() )
@@ -449,7 +449,7 @@ FileFilter* Project::FileFilterByName( const std::filesystem::path& Name )
 {
 	for( FileFilter& rFileFilter : m_FileFilters )
 	{
-		if( rFileFilter.m_Name == Name )
+		if( rFileFilter.Name == Name )
 		{
 			return &rFileFilter;
 		}
@@ -484,7 +484,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 		for( const GCL::Object& rFileFilterObj : Object.Table() )
 		{
 			FileFilter FileFilter;
-			FileFilter.m_Name = rFileFilterObj.Name();
+			FileFilter.Name = rFileFilterObj.Name();
 
 			for( const GCL::Object& rFileFilterObject : rFileFilterObj.Table() )
 			{
@@ -492,7 +492,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 
 				if( FileFilterObjectName == "Path" )
 				{
-					FileFilter.m_Path = rFileFilterObject.String();
+					FileFilter.Path = rFileFilterObject.String();
 				}
 				else if( FileFilterObjectName == "Files" )
 				{
@@ -504,7 +504,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 							FilePath = pSelf->m_Location / FilePath;
 
 						FilePath = FilePath.lexically_normal();
-						FileFilter.m_Files.emplace_back( std::move( FilePath ) );
+						FileFilter.Files.emplace_back( std::move( FilePath ) );
 					}
 				}
 			}
@@ -528,7 +528,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 			{
 				pFileFilter = pSelf->NewFileFilter( "" );
 			}
-			pFileFilter->m_Files.emplace_back( std::move( FilePath ) );
+			pFileFilter->Files.emplace_back( std::move( FilePath ) );
 		}
 	}
 	else if( Name == "IncludeDirs" )
