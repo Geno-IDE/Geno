@@ -165,7 +165,7 @@ private:
 
 	typedef Coordinate Scroll;
 
-	enum class CursorMode
+	enum class CursorInputMode
 	{
 		Normal,
 		Insert
@@ -173,14 +173,14 @@ private:
 
 	struct Properties
 	{
-		float      CharAdvanceY;
-		float      LineNumMaxWidth;
-		float      SpaceSize;
-		float      ScrollX;
-		float      ScrollY;
-		bool       Changes;
-		int        CursorBlink;
-		CursorMode CursorMode = CursorMode::Normal;
+		float           CharAdvanceY;
+		float           LineNumMaxWidth;
+		float           SpaceSize;
+		float           ScrollX;
+		float           ScrollY;
+		bool            Changes;
+		int             CursorBlink;
+		CursorInputMode CursorMode = CursorInputMode::Normal;
 	} Props;
 
 	bool        RenderEditor( File& rFile );

@@ -456,11 +456,11 @@ bool TextEdit::RenderEditor( File& rFile )
 
 						switch( Props.CursorMode )
 						{
-							case CursorMode::Normal:
+							case CursorInputMode::Normal:
 								cEnd.x += 1.0f;
 								Color = m_Palette.Cursor;
 								break;
-							case CursorMode::Insert:
+							case CursorInputMode::Insert:
 								cEnd.x += Props.SpaceSize - 0.75f;
 								Color = m_Palette.CursorInsert;
 								break;
@@ -608,7 +608,7 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 		else if( Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
 			SwapLines( rFile, false );
 		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Insert ) ) )
-			Props.CursorMode = Props.CursorMode == CursorMode::Normal ? CursorMode::Insert : CursorMode::Normal;
+			Props.CursorMode = Props.CursorMode == CursorInputMode::Normal ? CursorInputMode::Insert : CursorInputMode::Normal;
 
 		for( int i = 0; i < rIO.InputQueueCharacters.Size; i++ )
 		{
@@ -1705,7 +1705,7 @@ void TextEdit::Tab( File& rFile, bool Shift )
 
 			Line& rLine = rFile.Lines[ rCursor.Position.y ];
 
-			if( Props.CursorMode == CursorMode::Normal )
+			if( Props.CursorMode == CursorInputMode::Normal )
 			{
 				rLine.insert( rLine.begin() + rCursor.Position.x, Glyph( '\t', m_Palette.Default ) );
 
@@ -1771,7 +1771,7 @@ void TextEdit::EnterTextStuff( File& rFile, char C, bool Shift )
 		{
 			rLine.push_back( Glyph( C, m_Palette.Default ) );
 		}
-		else if( Props.CursorMode == CursorMode::Insert )
+		else if( Props.CursorMode == CursorInputMode::Insert )
 		{
 			rLine[ rCursor.Position.x - 1 ].C = C;
 		}
