@@ -562,9 +562,9 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 			Enter( rFile );
 		else if( !Shift && !Ctrl && !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Backspace ) ) )
 			Backspace( rFile );
-		else if( !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
+		else if( !Ctrl && !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
 			MoveUp( rFile, Shift );
-		else if( !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
+		else if( !Ctrl && !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
 			MoveDown( rFile, Shift );
 		else if( !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_RightArrow ) ) )
 			MoveRight( rFile, Ctrl, Shift );
