@@ -588,6 +588,10 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 			Copy( rFile, true );
 		else if( !Alt && !Shift && Ctrl && ImGui::IsKeyPressed( 'V' ) )
 			Paste( rFile );
+		else if( Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
+			SwapLines( rFile, true );
+		else if( Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
+			SwapLines( rFile, false );
 
 		for( int i = 0; i < rIO.InputQueueCharacters.Size; i++ )
 		{
@@ -2323,3 +2327,75 @@ void TextEdit::Paste( File& rFile )
 } // Paste
 
 //////////////////////////////////////////////////////////////////////////
+
+void TextEdit::SwapLines( File& rFile, bool Up )
+{
+	if( rFile.Cursors.size() > 1 ) rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+
+	int     LineToMove;
+	int     Destination;
+	int     LineToDelete;
+	bool    Selection = HasSelection( rFile, 0 );
+	Cursor& rCursor   = rFile.Cursors[ 0 ];
+
+	if( Up )
+	{
+		if( Selection )
+		{
+			LineToMove = LineToDelete = rCursor.SelectionStart.y - 1;
+			Destination               = rCursor.SelectionEnd.y + 1;
+		}
+		else
+		{
+			LineToMove = LineToDelete = rCursor.Position.y - 1;
+			Destination               = rCursor.Position.y + 1;
+		}
+
+		if( LineToMove == -1 ) return;
+
+		rCursor.Position.y--;
+
+		if( Selection )
+		{
+			rCursor.SelectionStart.y--;
+			rCursor.SelectionEnd.y--;
+			rCursor.SelectionOrigin.y--;
+		}
+	}
+	else
+	{
+		if( Selection )
+		{
+			LineToMove = LineToDelete = rCursor.SelectionEnd.y + 1;
+			Destination               = rCursor.SelectionStart.y;
+
+			LineToDelete++;
+		}
+		else
+		{
+			LineToMove = LineToDelete = rCursor.Position.y;
+			Destination               = rCursor.Position.y + 2;
+		}
+
+		if( LineToMove + 1 == ( int )rFile.Lines.size() ) return;
+
+		rCursor.Position.y++;
+
+		if( Selection )
+		{
+			rCursor.SelectionStart.y++;
+			rCursor.SelectionEnd.y++;
+			rCursor.SelectionOrigin.y++;
+		}
+	}
+
+	auto& rLines = rFile.Lines;
+
+	rLines.insert( rLines.begin() + Destination, rLines[ LineToMove ] );
+	rLines.erase( rLines.begin() + LineToDelete );
+
+	ScrollToCursor( rFile );
+
+	Props.Changes = true;
+
+} // SwapLines

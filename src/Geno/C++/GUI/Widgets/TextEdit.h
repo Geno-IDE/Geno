@@ -214,6 +214,7 @@ private:
 	void        End( File& rFile, bool Ctrl, bool Shift );
 	void        Copy( File& rFile, bool Cut );
 	void        Paste( File& rFile );
+	void        SwapLines( File& rFile, bool Up );
 
 	Palette m_Palette;
 
