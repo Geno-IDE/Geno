@@ -579,7 +579,7 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 		else if( !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_End ) ) )
 			End( rFile, Ctrl, Shift );
 		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Escape ) ) )
-			rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+			Esc( rFile );
 		else if( !Alt && !Shift && Ctrl && ImGui::IsKeyPressed( 'S' ) )
 			SaveFile( rFile );
 		else if( !Alt && !Shift && Ctrl && ImGui::IsKeyPressed( 'C' ) )
@@ -2191,6 +2191,16 @@ void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
 } // End
 
 //////////////////////////////////////////////////////////////////////////
+
+void TextEdit::Esc( File& rFile )
+{
+	rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+
+	Cursor& rCursor         = rFile.Cursors[ 0 ];
+	rCursor.SelectionStart  = Coordinate( 0, 0 );
+	rCursor.SelectionEnd    = Coordinate( 0, 0 );
+	rCursor.SelectionOrigin = Coordinate( -1, -1 );
+}
 
 void TextEdit::Copy( File& rFile, bool Cut )
 {

@@ -212,6 +212,7 @@ private:
 	void        MoveLeft( File& rFile, bool Ctrl, bool Shift );
 	void        Home( File& rFile, bool Ctrl, bool Shift );
 	void        End( File& rFile, bool Ctrl, bool Shift );
+	void        Esc( File& rFile );
 	void        Copy( File& rFile, bool Cut );
 	void        Paste( File& rFile );
 	void        SwapLines( File& rFile, bool Up );
