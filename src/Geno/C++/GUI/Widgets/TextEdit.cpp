@@ -56,6 +56,7 @@ TextEdit::TextEdit( void )
 	m_Palette.Comment             = 0xFF0f5904;
 	m_Palette.LineNumber          = 0xFFF0F0F0;
 	m_Palette.Cursor              = 0xFFf8f8f8;
+	m_Palette.CursorInsert        = 0x80f8f8f8;
 	m_Palette.Selection           = 0x80a06020;
 	m_Palette.CurrentLine         = 0x40000000;
 	m_Palette.CurrentLineInactive = 0x40808080;
@@ -449,9 +450,23 @@ bool TextEdit::RenderEditor( File& rFile )
 
 						float  CursorPos = GetCursorDistance( rFile, j );
 						ImVec2 cStart( Pos.x + CursorPos, Pos.y );
-						ImVec2 cEnd( cStart.x + 1.0f, cStart.y + Props.CharAdvanceY - 1 );
+						ImVec2 cEnd( cStart.x, cStart.y + Props.CharAdvanceY - 1 );
 
-						pDrawList->AddRectFilled( cStart, cEnd, m_Palette.Cursor );
+						unsigned int Color = 0;
+
+						switch( Props.CursorMode )
+						{
+							case CursorMode::Normal:
+								cEnd.x += 1.0f;
+								Color = m_Palette.Cursor;
+								break;
+							case CursorMode::Insert:
+								cEnd.x += Props.SpaceSize - 0.75f;
+								Color = m_Palette.CursorInsert;
+								break;
+						}
+
+						pDrawList->AddRectFilled( cStart, cEnd, Color );
 
 						if( Props.CursorBlink ? Elapsed >= Props.CursorBlink : Elapsed >= CursorBlink * 2 )
 						{
@@ -592,6 +607,8 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 			SwapLines( rFile, true );
 		else if( Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
 			SwapLines( rFile, false );
+		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Insert ) ) )
+			Props.CursorMode = Props.CursorMode == CursorMode::Normal ? CursorMode::Insert : CursorMode::Normal;
 
 		for( int i = 0; i < rIO.InputQueueCharacters.Size; i++ )
 		{
@@ -1688,12 +1705,33 @@ void TextEdit::Tab( File& rFile, bool Shift )
 
 			Line& rLine = rFile.Lines[ rCursor.Position.y ];
 
-			rLine.insert( rLine.begin() + rCursor.Position.x, Glyph( '\t', m_Palette.Default ) );
+			if( Props.CursorMode == CursorMode::Normal )
+			{
+				rLine.insert( rLine.begin() + rCursor.Position.x, Glyph( '\t', m_Palette.Default ) );
+
+				AdjustCursors( rFile, i, -1, 0 );
+			}
+			else
+			{
+				float CurrentDist = GetDistance( rFile, rCursor.Position );
+				float Tab         = TabSize * Props.SpaceSize;
+
+				CurrentDist += Tab;
+
+				float Fraction = CurrentDist / Tab;
+				Fraction       = Fraction - floorf( Fraction );
+
+				CurrentDist -= Tab * Fraction;
+
+				Coordinate NewCoord = GetCoordinate( rFile, ImVec2( CurrentDist, rCursor.Position.y * Props.CharAdvanceY ), true );
+
+				rLine.erase( rLine.begin() + rCursor.Position.x, rLine.begin() + NewCoord.x );
+
+				rLine.insert( rLine.begin() + rCursor.Position.x, Glyph( '\t', m_Palette.Default ) );
+			}
 
 			rCursor.Position.x++;
 			rCursor.SelectionOrigin = Coordinate( -1, -1 );
-
-			AdjustCursors( rFile, i, -1, 0 );
 
 			Props.Changes = true;
 		}
@@ -1724,12 +1762,25 @@ void TextEdit::EnterTextStuff( File& rFile, char C, bool Shift )
 
 		Line& rLine = rFile.Lines[ rCursor.Position.y ];
 
-		rLine.insert( rLine.begin() + rCursor.Position.x, Glyph( C, m_Palette.Default ) );
-
 		rCursor.Position.x++;
 		rCursor.SelectionOrigin = Coordinate( -1, -1 );
 
-		AdjustCursors( rFile, i, -1, 0 );
+		bool EndOfLine = rCursor.Position.x >= ( int )rLine.size();
+
+		if( EndOfLine )
+		{
+			rLine.push_back( Glyph( C, m_Palette.Default ) );
+		}
+		else if( Props.CursorMode == CursorMode::Insert )
+		{
+			rLine[ rCursor.Position.x - 1 ].C = C;
+		}
+		else
+		{
+			rLine.insert( rLine.begin() + rCursor.Position.x - 1, Glyph( C, m_Palette.Default ) );
+
+			AdjustCursors( rFile, i, -1, 0 );
+		}
 	}
 
 	ScrollToCursor( rFile );

@@ -44,6 +44,7 @@ public:
 		unsigned int Comment;
 		unsigned int LineNumber;
 		unsigned int Cursor;
+		unsigned int CursorInsert;
 		unsigned int Selection;
 		unsigned int CurrentLine;
 		unsigned int CurrentLineInactive;
@@ -164,15 +165,22 @@ private:
 
 	typedef Coordinate Scroll;
 
+	enum class CursorMode
+	{
+		Normal,
+		Insert
+	};
+
 	struct Properties
 	{
-		float CharAdvanceY;
-		float LineNumMaxWidth;
-		float SpaceSize;
-		float ScrollX;
-		float ScrollY;
-		bool  Changes;
-		int   CursorBlink;
+		float      CharAdvanceY;
+		float      LineNumMaxWidth;
+		float      SpaceSize;
+		float      ScrollX;
+		float      ScrollY;
+		bool       Changes;
+		int        CursorBlink;
+		CursorMode CursorMode = CursorMode::Normal;
 	} Props;
 
 	bool        RenderEditor( File& rFile );
