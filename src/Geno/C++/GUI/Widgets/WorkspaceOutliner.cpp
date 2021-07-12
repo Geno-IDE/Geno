@@ -66,12 +66,19 @@ void WorkspaceOutliner::Show( bool* pOpen )
 			static bool       RenameProject             = false;
 			static bool       RenameFileFilter          = false;
 			static bool       RenameFile                = false;
+			static bool       ForceFocusRename          = false;
 
 			ImGui::SetNextItemOpen( true, m_ExpandWorkspaceNode ? ImGuiCond_Always : ImGuiCond_Appearing );
 			m_ExpandWorkspaceNode = false;
 
 			auto RenameWorkspaceFunc = [ & ]()
 			{
+				if( ForceFocusRename )
+				{
+					ImGui::SetKeyboardFocusHere();
+					ForceFocusRename = false;
+				}
+
 				if( ImGuiAux::RenameTree( m_RenameText ) )
 				{
 					if( m_RenameText != pWorkspace->m_Name )
@@ -95,6 +102,12 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 			auto RenameProjectFunc = [ & ]()
 			{
+				if( ForceFocusRename )
+				{
+					ImGui::SetKeyboardFocusHere();
+					ForceFocusRename = false;
+				}
+
 				if( ImGuiAux::RenameTree( m_RenameText ) )
 				{
 					//Check For Project With Same Name If It Doesnt Exist Than Only Execute The If Block
@@ -132,6 +145,12 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 			auto RenameFilterFunc = [ & ]()
 			{
+				if( ForceFocusRename )
+				{
+					ImGui::SetKeyboardFocusHere();
+					ForceFocusRename = false;
+				}
+
 				if( ImGuiAux::RenameTree( m_RenameText ) )
 				{
 					Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName );
@@ -211,6 +230,12 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 					if( ToRenameFile )
 					{
+						if( ForceFocusRename )
+						{
+							ImGui::SetKeyboardFocusHere();
+							ForceFocusRename = false;
+						}
+
 						if( ImGuiAux::RenameTree( m_RenameText ) )
 						{
 							Project*    pProject            = pWorkspace->ProjectByName( m_SelectedProjectName );
@@ -421,6 +446,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					if( RenameWorkspace )
 					{
 						m_RenameText = pWorkspace->m_Name;
+						ForceFocusRename = true;
 					}
 				}
 				if( ImGui::MenuItem( "New Project" ) )
@@ -458,7 +484,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 					if( RenameProject )
 					{
-						m_RenameText = m_SelectedProjectName;
+						m_RenameText     = m_SelectedProjectName;
+						ForceFocusRename = true;
 					}
 				}
 
@@ -478,6 +505,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					std::string FilterName = "File Filter" + std::to_string( Count );
 					pProject->NewFileFilter( FilterName );
 					RenameFileFilter         = true;
+					ForceFocusRename         = true;
 					m_RenameText             = FilterName;
 					m_SelectedFileFilterName = FilterName;
 
@@ -560,7 +588,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 					if( RenameFileFilter )
 					{
-						m_RenameText = m_SelectedFileFilterName.string();
+						m_RenameText     = m_SelectedFileFilterName.string();
+						ForceFocusRename = true;
 					}
 				}
 
@@ -592,6 +621,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					std::string FileFilterName = pFileFilter->Name.string() + "/File Filter" + std::to_string( Count );
 					pProject->NewFileFilter( FileFilterName );
 					RenameFileFilter         = true;
+					ForceFocusRename         = true;
 					m_RenameText             = FileFilterName;
 					m_SelectedFileFilterName = FileFilterName;
 
@@ -671,7 +701,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 					if( RenameFile )
 					{
-						m_RenameText = m_SelectedFile.filename().string();
+						m_RenameText     = m_SelectedFile.filename().string();
+						ForceFocusRename = true;
 					}
 				}
 
