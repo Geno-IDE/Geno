@@ -159,7 +159,7 @@ public:
 
 private:
 	void                SplitLines( File& rFile );
-	std::vector< Line > SplitLines( const std::string string );
+	std::vector< Line > SplitLines( const std::string String );
 	void                JoinLines( File& rFile );
 	std::string         GetString( const Line& rLine, int Start, int End );
 

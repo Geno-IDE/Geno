@@ -297,14 +297,14 @@ void TextEdit::SplitLines( File& rFile )
 
 //////////////////////////////////////////////////////////////////////////
 
-std::vector< TextEdit::Line > TextEdit::SplitLines( const std::string string )
+std::vector< TextEdit::Line > TextEdit::SplitLines( const std::string String )
 {
 	Line                LineBuffer;
 	std::vector< Line > Lines;
 
-	for( int i = 0; i < string.length(); i++ )
+	for( int i = 0; i < String.length(); i++ )
 	{
-		const char c = string[ i ];
+		const char c = String[ i ];
 
 		if( c == '\n' || c == '\r' )
 		{
@@ -321,7 +321,7 @@ std::vector< TextEdit::Line > TextEdit::SplitLines( const std::string string )
 
 	if( !LineBuffer.empty() ) Lines.push_back( LineBuffer );
 
-	return std::move( Lines );
+	return Lines;
 }
 
 //////////////////////////////////////////////////////////////////////////
