@@ -346,7 +346,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 				if( ImGui::MenuItem( "Add File" ) )
 				{
-					OpenFileModal::Instance().RequestFile( "Add File", this, []( const std::filesystem::path& rPath, void* pUser )
+					/*OpenFileModal::Instance().RequestFile( "Add File", []( const std::filesystem::path& rPath, void* pUser )
 						{
 							WorkspaceOutliner* pSelf = static_cast< WorkspaceOutliner* >( pUser );
 
@@ -359,7 +359,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							}
 
 							pSelf->m_ProjectNodeToBeExpanded = pSelf->m_SelectedProjectName;
-						} );
+						} );*/
 					ShowProjectContextMenu = false;
 				}
 

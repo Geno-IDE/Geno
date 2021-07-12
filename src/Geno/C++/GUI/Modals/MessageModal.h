@@ -16,30 +16,34 @@
  */
 
 #pragma once
-#include <imgui.h>
+#include "IModal.h"
+
 #include <string>
 #include <functional>
+#include <map>
 
-class Texture2D;
+class MessageModal : public IModal
+{
+    GENO_SINGLETON( MessageModal );
+
+    MessageModal( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 
-namespace ImGuiAux
-{
+public:
 
-struct ButtonData
-{
-    float Rounding = 10.0f;
-    ImVec4 Color = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-    ImVec4 ColorHovered = ImVec4(0.2f, 0.4f, 0.67f, 0.4f);
-    ImVec4 ColorText = ImVec4(0.2f, 0.6f, 0.8f, 1.0f);
-    ImVec2 Size = ImVec2(0, 0);
+    void ShowMessage( std::string Message );
+
+//////////////////////////////////////////////////////////////////////////
+
+private:
+
+    std::string PopupID      ( void ) override { return "Message"; }
+	std::string Title        ( void ) override { return "Geno"; }
+	void        UpdateDerived( void ) override;
+	void        OnClose      ( void ) override;
+
+//////////////////////////////////////////////////////////////////////////
+
+    std::string m_Message;
 };
-
-extern bool RenameTree          ( std::string& rNameToRename );
-extern bool PushTreeWithIcon    ( const char* pLabel, const Texture2D& rTexture, bool Rename, const bool DrawArrow = true );
-extern bool BeginChildHorizontal( const ImGuiID ID, const ImVec2& rSize, const bool Border = false, const ImGuiWindowFlags Flags = 0 );
-extern void TextCentered        ( const char* pText );
-extern void Button              ( const char* pLabel, ButtonData ButtonData, const std::function<void(void)>& rCallback );
-
-} // ImGuiAux

@@ -83,7 +83,7 @@ bool ImGuiAux::RenameTree( std::string& rNameToRename )
 
 //////////////////////////////////////////////////////////////////////////
 
-bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, bool& rRename, const bool DrawArrow )
+bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, bool Rename, const bool DrawArrow )
 {
 	const float   Height    = ImGui::GetFontSize();
 	ImGuiWindow*  pWindow   = ImGui::GetCurrentWindow();
@@ -98,7 +98,7 @@ bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, 
 		bool Hovered;
 		bool Held;
 
-		if( !rRename )
+		if( !Rename )
 		{
 			if( ImGui::ButtonBehavior( Bounds, ID, &Hovered, &Held, true ) )
 				pWindow->DC.StateStorage->SetInt( ID, Opened ? 0 : 1 );
@@ -134,11 +134,11 @@ bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, 
 	{
 		const ImVec2 Pos = CursorPos + rStyle.FramePadding; // + rStyle.ItemInnerSpacing;
 
-		if( !rRename )
+		if( !Rename )
 			ImGui::RenderText( Pos, pLabel );
 	}
 
-	if( !rRename )
+	if( !Rename )
 	{
 		ImGui::ItemSize( Bounds, rStyle.FramePadding.y );
 		ImGui::ItemAdd( Bounds, ID );
@@ -152,7 +152,7 @@ bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, 
 	if( Opened )
 		ImGui::TreePush( pLabel );
 
-	if( rRename )
+	if( Rename )
 		ImGui::SetCursorPosX( Offset );
 
 	return Opened;
@@ -186,3 +186,23 @@ void ImGuiAux::TextCentered( const char* pText )
 	ImGui::Text( pText );
 
 } // TextCentered
+
+//////////////////////////////////////////////////////////////////////////
+
+void ImGuiAux::Button( const char* pLabel, ImGuiAux::ButtonData ButtonData, const std::function<void(void)>& rCallback )
+{
+	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, ButtonData.Rounding);
+	ImGui::PushStyleColor(ImGuiCol_Button, ButtonData.Color);
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ButtonData.ColorHovered);
+	ImGui::PushStyleColor(ImGuiCol_Text, ButtonData.ColorText);
+
+	bool IsClicked = ImGui::Button(pLabel, ButtonData.Size);
+
+	ImGui::PopStyleColor(3);
+	ImGui::PopStyleVar();
+
+	if( IsClicked )
+	{
+		rCallback();
+	}
+} //Button

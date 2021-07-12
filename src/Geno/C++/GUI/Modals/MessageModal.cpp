@@ -15,31 +15,45 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include <imgui.h>
-#include <string>
-#include <functional>
+#include "MessageModal.h"
 
-class Texture2D;
+#include <imgui.h>
+
+#include "Auxiliary/ImGuiAux.h"
+
+void MessageModal::ShowMessage( std::string Message )
+{
+    if( Open() )
+    {
+        m_Message = Message;
+    }
+} // ShowMessage
 
 //////////////////////////////////////////////////////////////////////////
 
-namespace ImGuiAux
+void MessageModal::UpdateDerived( void )
+{
+    ImGui::TextWrapped(m_Message.c_str());
+
+    ImVec2 Offset = ImGui::CalcTextSize(m_Message.c_str());
+
+    ImGui::SetWindowSize(Offset, ImGuiCond_Appearing);
+
+    ImGui::Text("");
+    
+    ImGuiAux::Button("Ok", ImGuiAux::ButtonData(), [this](){
+        Close();
+    });
+
+    ImGuiAux::Button("Cancel", ImGuiAux::ButtonData(), [this](){
+        Close();
+    });
+    
+} // UpdateDerived
+
+//////////////////////////////////////////////////////////////////////////
+
+void MessageModal::OnClose( void )
 {
 
-struct ButtonData
-{
-    float Rounding = 10.0f;
-    ImVec4 Color = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-    ImVec4 ColorHovered = ImVec4(0.2f, 0.4f, 0.67f, 0.4f);
-    ImVec4 ColorText = ImVec4(0.2f, 0.6f, 0.8f, 1.0f);
-    ImVec2 Size = ImVec2(0, 0);
-};
-
-extern bool RenameTree          ( std::string& rNameToRename );
-extern bool PushTreeWithIcon    ( const char* pLabel, const Texture2D& rTexture, bool Rename, const bool DrawArrow = true );
-extern bool BeginChildHorizontal( const ImGuiID ID, const ImVec2& rSize, const bool Border = false, const ImGuiWindowFlags Flags = 0 );
-extern void TextCentered        ( const char* pText );
-extern void Button              ( const char* pLabel, ButtonData ButtonData, const std::function<void(void)>& rCallback );
-
-} // ImGuiAux
+} // OnClose

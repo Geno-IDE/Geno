@@ -17,9 +17,12 @@
 
 #pragma once
 #include "GUI/Modals/IModal.h"
+#include "Common/Texture2D.h"
 
 #include <filesystem>
 #include <memory>
+#include <functional>
+#include <vector>
 
 #include <Common/Macros.h>
 
@@ -38,13 +41,12 @@ class OpenFileModal : public IModal
 
 public:
 
-	using Callback = void( * )( const std::filesystem::path& rPath, void* pUser );
+	using Callback = std::function<void(void)>;
 
 //////////////////////////////////////////////////////////////////////////
 
 	void SetCurrentDirectory ( std::filesystem::path Directory );
-	void RequestFile         ( std::string Title, void* pUser, Callback Callback );
-	void RequestDirectory    ( std::string Title, void* pUser, Callback Callback );
+	void Show                ( std::string Title, std::string FileFilter, Callback Callback );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -62,15 +64,15 @@ private:
 //////////////////////////////////////////////////////////////////////////
 
 	std::string               m_Title;
-	std::filesystem::path     m_CurrentDirectory;
-	std::filesystem::path     m_SelectedPath;
-	std::filesystem::path     m_EditingPath;
+	std::string               m_SearchResult;
+	std::filesystem::path     m_CurrentPath;
+	std::vector<const char*>  m_FileFilters;
 
-	Callback                  m_Callback            = nullptr;
-	void*                     m_pUser               = nullptr;
-	bool                      m_EditingPathIsFolder = false;
-	bool                      m_ChangeEditFocus     = false;
-	bool                      m_DirectoryRequested  = false;
+	Callback                  m_Callback            = { };
+	bool                      m_SearchEnabled       = false;
+
+	Texture2D                 m_IconFolder          = { };
+    Texture2D                 m_IconFile            = { };
 
 #if defined( _WIN32 )
 

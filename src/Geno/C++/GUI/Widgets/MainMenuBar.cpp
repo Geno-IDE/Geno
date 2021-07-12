@@ -141,12 +141,14 @@ void MainMenuBar::ActionFileNewWorkspace( void )
 
 void MainMenuBar::ActionFileOpenWorkspace( void )
 {
-	OpenFileModal::Instance().RequestFile( "Open Workspace", this,
-		[]( const std::filesystem::path& rPath, void* /*pUser*/ )
-		{
+	/*OpenFileModal::Instance().RequestFile( "Open Workspace", this,
+		[]( const std::filesystem::path& rPath, void* /*pUser*/ //)
+		/*{
 			Application::Instance().LoadWorkspace( rPath );
 		}
-	);
+	);*/
+
+	OpenFileModal::Instance().Show( "Open Workspace", "All(...)", [](){});
 
 } // ActionFileOpenWorkspace
 

@@ -148,14 +148,14 @@ void NewItemModal::UpdateItem( void )
 	if( ImGui::Button( "Browse" ) )
 	{
 		OpenFileModal::Instance().SetCurrentDirectory( m_Location );
-		OpenFileModal::Instance().RequestDirectory( m_Title + " Location", this,
+		/*OpenFileModal::Instance().RequestDirectory( m_Title + " Location", this,
 			[]( const std::filesystem::path& path, void* user )
 			{
 				NewItemModal* pSelf = static_cast< NewItemModal* >( user );
 
 				pSelf->m_Location = path.lexically_normal();
 			}
-		);
+		);*/
 	}
 
 } // UpdateItem

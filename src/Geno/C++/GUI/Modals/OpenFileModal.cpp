@@ -18,10 +18,14 @@
 #include "OpenFileModal.h"
 
 #include "GUI/MainWindow.h"
+#include "Auxiliary/ImGuiAux.h"
+#include "Auxiliary/STBAux.h"
 
 #include <Common/LocalAppData.h>
 
 #include <fstream>
+#include <functional>
+#include <sstream>
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -30,6 +34,8 @@
 //////////////////////////////////////////////////////////////////////////
 
 OpenFileModal::OpenFileModal( void )
+	: m_IconFolder( STBAux::LoadImageTexture( "Icons/Folder.png" ) )
+	, m_IconFile  ( STBAux::LoadImageTexture( "Icons/File.png" ) )
 {
 
 #if defined( _WIN32 )
@@ -40,7 +46,7 @@ OpenFileModal::OpenFileModal( void )
 
 #endif // _WIN32
 
-	m_CurrentDirectory = std::filesystem::current_path();
+	m_CurrentPath = std::filesystem::current_path();
 
 } // OpenFileModal
 
@@ -48,58 +54,46 @@ OpenFileModal::OpenFileModal( void )
 
 void OpenFileModal::SetCurrentDirectory( std::filesystem::path Directory )
 {
-	m_CurrentDirectory = std::move( Directory );
+	m_CurrentPath = std::move( Directory );
 
 } // SetCurrentDirectory
 
 //////////////////////////////////////////////////////////////////////////
 
-void OpenFileModal::RequestFile( std::string Title, void* pUser, Callback Callback )
+void OpenFileModal::Show( std::string Title, std::string FileFilter, Callback Callback )
 {
 	if( Open() )
 	{
-		// Make sure we don't have a pre-selected directory from last popup
-		if( m_DirectoryRequested )
-			m_SelectedPath.clear();
+		m_Callback = Callback;
+		m_Title    = std::move( Title );
 
-		m_pUser              = pUser;
-		m_Callback           = Callback;
-		m_DirectoryRequested = false;
-		m_Title              = std::move( Title );
+		m_FileFilters.push_back( FileFilter.c_str() );
+
+		std::string FiltersString = FileFilter.substr(FileFilter.find_first_of('('), FileFilter.find_last_of(')'));
+
+		std::stringstream Filters( FiltersString );
+		while( Filters.good() )
+		{
+			std::string SubStr;
+			getline(Filters, SubStr, ',');
+			m_FileFilters.push_back( SubStr.c_str() );
+		}
 	}
 
 } // RequestFile
 
 //////////////////////////////////////////////////////////////////////////
 
-void OpenFileModal::RequestDirectory( std::string Title, void* pUser, Callback Callback )
-{
-	if( Open() )
-	{
-		// Make sure we don't have a pre-selected file from last popup
-		if( !m_DirectoryRequested )
-			m_SelectedPath = m_CurrentDirectory;
-
-		m_pUser              = pUser;
-		m_Callback           = Callback;
-		m_DirectoryRequested = true;
-		m_Title              = std::move( Title );
-	}
-
-} // RequestDirectory
-
-//////////////////////////////////////////////////////////////////////////
-
 void OpenFileModal::OnClose( void )
 {
-	m_Callback = nullptr;
-	m_pUser    = nullptr;
+	m_Callback = { };
+	m_FileFilters.clear();
 
 } // OnClose
 
 //////////////////////////////////////////////////////////////////////////
 
-void OpenFileModal::UpdateDerived( void )
+/*void OpenFileModal::UpdateDerived( void )
 {
 	if( ImGui::BeginChild( 1 , ImVec2( 0, -24 ) ) )
 	{
@@ -228,9 +222,9 @@ void OpenFileModal::UpdateDerived( void )
 
 				for( const std::filesystem::directory_entry& rEntry : RootDirectoryIterator )
 				{
-					/**/ if( rEntry.is_directory() )    DirectoryPaths.push_back( rEntry );
-					else if( rEntry.is_regular_file() ) FilePaths.push_back( rEntry );
-				}
+					/**/ //if( rEntry.is_directory() )    DirectoryPaths.push_back( rEntry );
+					//else if( rEntry.is_regular_file() ) FilePaths.push_back( rEntry );
+				/*}
 
 				for( const std::filesystem::path& rDirectoryEntry : DirectoryPaths )
 				{
@@ -326,9 +320,192 @@ void OpenFileModal::UpdateDerived( void )
 
 	} ImGui::EndChild();
 
-} // UpdateDerived
+} // UpdateDerived*/
 
 //////////////////////////////////////////////////////////////////////////
+
+void OpenFileModal::UpdateDerived( void )
+{
+	if(ImGui::BeginChild(1, ImVec2(0, -44)))
+	{
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.25f, 0.25f, 0.25f, 0.7f));
+		if(ImGui::BeginChild(2, ImVec2(150, 0))) // Side Panel
+		{
+			
+		} ImGui::EndChild(); // Side Panel
+		ImGui::PopStyleColor();
+
+		ImGui::SameLine();
+
+		if(ImGui::BeginChild(3, ImVec2(0, 0))) // Main Panel
+		{
+			ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.07f, 0.07f, 0.07f, 0.7f));
+			if(ImGui::BeginChild(4, ImVec2(0, 35))) // Browse Panel
+			{			
+				if(ImGui::BeginChild(5, ImVec2(ImGui::GetContentRegionAvailWidth() - 50.0f, 0), false, ImGuiWindowFlags_HorizontalScrollbar)) //Browse With Buttons
+				{
+					if(!m_SearchEnabled)
+					{
+						for(const auto& rSubPath : m_CurrentPath)
+						{
+							bool IsActiveFolder = rSubPath == m_CurrentPath.stem();
+
+							ImGuiAux::ButtonData ButtonData;
+
+							if(!IsActiveFolder)
+								ButtonData.ColorText = ImGui::GetStyle().Colors[ImGuiCol_Text];
+
+							const char* pName = rSubPath.c_str();
+							float ButtonX = ImGui::CalcTextSize(pName).x * 1.18f;
+
+							ButtonData.Size = ImVec2(ButtonX, ImGui::GetContentRegionAvail().y);
+							ButtonData.Rounding = 6.0f;
+
+							ImGuiAux::Button(pName, ButtonData, [this, &rSubPath, &pName](){
+								std::string ActivePath = m_CurrentPath.string();
+								ActivePath = ActivePath.substr(0, ActivePath.find(rSubPath.string())) + pName;
+								m_CurrentPath = std::filesystem::path(ActivePath);
+							});
+
+							ImGui::SameLine();
+						}
+					}
+					else
+					{	
+						ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+						ImGui::SetCursorPosY(ImGui::GetWindowHeight() * 0.5f - 12.0f);
+
+						ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+						ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.2f);
+						ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 5.0f));
+						ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.2f, 0.6f, 0.8f, 1.0f));
+						ImGui::InputTextWithHint("##SearchFile", "Search", &m_SearchResult);
+						ImGui::PopStyleVar(3);
+						ImGui::PopStyleColor();
+
+						if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow)))
+						{
+							m_SearchEnabled = false;
+							m_SearchResult.clear();
+						}
+					}
+
+				} ImGui::EndChild(); //Browse With Buttons
+
+				ImGui::SameLine();
+				ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+				ImGui::SameLine();
+
+				ImGuiAux::ButtonData ButtonData;
+
+				ButtonData.Size = ImVec2(ImGui::GetContentRegionAvailWidth(), ImGui::GetContentRegionAvail().y);
+				ButtonData.ColorText = ImGui::GetStyle().Colors[ImGuiCol_Text];
+
+				ImGuiAux::Button("S", ButtonData, [&](){
+					m_SearchEnabled = true;
+				});
+				ImGui::SameLine();
+				
+			} ImGui::EndChild(); // Browse Panel
+			ImGui::PopStyleColor();
+
+			ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.15f, 0.7f));
+			if(ImGui::BeginChild(6, ImVec2(0, 0))) // Content Browser
+			{
+				if(ImGui::BeginTable("##FileBrowserPanel", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY | ImGuiTableFlags_PadOuterX | ImGuiTableFlags_NoBordersInBodyUntilResize))
+				{
+					ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide);
+					ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Size").x * 2.0f);
+					ImGui::TableSetupColumn("Modified", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Modified").x * 1.8f);
+					ImGui::TableHeadersRow();
+
+					for(const auto& rCurrentPathIt : std::filesystem::directory_iterator(m_CurrentPath))
+					{
+						std::filesystem::path Path = rCurrentPathIt.path();
+						bool IsHiddenFile = Path.filename().string()[0] == '.';
+						
+						if(!IsHiddenFile)
+						{
+							if(m_SearchEnabled && !m_SearchResult.empty())
+							{
+								if(!strstr(Path.filename().c_str(), m_SearchResult.c_str()))
+								{
+									continue;
+								}
+							}
+
+							ImGui::TableNextRow();
+							ImGui::TableSetColumnIndex(0);
+
+							if(std::filesystem::is_directory(Path))
+							{
+								if(ImGuiAux::PushTreeWithIcon(Path.filename().c_str(), m_IconFolder, false, false))
+								{
+									if(ImGui::IsItemClicked())
+									{
+										m_CurrentPath = Path;
+									}
+
+									ImGui::TreePop();
+								}
+							}
+							else
+							{
+								if(ImGuiAux::PushTreeWithIcon(Path.filename().c_str(), m_IconFile, false, false))
+								{
+									ImGui::TreePop();
+								}
+
+								ImGui::TableSetColumnIndex(1);
+								float Bytes = (float)std::filesystem::file_size(Path);
+								float Kb = Bytes / 1024.0f;
+								float Mb = Kb / 1024.0f;
+								float Gb = Mb / 1024.0f;
+
+								if(Kb < 1.0f)
+									ImGui::Text("%.1f Bytes", Bytes);
+								else if(Mb < 1.0f)
+									ImGui::Text("%.1f Kb", Kb);
+								else if(Gb < 1.0f)
+									ImGui::Text("%.1f Mb", Mb);
+								else
+									ImGui::Text("%.1f Gb", Gb);
+							}
+
+						}
+					}
+
+					ImGui::EndTable();
+				}
+			}ImGui::EndChild(); // Content Browser
+			ImGui::PopStyleColor();
+
+		} ImGui::EndChild(); // Main Panel
+
+	} ImGui::EndChild();
+
+	ImGuiAux::ButtonData ButtonData;
+	ButtonData.Size = ImVec2(70, 30);
+
+	ImGuiAux::Button("Open", ButtonData, [this](){
+		m_Callback();
+		Close();
+	});
+
+	ImGui::SameLine();
+
+	ImGuiAux::Button("Cancel", ButtonData, [this](){
+		Close();
+	});
+
+	ImGui::SameLine();
+
+	// Filter Combo 
+	ImGui::SetCursorPosX( ImGui::GetContentRegionAvailWidth() - 70.0f );
+
+	static int CurrentFilterIndex = 0;
+	ImGui::Combo("##FileFilter", &CurrentFilterIndex, m_FileFilters.data(), (int)m_FileFilters.size());
+}
 
 std::filesystem::path OpenFileModal::RootDirectory( void )
 {
