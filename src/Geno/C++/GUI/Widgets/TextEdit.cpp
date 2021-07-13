@@ -280,63 +280,7 @@ void TextEdit::AddFile( const std::filesystem::path& rPath )
 	File.TranslationUnit = clang_parseTranslationUnit( m_ClangIndex, rPath.string().c_str(), nullptr, 0, nullptr, 0, clang_defaultEditingTranslationUnitOptions() );
 
 	SplitLines( File );
-
-	// Syntax highlighting
-	{
-		CXFile           SourceFile  = clang_getFile( File.TranslationUnit, File.Path.string().c_str() );
-		CXSourceLocation SourceBegin = clang_getLocation( File.TranslationUnit, SourceFile, 1, 1 );
-		CXSourceLocation SourceEnd   = clang_getLocation( File.TranslationUnit, SourceFile, File.Lines.size(), File.Lines.back().size() + 1 );
-		CXSourceRange    SourceRange = clang_getRange( SourceBegin, SourceEnd );
-		CXToken*         pTokens     = nullptr;
-		uint32_t         NumTokens   = 0;
-
-		clang_tokenize( File.TranslationUnit, SourceRange, &pTokens, &NumTokens );
-
-		for( uint32_t TokenIndex = 0; TokenIndex < NumTokens; ++TokenIndex )
-		{
-			CXToken&         rToken      = pTokens[ TokenIndex ];
-			CXTokenKind      TokenKind   = clang_getTokenKind( rToken );
-			CXSourceRange    TokenExtent = clang_getTokenExtent( File.TranslationUnit, rToken );
-			CXSourceLocation TokenStart  = clang_getRangeStart( TokenExtent );
-			CXSourceLocation TokenEnd    = clang_getRangeEnd( TokenExtent );
-			uint32_t         TokenStartLine;
-			uint32_t         TokenStartColumn;
-			uint32_t         TokenEndLine;
-			uint32_t         TokenEndColumn;
-
-			clang_getFileLocation( TokenStart, nullptr, &TokenStartLine, &TokenStartColumn, nullptr );
-			clang_getFileLocation( TokenEnd,   nullptr, &TokenEndLine,   &TokenEndColumn,   nullptr );
-
-			// It's unclear this is needed, but the coordinates are off if we don't do this
-			if( TokenStartColumn > 1 ) --TokenStartColumn;
-			if( TokenEndColumn   > 1 ) --TokenEndColumn;
-
-			if( TokenStartLine == TokenEndLine )
-			{
-				Line& rLine = File.Lines[ TokenStartLine - 1 ];
-
-				for( uint32_t Column = TokenStartColumn; Column <= ( TokenEndColumn > rLine.size() ? rLine.size() : TokenEndColumn ); ++Column )
-					rLine[ Column - 1 ].Color = GlyphColorFromTokenKind( TokenKind );
-			}
-			else
-			{
-				Line& rStartLine = File.Lines[ TokenStartLine - 1 ];
-				Line& rEndLine   = File.Lines[ TokenEndLine - 1 ];
-
-				for( uint32_t Column = TokenStartColumn; Column <= rStartLine.size(); ++Column )
-					rStartLine[ Column - 1 ].Color = GlyphColorFromTokenKind( TokenKind );
-
-				for( uint32_t Row = TokenStartLine + 1; Row < TokenEndLine; ++Row )
-					for( Glyph& rGlyph : File.Lines[ Row - 1 ] )
-						rGlyph.Color = GlyphColorFromTokenKind( TokenKind );
-
-				for( uint32_t Column = 1; Column <= ( TokenEndColumn > rEndLine.size() ? rEndLine.size() : TokenEndColumn ); ++Column )
-					rEndLine[ Column - 1 ].Color = GlyphColorFromTokenKind( TokenKind );
-			}
-		}
-
-		clang_disposeTokens( File.TranslationUnit, pTokens, NumTokens );
-	}
+	ApplySyntaxHighlighting( File );
 
 	m_Files.emplace_back( std::move( File ) );
 
@@ -1865,6 +1809,7 @@ void TextEdit::Enter( File& rFile )
 	}
 
 	ScrollToCursor( rFile );
+	ApplySyntaxHighlighting( rFile );
 
 	Props.CursorBlink = 0;
 
@@ -2490,6 +2435,7 @@ void TextEdit::EnterTextStuff( File& rFile, char C, int CursorIndex )
 	rCursor.Position.x++;
 
 	ScrollToCursor( rFile );
+	ApplySyntaxHighlighting( rFile );
 
 	Props.CursorBlink = 0;
 
@@ -3237,6 +3183,11 @@ void TextEdit::Copy( File& rFile, bool Cut )
 		}
 	}
 
+	if( Cut )
+	{
+		ApplySyntaxHighlighting( rFile );
+	}
+
 	if( !ClipBuffer.empty() )
 	{
 		ClipBuffer.erase( ClipBuffer.end() - 1 );
@@ -3328,6 +3279,8 @@ void TextEdit::Paste( File& rFile )
 
 		Props.Changes = true;
 	}
+
+	ApplySyntaxHighlighting( rFile );
 
 } // Paste
 
@@ -3462,6 +3415,7 @@ void TextEdit::SwapLines( File& rFile, bool Up )
 	rLines.erase( rLines.begin() + LineToMove + ( ( !Up && Selection ) ? 1 : 0 ) );
 
 	ScrollToCursor( rFile );
+	ApplySyntaxHighlighting( rFile );
 
 	Props.Changes = true;
 
@@ -3534,6 +3488,78 @@ std::vector< int > TextEdit::CursorsNotInText( File& rFile )
 	return Cursors;
 
 } // CursorsNotInText
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::ApplySyntaxHighlighting( File& rFile )
+{
+	const std::string FilePath = rFile.Path.string();
+
+	JoinLines( rFile );
+
+	CXUnsavedFile UnsavedFile;
+	UnsavedFile.Filename = FilePath.c_str();
+	UnsavedFile.Contents = rFile.Text.c_str();
+	UnsavedFile.Length   = rFile.Text.size();
+
+	if( clang_reparseTranslationUnit( rFile.TranslationUnit, 1, &UnsavedFile, clang_defaultEditingTranslationUnitOptions() ) != CXError_Success )
+		return;
+
+	CXFile           SourceFile  = clang_getFile( rFile.TranslationUnit, FilePath.c_str() );
+	CXSourceLocation SourceBegin = clang_getLocation( rFile.TranslationUnit, SourceFile, 1, 1 );
+	CXSourceLocation SourceEnd   = clang_getLocation( rFile.TranslationUnit, SourceFile, rFile.Lines.size(), rFile.Lines.back().size() + 1 );
+	CXSourceRange    SourceRange = clang_getRange( SourceBegin, SourceEnd );
+	CXToken*         pTokens     = nullptr;
+	uint32_t         NumTokens   = 0;
+
+	clang_tokenize( rFile.TranslationUnit, SourceRange, &pTokens, &NumTokens );
+
+	for( uint32_t TokenIndex = 0; TokenIndex < NumTokens; ++TokenIndex )
+	{
+		CXToken&         rToken      = pTokens[ TokenIndex ];
+		CXTokenKind      TokenKind   = clang_getTokenKind( rToken );
+		CXSourceRange    TokenExtent = clang_getTokenExtent( rFile.TranslationUnit, rToken );
+		CXSourceLocation TokenStart  = clang_getRangeStart( TokenExtent );
+		CXSourceLocation TokenEnd    = clang_getRangeEnd( TokenExtent );
+		uint32_t         TokenStartLine;
+		uint32_t         TokenStartColumn;
+		uint32_t         TokenEndLine;
+		uint32_t         TokenEndColumn;
+
+		clang_getFileLocation( TokenStart, nullptr, &TokenStartLine, &TokenStartColumn, nullptr );
+		clang_getFileLocation( TokenEnd,   nullptr, &TokenEndLine,   &TokenEndColumn,   nullptr );
+
+		// It's unclear this is needed, but the coordinates are off if we don't do this
+		if( TokenStartColumn > 1 ) --TokenStartColumn;
+		if( TokenEndColumn   > 1 ) --TokenEndColumn;
+
+		if( TokenStartLine == TokenEndLine )
+		{
+			Line& rLine = rFile.Lines[ TokenStartLine - 1 ];
+
+			for( uint32_t Column = TokenStartColumn; Column <= ( TokenEndColumn > rLine.size() ? rLine.size() : TokenEndColumn ); ++Column )
+				rLine[ Column - 1 ].Color = GlyphColorFromTokenKind( TokenKind );
+		}
+		else
+		{
+			Line& rStartLine = rFile.Lines[ TokenStartLine - 1 ];
+			Line& rEndLine   = rFile.Lines[ TokenEndLine - 1 ];
+
+			for( uint32_t Column = TokenStartColumn; Column <= rStartLine.size(); ++Column )
+				rStartLine[ Column - 1 ].Color = GlyphColorFromTokenKind( TokenKind );
+
+			for( uint32_t Row = TokenStartLine + 1; Row < TokenEndLine; ++Row )
+				for( Glyph& rGlyph : rFile.Lines[ Row - 1 ] )
+					rGlyph.Color = GlyphColorFromTokenKind( TokenKind );
+
+			for( uint32_t Column = 1; Column <= ( TokenEndColumn > rEndLine.size() ? rEndLine.size() : TokenEndColumn ); ++Column )
+				rEndLine[ Column - 1 ].Color = GlyphColorFromTokenKind( TokenKind );
+		}
+	}
+
+	clang_disposeTokens( rFile.TranslationUnit, pTokens, NumTokens );
+
+} // ApplySyntaxHighlighting
 
 //////////////////////////////////////////////////////////////////////////
 

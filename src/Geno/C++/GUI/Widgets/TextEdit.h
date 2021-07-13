@@ -264,6 +264,7 @@ private:
 	void               SwapLines( File& rFile, bool Up );
 	std::vector< int > CursorsInText( File& rFile );
 	std::vector< int > CursorsNotInText( File& rFile );
+	void               ApplySyntaxHighlighting( File& rFile );
 	uint32_t           GlyphColorFromTokenKind( CXTokenKind TokenKind );
 
 	Palette m_Palette;
