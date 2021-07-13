@@ -28,7 +28,7 @@ static void CommonVars( ImGuiStyle& rStyle )
 	rStyle.FramePadding             = ImVec2( 2, 2 );
 	rStyle.ItemSpacing              = ImVec2( 4, 1 );
 	rStyle.ItemInnerSpacing         = ImVec2( 2, 0 );
-	rStyle.ScrollbarSize            = 10;
+	rStyle.ScrollbarSize            = 14;
 	rStyle.WindowRounding           = 2;
 	rStyle.ChildRounding            = 0;
 	rStyle.FrameRounding            = 0;
