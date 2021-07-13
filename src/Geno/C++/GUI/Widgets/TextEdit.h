@@ -42,18 +42,21 @@ class TextEdit
 public:
 	struct Palette
 	{
-		unsigned int Default;
-		unsigned int Keyword;
-		unsigned int Number;
-		unsigned int String;
-		unsigned int Comment;
-		unsigned int LineNumber;
-		unsigned int Cursor;
-		unsigned int CursorInsert;
-		unsigned int Selection;
-		unsigned int CurrentLine;
-		unsigned int CurrentLineInactive;
-		unsigned int CurrentLineEdge;
+		uint32_t Default;
+		// Syntax highlighting
+		uint32_t Punctuation;
+		uint32_t Keyword;
+		uint32_t Identifier;
+		uint32_t Literal;
+		uint32_t Comment;
+		// Interface
+		uint32_t LineNumber;
+		uint32_t Cursor;
+		uint32_t CursorInsert;
+		uint32_t Selection;
+		uint32_t CurrentLine;
+		uint32_t CurrentLineInactive;
+		uint32_t CurrentLineEdge;
 	};
 
 	struct Glyph

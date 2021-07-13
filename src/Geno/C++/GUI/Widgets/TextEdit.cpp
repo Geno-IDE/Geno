@@ -54,18 +54,26 @@ TextEdit::TextEdit( void )
 		m_pTabBar->ID          = ID;
 	}
 
-	m_Palette.Default             = 0xFFf4f4f4;
-	m_Palette.Keyword             = 0xFF0000F0;
-	m_Palette.Number              = 0xFF303030;
-	m_Palette.String              = 0xFF9E5817;
-	m_Palette.Comment             = 0xFF0f5904;
-	m_Palette.LineNumber          = 0xFFF0F0F0;
-	m_Palette.Cursor              = 0xFFf8f8f8;
-	m_Palette.CursorInsert        = 0x80f8f8f8;
-	m_Palette.Selection           = 0x80a06020;
-	m_Palette.CurrentLine         = 0x40000000;
-	m_Palette.CurrentLineInactive = 0x40808080;
-	m_Palette.CurrentLineEdge     = 0x40a0a0a0;
+	// Set up palette
+	{
+		m_Palette.Default = 0xFFEEEEEE; // Barely white
+
+		// Syntax highlighting
+		m_Palette.Punctuation = 0xFF9B9B9B; // Gray
+		m_Palette.Keyword     = 0xFF20DFB9; // Lime green
+		m_Palette.Identifier  = 0xFFDCDCDC; // Light gray
+		m_Palette.Literal     = 0xFF859DD6; // Beige
+		m_Palette.Comment     = 0xFF4AA657; // Soft green
+
+		// Interface
+		m_Palette.LineNumber          = 0xFFF0F0F0;
+		m_Palette.Cursor              = 0xFFf8f8f8;
+		m_Palette.CursorInsert        = 0x80f8f8f8;
+		m_Palette.Selection           = 0x80a06020;
+		m_Palette.CurrentLine         = 0x40000000;
+		m_Palette.CurrentLineInactive = 0x40808080;
+		m_Palette.CurrentLineEdge     = 0x40a0a0a0;
+	}
 
 	m_ClangIndex = clang_createIndex( 1, 1 );
 
@@ -3545,10 +3553,10 @@ uint32_t TextEdit::GlyphColorFromTokenKind( CXTokenKind TokenKind )
 	switch( TokenKind )
 	{
 		case CXToken_Comment:     return m_Palette.Comment;
-		case CXToken_Identifier:  return m_Palette.Default;
+		case CXToken_Identifier:  return m_Palette.Identifier;
 		case CXToken_Keyword:     return m_Palette.Keyword;
-		case CXToken_Literal:     return m_Palette.String;
-		case CXToken_Punctuation: return 0xFF7F7F7F;
+		case CXToken_Literal:     return m_Palette.Literal;
+		case CXToken_Punctuation: return m_Palette.Punctuation;
 		default:                  return m_Palette.Default;
 	}
 
