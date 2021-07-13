@@ -67,7 +67,17 @@ TextEdit::TextEdit( void )
 	m_Palette.CurrentLineInactive = 0x40808080;
 	m_Palette.CurrentLineEdge     = 0x40a0a0a0;
 
+	m_ClangIndex = clang_createIndex( 1, 1 );
+
 } // TextEdit
+
+//////////////////////////////////////////////////////////////////////////
+
+TextEdit::~TextEdit( void )
+{
+	clang_disposeIndex( m_ClangIndex );
+
+} // ~TextEdit
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -180,9 +190,16 @@ void TextEdit::Show( bool* pOpen )
 			// Clear closed files from list
 			for( auto It = m_Files.begin(); It != m_Files.end(); )
 			{
-				if( It->Open ) It++;
+				if( It->Open )
+				{
+					++It;
+				}
 				else
+				{
+					// TODO: Write destructor for File that disposes the translation unit automatically
+					clang_disposeTranslationUnit( It->TranslationUnit );
 					It = m_Files.erase( It );
+				}
 			}
 
 			ImGui::EndTabBar();
@@ -250,8 +267,9 @@ void TextEdit::AddFile( const std::filesystem::path& rPath )
 	}
 
 	File File;
-	File.Path = rPath;
-	File.Text = Text;
+	File.Path            = rPath;
+	File.Text            = Text;
+	File.TranslationUnit = clang_parseTranslationUnit( m_ClangIndex, rPath.string().c_str(), nullptr, 0, nullptr, 0, clang_defaultEditingTranslationUnitOptions() );
 
 	SplitLines( File );
 
