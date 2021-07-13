@@ -3537,17 +3537,6 @@ std::vector< int > TextEdit::CursorsNotInText( File& rFile )
 
 //////////////////////////////////////////////////////////////////////////
 
-CXCursor TextEdit::GetClangCursor( File& rFile, Cursor& rCursor )
-{
-	CXFile           ClangFile      = clang_getFile( rFile.TranslationUnit, rFile.Path.string().c_str() );
-	CXSourceLocation SourceLocation = clang_getLocation( rFile.TranslationUnit, ClangFile, rCursor.Position.y + 1, rCursor.Position.x + 1 );
-
-	return clang_getCursor( rFile.TranslationUnit, SourceLocation );
-
-} // GetClangCursor
-
-//////////////////////////////////////////////////////////////////////////
-
 uint32_t TextEdit::GlyphColorFromTokenKind( CXTokenKind TokenKind )
 {
 	switch( TokenKind )
