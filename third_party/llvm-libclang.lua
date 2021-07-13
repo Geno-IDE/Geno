@@ -1,6 +1,9 @@
 return function()
 	dependson {
 		'llvm-libclang-td',
+		'llvm-libllvm-omp',
+		'llvm-libllvm-ir',
+		'llvm-libllvm-target',
 	}
 	includedirs {
 		'third_party/llvm-project/clang/lib/Basic',
