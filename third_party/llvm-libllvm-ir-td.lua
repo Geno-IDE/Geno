@@ -1,8 +1,5 @@
 return function()
 	kind 'Utility'
-	configmap {
-		[ 'Debug' ] = 'Release',
-	}
 	dependson {
 		'llvm-tablegen',
 	}
