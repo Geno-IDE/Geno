@@ -273,6 +273,63 @@ void TextEdit::AddFile( const std::filesystem::path& rPath )
 
 	SplitLines( File );
 
+	// Syntax highlighting
+	{
+		CXFile           SourceFile  = clang_getFile( File.TranslationUnit, File.Path.string().c_str() );
+		CXSourceLocation SourceBegin = clang_getLocation( File.TranslationUnit, SourceFile, 1, 1 );
+		CXSourceLocation SourceEnd   = clang_getLocation( File.TranslationUnit, SourceFile, File.Lines.size(), File.Lines.back().size() + 1 );
+		CXSourceRange    SourceRange = clang_getRange( SourceBegin, SourceEnd );
+		CXToken*         pTokens     = nullptr;
+		uint32_t         NumTokens   = 0;
+
+		clang_tokenize( File.TranslationUnit, SourceRange, &pTokens, &NumTokens );
+
+		for( uint32_t TokenIndex = 0; TokenIndex < NumTokens; ++TokenIndex )
+		{
+			CXToken&         rToken      = pTokens[ TokenIndex ];
+			CXTokenKind      TokenKind   = clang_getTokenKind( rToken );
+			CXSourceRange    TokenExtent = clang_getTokenExtent( File.TranslationUnit, rToken );
+			CXSourceLocation TokenStart  = clang_getRangeStart( TokenExtent );
+			CXSourceLocation TokenEnd    = clang_getRangeEnd( TokenExtent );
+			uint32_t         TokenStartLine;
+			uint32_t         TokenStartColumn;
+			uint32_t         TokenEndLine;
+			uint32_t         TokenEndColumn;
+
+			clang_getFileLocation( TokenStart, nullptr, &TokenStartLine, &TokenStartColumn, nullptr );
+			clang_getFileLocation( TokenEnd,   nullptr, &TokenEndLine,   &TokenEndColumn,   nullptr );
+
+			// It's unclear this is needed, but the coordinates are off if we don't do this
+			if( TokenStartColumn > 1 ) --TokenStartColumn;
+			if( TokenEndColumn   > 1 ) --TokenEndColumn;
+
+			if( TokenStartLine == TokenEndLine )
+			{
+				Line& rLine = File.Lines[ TokenStartLine - 1 ];
+
+				for( uint32_t Column = TokenStartColumn; Column <= ( TokenEndColumn > rLine.size() ? rLine.size() : TokenEndColumn ); ++Column )
+					rLine[ Column - 1 ].Color = GlyphColorFromTokenKind( TokenKind );
+			}
+			else
+			{
+				Line& rStartLine = File.Lines[ TokenStartLine - 1 ];
+				Line& rEndLine   = File.Lines[ TokenEndLine - 1 ];
+
+				for( uint32_t Column = TokenStartColumn; Column <= rStartLine.size(); ++Column )
+					rStartLine[ Column - 1 ].Color = GlyphColorFromTokenKind( TokenKind );
+
+				for( uint32_t Row = TokenStartLine + 1; Row < TokenEndLine; ++Row )
+					for( Glyph& rGlyph : File.Lines[ Row - 1 ] )
+						rGlyph.Color = GlyphColorFromTokenKind( TokenKind );
+
+				for( uint32_t Column = 1; Column <= ( TokenEndColumn > rEndLine.size() ? rEndLine.size() : TokenEndColumn ); ++Column )
+					rEndLine[ Column - 1 ].Color = GlyphColorFromTokenKind( TokenKind );
+			}
+		}
+
+		clang_disposeTokens( File.TranslationUnit, pTokens, NumTokens );
+	}
+
 	m_Files.emplace_back( std::move( File ) );
 
 } // AddFile
@@ -383,7 +440,8 @@ std::vector< TextEdit::Line > TextEdit::SplitLines( const std::string String, in
 	if( Lines.empty() ) Lines.emplace_back();
 
 	return Lines;
-}
+
+} // SplitLines
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -548,6 +606,8 @@ bool TextEdit::RenderEditor( File& rFile )
 		{
 			if( rGlyph.Color != PrevColor || ( rGlyph.C == '\t' && !StringBuffer.empty() ) )
 			{
+				if( rGlyph.C != '\t' ) StringBuffer.push_back( rGlyph.C );
+
 				pDrawList->AddText( ImVec2( Pos.x + XOffset, Pos.y ), PrevColor, StringBuffer.c_str() );
 				float TextWidth = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, StringBuffer.c_str() ).x;
 				XOffset += TextWidth;
@@ -3430,6 +3490,7 @@ std::vector< int > TextEdit::CursorsInText( File& rFile )
 	}
 
 	return Cursors;
+
 } // CursorsInText
 
 //////////////////////////////////////////////////////////////////////////
@@ -3463,4 +3524,32 @@ std::vector< int > TextEdit::CursorsNotInText( File& rFile )
 	}
 
 	return Cursors;
+
 } // CursorsNotInText
+
+//////////////////////////////////////////////////////////////////////////
+
+CXCursor TextEdit::GetClangCursor( File& rFile, Cursor& rCursor )
+{
+	CXFile           ClangFile      = clang_getFile( rFile.TranslationUnit, rFile.Path.string().c_str() );
+	CXSourceLocation SourceLocation = clang_getLocation( rFile.TranslationUnit, ClangFile, rCursor.Position.y + 1, rCursor.Position.x + 1 );
+
+	return clang_getCursor( rFile.TranslationUnit, SourceLocation );
+
+} // GetClangCursor
+
+//////////////////////////////////////////////////////////////////////////
+
+uint32_t TextEdit::GlyphColorFromTokenKind( CXTokenKind TokenKind )
+{
+	switch( TokenKind )
+	{
+		case CXToken_Comment:     return m_Palette.Comment;
+		case CXToken_Identifier:  return m_Palette.Default;
+		case CXToken_Keyword:     return m_Palette.Keyword;
+		case CXToken_Literal:     return m_Palette.String;
+		case CXToken_Punctuation: return 0xFF7F7F7F;
+		default:                  return m_Palette.Default;
+	}
+
+} // GlyphColorFromTokenKind
