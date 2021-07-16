@@ -56,7 +56,7 @@
 
 // Check if Unixish platform
 #if defined( __unix__ ) || defined( __unix )
-#define LLVM_ON_UNIX
+#define LLVM_ON_UNIX 1
 #endif // __unix__ || __unix
 
 // LLVM version

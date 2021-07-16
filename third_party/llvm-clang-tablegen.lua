@@ -16,4 +16,10 @@ return function()
 			'4244',
 			'4267',
 		}
+
+	filter 'system:linux'
+		links {
+			'pthread',
+			'ncurses',
+		}
 end

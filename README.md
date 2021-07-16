@@ -63,7 +63,7 @@
 
 <h5 align="center">Linux Prerequisite Packages</h5>
 <p align="center">
-	<code>build-essential libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libglu1-mesa-dev</code>
+	<code>build-essential libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libglu1-mesa-dev libncurses-dev</code>
 	<br>
 	<br>
 </p>

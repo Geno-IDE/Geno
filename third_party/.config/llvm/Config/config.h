@@ -32,7 +32,7 @@
 #endif // __APPLE__
 
 // Don't use `arc4random`
-#define HAVE_DECL_ARC4RANDOM 1
+#define HAVE_DECL_ARC4RANDOM 0
 
 // Check if we have <fenv.h>
 #if __has_include( <fenv.h> )
@@ -148,7 +148,9 @@
 #endif // __has_include( <mach/mach.h> )
 
 // Check if we have the `mallctl` function
+#if __has_include( <malloc_np.h> )
 #define HAVE_MALLCTL 1
+#endif // __has_include( <malloc_np.h> )
 
 // Check if we have the `mallinfo` function
 #define HAVE_MALLINFO 1
@@ -242,11 +244,13 @@
 #define HAVE_SYS_TIME_H 1
 #endif // __has_include( <sys/time.h> )
 
-// stat struct has st_mtimespec member
-#define HAVE_STRUCT_STAT_ST_MTIMESPEC_TV_NSEC 1
-
-// stat struct has st_mtim member
-#define HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC 1
+#if defined( _WIN32 )
+	// stat struct has st_mtimespec member
+	#define HAVE_STRUCT_STAT_ST_MTIMESPEC_TV_NSEC 1
+#else // _WIN32
+	// stat struct has st_mtim member
+	#define HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC 1
+#endif // !_WIN32
 
 // Check if we have the <sys/types.h> header file
 #if __has_include( <sys/types.h> )
@@ -347,7 +351,7 @@
 //#define PACKAGE_VENDOR
 
 // the return type of signal handlers
-#define RETSIGTYPE int
+#define RETSIGTYPE void
 
 // std::is_trivially_copyable is supported
 #define HAVE_STD_IS_TRIVIALLY_COPYABLE 1
