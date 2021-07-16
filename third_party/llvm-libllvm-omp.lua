@@ -1,6 +1,5 @@
 return function()
 	dependson {
-		'llvm-libllvm-ir',
 		'llvm-libllvm-omp-td',
 	}
 	sysincludedirs {

@@ -1,6 +1,7 @@
 return function()
 	dependson {
 		'llvm-libllvm-ir-td',
+		'llvm-libllvm-omp',
 	}
 	sysincludedirs {
 		'third_party/.config',
