@@ -137,6 +137,9 @@ public:
 
 		std::vector< Cursor > Cursors;
 
+		float              LongestLineLength;
+		std::vector< int > LongestLines;
+
 	}; // File
 
 	//////////////////////////////////////////////////////////////////////////
@@ -187,6 +190,7 @@ private:
 	void        HandleKeyboardInputs( File& rFile );
 	void        HandleMouseInputs( File& rFile );
 	void        ScrollToCursor( File& rFile );
+	void        CheckLineLengths( File& rFile, int FirstLine, int LastLine );
 	void        CalculeteLineNumMaxWidth( File& rFile );
 	bool        HasSelection( File& rFile, int cursor ) const;
 	Cursor*     IsCoordinateInSelection( File& rFile, Coordinate Coordinate, int Offset = 0 );
