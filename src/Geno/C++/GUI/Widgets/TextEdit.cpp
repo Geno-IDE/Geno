@@ -2170,7 +2170,7 @@ void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
 	DeleteDisabledCursor( rFile );
 	YeetDuplicateCursors( rFile );
 
-	if( Ctrl ) ScrollToCursor( rFile );
+	ScrollToCursor( rFile );
 
 	Props.CursorBlink = 0;
 
@@ -2235,7 +2235,7 @@ void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
 	DeleteDisabledCursor( rFile );
 	YeetDuplicateCursors( rFile );
 
-	if( Ctrl ) ScrollToCursor( rFile );
+	ScrollToCursor( rFile );
 
 	Props.CursorBlink = 0;
 
