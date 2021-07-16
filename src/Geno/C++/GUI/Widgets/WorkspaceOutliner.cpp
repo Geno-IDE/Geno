@@ -17,20 +17,19 @@
 
 #include "WorkspaceOutliner.h"
 
+#include "Application.h"
 #include "Auxiliary/ImGuiAux.h"
 #include "Auxiliary/STBAux.h"
 #include "Components/Project.h"
+#include "GUI/MainWindow.h"
 #include "GUI/Modals/BuildMatrixModal.h"
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Modals/ProjectSettingsModal.h"
-#include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/MainMenuBar.h"
-#include "GUI/MainWindow.h"
-#include "Application.h"
+#include "GUI/Widgets/TextEdit.h"
 
 #include <fstream>
-
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
 #include <stb_image.h>
@@ -38,18 +37,17 @@
 //////////////////////////////////////////////////////////////////////////
 
 WorkspaceOutliner::WorkspaceOutliner( void )
-	: m_IconTextureWorkspace ( STBAux::LoadImageTexture( "Icons/Workspace.png" ) )
-	, m_IconTextureProject   ( STBAux::LoadImageTexture( "Icons/Project.png" ) )
+	: m_IconTextureWorkspace( STBAux::LoadImageTexture( "Icons/Workspace.png" ) )
+	, m_IconTextureProject( STBAux::LoadImageTexture( "Icons/Project.png" ) )
 	, m_IconTextureSourceFile( STBAux::LoadImageTexture( "Icons/SourceFile.png" ) )
 {
-
 } // WorkspaceOutliner
 
 //////////////////////////////////////////////////////////////////////////
 
 void WorkspaceOutliner::Show( bool* pOpen )
 {
-	ImGui::SetNextWindowSize( ImVec2( 350, 196*4 ), ImGuiCond_FirstUseEver );
+	ImGui::SetNextWindowSize( ImVec2( 350, 196 * 4 ), ImGuiCond_FirstUseEver );
 
 	if( ImGui::Begin( "Workspace", pOpen ) )
 	{
@@ -346,20 +344,18 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 				if( ImGui::MenuItem( "Add File" ) )
 				{
-					/*OpenFileModal::Instance().RequestFile( "Add File", []( const std::filesystem::path& rPath, void* pUser )
+					OpenFileModal::Instance().Show( "Add File", nullptr, [ this, &pWorkspace ]( const std::filesystem::path& rFile )
 						{
-							WorkspaceOutliner* pSelf = static_cast< WorkspaceOutliner* >( pUser );
-
 							if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 							{
-								Project* pProject = pWorkspace->ProjectByName( pSelf->m_SelectedProjectName );
+								Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName );
 
-								pProject->m_Files.push_back( rPath );
+								pProject->m_Files.push_back( rFile );
 								pProject->Serialize();
 							}
 
-							pSelf->m_ProjectNodeToBeExpanded = pSelf->m_SelectedProjectName;
-						} );*/
+							m_ProjectNodeToBeExpanded = m_SelectedProjectName;
+						} );
 					ShowProjectContextMenu = false;
 				}
 

@@ -16,15 +16,14 @@
  */
 
 #pragma once
-#include "GUI/Modals/IModal.h"
 #include "Common/Texture2D.h"
-
-#include <filesystem>
-#include <memory>
-#include <functional>
-#include <map>
+#include "GUI/Modals/IModal.h"
 
 #include <Common/Macros.h>
+#include <filesystem>
+#include <functional>
+#include <map>
+#include <vector>
 
 #if defined( _WIN32 )
 #include <Windows.h>
@@ -40,48 +39,36 @@ class OpenFileModal : public IModal
 //////////////////////////////////////////////////////////////////////////
 
 public:
-
-	using Callback = std::function<void( std::filesystem::path& )>;
+	using Callback = std::function< void( const std::filesystem::path& ) >;
 
 //////////////////////////////////////////////////////////////////////////
 
-	void SetCurrentDirectory ( std::filesystem::path Directory );
-	void Show                ( std::string Title, const char* pFileFilters, Callback Callback );
+	void SetCurrentDirectory( std::filesystem::path Directory );
+	void Show( std::string Title, const char* pFileFilters, Callback Callback );
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
-
-	std::string PopupID      ( void ) override { return "OpenFile"; }
-	std::string Title        ( void ) override { return m_Title; }
+	std::string PopupID( void ) override { return "OpenFile"; }
+	std::string Title( void ) override { return m_Title; }
 	void        UpdateDerived( void ) override;
-	void        OnClose      ( void ) override;
+	void        OnClose( void ) override;
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::filesystem::path RootDirectory( void );
+	std::string                   m_Title;
+	std::string                   m_SearchResult;
+	std::filesystem::path         m_CurrentPath;
+	std::filesystem::path         m_SelectedFile = {};
+	std::map< std::string, bool > m_FileFilters;
 
-//////////////////////////////////////////////////////////////////////////
+	Callback m_Callback      = {};
+	bool     m_SearchEnabled = false;
 
-	std::string                  m_Title;
-	std::string                  m_SearchResult;
-	std::filesystem::path        m_CurrentPath;
-	std::filesystem::path        m_SelectedFile        = { };
-	std::map<std::string, bool>  m_FileFilters;
+	Texture2D m_IconFolder = {};
+	Texture2D m_IconFile   = {};
+	Texture2D m_IconSearch = {};
 
-	Callback                     m_Callback            = { };
-	bool                         m_SearchEnabled       = false;
-
-	Texture2D                    m_IconFolder          = { };
-    Texture2D                    m_IconFile            = { };
-	Texture2D                    m_IconSearch          = { };
-
-#if defined( _WIN32 )
-
-	std::unique_ptr< char[] > m_DrivesBuffer;
-	size_t                    m_DrivesBufferSize    = 0;
-	size_t                    m_CurrentDriveIndex   = 0;
-
-#endif // _WIN32
+	std::vector< std::string > m_Volumes = {};
 
 }; // OpenFileModal
