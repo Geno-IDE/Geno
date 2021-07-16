@@ -34,6 +34,8 @@ const char* WINDOW_NAME = "Text Edit";
 constexpr float TabSize                 = 4.0f;
 constexpr float EmptyLineSelectionWidth = 4.0f;
 constexpr int   CursorBlink             = 400;
+constexpr float DummyExtraX             = 10.0f;
+constexpr float DummyExtraY             = 10.0f;
 
 float TextEdit::FontSize = 15.0f;
 
@@ -525,7 +527,7 @@ bool TextEdit::RenderEditor( File& rFile )
 
 	CheckLineLengths( rFile, FirstLine, LastLine );
 
-	ImGui::Dummy( ImVec2( rFile.LongestLineLength + 10, ( rFile.Lines.size() + 10 ) * Props.CharAdvanceY ) );
+	ImGui::Dummy( ImVec2( rFile.LongestLineLength + DummyExtraX, ( rFile.Lines.size() + DummyExtraY ) * Props.CharAdvanceY ) );
 
 	ImGui::PopAllowKeyboardFocus();
 	ImGui::EndChild();
