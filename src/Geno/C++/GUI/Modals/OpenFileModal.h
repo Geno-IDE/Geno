@@ -22,7 +22,7 @@
 #include <filesystem>
 #include <memory>
 #include <functional>
-#include <vector>
+#include <map>
 
 #include <Common/Macros.h>
 
@@ -41,12 +41,12 @@ class OpenFileModal : public IModal
 
 public:
 
-	using Callback = std::function<void(void)>;
+	using Callback = std::function<void( std::filesystem::path& )>;
 
 //////////////////////////////////////////////////////////////////////////
 
 	void SetCurrentDirectory ( std::filesystem::path Directory );
-	void Show                ( std::string Title, std::string FileFilter, Callback Callback );
+	void Show                ( std::string Title, const char* pFileFilters, Callback Callback );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -63,16 +63,18 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::string               m_Title;
-	std::string               m_SearchResult;
-	std::filesystem::path     m_CurrentPath;
-	std::vector<const char*>  m_FileFilters;
+	std::string                  m_Title;
+	std::string                  m_SearchResult;
+	std::filesystem::path        m_CurrentPath;
+	std::filesystem::path        m_SelectedFile        = { };
+	std::map<std::string, bool>  m_FileFilters;
 
-	Callback                  m_Callback            = { };
-	bool                      m_SearchEnabled       = false;
+	Callback                     m_Callback            = { };
+	bool                         m_SearchEnabled       = false;
 
-	Texture2D                 m_IconFolder          = { };
-    Texture2D                 m_IconFile            = { };
+	Texture2D                    m_IconFolder          = { };
+    Texture2D                    m_IconFile            = { };
+	Texture2D                    m_IconSearch          = { };
 
 #if defined( _WIN32 )
 

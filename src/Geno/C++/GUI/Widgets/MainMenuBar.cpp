@@ -141,14 +141,9 @@ void MainMenuBar::ActionFileNewWorkspace( void )
 
 void MainMenuBar::ActionFileOpenWorkspace( void )
 {
-	/*OpenFileModal::Instance().RequestFile( "Open Workspace", this,
-		[]( const std::filesystem::path& rPath, void* /*pUser*/ //)
-		/*{
-			Application::Instance().LoadWorkspace( rPath );
-		}
-	);*/
-
-	OpenFileModal::Instance().Show( "Open Workspace", "All(...)", [](){});
+	OpenFileModal::Instance().Show( "Open Workspace", "*.gwks", [](std::filesystem::path& rFile){
+		Application::Instance().LoadWorkspace( rFile );
+	});
 
 } // ActionFileOpenWorkspace
 
