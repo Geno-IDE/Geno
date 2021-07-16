@@ -389,8 +389,6 @@ bool TextEdit::RenderEditor( File& rFile )
 	int FirstLine = ( int )( Props.ScrollY / Props.CharAdvanceY );
 	int LastLine  = std::min( FirstLine + ( int )( Size.y / Props.CharAdvanceY + 2 ), ( int )rFile.Lines.size() - 1 );
 
-	float Longest = 0.0f;
-
 	for( int i = FirstLine; i <= LastLine; i++ )
 	{
 		ImVec2 Pos( ScreenCursor.x + Props.LineNumMaxWidth - Props.ScrollX, ScreenCursor.y + ( i - FirstLine ) * Props.CharAdvanceY );
@@ -523,11 +521,11 @@ bool TextEdit::RenderEditor( File& rFile )
 			XOffset += TextWidth;
 			StringBuffer.clear();
 		}
-
-		if( XOffset > Longest ) Longest = XOffset;
 	}
 
-	ImGui::Dummy( ImVec2( Longest + 10, ( rFile.Lines.size() + 10 ) * Props.CharAdvanceY ) );
+	CheckLineLengths( rFile, FirstLine, LastLine );
+
+	ImGui::Dummy( ImVec2( rFile.LongestLineLength + 10, ( rFile.Lines.size() + 10 ) * Props.CharAdvanceY ) );
 
 	ImGui::PopAllowKeyboardFocus();
 	ImGui::EndChild();
@@ -788,6 +786,61 @@ void TextEdit::ScrollToCursor( File& rFile )
 	}
 
 } // ScrollToCursor
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::CheckLineLengths( File& rFile, int FirstLine, int LastLine )
+{
+	for( int i = FirstLine; i <= LastLine; i++ )
+	{
+		Line& rLine        = rFile.Lines[ i ];
+		float Length       = GetDistance( rFile, Coordinate( ( int )rLine.size(), i ) );
+		int   NumLongLines = ( int )rFile.LongestLines.size();
+		int   Line         = -1;
+		int   j            = 0;
+
+		for( ; j < NumLongLines; j++ )
+		{
+			Line = rFile.LongestLines[ j ];
+
+			if( i == Line )
+			{
+				break;
+			}
+			else
+			{
+				Line = -1;
+			}
+		}
+
+		if( Length > rFile.LongestLineLength )
+		{
+			rFile.LongestLines.clear();
+			rFile.LongestLines.push_back( i );
+
+			rFile.LongestLineLength = Length;
+		}
+		else if( Line != -1 )
+		{
+			if( Length < rFile.LongestLineLength )
+			{
+				rFile.LongestLines.erase( rFile.LongestLines.begin() + j );
+
+				if( NumLongLines == 1 )
+				{
+					rFile.LongestLineLength = 0.0f;
+
+					CheckLineLengths( rFile, 0, rFile.Lines.size() - 1 );
+				}
+			}
+		}
+		else if( Length == rFile.LongestLineLength )
+		{
+			rFile.LongestLines.push_back( i );
+		}
+	}
+
+} // CheckLineLengths
 
 //////////////////////////////////////////////////////////////////////////
 
