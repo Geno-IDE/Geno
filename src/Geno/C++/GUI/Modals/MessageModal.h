@@ -18,32 +18,34 @@
 #pragma once
 #include "IModal.h"
 
-#include <string>
 #include <functional>
 #include <map>
+#include <string>
 
 class MessageModal : public IModal
 {
-    GENO_SINGLETON( MessageModal );
+	GENO_SINGLETON( MessageModal );
 
-    MessageModal( void ) = default;
+	MessageModal( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 
 public:
+	using Callback = std::function< void( void ) >;
 
-    void ShowMessage( std::string Message );
+	void ShowMessage( std::string Message, const char* pButtonLabel, Callback Callback );
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
-
-    std::string PopupID      ( void ) override { return "Message"; }
-	std::string Title        ( void ) override { return "Geno"; }
+	std::string PopupID( void ) override { return "Message"; }
+	std::string Title( void ) override { return "Geno"; }
 	void        UpdateDerived( void ) override;
-	void        OnClose      ( void ) override;
+	void        OnClose( void ) override;
 
 //////////////////////////////////////////////////////////////////////////
 
-    std::string m_Message;
+	std::string m_Message;
+	const char* m_pButtonLabel;
+	Callback    m_Callback;
 };

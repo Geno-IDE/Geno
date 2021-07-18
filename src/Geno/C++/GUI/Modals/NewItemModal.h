@@ -16,50 +16,43 @@
  */
 
 #pragma once
+#include "Common/Texture2D.h"
 #include "GUI/Modals/IModal.h"
 
 #include <filesystem>
+#include <functional>
 
 class NewItemModal : public IModal
 {
 	GENO_SINGLETON( NewItemModal );
 
-	NewItemModal( void ) = default;
+	NewItemModal( void );
 
 //////////////////////////////////////////////////////////////////////////
 
 public:
-
-	using PathCallback   = void( * )( std::string Name, std::filesystem::path Location, void* pUser );
-	using StringCallback = void( * )( std::string String, void* pUser );
+	using Callback = std::function< void( const std::string&, const std::filesystem::path& ) >;
 
 //////////////////////////////////////////////////////////////////////////
 
-	void RequestPath  ( std::string Title, std::filesystem::path DefaultLocation, void* pUser, PathCallback Callback );
-	void RequestString( std::string Title, void* pUser, StringCallback Callback );
+	void Show( const std::string Title, const char* pFilter, const std::filesystem::path& rLocation, Callback Callback );
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
-
-	std::string PopupID      ( void ) override { return "NewItem"; };
-	std::string Title        ( void ) override { return m_Title; };
+	std::string PopupID( void ) override { return "NewItem"; };
+	std::string Title( void ) override { return m_Title; };
 	void        UpdateDerived( void ) override;
-	void        OnClose      ( void ) override;
+	void        OnClose( void ) override;
 
 //////////////////////////////////////////////////////////////////////////
 
-	void UpdateItem  ( void );
-	void UpdateString( void );
+	std::string m_Title;
+	std::string m_Name;
+	std::string m_Directory;
 
-//////////////////////////////////////////////////////////////////////////
-
-	std::string           m_Title;
-	std::string           m_Name;
-	std::filesystem::path m_Location;
-
-	void*                 m_Callback    = nullptr;
-	void*                 m_pUser       = nullptr;
-	int                   m_RequestType = -1;
+	const char* m_pFilter;
+	Callback    m_Callback;
+	Texture2D   m_IconFolder;
 
 }; // NewItemModal

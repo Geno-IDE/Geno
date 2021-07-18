@@ -17,100 +17,115 @@
 
 #include "NewItemModal.h"
 
+#include "Auxiliary/ImGuiAux.h"
+#include "Auxiliary/STBAux.h"
 #include "GUI/Modals/OpenFileModal.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
-enum RequestType
+NewItemModal::NewItemModal( void )
+	: m_IconFolder( STBAux::LoadImageTexture( "Icons/Folder.png" ) )
 {
-	None = 0,
-	RequestTypePath,
-	RequestTypeString,
-
-}; // RequestType
+	m_MinSize = ImVec2( 360.0f, 115.0f );
+	m_MaxSize = ImVec2( 530.0f, 115.0f );
+} // NewItemModal
 
 //////////////////////////////////////////////////////////////////////////
 
-void NewItemModal::RequestPath( std::string Title, std::filesystem::path DefaultLocation, void* pUser, PathCallback Callback )
+void NewItemModal::Show( const std::string Title, const char* pFilter, const std::filesystem::path& rLocation, Callback Callback )
 {
 	if( Open() )
 	{
-		m_Title       = std::move( Title );
-		m_Location    = std::move( DefaultLocation );
-		m_Callback    = reinterpret_cast< void* >( Callback );
-		m_pUser       = pUser;
-		m_RequestType = RequestTypePath;
+		m_Title    = Title;
+		m_pFilter  = pFilter;
+		m_Callback = Callback;
+
+		if( m_pFilter )
+		{
+			m_Title += " - " + std::string( m_pFilter );
+		}
+
+		if( !rLocation.empty() )
+			m_Directory = rLocation.string();
 	}
-
-} // RequestPath
-
-//////////////////////////////////////////////////////////////////////////
-
-void NewItemModal::RequestString( std::string Title, void* pUser, StringCallback Callback )
-{
-	if( Open() )
-	{
-		m_Title       = std::move( Title );
-		m_Callback    = reinterpret_cast< void* >( Callback );
-		m_pUser       = pUser;
-		m_RequestType = RequestTypeString;
-	}
-
-} // RequestString
+} // Show
 
 //////////////////////////////////////////////////////////////////////////
 
 void NewItemModal::UpdateDerived( void )
 {
-	if( ImGui::BeginChild( 1, ImVec2( 0, -24 ) ) )
-	{
-		ImGui::TextUnformatted( "Name" );
+	ImGui::TextUnformatted( "Name          " );
+	ImGui::SameLine();
 
-		switch( m_RequestType )
-		{
-			case RequestTypePath:   { UpdateItem();   } break;
-			case RequestTypeString: { UpdateString(); } break;
-		}
+	ImGui::PushStyleVar( ImGuiStyleVar_FrameRounding, 6.0f );
 
-	} ImGui::EndChild();
+	ImGui::SetNextItemWidth( ImGui::GetContentRegionAvailWidth() );
 
-	const bool CanClickOK = !m_Name.empty() && !m_Location.empty();
+	ImGui::InputText( "##FileName", &m_Name );
 
-	ImGui::PushItemFlag( ImGuiItemFlags_Disabled, !CanClickOK );
-	ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * ( CanClickOK ? 1.0f : 0.5f ) );
-	if( ImGui::Button( "OK", ImVec2( 80, 0 ) ) )
-	{
-		if( m_Callback )
-		{
-			switch( m_RequestType )
-			{
-				case RequestTypePath:   { ( reinterpret_cast< PathCallback   >( m_Callback ) )( std::move( m_Name ), std::move( m_Location ), m_pUser ); } break;
-				case RequestTypeString: { ( reinterpret_cast< StringCallback >( m_Callback ) )( std::move( m_Name ), m_pUser );                          } break;
-				default:                { GENO_ASSERT( false );                                                                                          } break;
-			}
-		}
+	ImGui::TextUnformatted( "Directory " );
+	ImGui::SameLine();
 
-		Close();
-	}
+	ImVec2 ButtonSize = ImVec2( ImGui::GetFontSize() * m_IconFolder.GetAspectRatio(), ImGui::GetFontSize() );
+
+	ImGui::SetNextItemWidth( ImGui::GetContentRegionAvailWidth() - ButtonSize.x * 1.5f );
+
+	ImGui::InputText( "##Directory", &m_Directory, ImGuiInputTextFlags_ReadOnly );
+
 	ImGui::PopStyleVar();
+
+	ImGui::SameLine();
+
+	ImGui::PushStyleColor( ImGuiCol_Button, ImGui::GetStyle().Colors[ ImGuiCol_ChildBg ] );
+	if( ImGui::ImageButton( ( ImTextureID )m_IconFolder.GetID(), ButtonSize ) )
+	{
+		OpenFileModal::Instance().Show( [ this ]( const std::filesystem::path& rFile )
+			{ m_Directory = rFile.string(); } );
+	}
+	ImGui::PopStyleColor();
+
+	bool DisableButton = m_Name.empty() || m_Directory.empty();
+
+	if( DisableButton )
+	{
+		m_ButtonData.ColorText = ImGui::GetStyle().Colors[ ImGuiCol_Text ];
+		m_ButtonData.Color     = ImVec4( 0.15f, 0.15f, 0.15f, 1.0f );
+	}
+	else
+	{
+		m_ButtonData = {};
+	}
+
+	m_ButtonData.Size = ImVec2( 70, 30 );
+
+	ImGui::PushItemFlag( ImGuiItemFlags_Disabled, DisableButton );
+
+	ImGuiAux::Button( "Create", m_ButtonData, [ this ]()
+		{
+			m_Callback( m_Name, m_Directory );
+			Close();
+		} );
+
 	ImGui::PopItemFlag();
 
 	// Explain why OK button is not clickable when hovering it
-	if( !CanClickOK && ImGui::IsItemHovered() )
+	if( DisableButton && ImGui::IsItemHovered() )
 	{
 		ImGui::BeginTooltip();
-		if( m_Name    .empty() ) ImGui::BulletText( "Name not set" );
-		if( m_Location.empty() ) ImGui::BulletText( "Location not set" );
+		if( m_Name.empty() ) ImGui::BulletText( "Name not set" );
+		if( m_Directory.empty() ) ImGui::BulletText( "Directory not set" );
 		ImGui::EndTooltip();
 	}
 
 	ImGui::SameLine();
-	if( ImGui::Button( "Cancel", ImVec2( 80, 0 ) ) )
-	{
-		Close();
-	}
+
+	m_ButtonData      = {};
+	m_ButtonData.Size = ImVec2( 70, 30 );
+
+	ImGuiAux::Button( "Cancel", m_ButtonData, [ this ]()
+		{ Close(); } );
 
 } // UpdateDerived
 
@@ -118,53 +133,9 @@ void NewItemModal::UpdateDerived( void )
 
 void NewItemModal::OnClose( void )
 {
-	m_Title   .clear();
-	m_Name    .clear();
-	m_Location.clear();
-
-	m_Callback    = nullptr;
-	m_pUser       = nullptr;
-	m_RequestType = -1;
-
+	m_Title.clear();
+	m_Name.clear();
+	m_Directory.clear();
+	m_Callback = {};
+	m_pFilter  = nullptr;
 } // OnClose
-
-//////////////////////////////////////////////////////////////////////////
-
-void NewItemModal::UpdateItem( void )
-{
-	ImGui::SetNextItemWidth( -5.0f );
-	ImGui::InputText( "##Name", &m_Name );
-
-	ImGui::TextUnformatted( "Location" );
-
-	std::string LocationBuffer = m_Location.string();
-
-	ImGui::SetNextItemWidth( -60.0f );
-	ImGui::InputText( "##Location", &LocationBuffer );
-
-	m_Location.assign( std::move( LocationBuffer ) );
-
-	ImGui::SameLine();
-	if( ImGui::Button( "Browse" ) )
-	{
-		OpenFileModal::Instance().SetCurrentDirectory( m_Location );
-		/*OpenFileModal::Instance().RequestDirectory( m_Title + " Location", this,
-			[]( const std::filesystem::path& path, void* user )
-			{
-				NewItemModal* pSelf = static_cast< NewItemModal* >( user );
-
-				pSelf->m_Location = path.lexically_normal();
-			}
-		);*/
-	}
-
-} // UpdateItem
-
-//////////////////////////////////////////////////////////////////////////
-
-void NewItemModal::UpdateString( void )
-{
-	ImGui::SetNextItemWidth( -5.0f );
-	ImGui::InputText( "##Name", &m_Name );
-
-} // UpdateString

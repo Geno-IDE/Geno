@@ -20,6 +20,8 @@
 
 #include <Common/Macros.h>
 
+#include "Auxiliary/ImGuiAux.h"
+
 class IModal
 {
 	GENO_DISABLE_COPY_AND_MOVE( IModal );
@@ -49,6 +51,11 @@ protected:
 	bool Open( void );
 
 //////////////////////////////////////////////////////////////////////////
+
+	ImGuiAux::ButtonData m_ButtonData = {};
+
+	ImVec2 m_MinSize = ImVec2( 350, 196 );
+	ImVec2 m_MaxSize = ImVec2( 550, 396 );
 
 private:
 

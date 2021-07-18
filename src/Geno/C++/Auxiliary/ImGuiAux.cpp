@@ -24,15 +24,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-bool ImGuiAux::RenameTree( std::string& rNameToRename )
+void ImGuiAux::RenameTree( std::string& rNameToRename, bool& rRename, const std::function< bool( void ) >& rCallback )
 {
-	bool               HighlightBorder;
-	static std::string Name;
-
-	if( Name.empty() )
-	{
-		Name = rNameToRename;
-	}
+	bool HighlightBorder;
 
 	if( rNameToRename.empty() )
 		HighlightBorder = true;
@@ -59,25 +53,20 @@ bool ImGuiAux::RenameTree( std::string& rNameToRename )
 
 	if( IsEnterPressed && !HighlightBorder )
 	{
-		Name.clear();
-		return true;
+		if( rCallback() )
+			rRename = false;
 	}
 	else if( ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Escape ) ) )
 	{
-		Name.clear();
-		return true;
+		rRename = false;
 	}
 	else if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) || ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
 	{
 		if( !( ImGui::IsItemClicked( ImGuiMouseButton_Right ) || ImGui::IsItemClicked( ImGuiMouseButton_Left ) ) )
 		{
-			rNameToRename = Name;
-			Name.clear();
-			return true;
+			rRename = false;
 		}
 	}
-
-	return false;
 
 } //RenameTree
 
@@ -189,16 +178,16 @@ void ImGuiAux::TextCentered( const char* pText )
 
 //////////////////////////////////////////////////////////////////////////
 
-void ImGuiAux::Button( const char* pLabel, ImGuiAux::ButtonData ButtonData, const std::function<void(void)>& rCallback )
+void ImGuiAux::Button( const char* pLabel, const ButtonData& ButtonData, const std::function< void( void ) >& rCallback )
 {
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, ButtonData.Rounding);
-	ImGui::PushStyleColor(ImGuiCol_Button, ButtonData.Color);
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ButtonData.ColorHovered);
-	ImGui::PushStyleColor(ImGuiCol_Text, ButtonData.ColorText);
+	ImGui::PushStyleVar( ImGuiStyleVar_FrameRounding, ButtonData.Rounding );
+	ImGui::PushStyleColor( ImGuiCol_Button, ButtonData.Color );
+	ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ButtonData.ColorHovered );
+	ImGui::PushStyleColor( ImGuiCol_Text, ButtonData.ColorText );
 
-	bool IsClicked = ImGui::Button(pLabel, ButtonData.Size);
+	bool IsClicked = ImGui::Button( pLabel, ButtonData.Size );
 
-	ImGui::PopStyleColor(3);
+	ImGui::PopStyleColor( 3 );
 	ImGui::PopStyleVar();
 
 	if( IsClicked )

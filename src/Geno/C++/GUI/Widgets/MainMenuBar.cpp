@@ -126,11 +126,8 @@ void MainMenuBar::Draw( void )
 
 void MainMenuBar::ActionFileNewWorkspace( void )
 {
-	NewItemModal::Instance().RequestPath( "New Workspace Location", std::filesystem::current_path(), this,
-		[]( std::string Name, std::filesystem::path Location, void* /*pUser*/ )
-		{
-			Application::Instance().NewWorkspace( Location, std::move( Name ) );
-		} );
+	NewItemModal::Instance().Show( "New Workspace", ".gwks", {}, []( const std::string& rName, const std::filesystem::path& rLocation )
+		{ Application::Instance().NewWorkspace( rLocation, rName ); } );
 
 } // ActionFileNewWorkspace
 
@@ -139,9 +136,7 @@ void MainMenuBar::ActionFileNewWorkspace( void )
 void MainMenuBar::ActionFileOpenWorkspace( void )
 {
 	OpenFileModal::Instance().Show( "Open Workspace", "*.gwks", []( const std::filesystem::path& rFile )
-		{
-			Application::Instance().LoadWorkspace( rFile );
-		} );
+		{ Application::Instance().LoadWorkspace( rFile ); } );
 
 } // ActionFileOpenWorkspace
 

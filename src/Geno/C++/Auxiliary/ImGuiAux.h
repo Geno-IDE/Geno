@@ -16,9 +16,9 @@
  */
 
 #pragma once
+#include <functional>
 #include <imgui.h>
 #include <string>
-#include <functional>
 
 class Texture2D;
 
@@ -26,20 +26,19 @@ class Texture2D;
 
 namespace ImGuiAux
 {
-
 struct ButtonData
 {
-    float Rounding = 10.0f;
-    ImVec4 Color = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-    ImVec4 ColorHovered = ImVec4(0.2f, 0.4f, 0.67f, 0.4f);
-    ImVec4 ColorText = ImVec4(0.2f, 0.6f, 0.8f, 1.0f);
-    ImVec2 Size = ImVec2(0, 0);
+	float  Rounding     = 10.0f;
+	ImVec4 Color        = ImVec4( 0.0f, 0.0f, 0.0f, 0.0f );
+	ImVec4 ColorHovered = ImVec4( 0.2f, 0.4f, 0.67f, 0.4f );
+	ImVec4 ColorText    = ImVec4( 0.2f, 0.6f, 0.8f, 1.0f );
+	ImVec2 Size         = ImVec2( 0, 0 );
 };
 
-extern bool RenameTree          ( std::string& rNameToRename );
+extern void RenameTree          ( std::string& rNameToRename, bool& rRename, const std::function< bool( void ) >& rCallback );
 extern bool PushTreeWithIcon    ( const char* pLabel, const Texture2D& rTexture, bool Rename, const bool DrawArrow = true );
 extern bool BeginChildHorizontal( const ImGuiID ID, const ImVec2& rSize, const bool Border = false, const ImGuiWindowFlags Flags = 0 );
 extern void TextCentered        ( const char* pText );
-extern void Button              ( const char* pLabel, ButtonData ButtonData, const std::function<void(void)>& rCallback );
+extern void Button              ( const char* pLabel, const ButtonData& ButtonData, const std::function< void( void ) >& rCallback );
 
-} // ImGuiAux
+} // namespace ImGuiAux

@@ -17,43 +17,55 @@
 
 #include "MessageModal.h"
 
-#include <imgui.h>
-
 #include "Auxiliary/ImGuiAux.h"
 
-void MessageModal::ShowMessage( std::string Message )
+#include <imgui.h>
+
+void MessageModal::ShowMessage( std::string Message, const char* pButtonLabel, Callback Callback )
 {
-    if( Open() )
-    {
-        m_Message = Message;
-    }
+	if( Open() )
+	{
+		m_Message      = Message;
+		m_pButtonLabel = pButtonLabel;
+		m_Callback     = Callback;
+
+		ImVec2 Offset = ImGui::CalcTextSize( m_Message.c_str() );
+
+		m_MinSize = ImVec2( 350.0f, ( Offset.y + 70.0f ) * 2.0f );
+		m_MaxSize = m_MinSize;
+	}
 } // ShowMessage
 
 //////////////////////////////////////////////////////////////////////////
 
 void MessageModal::UpdateDerived( void )
 {
-    ImGui::TextWrapped(m_Message.c_str());
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 5.0f, 5.0f ) );
+	if( ImGui::BeginChild( 1, ImVec2( 0, -44 ) ) )
+	{
+		ImGui::TextWrapped( m_Message.c_str() );
+	}
+	ImGui::EndChild();
+	ImGui::PopStyleVar();
 
-    ImVec2 Offset = ImGui::CalcTextSize(m_Message.c_str());
+	m_ButtonData.Size = ImVec2( 70, 30 );
 
-    ImGui::SetWindowSize(Offset, ImGuiCond_Appearing);
+	ImGuiAux::Button( m_pButtonLabel, m_ButtonData, [ this ]()
+		{
+			m_Callback();
+			Close();
+		} );
 
-    ImGui::Text("");
-    
-    ImGuiAux::Button("Ok", ImGuiAux::ButtonData(), [this](){
-        Close();
-    });
+	ImGui::SameLine();
 
-    ImGuiAux::Button("Cancel", ImGuiAux::ButtonData(), [this](){
-        Close();
-    });
-    
+	ImGuiAux::Button( "Cancel", m_ButtonData, [ this ]()
+		{ Close(); } );
+
 } // UpdateDerived
 
 //////////////////////////////////////////////////////////////////////////
 
 void MessageModal::OnClose( void )
 {
-
+	m_Message.clear();
 } // OnClose

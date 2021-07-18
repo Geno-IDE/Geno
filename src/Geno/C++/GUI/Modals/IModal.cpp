@@ -32,29 +32,27 @@ void IModal::Update( void )
 	}
 
 	ImGui::SetNextWindowSize( ImVec2( 350, 196 ), ImGuiCond_FirstUseEver );
+	ImGui::SetNextWindowSizeConstraints( m_MinSize, m_MaxSize );
 
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 10.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 10.0f));
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 10.0f );
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 10.0f, 10.0f ) );
 	bool IsOpen = ImGui::BeginPopupModal( PopupID.c_str(), NULL, ImGuiWindowFlags_NoTitleBar );
-	ImGui::PopStyleVar(2);
+	ImGui::PopStyleVar( 2 );
 
 	if( IsOpen )
 	{
-		ImGuiAux::TextCentered(Title().c_str());
+		ImGuiAux::TextCentered( Title().c_str() );
 
-		if(ImGui::BeginChild("Content", ImVec2(0, 0), false, ImGuiWindowFlags_NoScrollbar))
+		if( ImGui::BeginChild( "Content", ImVec2( 0, 0 ), false, ImGuiWindowFlags_NoScrollbar ) )
 		{
 			UpdateDerived();
 
 			if( IModal* next = Application::Instance().NextModal( this ) )
 				next->Update();
-			
-		} ImGui::EndChild();
+		}
+		ImGui::EndChild();
 
 		ImGui::EndPopup();
-
-		if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
-			Close();
 	}
 
 } // Update
@@ -83,7 +81,7 @@ bool IModal::Open( void )
 
 	Application::Instance().PushModal( this );
 
-	m_Open 	  = true;
+	m_Open = true;
 
 	return true;
 

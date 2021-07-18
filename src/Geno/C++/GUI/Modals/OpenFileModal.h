@@ -45,6 +45,7 @@ public:
 
 	void SetCurrentDirectory( std::filesystem::path Directory );
 	void Show( std::string Title, const char* pFileFilters, Callback Callback );
+	void Show( Callback Callback ); // Used For Opening Folder
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -64,6 +65,8 @@ private:
 
 	Callback m_Callback      = {};
 	bool     m_SearchEnabled = false;
+	bool     m_OpenFolder    = false;
+	bool     m_CreateFolder  = false;
 
 	Texture2D m_IconFolder = {};
 	Texture2D m_IconFile   = {};
