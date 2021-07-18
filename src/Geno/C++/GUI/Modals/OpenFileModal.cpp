@@ -33,9 +33,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 OpenFileModal::OpenFileModal( void )
-	: m_IconFolder( STBAux::LoadImageTexture( "Icons/Folder.png" ) )
-	, m_IconFile( STBAux::LoadImageTexture( "Icons/File.png" ) )
-	, m_IconSearch( STBAux::LoadImageTexture( "Icons/Search.png" ) )
+	: m_IconFolder( STBAux::LoadImageTexture( "Icons/FolderColored.png" ) )
+	, m_IconFile( STBAux::LoadImageTexture( "Icons/BrowserFile.png" ) )
+	, m_IconSearch( STBAux::LoadImageTexture( "Icons/BrowserSearch.png" ) )
 {
 #if defined( __linux__ )
 
