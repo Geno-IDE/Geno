@@ -312,8 +312,7 @@ std::vector< TextEdit::Line > TextEdit::SplitLines( const std::string String )
 		{
 			if( c == '\r' ) i++;
 
-			Lines.push_back( LineBuffer );
-			LineBuffer.clear();
+			Lines.emplace_back( std::move( LineBuffer ) );
 		}
 		else
 		{
@@ -322,6 +321,10 @@ std::vector< TextEdit::Line > TextEdit::SplitLines( const std::string String )
 	}
 
 	if( !LineBuffer.empty() ) Lines.push_back( LineBuffer );
+
+	// We make a lot of assumptions that line vectors contain at least one element.
+	// Let's make sure the vector is never empty, even for empty input strings.
+	if( Lines.empty() ) Lines.emplace_back();
 
 	return Lines;
 }
