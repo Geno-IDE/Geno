@@ -26,10 +26,10 @@
 #endif // __has_include( BACKTRACE_HEADER )
 
 // Check if we can use __crashreporter_info__
-#if defined( __APPLE__ )
+#if __has_include( <CrashReporterClient.h> )
 #define HAVE_CRASHREPORTERCLIENT_H 1
 #define HAVE_CRASHREPORTER_INFO    1
-#endif // __APPLE__
+#endif // __has_include( <CrashReporterClient.h> )
 
 // Don't use `arc4random`
 #define HAVE_DECL_ARC4RANDOM 0
@@ -155,7 +155,9 @@
 #endif // __has_include( <malloc_np.h> )
 
 // Check if we have the `mallinfo` function
+#if __has_include( <malloc.h> )
 #define HAVE_MALLINFO 1
+#endif // __has_include( <malloc.h> )
 
 // Check if we have the <malloc/malloc.h> header file
 #if __has_include( <malloc/malloc.h> )
@@ -166,7 +168,9 @@
 #define HAVE_MALLOC_ZONE_STATISTICS 1
 
 // Check if we have the `posix_fallocate` function
+#if defined( __linux__ )
 #define HAVE_POSIX_FALLOCATE 1
+#endif // __linux__
 
 // Check if we have the `posix_spawn` function
 #define HAVE_POSIX_SPAWN 1
@@ -246,13 +250,13 @@
 #define HAVE_SYS_TIME_H 1
 #endif // __has_include( <sys/time.h> )
 
-#if defined( _WIN32 )
-	// stat struct has st_mtimespec member
-	#define HAVE_STRUCT_STAT_ST_MTIMESPEC_TV_NSEC 1
-#else // _WIN32
+#if defined( __linux__ )
 	// stat struct has st_mtim member
 	#define HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC 1
-#endif // !_WIN32
+#else // __linux__
+	// stat struct has st_mtimespec member
+	#define HAVE_STRUCT_STAT_ST_MTIMESPEC_TV_NSEC 1
+#endif // !__linux__
 
 // Check if we have the <sys/types.h> header file
 #if __has_include( <sys/types.h> )

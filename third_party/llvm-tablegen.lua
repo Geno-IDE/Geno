@@ -23,4 +23,9 @@ return function()
 			'pthread',
 			'ncurses',
 		}
+
+	filter 'system:macosx'
+		links {
+			'ncurses',
+		}
 end

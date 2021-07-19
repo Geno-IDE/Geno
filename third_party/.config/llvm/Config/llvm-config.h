@@ -47,17 +47,17 @@
 #define LLVM_HOST_OS "Win32"
 #elif defined( __linux__ ) // _WIN32
 #define LLVM_HOST_OS "Linux"
-#elif defined( __darwin__ ) // __linux__
+#elif defined( __APPLE__ ) // __linux__
 #define LLVM_HOST_OS "Darwin"
-#endif // __darwin__
+#endif // __APPLE__
 
 // Host triple LLVM will be executed on
 #define LLVM_HOST_TRIPLE LLVM_HOST_ARCH "-" LLVM_HOST_VENDOR "-" LLVM_HOST_OS
 
 // Check if Unixish platform
-#if defined( __unix__ ) || defined( __unix )
+#if defined( __unix__ ) || defined( __unix ) || defined( __APPLE__ )
 #define LLVM_ON_UNIX 1
-#endif // __unix__ || __unix
+#endif // __unix__ || __unix || __APPLE__
 
 // LLVM version
 #define LLVM_VERSION_MAJOR 12
