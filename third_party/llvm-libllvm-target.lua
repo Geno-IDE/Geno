@@ -1,6 +1,7 @@
 return function()
 	dependson {
 		'llvm-libllvm-target-td',
+		'llvm-libllvm-ir-td',
 	}
 	includedirs {
 		'third_party/llvm-project/llvm/lib/Target/X86',
