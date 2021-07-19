@@ -140,7 +140,9 @@
 #endif // __has_include( <link.h> )
 
 // Check if we have the `lseek64` function
+#if defined( __linux__ )
 #define HAVE_LSEEK64 1
+#endif // __linux__
 
 // Check if we have the <mach/mach.h> header file
 #if __has_include( <mach/mach.h> )
