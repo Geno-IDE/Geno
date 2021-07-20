@@ -26,7 +26,7 @@
 #include <misc/cpp/imgui_stdlib.h>
 
 NewItemModal::NewItemModal( void )
-	: m_IconFolder( STBAux::LoadImageTexture( "Icons/Folder.png" ) )
+	: m_IconFolder( STBAux::LoadImageTexture( "Icons/FolderColored.png" ) )
 {
 	m_MinSize = ImVec2( 360.0f, 115.0f );
 	m_MaxSize = ImVec2( 530.0f, 115.0f );

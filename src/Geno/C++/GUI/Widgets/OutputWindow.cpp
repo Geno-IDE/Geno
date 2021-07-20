@@ -94,9 +94,13 @@ void OutputWindow::Show( bool* pOpen )
 	{
 		Capture();
 
+		bool ScrollToBottom = ImGui::GetScrollY() == ImGui::GetScrollMaxY();
+
 		if( m_pCaptured )
 			ImGui::TextUnformatted( m_pCaptured, m_pCaptured + m_CapturedSize );
 
+		if( ScrollToBottom )
+			ImGui::SetScrollHereY( 1.0f );
 	} ImGui::End();
 
 } // Show

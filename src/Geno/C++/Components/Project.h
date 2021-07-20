@@ -26,6 +26,14 @@
 
 class ICompiler;
 
+struct FileFilter
+{
+	std::filesystem::path                Name;
+	std::filesystem::path                Path;
+	std::vector< std::filesystem::path > Files;
+
+}; // FileFilter
+
 class Project
 {
 	GENO_DISABLE_COPY( Project );
@@ -42,6 +50,7 @@ public:
 		DynamicLibrary,
 
 	}; // Kind
+
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -62,6 +71,13 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
+	void        SortFileFilters( void );
+	FileFilter* NewFileFilter( const std::filesystem::path& Name );
+	void        RemoveFileFilter( const std::filesystem::path& Name );
+	FileFilter* FileFilterByName( const std::filesystem::path& Name );
+
+//////////////////////////////////////////////////////////////////////////
+
 	struct
 	{
 		Event< Project, void( std::filesystem::path OutputFile, bool Success ) > BuildFinished;
@@ -74,7 +90,7 @@ public:
 
 	std::filesystem::path                m_Location;
 	std::string                          m_Name;
-	std::vector< std::filesystem::path > m_Files;
+	std::vector< FileFilter >            m_FileFilters;
 	std::vector< std::filesystem::path > m_IncludeDirectories;
 	std::vector< std::filesystem::path > m_LibraryDirectories;
 	std::vector< std::string >           m_Defines;

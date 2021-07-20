@@ -34,6 +34,8 @@ const char* WINDOW_NAME = "Text Edit";
 constexpr float TabSize                 = 4.0f;
 constexpr float EmptyLineSelectionWidth = 4.0f;
 constexpr int   CursorBlink             = 400;
+constexpr float DummyExtraX             = 10.0f;
+constexpr float DummyExtraY             = 10.0f;
 
 float TextEdit::FontSize = 15.0f;
 
@@ -56,6 +58,7 @@ TextEdit::TextEdit( void )
 	m_Palette.Comment             = 0xFF0f5904;
 	m_Palette.LineNumber          = 0xFFF0F0F0;
 	m_Palette.Cursor              = 0xFFf8f8f8;
+	m_Palette.CursorInsert        = 0x80f8f8f8;
 	m_Palette.Selection           = 0x80a06020;
 	m_Palette.CurrentLine         = 0x40000000;
 	m_Palette.CurrentLineInactive = 0x40808080;
@@ -290,18 +293,26 @@ void TextEdit::SplitLines( File& rFile )
 {
 	rFile.Lines.clear();
 
-	Line LineBuffer;
+	rFile.Lines = SplitLines( rFile.Text );
 
-	for( int i = 0; i < rFile.Text.length(); i++ )
+} // SplitLines
+
+//////////////////////////////////////////////////////////////////////////
+
+std::vector< TextEdit::Line > TextEdit::SplitLines( const std::string String )
+{
+	Line                LineBuffer;
+	std::vector< Line > Lines;
+
+	for( int i = 0; i < String.length(); i++ )
 	{
-		const char c = rFile.Text[ i ];
+		const char c = String[ i ];
 
 		if( c == '\n' || c == '\r' )
 		{
 			if( c == '\r' ) i++;
 
-			rFile.Lines.push_back( LineBuffer );
-			LineBuffer.clear();
+			Lines.emplace_back( std::move( LineBuffer ) );
 		}
 		else
 		{
@@ -309,9 +320,14 @@ void TextEdit::SplitLines( File& rFile )
 		}
 	}
 
-	rFile.Lines.push_back( LineBuffer );
+	if( !LineBuffer.empty() ) Lines.push_back( LineBuffer );
 
-} // SplitLines
+	// We make a lot of assumptions that line vectors contain at least one element.
+	// Let's make sure the vector is never empty, even for empty input strings.
+	if( Lines.empty() ) Lines.emplace_back();
+
+	return Lines;
+}
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -321,17 +337,31 @@ void TextEdit::JoinLines( File& rFile )
 
 	for( size_t i = 0; i < rFile.Lines.size(); i++ )
 	{
-		Line& rLine = rFile.Lines[ i ];
+		Line&       rLine = rFile.Lines[ i ];
+		std::string Line  = GetString( rLine, 0, ( int )rLine.size() );
 
-		for( size_t j = 0; j < rLine.size(); j++ )
-		{
-			rFile.Text.push_back( rLine[ j ].C );
-		}
-
+		rFile.Text.append( Line );
 		rFile.Text.push_back( '\n' );
 	}
 
 } // JoinLines
+
+//////////////////////////////////////////////////////////////////////////
+
+std::string TextEdit::GetString( const Line& rLine, int Start, int End )
+{
+	std::string Result;
+	int         LineSize = ( int )rLine.size();
+
+	End = End > LineSize ? LineSize : End;
+
+	for( size_t i = Start; i < End; i++ )
+	{
+		Result.push_back( rLine[ i ].C );
+	}
+
+	return std::move( Result );
+} // GetLineString
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -354,7 +384,7 @@ bool TextEdit::RenderEditor( File& rFile )
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 
 	ImGui::SetCursorScreenPos( ImVec2( ScreenCursor.x + Props.LineNumMaxWidth, ScreenCursor.y ) );
-	ImGui::BeginChild( "##TextEditor", ImVec2( Size.x - Props.LineNumMaxWidth, 0 ), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar );
+	ImGui::BeginChild( "##TextEditor", ImVec2( Size.x - Props.LineNumMaxWidth, 0 ), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar );
 	HandleKeyboardInputs( rFile );
 	HandleMouseInputs( rFile );
 
@@ -363,8 +393,6 @@ bool TextEdit::RenderEditor( File& rFile )
 
 	int FirstLine = ( int )( Props.ScrollY / Props.CharAdvanceY );
 	int LastLine  = std::min( FirstLine + ( int )( Size.y / Props.CharAdvanceY + 2 ), ( int )rFile.Lines.size() - 1 );
-
-	float Longest = 0.0f;
 
 	for( int i = FirstLine; i <= LastLine; i++ )
 	{
@@ -425,9 +453,23 @@ bool TextEdit::RenderEditor( File& rFile )
 
 						float  CursorPos = GetCursorDistance( rFile, j );
 						ImVec2 cStart( Pos.x + CursorPos, Pos.y );
-						ImVec2 cEnd( cStart.x + 1.0f, cStart.y + Props.CharAdvanceY - 1 );
+						ImVec2 cEnd( cStart.x, cStart.y + Props.CharAdvanceY - 1 );
 
-						pDrawList->AddRectFilled( cStart, cEnd, m_Palette.Cursor );
+						unsigned int Color = 0;
+
+						switch( Props.CursorMode )
+						{
+							case CursorInputMode::Normal:
+								cEnd.x += 1.0f;
+								Color = m_Palette.Cursor;
+								break;
+							case CursorInputMode::Insert:
+								cEnd.x += Props.SpaceSize - 0.75f;
+								Color = m_Palette.CursorInsert;
+								break;
+						}
+
+						pDrawList->AddRectFilled( cStart, cEnd, Color );
 
 						if( Props.CursorBlink ? Elapsed >= Props.CursorBlink : Elapsed >= CursorBlink * 2 )
 						{
@@ -484,11 +526,11 @@ bool TextEdit::RenderEditor( File& rFile )
 			XOffset += TextWidth;
 			StringBuffer.clear();
 		}
-
-		if( XOffset > Longest ) Longest = XOffset;
 	}
 
-	ImGui::Dummy( ImVec2( Longest + 10, ( rFile.Lines.size() + 10 ) * Props.CharAdvanceY ) );
+	CheckLineLengths( rFile, FirstLine, LastLine );
+
+	ImGui::Dummy( ImVec2( rFile.LongestLineLength + DummyExtraX, ( rFile.Lines.size() + DummyExtraY ) * Props.CharAdvanceY ) );
 
 	ImGui::PopAllowKeyboardFocus();
 	ImGui::EndChild();
@@ -538,9 +580,9 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 			Enter( rFile );
 		else if( !Shift && !Ctrl && !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Backspace ) ) )
 			Backspace( rFile );
-		else if( !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
+		else if( !Ctrl && !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
 			MoveUp( rFile, Shift );
-		else if( !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
+		else if( !Ctrl && !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
 			MoveDown( rFile, Shift );
 		else if( !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_RightArrow ) ) )
 			MoveRight( rFile, Ctrl, Shift );
@@ -555,7 +597,21 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 		else if( !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_End ) ) )
 			End( rFile, Ctrl, Shift );
 		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Escape ) ) )
-			rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+			Esc( rFile );
+		else if( !Alt && !Shift && Ctrl && ImGui::IsKeyPressed( 'S' ) )
+			SaveFile( rFile );
+		else if( !Alt && !Shift && Ctrl && ImGui::IsKeyPressed( 'C' ) )
+			Copy( rFile, false );
+		else if( !Alt && !Shift && Ctrl && ImGui::IsKeyPressed( 'X' ) )
+			Copy( rFile, true );
+		else if( !Alt && !Shift && Ctrl && ImGui::IsKeyPressed( 'V' ) )
+			Paste( rFile );
+		else if( Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
+			SwapLines( rFile, true );
+		else if( Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
+			SwapLines( rFile, false );
+		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Insert ) ) )
+			Props.CursorMode = Props.CursorMode == CursorInputMode::Normal ? CursorInputMode::Insert : CursorInputMode::Normal;
 
 		for( int i = 0; i < rIO.InputQueueCharacters.Size; i++ )
 		{
@@ -735,6 +791,61 @@ void TextEdit::ScrollToCursor( File& rFile )
 	}
 
 } // ScrollToCursor
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::CheckLineLengths( File& rFile, int FirstLine, int LastLine )
+{
+	for( int i = FirstLine; i <= LastLine; i++ )
+	{
+		Line& rLine        = rFile.Lines[ i ];
+		float Length       = GetDistance( rFile, Coordinate( ( int )rLine.size(), i ) );
+		int   NumLongLines = ( int )rFile.LongestLines.size();
+		int   Line         = -1;
+		int   j            = 0;
+
+		for( ; j < NumLongLines; j++ )
+		{
+			Line = rFile.LongestLines[ j ];
+
+			if( i == Line )
+			{
+				break;
+			}
+			else
+			{
+				Line = -1;
+			}
+		}
+
+		if( Length > rFile.LongestLineLength )
+		{
+			rFile.LongestLines.clear();
+			rFile.LongestLines.push_back( i );
+
+			rFile.LongestLineLength = Length;
+		}
+		else if( Line != -1 )
+		{
+			if( Length < rFile.LongestLineLength )
+			{
+				rFile.LongestLines.erase( rFile.LongestLines.begin() + j );
+
+				if( NumLongLines == 1 )
+				{
+					rFile.LongestLineLength = 0.0f;
+
+					CheckLineLengths( rFile, 0, rFile.Lines.size() - 1 );
+				}
+			}
+		}
+		else if( Length == rFile.LongestLineLength )
+		{
+			rFile.LongestLines.push_back( i );
+		}
+	}
+
+} // CheckLineLengths
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -1073,9 +1184,13 @@ void TextEdit::AdjustCursorIfInText( File& rFile, Cursor& rCursor, int LineIndex
 void TextEdit::AdjustCursor( File& rFile, Cursor& rCursor, int XOffset )
 {
 	rCursor.Position.x += XOffset;
-	rCursor.SelectionOrigin.x += XOffset;
-	rCursor.SelectionStart.x += XOffset;
-	rCursor.SelectionEnd.x += XOffset;
+
+	if( rCursor.SelectionOrigin != Coordinate( -1, -1 ) )
+	{
+		rCursor.SelectionOrigin.x += XOffset;
+		rCursor.SelectionStart.x += XOffset;
+		rCursor.SelectionEnd.x += XOffset;
+	}
 
 } // AdjustCursor
 
@@ -1232,7 +1347,7 @@ void TextEdit::AdjustCursors( File& rFile, int CursorIndex, int XOffset, int YOf
 
 		if( rOther.Position > rCursor.Position )
 		{
-			if( rOther.Position.y == rCursor.Position.y )
+			if( rOther.Position.y == rCursor.Position.y || YOffset > 0 ? rOther.Position.y - YOffset == rCursor.Position.y : false )
 			{
 				rOther.Position.x -= XOffset;
 			}
@@ -1357,6 +1472,10 @@ void TextEdit::DeleteSelection( File& rFile, int CursorIndex )
 		rCursor.SelectionEnd    = { 0, 0 };
 		rCursor.SelectionOrigin = { -1, -1 };
 	}
+	else
+	{
+		return;
+	}
 
 	Props.Changes = true;
 
@@ -1471,43 +1590,53 @@ void TextEdit::Backspace( File& rFile )
 
 void TextEdit::Del( File& rFile )
 {
-	Props.Changes = true;
-
 	for( int i = 0; i < rFile.Cursors.size(); i++ )
 	{
-		if( HasSelection( rFile, i ) )
+		Del( rFile, i );
+	}
+
+} // Del
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::Del( File& rFile, int CursorIndex )
+{
+	Cursor& rCursor = rFile.Cursors[ CursorIndex ];
+
+	if( rCursor.Disabled ) return;
+
+	if( HasSelection( rFile, CursorIndex ) )
+	{
+		DeleteSelection( rFile, CursorIndex );
+	}
+	else
+	{
+		Line& rLine = rFile.Lines[ rCursor.Position.y ];
+
+		if( rCursor.Position.x >= rLine.size() )
 		{
-			DeleteSelection( rFile, i );
+			if( rCursor.Position.y == rFile.Lines.size() - 1 ) return;
+
+			Line& rNextLine = rFile.Lines[ rCursor.Position.y + 1 ];
+
+			rLine.insert( rLine.end(), rNextLine.begin(), rNextLine.end() );
+
+			rFile.Lines.erase( rFile.Lines.begin() + rCursor.Position.y + 1 );
+
+			AdjustCursors( rFile, CursorIndex, -rCursor.Position.x, 1 );
 		}
 		else
 		{
-			Cursor& rCursor = rFile.Cursors[ i ];
-
-			if( rCursor.Disabled ) continue;
-
-			Line& rLine = rFile.Lines[ rCursor.Position.y ];
-
-			if( rCursor.Position.x >= rLine.size() )
-			{
-				if( rCursor.Position.y == rFile.Lines.size() - 1 ) continue;
-
-				Line& rNextLine = rFile.Lines[ rCursor.Position.y + 1 ];
-
-				rLine.insert( rLine.end(), rNextLine.begin(), rNextLine.end() );
-
-				rFile.Lines.erase( rFile.Lines.begin() + rCursor.Position.y + 1 );
-			}
-			else
-			{
-				rLine.erase( rLine.begin() + rCursor.Position.x );
-			}
+			rLine.erase( rLine.begin() + rCursor.Position.x );
+			AdjustCursors( rFile, CursorIndex, 1, 0 );
 		}
+
+		Props.Changes = true;
 	}
 
 	ScrollToCursor( rFile );
 
 	Props.CursorBlink = 0;
-
 } // Del
 
 //////////////////////////////////////////////////////////////////////////
@@ -1634,12 +1763,33 @@ void TextEdit::Tab( File& rFile, bool Shift )
 
 			Line& rLine = rFile.Lines[ rCursor.Position.y ];
 
-			rLine.insert( rLine.begin() + rCursor.Position.x, Glyph( '\t', m_Palette.Default ) );
+			if( Props.CursorMode == CursorInputMode::Normal )
+			{
+				rLine.insert( rLine.begin() + rCursor.Position.x, Glyph( '\t', m_Palette.Default ) );
+
+				AdjustCursors( rFile, i, -1, 0 );
+			}
+			else
+			{
+				float CurrentDist = GetDistance( rFile, rCursor.Position );
+				float Tab         = TabSize * Props.SpaceSize;
+
+				CurrentDist += Tab;
+
+				float Fraction = CurrentDist / Tab;
+				Fraction       = Fraction - floorf( Fraction );
+
+				CurrentDist -= Tab * Fraction;
+
+				Coordinate NewCoord = GetCoordinate( rFile, ImVec2( CurrentDist, rCursor.Position.y * Props.CharAdvanceY ), true );
+
+				rLine.erase( rLine.begin() + rCursor.Position.x, rLine.begin() + NewCoord.x );
+
+				rLine.insert( rLine.begin() + rCursor.Position.x, Glyph( '\t', m_Palette.Default ) );
+			}
 
 			rCursor.Position.x++;
 			rCursor.SelectionOrigin = Coordinate( -1, -1 );
-
-			AdjustCursors( rFile, i, -1, 0 );
 
 			Props.Changes = true;
 		}
@@ -1670,12 +1820,25 @@ void TextEdit::EnterTextStuff( File& rFile, char C, bool Shift )
 
 		Line& rLine = rFile.Lines[ rCursor.Position.y ];
 
-		rLine.insert( rLine.begin() + rCursor.Position.x, Glyph( C, m_Palette.Default ) );
-
 		rCursor.Position.x++;
 		rCursor.SelectionOrigin = Coordinate( -1, -1 );
 
-		AdjustCursors( rFile, i, -1, 0 );
+		bool EndOfLine = rCursor.Position.x >= ( int )rLine.size();
+
+		if( EndOfLine )
+		{
+			rLine.push_back( Glyph( C, m_Palette.Default ) );
+		}
+		else if( Props.CursorMode == CursorInputMode::Insert )
+		{
+			rLine[ rCursor.Position.x - 1 ].C = C;
+		}
+		else
+		{
+			rLine.insert( rLine.begin() + rCursor.Position.x - 1, Glyph( C, m_Palette.Default ) );
+
+			AdjustCursors( rFile, i, -1, 0 );
+		}
 	}
 
 	ScrollToCursor( rFile );
@@ -1990,6 +2153,8 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift )
 
 } // MoveLeft
 
+//////////////////////////////////////////////////////////////////////////
+
 void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
 {
 	for( int i = 0; i < rFile.Cursors.size(); i++ )
@@ -2063,11 +2228,13 @@ void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
 	DeleteDisabledCursor( rFile );
 	YeetDuplicateCursors( rFile );
 
-	if( Ctrl ) ScrollToCursor( rFile );
+	ScrollToCursor( rFile );
 
 	Props.CursorBlink = 0;
 
 } // Home
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
 {
@@ -2126,10 +2293,228 @@ void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
 	DeleteDisabledCursor( rFile );
 	YeetDuplicateCursors( rFile );
 
-	if( Ctrl ) ScrollToCursor( rFile );
+	ScrollToCursor( rFile );
 
 	Props.CursorBlink = 0;
 
 } // End
 
 //////////////////////////////////////////////////////////////////////////
+
+void TextEdit::Esc( File& rFile )
+{
+	rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+
+	Cursor& rCursor         = rFile.Cursors[ 0 ];
+	rCursor.SelectionStart  = Coordinate( 0, 0 );
+	rCursor.SelectionEnd    = Coordinate( 0, 0 );
+	rCursor.SelectionOrigin = Coordinate( -1, -1 );
+}
+
+void TextEdit::Copy( File& rFile, bool Cut )
+{
+	std::string ClipBuffer;
+
+	for( size_t i = 0; i < rFile.Cursors.size(); i++ )
+	{
+		Cursor& rCursor = rFile.Cursors[ i ];
+
+		if( rCursor.Disabled ) continue;
+
+		if( HasSelection( rFile, i ) )
+		{
+			if( rCursor.SelectionStart.y == rCursor.SelectionEnd.y )
+			{
+				Line&       rLine = rFile.Lines[ rCursor.SelectionStart.y ];
+				std::string Text  = GetString( rLine, rCursor.SelectionStart.x, rCursor.SelectionEnd.x );
+
+				ClipBuffer.append( Text + "\n" );
+			}
+			else
+			{
+				Line&       rFirstLine = rFile.Lines[ rCursor.SelectionStart.y ];
+				std::string Text       = GetString( rFirstLine, rCursor.SelectionStart.x, ( int )rFirstLine.size() );
+
+				ClipBuffer.append( Text + "\n" );
+
+				for( int j = rCursor.SelectionStart.y + 1; j <= rCursor.SelectionEnd.y - 1; j++ )
+				{
+					Line& rLine = rFile.Lines[ j ];
+
+					if( rLine.empty() )
+					{
+						ClipBuffer.push_back( '\n' );
+						continue;
+					}
+
+					Text = GetString( rLine, 0, ( int )rLine.size() );
+
+					ClipBuffer.append( Text + "\n" );
+				}
+
+				Line& rLastLine = rFile.Lines[ rCursor.SelectionEnd.y ];
+				Text            = GetString( rLastLine, 0, rCursor.SelectionEnd.x );
+
+				ClipBuffer.append( Text + "\n" );
+			}
+
+			if( Cut ) DeleteSelection( rFile, i );
+		}
+		else if( rFile.Cursors.size() == 1 )
+		{
+			Line&       rLine = rFile.Lines[ rCursor.Position.y ];
+			std::string Text  = GetString( rLine, 0, ( int )rLine.size() );
+
+			if( Cut ) rFile.Lines.erase( rFile.Lines.begin() + rCursor.Position.y );
+
+			ClipBuffer.append( Text + "\n" );
+		}
+		else if( Cut )
+		{
+			Del( rFile, i );
+		}
+	}
+
+	if( !ClipBuffer.empty() )
+	{
+		ClipBuffer.erase( ClipBuffer.end() - 1 );
+		ImGui::SetClipboardText( ClipBuffer.c_str() );
+	}
+	else
+	{
+		ImGui::SetClipboardText( "" );
+	}
+
+} // Copy
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::Paste( File& rFile )
+{
+	std::string ClipBoard( ImGui::GetClipboardText() );
+
+	if( ClipBoard.empty() ) return;
+
+	std::vector< Line > Lines = SplitLines( ClipBoard );
+
+	for( size_t i = 0; i < rFile.Cursors.size(); i++ )
+	{
+		Cursor& rCursor = rFile.Cursors[ i ];
+
+		if( rCursor.Disabled ) continue;
+
+		if( HasSelection( rFile, i ) )
+		{
+			DeleteSelection( rFile, i );
+		}
+
+		int   NumLines   = ( int )Lines.size();
+		Line& rFirstLine = rFile.Lines[ rCursor.Position.y ];
+
+		rFirstLine.insert( rFirstLine.begin() + rCursor.Position.x, Lines[ 0 ].begin(), Lines[ 0 ].end() );
+
+		if( NumLines > 1 )
+		{
+			int   XOffset    = rCursor.Position.x + Lines[ 0 ].size();
+			Line& rLastLine  = Lines.back();
+			Line  OgLastLine = rLastLine;
+
+			rLastLine.insert( rLastLine.end(), rFirstLine.begin() + XOffset, rFirstLine.end() );
+			rFirstLine.erase( rFirstLine.begin() + XOffset, rFirstLine.end() );
+
+			rFile.Lines.insert( rFile.Lines.begin() + rCursor.Position.y + 1, Lines.begin() + 1, Lines.end() );
+
+			Lines.back() = OgLastLine;
+
+			AdjustCursors( rFile, i, XOffset, -( NumLines - 1 ) );
+
+			rCursor.Position.x = XOffset;
+			rCursor.Position.y += NumLines - 1;
+		}
+		else
+		{
+			int XOffset = ( int )Lines[ 0 ].size();
+
+			AdjustCursors( rFile, i, -XOffset, 0 );
+
+			rCursor.Position.x += XOffset;
+		}
+
+		Props.Changes = true;
+	}
+
+} // Paste
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::SwapLines( File& rFile, bool Up )
+{
+	if( rFile.Cursors.size() > 1 ) rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+
+	int     LineToMove;
+	int     Destination;
+	int     LineToDelete;
+	bool    Selection = HasSelection( rFile, 0 );
+	Cursor& rCursor   = rFile.Cursors[ 0 ];
+
+	if( Up )
+	{
+		if( Selection )
+		{
+			LineToMove = LineToDelete = rCursor.SelectionStart.y - 1;
+			Destination               = rCursor.SelectionEnd.y + 1;
+		}
+		else
+		{
+			LineToMove = LineToDelete = rCursor.Position.y - 1;
+			Destination               = rCursor.Position.y + 1;
+		}
+
+		if( LineToMove == -1 ) return;
+
+		rCursor.Position.y--;
+
+		if( Selection )
+		{
+			rCursor.SelectionStart.y--;
+			rCursor.SelectionEnd.y--;
+			rCursor.SelectionOrigin.y--;
+		}
+	}
+	else
+	{
+		if( Selection )
+		{
+			LineToMove = LineToDelete = rCursor.SelectionEnd.y + 1;
+			Destination               = rCursor.SelectionStart.y;
+
+			LineToDelete++;
+		}
+		else
+		{
+			LineToMove = LineToDelete = rCursor.Position.y;
+			Destination               = rCursor.Position.y + 2;
+		}
+
+		if( LineToMove + 1 == ( int )rFile.Lines.size() ) return;
+
+		rCursor.Position.y++;
+
+		if( Selection )
+		{
+			rCursor.SelectionStart.y++;
+			rCursor.SelectionEnd.y++;
+			rCursor.SelectionOrigin.y++;
+		}
+	}
+
+	auto& rLines = rFile.Lines;
+
+	rLines.insert( rLines.begin() + Destination, rLines[ LineToMove ] );
+	rLines.erase( rLines.begin() + LineToDelete );
+
+	ScrollToCursor( rFile );
+
+	Props.Changes = true;
+
+} // SwapLines

@@ -44,6 +44,7 @@ public:
 		unsigned int Comment;
 		unsigned int LineNumber;
 		unsigned int Cursor;
+		unsigned int CursorInsert;
 		unsigned int Selection;
 		unsigned int CurrentLine;
 		unsigned int CurrentLineInactive;
@@ -136,6 +137,9 @@ public:
 
 		std::vector< Cursor > Cursors;
 
+		float              LongestLineLength;
+		std::vector< int > LongestLines;
+
 	}; // File
 
 	//////////////////////////////////////////////////////////////////////////
@@ -148,8 +152,6 @@ public:
 	void AddFile( const std::filesystem::path& rPath );
 	void OnDragDrop( const Drop& rDrop, int X, int Y );
 	void SaveFile( File& rFile );
-	void SplitLines( File& rFile );
-	void JoinLines( File& rFile );
 	void ReplaceFile( const std::filesystem::path& rOldPath, const std::filesystem::path& rNewPath );
 
 	const std::filesystem::path& GetActiveFilePath() const { return m_ActiveFilePath; }
@@ -159,23 +161,36 @@ public:
 	static float FontSize;
 
 private:
+	void                SplitLines( File& rFile );
+	std::vector< Line > SplitLines( const std::string String );
+	void                JoinLines( File& rFile );
+	std::string         GetString( const Line& rLine, int Start, int End );
+
 	typedef Coordinate Scroll;
+
+	enum class CursorInputMode
+	{
+		Normal,
+		Insert
+	};
 
 	struct Properties
 	{
-		float CharAdvanceY;
-		float LineNumMaxWidth;
-		float SpaceSize;
-		float ScrollX;
-		float ScrollY;
-		bool  Changes;
-		int   CursorBlink;
+		float           CharAdvanceY;
+		float           LineNumMaxWidth;
+		float           SpaceSize;
+		float           ScrollX;
+		float           ScrollY;
+		bool            Changes;
+		int             CursorBlink;
+		CursorInputMode CursorMode = CursorInputMode::Normal;
 	} Props;
 
 	bool        RenderEditor( File& rFile );
 	void        HandleKeyboardInputs( File& rFile );
 	void        HandleMouseInputs( File& rFile );
 	void        ScrollToCursor( File& rFile );
+	void        CheckLineLengths( File& rFile, int FirstLine, int LastLine );
 	void        CalculeteLineNumMaxWidth( File& rFile );
 	bool        HasSelection( File& rFile, int cursor ) const;
 	Cursor*     IsCoordinateInSelection( File& rFile, Coordinate Coordinate, int Offset = 0 );
@@ -200,6 +215,7 @@ private:
 	void        Enter( File& rFile );
 	void        Backspace( File& rFile );
 	void        Del( File& rFile );
+	void        Del( File& rFile, int CursorIndex );
 	void        Tab( File& rFile, bool Shift );
 	void        EnterTextStuff( File& rFile, char C, bool Shift = false );
 	void        MoveUp( File& rFile, bool Shift );
@@ -207,7 +223,11 @@ private:
 	void        MoveRight( File& rFile, bool Ctrl, bool Shift );
 	void        MoveLeft( File& rFile, bool Ctrl, bool Shift );
 	void        Home( File& rFile, bool Ctrl, bool Shift );
-	void        End(File& rFile, bool Ctrl, bool Shift);
+	void        End( File& rFile, bool Ctrl, bool Shift );
+	void        Esc( File& rFile );
+	void        Copy( File& rFile, bool Cut );
+	void        Paste( File& rFile );
+	void        SwapLines( File& rFile, bool Up );
 
 	Palette m_Palette;
 
