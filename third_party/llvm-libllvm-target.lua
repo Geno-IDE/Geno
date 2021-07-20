@@ -1,9 +1,12 @@
 return function()
 	dependson {
+		'llvm-libllvm-ir-td',
 		'llvm-libllvm-target-td',
 		'llvm-libllvm-ir-td',
 	}
 	includedirs {
+		'third_party/.tablegen',
+		'third_party/.tablegen/llvm/Target/X86',
 		'third_party/llvm-project/llvm/lib/Target/X86',
 	}
 	sysincludedirs {

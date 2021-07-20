@@ -1,11 +1,14 @@
 return function()
 	dependson {
 		'llvm-libclang-td',
-		'llvm-libllvm-omp',
-		'llvm-libllvm-ir',
-		'llvm-libllvm-target',
+		'llvm-libllvm-ir-td',
+		'llvm-libllvm-omp-td',
+		'llvm-libllvm-target-td',
 	}
 	includedirs {
+		'third_party/.tablegen',
+		'third_party/.tablegen/clang/AST/Interp',
+		'third_party/.tablegen/clang/Sema',
 		'third_party/llvm-project/clang/lib/Basic',
 		'third_party/llvm-project/clang/lib/Driver',
 	}

@@ -11,13 +11,13 @@ return function()
 		linkbuildoutputs 'Off'
 		buildmessage 'TableGen on Frontend/OpenMP/OMP.td'
 		buildcommands {
-			'"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/llvm-tablegen" %{file.relpath} -I %{file.directory}/../../.. --gen-directive-impl -o %{file.directory}/../../../../lib/Frontend/OpenMP/OMP.cpp',
-			'"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/llvm-tablegen" %{file.relpath} -I %{file.directory}/../../.. --gen-directive-decl -o %{file.directory}/OMP.h.inc',
-			'"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/llvm-tablegen" %{file.relpath} -I %{file.directory}/../../.. --gen-directive-gen -o %{file.directory}/OMP.inc',
+			'"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/llvm-tablegen" %{file.relpath} -I %{file.directory}/../../.. --gen-directive-impl -o %{wks.location}/third_party/.tablegen/llvm/Frontend/OpenMP/OMP.cpp',
+			'"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/llvm-tablegen" %{file.relpath} -I %{file.directory}/../../.. --gen-directive-decl -o %{wks.location}/third_party/.tablegen/llvm/Frontend/OpenMP/OMP.h.inc',
+			'"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/llvm-tablegen" %{file.relpath} -I %{file.directory}/../../.. --gen-directive-gen -o %{wks.location}/third_party/.tablegen/llvm/Frontend/OpenMP/OMP.inc',
 		}
 		buildoutputs {
-			'%{file.directory}/../../../../lib/Frontend/OpenMP/OMP.cpp',
-			'%{file.directory}/OMP.h.inc',
-			'%{file.directory}/OMP.inc',
+			'%{wks.location}/third_party/.tablegen/llvm/Frontend/OpenMP/OMP.cpp',
+			'%{wks.location}/third_party/.tablegen/llvm/Frontend/OpenMP/OMP.h.inc',
+			'%{wks.location}/third_party/.tablegen/llvm/Frontend/OpenMP/OMP.inc',
 		}
 end

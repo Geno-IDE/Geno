@@ -3,13 +3,16 @@ return function()
 		'llvm-libllvm-ir-td',
 		'llvm-libllvm-omp-td',
 	}
+	includedirs {
+		'third_party/.tablegen',
+	}
 	sysincludedirs {
 		'third_party/.config',
 		'third_party/llvm-project/llvm/include',
 	}
 	files {
+		'third_party/.tablegen/llvm/Frontend/OpenMP/OMP.cpp',
 		'third_party/llvm-project/llvm/lib/Frontend/OpenMP/**.cpp',
-		'third_party/llvm-project/llvm/lib/Frontend/OpenMP/OMP.cpp',
 	}
 
 	filter 'toolset:msc'

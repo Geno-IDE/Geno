@@ -3,6 +3,9 @@ return function()
 		'llvm-libllvm-ir-td',
 		'llvm-libllvm-omp-td',
 	}
+	includedirs {
+		'third_party/.tablegen',
+	}
 	sysincludedirs {
 		'third_party/.config',
 		'third_party/llvm-project/llvm/include',
