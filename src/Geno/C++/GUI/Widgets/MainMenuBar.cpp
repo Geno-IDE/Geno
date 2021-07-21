@@ -17,25 +17,23 @@
 
 #include "MainMenuBar.h"
 
+#include "Application.h"
 #include "Compilers/ICompiler.h"
+#include "GUI/MainWindow.h"
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Widgets/OutputWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
-#include "GUI/MainWindow.h"
-#include "Application.h"
-
-#include <functional>
-#include <iostream>
-#include <numeric>
-#include <string>
 
 #include <Common/LocalAppData.h>
 #include <Common/Process.h>
-
 #include <GLFW/glfw3.h>
+#include <functional>
 #include <imgui.h>
+#include <iostream>
+#include <numeric>
+#include <string>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -49,8 +47,8 @@ void MainMenuBar::Draw( void )
 
 		if( ImGui::BeginMenu( "File" ) )
 		{
-			if( ImGui::MenuItem( "New Workspace",   "Ctrl+N", false, true            ) ) ActionFileNewWorkspace();
-			if( ImGui::MenuItem( "Open Workspace",  "Ctrl+O", false, true            ) ) ActionFileOpenWorkspace();
+			if( ImGui::MenuItem( "New Workspace", "Ctrl+N", false, true ) ) ActionFileNewWorkspace();
+			if( ImGui::MenuItem( "Open Workspace", "Ctrl+O", false, true ) ) ActionFileOpenWorkspace();
 			if( ImGui::MenuItem( "Close Workspace", "Ctrl+W", false, WorkspaceActive ) ) ActionFileCloseWorkspace();
 
 			ImGui::Separator();
@@ -63,7 +61,7 @@ void MainMenuBar::Draw( void )
 		if( ImGui::BeginMenu( "Build", WorkspaceActive ) )
 		{
 			if( ImGui::MenuItem( "Build And Run", "F5" ) ) ActionBuildBuildAndRun();
-			if( ImGui::MenuItem( "Build",         "F7" ) ) ActionBuildBuild();
+			if( ImGui::MenuItem( "Build", "F7" ) ) ActionBuildBuild();
 
 			ImGui::EndMenu();
 		}
@@ -72,14 +70,14 @@ void MainMenuBar::Draw( void )
 		{
 			ImGui::MenuItem( "Text Edit", "Alt+T", &ShowTextEdit );
 			ImGui::MenuItem( "Workspace", "Alt+W", &ShowWorkspaceOutliner );
-			ImGui::MenuItem( "Output",    "Alt+O", &ShowOutputWindow );
+			ImGui::MenuItem( "Output", "Alt+O", &ShowOutputWindow );
 
 			ImGui::EndMenu();
 		}
 
 		if( ImGui::BeginMenu( "Help" ) )
 		{
-			if( ImGui::MenuItem( "Demo" ) )  ShowDemoWindow  ^= 1;
+			if( ImGui::MenuItem( "Demo" ) ) ShowDemoWindow ^= 1;
 			if( ImGui::MenuItem( "About" ) ) ShowAboutWindow ^= 1;
 
 			ImGui::EndMenu();
@@ -112,9 +110,9 @@ void MainMenuBar::Draw( void )
 	else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_ALT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_ALT ) )
 	{
 		if( ImGui::IsKeyPressed( GLFW_KEY_E ) ) exit( 0 );
-		if( ImGui::IsKeyPressed( GLFW_KEY_T ) ) ShowTextEdit          ^= 1;
+		if( ImGui::IsKeyPressed( GLFW_KEY_T ) ) ShowTextEdit ^= 1;
 		if( ImGui::IsKeyPressed( GLFW_KEY_W ) ) ShowWorkspaceOutliner ^= 1;
-		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ShowOutputWindow      ^= 1;
+		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ShowOutputWindow ^= 1;
 	}
 	else
 	{
@@ -128,12 +126,8 @@ void MainMenuBar::Draw( void )
 
 void MainMenuBar::ActionFileNewWorkspace( void )
 {
-	NewItemModal::Instance().RequestPath( "New Workspace Location", std::filesystem::current_path(), this,
-		[]( std::string Name, std::filesystem::path Location, void* /*pUser*/ )
-		{
-			Application::Instance().NewWorkspace( Location, std::move( Name ) );
-		}
-	);
+	NewItemModal::Instance().Show( "New Workspace", ".gwks", {}, []( const std::string& rName, const std::filesystem::path& rLocation )
+		{ Application::Instance().NewWorkspace( rLocation, rName ); } );
 
 } // ActionFileNewWorkspace
 
@@ -141,12 +135,8 @@ void MainMenuBar::ActionFileNewWorkspace( void )
 
 void MainMenuBar::ActionFileOpenWorkspace( void )
 {
-	OpenFileModal::Instance().RequestFile( "Open Workspace", this,
-		[]( const std::filesystem::path& rPath, void* /*pUser*/ )
-		{
-			Application::Instance().LoadWorkspace( rPath );
-		}
-	);
+	OpenFileModal::Instance().Show( "Open Workspace", "*.gwks", []( const std::filesystem::path& rFile )
+		{ Application::Instance().LoadWorkspace( rFile ); } );
 
 } // ActionFileOpenWorkspace
 
@@ -207,7 +197,7 @@ void MainMenuBar::AddBuildMatrixColumn( BuildMatrix::Column& rColumn )
 	ImGui::SetNextItemWidth( 100.0f );
 	if( ImGui::BeginCombo( Label.c_str(), rColumn.CurrentConfiguration.c_str() ) )
 	{
-		for( auto&[ rName, rConfiguration ] : rColumn.Configurations )
+		for( auto& [ rName, rConfiguration ] : rColumn.Configurations )
 		{
 			if( ImGui::Selectable( rName.c_str() ) )
 				rColumn.CurrentConfiguration = rName;

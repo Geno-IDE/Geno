@@ -87,7 +87,28 @@ void FileFilterSettingsModal::UpdateDerived( void )
 				if( ImGui::Button( "Browse" ) )
 				{
 					OpenFileModal::Instance().SetCurrentDirectory( FileFilterPath );
-					OpenFileModal::Instance().RequestDirectory( "File Filter Path", this, &FileFilterPathCallback );
+					OpenFileModal::Instance().Show( [ this ]( const std::filesystem::path& rPath )
+						{
+							Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
+							if( !pWorkspace )
+							{
+								return;
+							}
+
+							Project* pProject = pWorkspace->ProjectByName( m_EditedProject );
+							if( !pProject )
+							{
+								return;
+							}
+
+							FileFilter* pFileFilter = pProject->FileFilterByName( m_EditedFileFilter );
+							if( !pFileFilter )
+							{
+								return;
+							}
+
+							pFileFilter->Path = std::filesystem::relative( rPath, pProject->m_Location );
+						} );
 				}
 				else
 				{
@@ -115,31 +136,5 @@ void FileFilterSettingsModal::OnClose( void )
 	m_EditedProject.clear();
 	m_EditedFileFilter.clear();
 } // OnClose
-
-//////////////////////////////////////////////////////////////////////////
-
-void FileFilterSettingsModal::FileFilterPathCallback( const std::filesystem::path& rPath, void* pUser )
-{
-	FileFilterSettingsModal* pSelf      = static_cast< FileFilterSettingsModal* >( pUser );
-	Workspace*               pWorkspace = Application::Instance().CurrentWorkspace();
-	if( !pWorkspace )
-	{
-		return;
-	}
-
-	Project* pProject = pWorkspace->ProjectByName( pSelf->m_EditedProject );
-	if ( !pProject )
-	{
-		return;
-	}
-
-	FileFilter* pFileFilter = pProject->FileFilterByName( pSelf->m_EditedFileFilter );
-	if( !pFileFilter )
-	{
-		return;
-	}
-
-	pFileFilter->Path = std::filesystem::relative( rPath, pProject->m_Location );
-}
 
 //////////////////////////////////////////////////////////////////////////

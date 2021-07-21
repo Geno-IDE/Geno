@@ -16,42 +16,36 @@
  */
 
 #pragma once
-#include "Common/Texture2D.h"
-#include "GUI/Modals/IModal.h"
+#include "IModal.h"
 
-#include <filesystem>
 #include <functional>
+#include <map>
+#include <string>
 
-class NewItemModal : public IModal
+class MessageModal : public IModal
 {
-	GENO_SINGLETON( NewItemModal );
+	GENO_SINGLETON( MessageModal );
 
-	NewItemModal( void );
+	MessageModal( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 
 public:
-	using Callback = std::function< void( const std::string&, const std::filesystem::path& ) >;
+	using Callback = std::function< void( void ) >;
 
-//////////////////////////////////////////////////////////////////////////
-
-	void Show( const std::string Title, const char* pFilter, const std::filesystem::path& rLocation, Callback Callback );
+	void ShowMessage( std::string Message, const char* pButtonLabel, Callback Callback );
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
-	std::string PopupID( void ) override { return "NewItem"; };
-	std::string Title( void ) override { return m_Title; };
+	std::string PopupID( void ) override { return "Message"; }
+	std::string Title( void ) override { return "Geno"; }
 	void        UpdateDerived( void ) override;
 	void        OnClose( void ) override;
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::string m_Title;
-	std::string m_Name;
-	std::string m_Directory;
-
+	std::string m_Message;
+	const char* m_pButtonLabel;
 	Callback    m_Callback;
-	Texture2D   m_IconFolder;
-
-}; // NewItemModal
+};

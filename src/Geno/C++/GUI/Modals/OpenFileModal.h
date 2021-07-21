@@ -16,12 +16,14 @@
  */
 
 #pragma once
+#include "Common/Texture2D.h"
 #include "GUI/Modals/IModal.h"
 
-#include <filesystem>
-#include <memory>
-
 #include <Common/Macros.h>
+#include <filesystem>
+#include <functional>
+#include <map>
+#include <vector>
 
 #if defined( _WIN32 )
 #include <Windows.h>
@@ -37,47 +39,39 @@ class OpenFileModal : public IModal
 //////////////////////////////////////////////////////////////////////////
 
 public:
-
-	using Callback = void( * )( const std::filesystem::path& rPath, void* pUser );
+	using Callback = std::function< void( const std::filesystem::path& ) >;
 
 //////////////////////////////////////////////////////////////////////////
 
-	void SetCurrentDirectory ( std::filesystem::path Directory );
-	void RequestFile         ( std::string Title, void* pUser, Callback Callback );
-	void RequestDirectory    ( std::string Title, void* pUser, Callback Callback );
+	void SetCurrentDirectory( std::filesystem::path Directory );
+	void Show( std::string Title, const char* pFileFilters, Callback Callback );
+	void Show( Callback Callback ); // Used For Opening Folder
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
-
-	std::string PopupID      ( void ) override { return "OpenFile"; }
-	std::string Title        ( void ) override { return m_Title; }
+	std::string PopupID( void ) override { return "OpenFile"; }
+	std::string Title( void ) override { return m_Title; }
 	void        UpdateDerived( void ) override;
-	void        OnClose      ( void ) override;
+	void        OnClose( void ) override;
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::filesystem::path RootDirectory( void );
+	std::string                   m_Title;
+	std::string                   m_SearchResult;
+	std::filesystem::path         m_CurrentPath;
+	std::filesystem::path         m_SelectedFile = {};
+	std::map< std::string, bool > m_FileFilters;
 
-//////////////////////////////////////////////////////////////////////////
+	Callback m_Callback      = {};
+	bool     m_SearchEnabled = false;
+	bool     m_OpenFolder    = false;
+	bool     m_CreateFolder  = false;
 
-	std::string               m_Title;
-	std::filesystem::path     m_CurrentDirectory;
-	std::filesystem::path     m_SelectedPath;
-	std::filesystem::path     m_EditingPath;
+	Texture2D m_IconFolder = {};
+	Texture2D m_IconFile   = {};
+	Texture2D m_IconSearch = {};
 
-	Callback                  m_Callback            = nullptr;
-	void*                     m_pUser               = nullptr;
-	bool                      m_EditingPathIsFolder = false;
-	bool                      m_ChangeEditFocus     = false;
-	bool                      m_DirectoryRequested  = false;
-
-#if defined( _WIN32 )
-
-	std::unique_ptr< char[] > m_DrivesBuffer;
-	size_t                    m_DrivesBufferSize    = 0;
-	size_t                    m_CurrentDriveIndex   = 0;
-
-#endif // _WIN32
+	std::vector< std::string > m_Volumes = {};
 
 }; // OpenFileModal

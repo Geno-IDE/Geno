@@ -15,43 +15,59 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include "Common/Texture2D.h"
-#include "GUI/Modals/IModal.h"
+#include "MessageModal.h"
 
-#include <filesystem>
-#include <functional>
+#include "Auxiliary/ImGuiAux.h"
 
-class NewItemModal : public IModal
+#include <imgui.h>
+
+void MessageModal::ShowMessage( std::string Message, const char* pButtonLabel, Callback Callback )
 {
-	GENO_SINGLETON( NewItemModal );
+	if( Open() )
+	{
+		m_Message      = Message;
+		m_pButtonLabel = pButtonLabel;
+		m_Callback     = Callback;
 
-	NewItemModal( void );
+		ImVec2 Offset = ImGui::CalcTextSize( m_Message.c_str() );
 
-//////////////////////////////////////////////////////////////////////////
-
-public:
-	using Callback = std::function< void( const std::string&, const std::filesystem::path& ) >;
-
-//////////////////////////////////////////////////////////////////////////
-
-	void Show( const std::string Title, const char* pFilter, const std::filesystem::path& rLocation, Callback Callback );
-
-//////////////////////////////////////////////////////////////////////////
-
-private:
-	std::string PopupID( void ) override { return "NewItem"; };
-	std::string Title( void ) override { return m_Title; };
-	void        UpdateDerived( void ) override;
-	void        OnClose( void ) override;
+		m_MinSize = ImVec2( 350.0f, ( Offset.y + 70.0f ) * 2.0f );
+		m_MaxSize = m_MinSize;
+	}
+} // ShowMessage
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::string m_Title;
-	std::string m_Name;
-	std::string m_Directory;
+void MessageModal::UpdateDerived( void )
+{
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 5.0f, 5.0f ) );
+	if( ImGui::BeginChild( 1, ImVec2( 0, -44 ) ) )
+	{
+		ImGui::TextWrapped( m_Message.c_str() );
+	}
+	ImGui::EndChild();
+	ImGui::PopStyleVar();
 
-	Callback    m_Callback;
-	Texture2D   m_IconFolder;
+	m_ButtonData.Size = ImVec2( 70, 30 );
 
-}; // NewItemModal
+	if( ImGuiAux::Button( m_pButtonLabel, m_ButtonData ) )
+	{
+		m_Callback();
+		Close();
+	}
+
+	ImGui::SameLine();
+
+	if( ImGuiAux::Button( "Cancel", m_ButtonData ) )
+	{
+		Close();
+	}
+
+} // UpdateDerived
+
+//////////////////////////////////////////////////////////////////////////
+
+void MessageModal::OnClose( void )
+{
+	m_Message.clear();
+} // OnClose

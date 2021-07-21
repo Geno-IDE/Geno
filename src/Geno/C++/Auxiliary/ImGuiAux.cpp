@@ -24,15 +24,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-bool ImGuiAux::RenameTree( std::string& rNameToRename )
+void ImGuiAux::RenameTree( std::string& rNameToRename, bool& rRename, const std::function< bool( void ) >& rCallback )
 {
-	bool               HighlightBorder;
-	static std::string Name;
-
-	if( Name.empty() )
-	{
-		Name = rNameToRename;
-	}
+	bool HighlightBorder;
 
 	if( rNameToRename.empty() )
 		HighlightBorder = true;
@@ -59,31 +53,26 @@ bool ImGuiAux::RenameTree( std::string& rNameToRename )
 
 	if( IsEnterPressed && !HighlightBorder )
 	{
-		Name.clear();
-		return true;
+		if( rCallback() )
+			rRename = false;
 	}
 	else if( ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Escape ) ) )
 	{
-		Name.clear();
-		return true;
+		rRename = false;
 	}
 	else if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) || ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
 	{
 		if( !( ImGui::IsItemClicked( ImGuiMouseButton_Right ) || ImGui::IsItemClicked( ImGuiMouseButton_Left ) ) )
 		{
-			rNameToRename = Name;
-			Name.clear();
-			return true;
+			rRename = false;
 		}
 	}
-
-	return false;
 
 } //RenameTree
 
 //////////////////////////////////////////////////////////////////////////
 
-bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, bool& rRename, const bool DrawArrow )
+bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, bool Rename, const bool DrawArrow )
 {
 	const float   Height    = ImGui::GetFontSize();
 	ImGuiWindow*  pWindow   = ImGui::GetCurrentWindow();
@@ -98,7 +87,7 @@ bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, 
 		bool Hovered;
 		bool Held;
 
-		if( !rRename )
+		if( !Rename )
 		{
 			if( ImGui::ButtonBehavior( Bounds, ID, &Hovered, &Held, true ) )
 				pWindow->DC.StateStorage->SetInt( ID, Opened ? 0 : 1 );
@@ -134,11 +123,11 @@ bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, 
 	{
 		const ImVec2 Pos = CursorPos + rStyle.FramePadding; // + rStyle.ItemInnerSpacing;
 
-		if( !rRename )
+		if( !Rename )
 			ImGui::RenderText( Pos, pLabel );
 	}
 
-	if( !rRename )
+	if( !Rename )
 	{
 		ImGui::ItemSize( Bounds, rStyle.FramePadding.y );
 		ImGui::ItemAdd( Bounds, ID );
@@ -152,7 +141,7 @@ bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, 
 	if( Opened )
 		ImGui::TreePush( pLabel );
 
-	if( rRename )
+	if( Rename )
 		ImGui::SetCursorPosX( Offset );
 
 	return Opened;
@@ -186,3 +175,20 @@ void ImGuiAux::TextCentered( const char* pText )
 	ImGui::Text( pText );
 
 } // TextCentered
+
+//////////////////////////////////////////////////////////////////////////
+
+bool ImGuiAux::Button( const char* pLabel, const ButtonData& ButtonData )
+{
+	ImGui::PushStyleVar( ImGuiStyleVar_FrameRounding, ButtonData.Rounding );
+	ImGui::PushStyleColor( ImGuiCol_Button, ButtonData.Color );
+	ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ButtonData.ColorHovered );
+	ImGui::PushStyleColor( ImGuiCol_Text, ButtonData.ColorText );
+
+	bool IsClicked = ImGui::Button( pLabel, ButtonData.Size );
+
+	ImGui::PopStyleColor( 3 );
+	ImGui::PopStyleVar();
+
+	return IsClicked;
+} //Button

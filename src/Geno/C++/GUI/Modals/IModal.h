@@ -16,9 +16,10 @@
  */
 
 #pragma once
-#include <string_view>
+#include "Auxiliary/ImGuiAux.h"
 
 #include <Common/Macros.h>
+#include <string_view>
 
 class IModal
 {
@@ -49,6 +50,11 @@ protected:
 	bool Open( void );
 
 //////////////////////////////////////////////////////////////////////////
+
+	ImGuiAux::ButtonData m_ButtonData = {};
+
+	ImVec2 m_MinSize = ImVec2( 350, 196 );
+	ImVec2 m_MaxSize = ImVec2( 550, 396 );
 
 private:
 

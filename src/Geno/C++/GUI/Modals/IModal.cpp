@@ -18,8 +18,7 @@
 #include "IModal.h"
 
 #include "Application.h"
-
-#include <imgui.h>
+#include "Auxiliary/ImGuiAux.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -33,13 +32,25 @@ void IModal::Update( void )
 	}
 
 	ImGui::SetNextWindowSize( ImVec2( 350, 196 ), ImGuiCond_FirstUseEver );
+	ImGui::SetNextWindowSizeConstraints( m_MinSize, m_MaxSize );
 
-	if( ImGui::BeginPopupModal( PopupID.c_str() ) )
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 10.0f );
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 10.0f, 10.0f ) );
+	bool IsOpen = ImGui::BeginPopupModal( PopupID.c_str(), NULL, ImGuiWindowFlags_NoTitleBar );
+	ImGui::PopStyleVar( 2 );
+
+	if( IsOpen )
 	{
-		UpdateDerived();
+		ImGuiAux::TextCentered( Title().c_str() );
 
-		if( IModal* next = Application::Instance().NextModal( this ) )
-			next->Update();
+		if( ImGui::BeginChild( "Content", ImVec2( 0, 0 ), false, ImGuiWindowFlags_NoScrollbar ) )
+		{
+			UpdateDerived();
+
+			if( IModal* pNext = Application::Instance().NextModal( this ) )
+				pNext->Update();
+		}
+		ImGui::EndChild();
 
 		ImGui::EndPopup();
 	}

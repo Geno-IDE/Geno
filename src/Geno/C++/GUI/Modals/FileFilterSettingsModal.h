@@ -42,8 +42,6 @@ private:
 	void        UpdateDerived( void ) override;
 	void        OnClose( void ) override;
 
-	static void FileFilterPathCallback( const std::filesystem::path& rPath, void* pUser );
-
 	//////////////////////////////////////////////////////////////////////////
 
 	std::string           m_EditedProject;

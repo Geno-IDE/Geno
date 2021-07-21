@@ -17,12 +17,13 @@
 
 #include "OpenFileModal.h"
 
+#include "Auxiliary/ImGuiAux.h"
+#include "Auxiliary/STBAux.h"
 #include "GUI/MainWindow.h"
 
 #include <Common/LocalAppData.h>
-
 #include <fstream>
-
+#include <functional>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
@@ -30,17 +31,36 @@
 //////////////////////////////////////////////////////////////////////////
 
 OpenFileModal::OpenFileModal( void )
+	: m_IconFolder( STBAux::LoadImageTexture( "Icons/FolderColored.png" ) )
+	, m_IconFile( STBAux::LoadImageTexture( "Icons/BrowserFile.png" ) )
+	, m_IconSearch( STBAux::LoadImageTexture( "Icons/BrowserSearch.png" ) )
 {
+#if defined( __linux__ )
+
+	m_Volumes.push_back( "/" );
+	m_Volumes.push_back( "/home" );
+
+#endif // __linux__
 
 #if defined( _WIN32 )
 
-	m_DrivesBufferSize = GetLogicalDriveStringsA( 0, nullptr );
-	m_DrivesBuffer      = std::unique_ptr< char[] >( new char[ m_DrivesBufferSize ] );
-	m_DrivesBufferSize = GetLogicalDriveStringsA( static_cast< DWORD >( m_DrivesBufferSize ), &m_DrivesBuffer[ 0 ] );
+	DWORD DrivesSize    = GetLogicalDriveStringsA( 0, NULL );
+	LPSTR pDrivesBuffer = new char[ DrivesSize ];
+	GetLogicalDriveStringsA( DrivesSize, pDrivesBuffer );
+	LPSTR pDrive = pDrivesBuffer;
+	while( *pDrive != '\0' )
+	{
+		m_Volumes.push_back( pDrive );
+		pDrive += strlen( pDrive ) + 1;
+	}
+	delete[] pDrivesBuffer;
 
 #endif // _WIN32
 
-	m_CurrentDirectory = std::filesystem::current_path();
+	m_CurrentPath = std::filesystem::current_path();
+
+	m_MinSize = ImVec2( 649.0f, 490.0f );
+	m_MaxSize = ImVec2( 1194.0f, 780.0f );
 
 } // OpenFileModal
 
@@ -48,52 +68,58 @@ OpenFileModal::OpenFileModal( void )
 
 void OpenFileModal::SetCurrentDirectory( std::filesystem::path Directory )
 {
-	m_CurrentDirectory = std::move( Directory );
+	m_CurrentPath = std::move( Directory );
+	if( m_OpenFolder )
+		m_SelectedFile = m_CurrentPath;
 
 } // SetCurrentDirectory
 
 //////////////////////////////////////////////////////////////////////////
 
-void OpenFileModal::RequestFile( std::string Title, void* pUser, Callback Callback )
+void OpenFileModal::Show( std::string Title, const char* pFileFilters, Callback Callback )
 {
 	if( Open() )
 	{
-		// Make sure we don't have a pre-selected directory from last popup
-		if( m_DirectoryRequested )
-			m_SelectedPath.clear();
+		m_Callback = Callback;
+		m_Title    = std::move( Title );
 
-		m_pUser              = pUser;
-		m_Callback           = Callback;
-		m_DirectoryRequested = false;
-		m_Title              = std::move( Title );
+		if( pFileFilters )
+		{
+			m_Title += " - ";
+			for( const auto& rFileFilter : std::filesystem::path( pFileFilters ) )
+			{
+				m_FileFilters[ rFileFilter.string() ] = true;
+				m_Title += rFileFilter.string();
+			}
+		}
 	}
 
-} // RequestFile
+} // Show
 
 //////////////////////////////////////////////////////////////////////////
 
-void OpenFileModal::RequestDirectory( std::string Title, void* pUser, Callback Callback )
+void OpenFileModal::Show( Callback Callback )
 {
 	if( Open() )
 	{
-		// Make sure we don't have a pre-selected file from last popup
-		if( !m_DirectoryRequested )
-			m_SelectedPath = m_CurrentDirectory;
-
-		m_pUser              = pUser;
-		m_Callback           = Callback;
-		m_DirectoryRequested = true;
-		m_Title              = std::move( Title );
+		m_Callback     = Callback;
+		m_Title        = "Open Folder";
+		m_OpenFolder   = true;
+		m_SelectedFile = m_CurrentPath;
 	}
-
-} // RequestDirectory
+} // Show
 
 //////////////////////////////////////////////////////////////////////////
 
 void OpenFileModal::OnClose( void )
 {
-	m_Callback = nullptr;
-	m_pUser    = nullptr;
+	m_Callback = {};
+	m_FileFilters.clear();
+	m_SelectedFile.clear();
+	m_SearchResult.clear();
+	m_SearchEnabled = false;
+	m_CreateFolder  = false;
+	m_OpenFolder    = false;
 
 } // OnClose
 
@@ -101,251 +127,306 @@ void OpenFileModal::OnClose( void )
 
 void OpenFileModal::UpdateDerived( void )
 {
-	if( ImGui::BeginChild( 1 , ImVec2( 0, -24 ) ) )
+	if( ImGui::BeginChild( 1, ImVec2( 0, -44 ) ) )
 	{
-		MainWindow::Instance().PushHorizontalLayout();
-
-	#if defined( _WIN32 )
-
-		if( ImGui::BeginChild( 2, ImVec2( 100, 0 ) ) )
+		ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.25f, 0.25f, 0.25f, 0.7f ) );
+		if( ImGui::BeginChild( 2, ImVec2( 150, 0 ) ) ) // Side Panel
 		{
-			size_t Index = 0;
-			for( char* pIt = &m_DrivesBuffer[ 0 ]; pIt < &m_DrivesBuffer[ m_DrivesBufferSize ]; pIt += ( strlen( pIt ) + 1 ), ++Index )
+			if( ImGui::CollapsingHeader( "Volumes", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick ) )
 			{
-				bool selected = ( m_CurrentDriveIndex == Index );
-
-				if( ImGui::Selectable( pIt, &selected ) )
+				if( ImGui::BeginTable( "##Volumes", 1, ImGuiTableFlags_RowBg ) )
 				{
-					m_CurrentDriveIndex = Index;
-					m_CurrentDirectory   = RootDirectory();
-				}
-			}
+					ImGui::TableSetupColumn( "##Volume", ImGuiTableColumnFlags_NoHide );
 
-		} ImGui::EndChild();
-
-	#endif // _WIN32
-
-		if( ImGui::BeginChild( 3, ImVec2( 0, 0 ), false, ImGuiWindowFlags_MenuBar ) )
-		{
-			ImGui::PushStyleColor( ImGuiCol_MenuBarBg, ImVec4( 0, 0, 0, 1 ) );
-
-			if( ImGui::BeginMenuBar() )
-			{
-				if( ImGui::Button( "New Folder" ) )
-				{
-					m_EditingPath           = m_CurrentDirectory / "New Folder";
-					m_EditingPathIsFolder = true;
-					m_ChangeEditFocus      = true;
-				}
-
-				if( !m_DirectoryRequested && ImGui::Button( "New File" ) )
-				{
-					m_EditingPath           = m_CurrentDirectory / "New File.txt";
-					m_EditingPathIsFolder = false;
-					m_ChangeEditFocus      = true;
-				}
-
-				if( !m_EditingPath.empty() )
-				{
-					std::string FileName = m_EditingPath.filename().string();
-
-					if( m_ChangeEditFocus )
+					for( const auto& rVolume : m_Volumes )
 					{
-						ImGui::SetKeyboardFocusHere();
+						ImGui::TableNextRow();
+						ImGui::TableNextColumn();
 
-						if( ImGuiInputTextState* pState = ImGui::GetInputTextState( ImGui::GetID( "##NewFileName" ) ) )
+						if( ImGui::Selectable( rVolume.c_str() ) )
 						{
-							pState->ID = 0;
+							SetCurrentDirectory( std::filesystem::path( rVolume ) );
 						}
-
-						m_ChangeEditFocus = false;
 					}
 
-					if( ImGui::InputText( "##NewFileName", &FileName, ImGuiInputTextFlags_EnterReturnsTrue ) )
+					ImGui::EndTable();
+				}
+			}
+		}
+		ImGui::EndChild(); // Side Panel
+		ImGui::PopStyleColor();
+
+		ImGui::SameLine();
+
+		if( ImGui::BeginChild( 3, ImVec2( 0, 0 ) ) ) // Main Panel
+		{
+			ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.07f, 0.07f, 0.07f, 0.7f ) );
+			if( ImGui::BeginChild( 4, ImVec2( 0, 35 ) ) ) // Browse Panel
+			{
+				if( m_OpenFolder )
+				{
+					m_ButtonData.Size = ImVec2( 40, ImGui::GetWindowHeight() );
+
+					if( ImGuiAux::Button( "+", m_ButtonData ) )
 					{
-						const std::filesystem::path& rNewPath = m_EditingPath.replace_filename( FileName );
+						m_CreateFolder = true;
+					}
 
-						if( std::filesystem::exists( rNewPath ) )
-						{
-							m_ChangeEditFocus = true;
-						}
-						else
-						{
-							if( m_EditingPathIsFolder )
-							{
-								std::error_code ErrorCode;
+					if( ImGui::IsItemHovered() )
+					{
+						ImGui::BeginTooltip();
+						ImGui::TextUnformatted( "New Folder" );
+						ImGui::EndTooltip();
+					}
 
-								if( std::filesystem::create_directory( rNewPath, ErrorCode ) ) m_EditingPath.clear();
-								else                                                           m_ChangeEditFocus = true;
-							}
+					ImGui::SameLine();
+					ImGui::SeparatorEx( ImGuiSeparatorFlags_Vertical );
+					ImGui::SameLine();
+				}
+
+				if( ImGui::BeginChild( 5, ImVec2( ImGui::GetContentRegionAvailWidth() - 50.0f, 0 ), false, ImGuiWindowFlags_HorizontalScrollbar ) ) //Browse With Buttons
+				{
+					if( !m_SearchEnabled )
+					{
+						for( const auto& rSubPath : m_CurrentPath )
+						{
+							if( rSubPath.string() != m_CurrentPath.stem().string() )
+								m_ButtonData.ColorText = ImGui::GetStyle().Colors[ ImGuiCol_Text ];
 							else
-							{
-								const std::ofstream OutputFileStream( rNewPath );
+								m_ButtonData = {};
 
-								if( OutputFileStream.is_open() ) m_EditingPath.clear();
-								else                             m_ChangeEditFocus = true;
-							}
-						}
-					}
-					else if( ImGui::IsItemDeactivated() )
-					{
-						m_EditingPath.clear();
-						m_ChangeEditFocus = false;
-					}
-
-				} ImGui::EndMenuBar();
-			}
-			ImGui::PopStyleColor();
-
-//////////////////////////////////////////////////////////////////////////
-
-			std::error_code                     ErrorCode;
-			std::filesystem::directory_iterator RootDirectoryIterator( m_CurrentDirectory, std::filesystem::directory_options::skip_permission_denied, ErrorCode );
-
-			if( ErrorCode )
-			{
-				const std::string ErrorMessage    = ErrorCode.message();
-				const ImVec2      WindowSize      = ImGui::GetWindowSize();
-				const ImVec2      WrappedTextSize = ImGui::CalcTextSize( ErrorMessage.c_str(), ErrorMessage.c_str() + ErrorMessage.size(), false, WindowSize.x );
-				const ImVec2      TextPos         = ( WindowSize - WrappedTextSize ) / 2;
-
-				ImGui::SetCursorPos( TextPos );
-				ImGui::PushTextWrapPos( WindowSize.x );
-				ImGui::TextWrapped( "%s", ErrorMessage.c_str() );
-				ImGui::PopTextWrapPos();
-			}
-			else
-			{
-				std::vector< std::filesystem::path > DirectoryPaths;
-				std::vector< std::filesystem::path > FilePaths;
-
-				// Go up one directory
-				if( m_CurrentDirectory.has_parent_path() )
-				{
-					if( ImGui::Selectable( ".." ) )
-						m_CurrentDirectory = m_CurrentDirectory.parent_path();
-				}
-
-				for( const std::filesystem::directory_entry& rEntry : RootDirectoryIterator )
-				{
-					/**/ if( rEntry.is_directory() )    DirectoryPaths.push_back( rEntry );
-					else if( rEntry.is_regular_file() ) FilePaths.push_back( rEntry );
-				}
-
-				for( const std::filesystem::path& rDirectoryEntry : DirectoryPaths )
-				{
-					const std::string FileName = rDirectoryEntry.filename().string();
-
-					if( m_DirectoryRequested )
-					{
-						bool Selected = m_SelectedPath == rDirectoryEntry;
-
-						if( ImGui::Selectable( FileName.c_str(), &Selected, ImGuiSelectableFlags_AllowDoubleClick ) )
-						{
-							const bool DoubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
-
-							if( DoubleClicked ) m_CurrentDirectory = rDirectoryEntry;
-							else                m_SelectedPath     = rDirectoryEntry;
-						}
-					}
-					else
-					{
-						if( ImGui::Selectable( FileName.c_str() ) )
-						{
-							m_CurrentDirectory = rDirectoryEntry;
-						}
-					}
-				}
-
-				if( !m_DirectoryRequested )
-				{
-					ImGui::Separator();
-
-					for( const std::filesystem::path& rFilePath : FilePaths )
-					{
-						std::string FileName = rFilePath.filename().string();
-						bool        Selected = rFilePath == m_SelectedPath;
-
-						if( ImGui::Selectable( FileName.c_str(), &Selected, ImGuiSelectableFlags_AllowDoubleClick ) )
-						{
-							m_SelectedPath = rFilePath;
-
-							// Open file immediately if file was double-clicked
-							if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
-							{
-								if( m_Callback )
-									m_Callback( m_SelectedPath, m_pUser );
-
-								Close();
-							}
-						}
-					}
-				}
-			}
-
-		} ImGui::EndChild();
-
-		MainWindow::Instance().PopHorizontalLayout();
-
-	} ImGui::EndChild();
-
-	if( ImGui::BeginChild( 4 , ImVec2( 0, 20 ) ) )
-	{
-		const bool DisableOkButton = m_SelectedPath.empty() || !std::filesystem::exists( m_SelectedPath );
-
-		if( DisableOkButton )
-		{
-			ImGui::PushItemFlag( ImGuiItemFlags_Disabled, true );
-			ImGui::PushStyleVar( ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f );
-		}
-
-		if( ImGui::Button( "OK", ImVec2( 80, 0 ) ) )
-		{
-			if( m_Callback )
-				m_Callback( m_SelectedPath, m_pUser );
-
-			Close();
-		}
-
-		if( DisableOkButton )
-		{
-			ImGui::PopStyleVar();
-			ImGui::PopItemFlag();
-		}
-
-		ImGui::SameLine();
-		if( ImGui::Button( "Cancel", ImVec2( 80, 0 ) ) )
-		{
-			Close();
-		}
-
-		const std::string SelectedPathString = m_SelectedPath.string();
-
-		ImGui::SameLine();
-		ImGui::Text( SelectedPathString.c_str() );
-
-	} ImGui::EndChild();
-
-} // UpdateDerived
-
-//////////////////////////////////////////////////////////////////////////
-
-std::filesystem::path OpenFileModal::RootDirectory( void )
-{
+							std::string Name    = rSubPath.string();
+							float       ButtonX = ImGui::CalcTextSize( Name.c_str() ).x * 1.18f;
 
 #if defined( _WIN32 )
 
-	char* pDrive = &m_DrivesBuffer[ 0 ];
-	char* pEnd   = &m_DrivesBuffer[ m_DrivesBufferSize ];
-
-	for( size_t i = 0; i < m_CurrentDriveIndex && pDrive < pEnd; pDrive += ( strlen( pDrive ) + 1 ), ++i );
-
-	return std::filesystem::path( pDrive, pDrive + strlen( pDrive ) );
-
-#else // _WIN32
-
-	return std::filesystem::path( "/" );
+							if( Name == "\\" )
+								continue;
+							else if( Name.find( ':' ) != std::string::npos )
+								Name += "\\";
 
 #endif // _WIN32
 
-} // RootDirectory
+							m_ButtonData.Size     = ImVec2( ButtonX, ImGui::GetContentRegionAvail().y );
+							m_ButtonData.Rounding = 6.0f;
+
+							bool Break = false;
+
+							if( ImGuiAux::Button( Name.c_str(), m_ButtonData ) )
+							{
+								std::string ActivePath = m_CurrentPath.string();
+								ActivePath             = ActivePath.substr( 0, ActivePath.find( rSubPath.string() ) ) + Name;
+								SetCurrentDirectory( std::filesystem::path( ActivePath ) );
+								Break = true;
+							}
+
+							if( Break )
+								break;
+
+							ImGui::SameLine();
+						}
+
+						m_ButtonData = {};
+					}
+					else
+					{
+						ImGui::SetNextItemWidth( ImGui::GetContentRegionAvailWidth() );
+						ImGui::SetCursorPosY( ImGui::GetWindowHeight() * 0.5f - 12.0f );
+
+						ImGui::PushStyleVar( ImGuiStyleVar_FrameRounding, 4.0f );
+						ImGui::PushStyleVar( ImGuiStyleVar_FrameBorderSize, 1.2f );
+						ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 8.0f, 5.0f ) );
+						ImGui::PushStyleColor( ImGuiCol_Border, ImVec4( 0.2f, 0.6f, 0.8f, 1.0f ) );
+						ImGui::InputTextWithHint( "##SearchFile", "Search", &m_SearchResult );
+						ImGui::PopStyleVar( 3 );
+						ImGui::PopStyleColor();
+
+						if( ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
+						{
+							m_SearchEnabled = false;
+							m_SearchResult.clear();
+						}
+					}
+				}
+				ImGui::EndChild(); //Browse With Buttons
+
+				ImGui::SameLine();
+				ImGui::SeparatorEx( ImGuiSeparatorFlags_Vertical );
+				ImGui::SameLine();
+
+				ImGui::PushStyleColor( ImGuiCol_Button, ImGui::GetStyle().Colors[ ImGuiCol_ChildBg ] );
+				ImVec2 Size = ImVec2( ImGui::GetFontSize() * m_IconSearch.GetAspectRatio() * 2.5f, ImGui::GetFontSize() * 2.1f );
+				if( ImGui::ImageButton( ( ImTextureID )m_IconSearch.GetID(), Size ) )
+				{
+					m_SearchEnabled = true;
+				}
+				ImGui::PopStyleColor();
+			}
+			ImGui::EndChild(); // Browse Panel
+			ImGui::PopStyleColor();
+
+			ImGui::PushStyleColor( ImGuiCol_ChildBg, ImVec4( 0.15f, 0.15f, 0.15f, 0.7f ) );
+			if( ImGui::BeginChild( 6, ImVec2( 0, 0 ) ) ) // Content Browser
+			{
+				if( ImGui::BeginTable( "##FileBrowserPanel", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY | ImGuiTableFlags_PadOuterX | ImGuiTableFlags_NoBordersInBodyUntilResize ) )
+				{
+					ImGui::TableSetupColumn( "Name", ImGuiTableColumnFlags_NoHide );
+					ImGui::TableSetupColumn( "Size", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize( "Size" ).x * 2.5f );
+					ImGui::TableHeadersRow();
+
+					for( const auto& rCurrentPathIt : std::filesystem::directory_iterator( m_CurrentPath ) )
+					{
+						std::filesystem::path Path         = rCurrentPathIt.path();
+						bool                  IsHiddenFile = Path.filename().string()[ 0 ] == '.';
+
+						if( !IsHiddenFile )
+						{
+							std::error_code ErrorCode = {};
+							if( !m_FileFilters.empty() )
+							{
+								if( m_FileFilters.find( "*" + Path.extension().string() ) == m_FileFilters.end() && !std::filesystem::is_directory( Path, ErrorCode ) )
+									continue;
+							}
+
+							if( m_SearchEnabled && !m_SearchResult.empty() )
+							{
+								if( !strstr( Path.filename().string().c_str(), m_SearchResult.c_str() ) )
+								{
+									continue;
+								}
+							}
+
+							ErrorCode = {};
+							if( std::filesystem::is_directory( Path, ErrorCode ) )
+							{
+								ImGui::TableNextRow();
+								ImGui::TableSetColumnIndex( 0 );
+
+								if( ImGuiAux::PushTreeWithIcon( Path.filename().string().c_str(), m_IconFolder, false, false ) )
+								{
+									if( ImGui::IsItemClicked() )
+									{
+										m_CurrentPath = Path;
+										if( m_OpenFolder )
+										{
+											m_SelectedFile = m_CurrentPath;
+										}
+									}
+
+									ImGui::TreePop();
+								}
+							}
+							else if( !m_OpenFolder )
+							{
+								ImGui::TableNextRow();
+								ImGui::TableSetColumnIndex( 0 );
+
+								if( ImGuiAux::PushTreeWithIcon( Path.filename().string().c_str(), m_IconFile, false, false ) )
+								{
+									if( ImGui::IsItemClicked() )
+									{
+										m_SelectedFile = Path;
+									}
+
+									ImGui::TreePop();
+								}
+
+								ImGui::TableSetColumnIndex( 1 );
+								float Bytes = ( float )std::filesystem::file_size( Path );
+								float Kb    = Bytes / 1024.0f;
+								float Mb    = Kb / 1024.0f;
+								float Gb    = Mb / 1024.0f;
+
+								if( Kb < 1.0f )
+									ImGui::Text( "%.1f Bytes", Bytes );
+								else if( Mb < 1.0f )
+									ImGui::Text( "%.1f Kb", Kb );
+								else if( Gb < 1.0f )
+									ImGui::Text( "%.1f Mb", Mb );
+								else
+									ImGui::Text( "%.1f Gb", Gb );
+							}
+						}
+					}
+
+					if( m_CreateFolder )
+					{
+						if( m_SearchEnabled )
+							m_SearchEnabled = false;
+
+						ImGui::TableNextRow();
+						ImGui::TableSetColumnIndex( 0 );
+
+						const bool TreeOpen = ImGuiAux::PushTreeWithIcon( "", m_IconFolder, m_CreateFolder, false );
+
+						m_SearchResult = "New Folder";
+
+						ImGuiAux::RenameTree( m_SearchResult, m_CreateFolder, [ & ]()
+							{
+								std::filesystem::path NewDirPath = m_CurrentPath / m_SearchResult;
+
+								if( std::filesystem::exists( NewDirPath ) )
+								{
+									m_SearchResult = "New Folder";
+									return false;
+								}
+
+								std::filesystem::create_directory( NewDirPath );
+								m_SearchResult.clear();
+								SetCurrentDirectory( NewDirPath );
+
+								return true;
+							} );
+					}
+
+					ImGui::EndTable();
+				}
+			}
+			ImGui::EndChild(); // Content Browser
+			ImGui::PopStyleColor();
+		}
+		ImGui::EndChild(); // Main Panel
+	}
+	ImGui::EndChild();
+
+	std::string ToAdd = m_SelectedFile.filename().string();
+
+	if( m_OpenFolder )
+	{
+#if defined( _WIN32 )
+		if( m_SelectedFile.string().size() == 3 )
+		{
+			if( m_SelectedFile.string()[ 1 ] == ':' && m_SelectedFile.string()[ 2 ] == '\\' )
+				ToAdd = m_SelectedFile.string();
+		}
+#endif // _WIN32
+
+#if defined( __linux__ )
+		if( m_SelectedFile.string() == "/" )
+			ToAdd = m_SelectedFile.string();
+#endif // __linux__
+	}
+
+	std::string OpenButton     = m_SelectedFile.empty() ? "Open" : "Open - " + ToAdd;
+	float       OpenButtonSize = m_SelectedFile.empty() ? 70.0f : ImGui::CalcTextSize( OpenButton.c_str() ).x + 20.0f;
+	m_ButtonData.Size          = ImVec2( OpenButtonSize, 30 );
+
+	if( ImGuiAux::Button( OpenButton.c_str(), m_ButtonData ) )
+	{
+		if( !m_SelectedFile.empty() )
+		{
+			m_Callback( m_SelectedFile );
+			Close();
+		}
+	}
+
+	ImGui::SameLine();
+
+	m_ButtonData.Size = ImVec2( 70, 30 );
+
+	if( ImGuiAux::Button( "Cancel", m_ButtonData ) )
+	{
+		Close();
+	}
+
+} // Update Derived
