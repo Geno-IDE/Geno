@@ -22,10 +22,8 @@
 #include "GUI/MainWindow.h"
 
 #include <Common/LocalAppData.h>
-
 #include <fstream>
 #include <functional>
-
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
@@ -168,8 +166,18 @@ void OpenFileModal::UpdateDerived( void )
 				if( m_OpenFolder )
 				{
 					m_ButtonData.Size = ImVec2( 40, ImGui::GetWindowHeight() );
-					ImGuiAux::Button( "+", m_ButtonData, [ this ]()
-						{ m_CreateFolder = true; } );
+
+					if( ImGuiAux::Button( "+", m_ButtonData ) )
+					{
+						m_CreateFolder = true;
+					}
+
+					if( ImGui::IsItemHovered() )
+					{
+						ImGui::BeginTooltip();
+						ImGui::TextUnformatted( "New Folder" );
+						ImGui::EndTooltip();
+					}
 
 					ImGui::SameLine();
 					ImGui::SeparatorEx( ImGuiSeparatorFlags_Vertical );
@@ -204,13 +212,13 @@ void OpenFileModal::UpdateDerived( void )
 
 							bool Break = false;
 
-							ImGuiAux::Button( Name.c_str(), m_ButtonData, [ this, &rSubPath, &Name, &Break ]()
-								{
-									std::string ActivePath = m_CurrentPath.string();
-									ActivePath             = ActivePath.substr( 0, ActivePath.find( rSubPath.string() ) ) + Name;
-									SetCurrentDirectory( std::filesystem::path( ActivePath ) );
-									Break = true;
-								} );
+							if( ImGuiAux::Button( Name.c_str(), m_ButtonData ) )
+							{
+								std::string ActivePath = m_CurrentPath.string();
+								ActivePath             = ActivePath.substr( 0, ActivePath.find( rSubPath.string() ) ) + Name;
+								SetCurrentDirectory( std::filesystem::path( ActivePath ) );
+								Break = true;
+							}
 
 							if( Break )
 								break;
@@ -403,20 +411,22 @@ void OpenFileModal::UpdateDerived( void )
 	float       OpenButtonSize = m_SelectedFile.empty() ? 70.0f : ImGui::CalcTextSize( OpenButton.c_str() ).x + 20.0f;
 	m_ButtonData.Size          = ImVec2( OpenButtonSize, 30 );
 
-	ImGuiAux::Button( OpenButton.c_str(), m_ButtonData, [ this ]()
+	if( ImGuiAux::Button( OpenButton.c_str(), m_ButtonData ) )
+	{
+		if( !m_SelectedFile.empty() )
 		{
-			if( !m_SelectedFile.empty() )
-			{
-				m_Callback( m_SelectedFile );
-				Close();
-			}
-		} );
+			m_Callback( m_SelectedFile );
+			Close();
+		}
+	}
 
 	ImGui::SameLine();
 
 	m_ButtonData.Size = ImVec2( 70, 30 );
 
-	ImGuiAux::Button( "Cancel", m_ButtonData, [ this ]()
-		{ Close(); } );
+	if( ImGuiAux::Button( "Cancel", m_ButtonData ) )
+	{
+		Close();
+	}
 
 } // Update Derived

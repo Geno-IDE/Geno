@@ -102,11 +102,11 @@ void NewItemModal::UpdateDerived( void )
 
 	ImGui::PushItemFlag( ImGuiItemFlags_Disabled, DisableButton );
 
-	ImGuiAux::Button( "Create", m_ButtonData, [ this ]()
-		{
-			m_Callback( m_Name, m_Directory );
-			Close();
-		} );
+	if( ImGuiAux::Button( "Create", m_ButtonData ) )
+	{
+		m_Callback( m_Name, m_Directory );
+		Close();
+	}
 
 	ImGui::PopItemFlag();
 
@@ -124,8 +124,10 @@ void NewItemModal::UpdateDerived( void )
 	m_ButtonData      = {};
 	m_ButtonData.Size = ImVec2( 70, 30 );
 
-	ImGuiAux::Button( "Cancel", m_ButtonData, [ this ]()
-		{ Close(); } );
+	if( ImGuiAux::Button( "Cancel", m_ButtonData ) )
+	{
+		Close();
+	}
 
 } // UpdateDerived
 

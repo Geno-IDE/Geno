@@ -50,16 +50,18 @@ void MessageModal::UpdateDerived( void )
 
 	m_ButtonData.Size = ImVec2( 70, 30 );
 
-	ImGuiAux::Button( m_pButtonLabel, m_ButtonData, [ this ]()
-		{
-			m_Callback();
-			Close();
-		} );
+	if( ImGuiAux::Button( m_pButtonLabel, m_ButtonData ) )
+	{
+		m_Callback();
+		Close();
+	}
 
 	ImGui::SameLine();
 
-	ImGuiAux::Button( "Cancel", m_ButtonData, [ this ]()
-		{ Close(); } );
+	if( ImGuiAux::Button( "Cancel", m_ButtonData ) )
+	{
+		Close();
+	}
 
 } // UpdateDerived
 

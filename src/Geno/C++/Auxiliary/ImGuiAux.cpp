@@ -178,7 +178,7 @@ void ImGuiAux::TextCentered( const char* pText )
 
 //////////////////////////////////////////////////////////////////////////
 
-void ImGuiAux::Button( const char* pLabel, const ButtonData& ButtonData, const std::function< void( void ) >& rCallback )
+bool ImGuiAux::Button( const char* pLabel, const ButtonData& ButtonData )
 {
 	ImGui::PushStyleVar( ImGuiStyleVar_FrameRounding, ButtonData.Rounding );
 	ImGui::PushStyleColor( ImGuiCol_Button, ButtonData.Color );
@@ -190,8 +190,5 @@ void ImGuiAux::Button( const char* pLabel, const ButtonData& ButtonData, const s
 	ImGui::PopStyleColor( 3 );
 	ImGui::PopStyleVar();
 
-	if( IsClicked )
-	{
-		rCallback();
-	}
+	return IsClicked;
 } //Button

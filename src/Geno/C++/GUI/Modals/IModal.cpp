@@ -47,8 +47,8 @@ void IModal::Update( void )
 		{
 			UpdateDerived();
 
-			if( IModal* next = Application::Instance().NextModal( this ) )
-				next->Update();
+			if( IModal* pNext = Application::Instance().NextModal( this ) )
+				pNext->Update();
 		}
 		ImGui::EndChild();
 

@@ -39,6 +39,6 @@ extern void RenameTree          ( std::string& rNameToRename, bool& rRename, con
 extern bool PushTreeWithIcon    ( const char* pLabel, const Texture2D& rTexture, bool Rename, const bool DrawArrow = true );
 extern bool BeginChildHorizontal( const ImGuiID ID, const ImVec2& rSize, const bool Border = false, const ImGuiWindowFlags Flags = 0 );
 extern void TextCentered        ( const char* pText );
-extern void Button              ( const char* pLabel, const ButtonData& ButtonData, const std::function< void( void ) >& rCallback );
+extern bool Button              ( const char* pLabel, const ButtonData& ButtonData );
 
 } // namespace ImGuiAux
