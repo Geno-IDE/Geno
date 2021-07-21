@@ -51,7 +51,6 @@ private:
 	std::string m_Name;
 	std::string m_Directory;
 
-	const char* m_pFilter;
 	Callback    m_Callback;
 	Texture2D   m_IconFolder;
 

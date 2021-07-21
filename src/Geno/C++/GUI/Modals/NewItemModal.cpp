@@ -39,12 +39,11 @@ void NewItemModal::Show( const std::string Title, const char* pFilter, const std
 	if( Open() )
 	{
 		m_Title    = Title;
-		m_pFilter  = pFilter;
 		m_Callback = Callback;
 
-		if( m_pFilter )
+		if( pFilter )
 		{
-			m_Title += " - " + std::string( m_pFilter );
+			m_Title += " - " + std::string( pFilter );
 		}
 
 		if( !rLocation.empty() )
@@ -139,5 +138,4 @@ void NewItemModal::OnClose( void )
 	m_Name.clear();
 	m_Directory.clear();
 	m_Callback = {};
-	m_pFilter  = nullptr;
 } // OnClose

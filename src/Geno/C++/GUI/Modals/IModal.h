@@ -16,11 +16,10 @@
  */
 
 #pragma once
-#include <string_view>
+#include "Auxiliary/ImGuiAux.h"
 
 #include <Common/Macros.h>
-
-#include "Auxiliary/ImGuiAux.h"
+#include <string_view>
 
 class IModal
 {

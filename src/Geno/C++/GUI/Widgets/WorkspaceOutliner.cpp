@@ -702,7 +702,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 								if( FileFilter* pSelectedFileFilter = pSelectedProject->FileFilterByName( m_SelectedFileFilterName ) )
 								{
 									auto SelectedFileIt = std::find_if( pSelectedFileFilter->Files.begin(), pSelectedFileFilter->Files.end(), [ this ]( const std::filesystem::path& rPath )
-										{ return rPath == m_SelectedFile; } ); // m_SelectedFile Value Coming Here is L""
+										{ return rPath == m_SelectedFile; } );
 									if( SelectedFileIt != pSelectedFileFilter->Files.end() )
 									{
 										pSelectedFileFilter->Files.erase( SelectedFileIt );
@@ -711,7 +711,6 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							}
 						} );
 
-					m_SelectedFile.clear();
 					ShowFileContextMenu = false;
 				}
 
