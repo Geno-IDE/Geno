@@ -377,6 +377,11 @@ void OpenFileModal::UpdateDerived( void )
 
 								return true;
 							} );
+
+						if( TreeOpen )
+						{
+							ImGui::TreePop();
+						}
 					}
 
 					ImGui::EndTable();

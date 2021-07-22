@@ -152,6 +152,10 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 					#endif // _WIN32
 
 					} break;
+
+					default:
+					{
+					} break;
 				}
 
 				// Set output file
@@ -197,6 +201,10 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 			for( const std::filesystem::path& rObjectFile : rOptions.ObjectFiles )
 				Command += L" " + rObjectFile.wstring();
 
+		} break;
+
+		default:
+		{
 		} break;
 	}
 
