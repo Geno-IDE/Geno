@@ -112,7 +112,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 						if( m_RenameText == m_SelectedProjectName )
 							return true;
 
-						if( Project* pProject = pWorkspace->ProjectByName( m_RenameText ) )
+						if( pWorkspace->ProjectByName( m_RenameText ) )
 						{
 							m_RenameText = m_SelectedProjectName;
 							return false;
@@ -154,7 +154,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 						Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName );
 
-						if( FileFilter* pFileFilter = pProject->FileFilterByName( m_RenameText ) )
+						if( pProject->FileFilterByName( m_RenameText ) )
 						{
 							m_RenameText = m_SelectedFileFilterName.string();
 							return false;

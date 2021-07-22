@@ -420,8 +420,12 @@ FileFilter* Project::NewFileFilter( const std::filesystem::path& Name )
 		return nullptr;
 	}
 
-	m_FileFilters.push_back( { Name } );
+	FileFilter Filter;
+	Filter.Name = Name;
+	m_FileFilters.emplace_back( std::move( Filter ) );
+
 	SortFileFilters();
+
 	return FileFilterByName( Name );
 
 } // NewFileFilter
