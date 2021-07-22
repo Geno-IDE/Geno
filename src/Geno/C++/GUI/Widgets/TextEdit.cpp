@@ -835,7 +835,7 @@ void TextEdit::CheckLineLengths( File& rFile, int FirstLine, int LastLine )
 				{
 					rFile.LongestLineLength = 0.0f;
 
-					CheckLineLengths( rFile, 0, rFile.Lines.size() - 1 );
+					CheckLineLengths( rFile, 0, ( int )rFile.Lines.size() - 1 );
 				}
 			}
 		}
@@ -1181,7 +1181,7 @@ void TextEdit::AdjustCursorIfInText( File& rFile, Cursor& rCursor, int LineIndex
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEdit::AdjustCursor( File& rFile, Cursor& rCursor, int XOffset )
+void TextEdit::AdjustCursor( Cursor& rCursor, int XOffset )
 {
 	rCursor.Position.x += XOffset;
 
@@ -1803,7 +1803,7 @@ void TextEdit::Tab( File& rFile, bool Shift )
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEdit::EnterTextStuff( File& rFile, char C, bool Shift )
+void TextEdit::EnterTextStuff( File& rFile, char C )
 {
 	Props.Changes = true;
 
@@ -2251,7 +2251,7 @@ void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
 
 		Coordinate NewPos( 0, Ctrl ? ( int )rFile.Lines.size() - 1 : rCursor.Position.y );
 
-		NewPos.x = rFile.Lines[ NewPos.y ].size();
+		NewPos.x = ( int )rFile.Lines[ NewPos.y ].size();
 
 		if( Shift )
 		{
@@ -2321,7 +2321,7 @@ void TextEdit::Copy( File& rFile, bool Cut )
 
 		if( rCursor.Disabled ) continue;
 
-		if( HasSelection( rFile, i ) )
+		if( HasSelection( rFile, ( int )i ) )
 		{
 			if( rCursor.SelectionStart.y == rCursor.SelectionEnd.y )
 			{
@@ -2358,7 +2358,7 @@ void TextEdit::Copy( File& rFile, bool Cut )
 				ClipBuffer.append( Text + "\n" );
 			}
 
-			if( Cut ) DeleteSelection( rFile, i );
+			if( Cut ) DeleteSelection( rFile, ( int )i );
 		}
 		else if( rFile.Cursors.size() == 1 )
 		{
@@ -2371,7 +2371,7 @@ void TextEdit::Copy( File& rFile, bool Cut )
 		}
 		else if( Cut )
 		{
-			Del( rFile, i );
+			Del( rFile, ( int )i );
 		}
 	}
 
@@ -2403,9 +2403,9 @@ void TextEdit::Paste( File& rFile )
 
 		if( rCursor.Disabled ) continue;
 
-		if( HasSelection( rFile, i ) )
+		if( HasSelection( rFile, ( int )i ) )
 		{
-			DeleteSelection( rFile, i );
+			DeleteSelection( rFile, ( int )i );
 		}
 
 		int   NumLines   = ( int )Lines.size();
@@ -2415,7 +2415,7 @@ void TextEdit::Paste( File& rFile )
 
 		if( NumLines > 1 )
 		{
-			int   XOffset    = rCursor.Position.x + Lines[ 0 ].size();
+			int   XOffset    = rCursor.Position.x + ( int )Lines[ 0 ].size();
 			Line& rLastLine  = Lines.back();
 			Line  OgLastLine = rLastLine;
 
@@ -2426,7 +2426,7 @@ void TextEdit::Paste( File& rFile )
 
 			Lines.back() = OgLastLine;
 
-			AdjustCursors( rFile, i, XOffset, -( NumLines - 1 ) );
+			AdjustCursors( rFile, ( int )i, XOffset, -( NumLines - 1 ) );
 
 			rCursor.Position.x = XOffset;
 			rCursor.Position.y += NumLines - 1;
@@ -2435,7 +2435,7 @@ void TextEdit::Paste( File& rFile )
 		{
 			int XOffset = ( int )Lines[ 0 ].size();
 
-			AdjustCursors( rFile, i, -XOffset, 0 );
+			AdjustCursors( rFile, ( int )i, -XOffset, 0 );
 
 			rCursor.Position.x += XOffset;
 		}
