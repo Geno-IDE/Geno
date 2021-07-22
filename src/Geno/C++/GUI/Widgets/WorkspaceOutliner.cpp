@@ -134,6 +134,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 							return true;
 						}
+
+						return false;
 					} );
 			};
 
@@ -170,6 +172,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 							return true;
 						}
+
+						return false;
 					} );
 			};
 

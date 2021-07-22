@@ -201,7 +201,7 @@ private:
 	std::string GetWordAt( File& rFile, Coordinate Position, Coordinate* pStart, Coordinate* pEnd ) const;
 	bool        IsCoordinateInText( File& rFile, Coordinate Position );
 	void        AdjustCursorIfInText( File& rFile, Cursor& rCursor, int Line, int XOffset );
-	void        AdjustCursor( File& rFile, Cursor& Cursor, int XOffset );
+	void        AdjustCursor( Cursor& Cursor, int XOffset );
 	void        SetSelectionLine( File& rFile, int Line );
 	void        SetSelection( File& rFile, Coordinate Start, Coordinate End, int Cursor );
 	Coordinate  GetCoordinate( File& rFile, ImVec2 Position, bool RelativeToEditor = false );
@@ -217,7 +217,7 @@ private:
 	void        Del( File& rFile );
 	void        Del( File& rFile, int CursorIndex );
 	void        Tab( File& rFile, bool Shift );
-	void        EnterTextStuff( File& rFile, char C, bool Shift = false );
+	void        EnterTextStuff( File& rFile, char C );
 	void        MoveUp( File& rFile, bool Shift );
 	void        MoveDown( File& rFile, bool Shift );
 	void        MoveRight( File& rFile, bool Ctrl, bool Shift );

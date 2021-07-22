@@ -357,8 +357,8 @@ static bool AlphabeticCompare( std::string_view a, std::string_view b )
 		char CharB = b[ i ];
 		if( std::isalpha( CharA ) && std::isalpha( CharB ) )
 		{
-			char LowerCharA = std::tolower( CharA );
-			char LowerCharB = std::tolower( CharB );
+			char LowerCharA = std::tolower( CharA, std::locale() );
+			char LowerCharB = std::tolower( CharB, std::locale() );
 			if( LowerCharA == LowerCharB )
 			{
 				if( CharA > CharB )
