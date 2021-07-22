@@ -4,13 +4,12 @@ require 'customizations'
 utils = { }
 
 -- The list of platforms differ depending on he specified action
-function utils.get_platforms()
+function utils.get_platform()
 	if os.ishost( 'windows' ) then
-		return os.is64bit() and { 'x64', 'x86' } or { 'x86' }
+		return 'x64'
+	else
+		return os.outputof( 'uname -m' )
 	end
-
-	local arch = os.outputof( 'uname -m' )
-	return { arch }
 end
 
 -- Return an iterator for the allowed systems

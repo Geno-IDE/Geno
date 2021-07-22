@@ -9,7 +9,7 @@ require 'premake/third_party_library'
 require 'premake/utils'
 
 workspace( 'Geno' )
-platforms( utils.get_platforms() )
+platforms( utils.get_platform() )
 configurations { 'Debug', 'Release' }
 startproject( 'Geno' )
 
