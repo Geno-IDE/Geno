@@ -4,7 +4,7 @@ require 'customizations'
 cdialect 'C11'
 cppdialect 'C++17'
 exceptionhandling 'Off'
-flags { 'FatalCompileWarnings', 'MultiProcessorCompile' }
+flags { 'FatalWarnings', 'MultiProcessorCompile' }
 includedirs { '../include/' }
 objdir '../obj'
 rtti 'Off'
