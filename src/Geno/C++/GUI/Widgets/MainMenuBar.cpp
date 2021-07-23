@@ -156,7 +156,7 @@ void MainMenuBar::ActionBuildBuildAndRun( void )
 	{
 		MainWindow::Instance().pOutputWindow->ClearCapture();
 
-		pWorkspace->Events.BuildFinished += [ this ]( Workspace& /*rWorkspace*/, std::filesystem::path OutputFile, bool /*Success*/ )
+		pWorkspace->Events.BuildFinished += []( Workspace& /*rWorkspace*/, std::filesystem::path OutputFile, bool /*Success*/ )
 		{
 			const std::string OutputString = OutputFile.string();
 

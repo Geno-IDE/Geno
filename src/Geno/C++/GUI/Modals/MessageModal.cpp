@@ -43,7 +43,7 @@ void MessageModal::UpdateDerived( void )
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 5.0f, 5.0f ) );
 	if( ImGui::BeginChild( 1, ImVec2( 0, -44 ) ) )
 	{
-		ImGui::TextWrapped( m_Message.c_str() );
+		ImGui::TextWrapped( "%s", m_Message.c_str() );
 	}
 	ImGui::EndChild();
 	ImGui::PopStyleVar();
