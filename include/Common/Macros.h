@@ -23,7 +23,7 @@
 #if defined( DEBUG )
 #define GENO_ASSERT( ... ) do { if( !( __VA_ARGS__ ) ) ::Intrinsics::DebugBreak(); } while( false )
 #else // DEBUG
-#define GENO_ASSERT( ... ) do { ( __VA_ARGS__ ); } while( false )
+#define GENO_ASSERT( ... ) do { ( void )( __VA_ARGS__ ); } while( false )
 #endif // DEBUG
 
 // Universal macros
