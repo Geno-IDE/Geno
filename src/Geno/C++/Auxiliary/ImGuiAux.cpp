@@ -172,7 +172,7 @@ void ImGuiAux::TextCentered( const char* pText )
 	const ImVec2 TextSize = ImGui::CalcTextSize( pText );
 
 	ImGui::SetCursorPosX( ( ImGui::GetWindowWidth() - TextSize.x ) * 0.5f );
-	ImGui::Text( pText );
+	ImGui::TextUnformatted( pText );
 
 } // TextCentered
 

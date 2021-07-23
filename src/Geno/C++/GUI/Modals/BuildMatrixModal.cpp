@@ -260,7 +260,7 @@ void BuildMatrixModal::DrawColumns( void )
 						}
 
 						ImGui::SetCursorPosX( ( pWindow->Size.x - TextSize.x ) * 0.5f );
-						ImGui::Text( rConfiguration.first.c_str() );
+						ImGui::TextUnformatted( rConfiguration.first.c_str() );
 
 					} ImGui::EndChild();
 

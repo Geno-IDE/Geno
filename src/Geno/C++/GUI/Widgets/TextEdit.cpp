@@ -362,7 +362,8 @@ std::string TextEdit::GetString( const Line& rLine, int Start, int End )
 		Result.push_back( rLine[ i ].C );
 	}
 
-	return std::move( Result );
+	return Result;
+
 } // GetLineString
 
 //////////////////////////////////////////////////////////////////////////
@@ -1126,7 +1127,7 @@ std::string TextEdit::GetWordAt( File& rFile, Coordinate Position, Coordinate* p
 		std::string Result;
 		Result.push_back( c );
 
-		return std::move( Result );
+		return Result;
 	}
 
 	return std::string();
