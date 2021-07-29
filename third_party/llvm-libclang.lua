@@ -1,7 +1,7 @@
 return function()
 	dependson {
 		'llvm-libclang-td',
-		'llvm-libllvm-ir-td',
+		'llvm-libllvm-td',
 		'llvm-libllvm-omp-td',
 	}
 	includedirs {

@@ -8,7 +8,7 @@ return function()
 		'third_party/llvm-project/llvm/utils/TableGen/**.cpp',
 	}
 	links {
-		'llvm-libllvm',
+		'llvm-libllvm-core',
 	}
 
 	filter 'toolset:msc'
