@@ -3500,14 +3500,14 @@ void TextEdit::ApplySyntaxHighlighting( File& rFile )
 	CXUnsavedFile UnsavedFile;
 	UnsavedFile.Filename = FilePath.c_str();
 	UnsavedFile.Contents = rFile.Text.c_str();
-	UnsavedFile.Length   = rFile.Text.size();
+	UnsavedFile.Length   = ( unsigned long )rFile.Text.size();
 
 	if( clang_reparseTranslationUnit( rFile.TranslationUnit, 1, &UnsavedFile, clang_defaultEditingTranslationUnitOptions() ) != CXError_Success )
 		return;
 
 	CXFile           SourceFile  = clang_getFile( rFile.TranslationUnit, FilePath.c_str() );
 	CXSourceLocation SourceBegin = clang_getLocation( rFile.TranslationUnit, SourceFile, 1, 1 );
-	CXSourceLocation SourceEnd   = clang_getLocation( rFile.TranslationUnit, SourceFile, rFile.Lines.size(), rFile.Lines.back().size() + 1 );
+	CXSourceLocation SourceEnd   = clang_getLocation( rFile.TranslationUnit, SourceFile, ( uint32_t )rFile.Lines.size(), ( uint32_t )rFile.Lines.back().size() + 1 );
 	CXSourceRange    SourceRange = clang_getRange( SourceBegin, SourceEnd );
 	CXToken*         pTokens     = nullptr;
 	uint32_t         NumTokens   = 0;
