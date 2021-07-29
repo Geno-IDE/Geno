@@ -61,6 +61,7 @@ app( 'Geno' )
 			'GL',
 			'X11',
 			'ncurses',
+			'z',
 		}
 
 	filter 'system:macosx'
