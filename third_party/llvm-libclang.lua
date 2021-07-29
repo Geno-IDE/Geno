@@ -3,7 +3,6 @@ return function()
 		'llvm-libclang-td',
 		'llvm-libllvm-ir-td',
 		'llvm-libllvm-omp-td',
-		'llvm-libllvm-target-td',
 	}
 	includedirs {
 		'third_party/.tablegen',
