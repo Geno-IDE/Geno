@@ -19,4 +19,4 @@ jobs:
       run: premake5 gmake2
 
     - name: Build project
-      run: make config=release_x86_64 -j
+      run: make config=release_x86_64 -j2 # Only 2 threads because compiling LLVM eats upwards of 4GB of RAM per thread
