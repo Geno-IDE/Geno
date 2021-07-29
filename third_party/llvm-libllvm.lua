@@ -14,9 +14,6 @@ return function()
 		'third_party/llvm-project/llvm/lib/IR/**.cpp',
 		'third_party/llvm-project/llvm/lib/ProfileData/**.cpp',
 	}
-	removefiles {
-		'third_party/llvm-project/llvm/lib/DebugInfo/PDB/DIA/**.cpp',
-	}
 
 	filter 'toolset:msc'
 		disablewarnings {
