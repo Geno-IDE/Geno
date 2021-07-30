@@ -1,5 +1,8 @@
 return function()
 	kind 'ConsoleApp'
+	configmap {
+		Debug = 'Release'
+	}
 	sysincludedirs {
 		'third_party/.config',
 		'third_party/llvm-project/llvm/include',
