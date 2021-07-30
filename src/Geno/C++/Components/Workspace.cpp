@@ -161,6 +161,23 @@ Project* Workspace::ProjectByName( std::string_view Name )
 
 //////////////////////////////////////////////////////////////////////////
 
+bool Workspace::AddProject( const std::filesystem::path& rPath )
+{
+	Project* pProject = ProjectByName( rPath.stem().string() );
+	if( !pProject )
+	{
+		std::filesystem::path ProjectPath = rPath;
+		ProjectPath                       = ProjectPath.lexically_normal();
+
+		Project& rProject = NewProject( ProjectPath.parent_path(), ProjectPath.filename().string() );
+		if( rProject.Deserialize() )
+			return true;
+	}
+	return false;
+} // AddProject
+
+//////////////////////////////////////////////////////////////////////////
+
 void Workspace::RemoveProject( const std::string& rName )
 {
 	if( Project* pProject = ProjectByName( rName ) )
@@ -171,6 +188,7 @@ void Workspace::RemoveProject( const std::string& rName )
 			{
 				m_Projects.erase( It );
 				Serialize();
+				break;
 			}
 		}
 	}

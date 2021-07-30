@@ -16,41 +16,27 @@
  */
 
 #pragma once
-#include "Common/Macros.h"
-#include "Common/Texture2D.h"
 
-#include "WidgetCommands/CommandStack.h"
+#include "ICommand.h"
 
-#include <filesystem>
-#include <string>
+#include <stack>
 
-class WorkspaceOutliner
+class CommandStack
 {
 public:
 
-	WorkspaceOutliner( void );
+	CommandStack( void ) = default;
+	~CommandStack( void );
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Show( bool* pOpen );
+	void DoCommand( ICommand* pCommand );
+	void UndoCommand( void );
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
-	Texture2D             m_IconTextureWorkspace    = { };
-	Texture2D             m_IconTextureProject      = { };
-	Texture2D             m_IconTextureFileFilter   = { };
-	Texture2D             m_IconTextureSourceFile   = { };
+	std::stack< ICommand* > m_pCommands;
 
-	std::filesystem::path m_SelectedFile            = { };
-	std::filesystem::path m_SelectedFileFilterName  = { };
-	std::string           m_RenameText              = { };
-	std::string           m_SelectedProjectName     = { };
-	std::string           m_ProjectNodeToBeExpanded = { };
-
-	bool                  m_ExpandWorkspaceNode     = false;
-
-	CommandStack m_CommandStack = {};
-
-}; // WorkspaceWidget
+}; // CommandStack

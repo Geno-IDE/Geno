@@ -15,42 +15,39 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include "Common/Macros.h"
-#include "Common/Texture2D.h"
+#include "CommandStack.h"
 
-#include "WidgetCommands/CommandStack.h"
-
-#include <filesystem>
-#include <string>
-
-class WorkspaceOutliner
+CommandStack::~CommandStack( void )
 {
-public:
-
-	WorkspaceOutliner( void );
+	for( const auto& rCommand : m_pCommands._Get_container() )
+	{
+		if( rCommand )
+		{
+			delete rCommand;
+		}
+	}
+} // ~CommandStack
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Show( bool* pOpen );
+void CommandStack::DoCommand( ICommand* pCommand )
+{
+	pCommand->Execute();
+	m_pCommands.push( pCommand );
+} // DoCommand
 
 //////////////////////////////////////////////////////////////////////////
 
-private:
+void CommandStack::UndoCommand( void )
+{
+	if( !m_pCommands.empty() )
+	{
+		ICommand*& rpCommand = m_pCommands.top();
+		rpCommand->Undo();
 
-	Texture2D             m_IconTextureWorkspace    = { };
-	Texture2D             m_IconTextureProject      = { };
-	Texture2D             m_IconTextureFileFilter   = { };
-	Texture2D             m_IconTextureSourceFile   = { };
+		delete rpCommand;
+		rpCommand = nullptr;
 
-	std::filesystem::path m_SelectedFile            = { };
-	std::filesystem::path m_SelectedFileFilterName  = { };
-	std::string           m_RenameText              = { };
-	std::string           m_SelectedProjectName     = { };
-	std::string           m_ProjectNodeToBeExpanded = { };
-
-	bool                  m_ExpandWorkspaceNode     = false;
-
-	CommandStack m_CommandStack = {};
-
-}; // WorkspaceWidget
+		m_pCommands.pop();
+	}
+} // UndoCommand
