@@ -53,8 +53,11 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
+	void     Rename       ( const std::string& rName );
 	Project& NewProject   ( std::filesystem::path Location, std::string Name );
 	Project* ProjectByName( std::string_view Name );
+	void     RemoveProject( const std::string& rName );
+	void     RenameProject( const std::string& rProjectName, const std::string& rName );
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -21,15 +21,17 @@
 
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
-
+#include <fstream>
 #include <iostream>
 
 //////////////////////////////////////////////////////////////////////////
 
 Project::Project( std::filesystem::path Location )
 	: m_Location( std::move( Location ) )
-	, m_Name    ( "MyProject" )
+	, m_Name( "MyProject" )
 {
+	NewFileFilter( "" ); // Create Default Empty FileFilter
+
 } // Project
 
 //////////////////////////////////////////////////////////////////////////
@@ -55,7 +57,7 @@ Project& Project::operator=( Project&& rrOther )
 	m_FilesLeftToBuild   = std::move( rrOther.m_FilesLeftToBuild );
 	m_FilesToLink        = std::move( rrOther.m_FilesToLink );
 
-	rrOther.m_Kind       = Kind::Unspecified;
+	rrOther.m_Kind = Kind::Unspecified;
 
 	return *this;
 
@@ -66,7 +68,7 @@ Project& Project::operator=( Project&& rrOther )
 void Project::Build( ICompiler& rCompiler )
 {
 	m_FilesLeftToBuild.clear();
-	m_FilesToLink     .clear();
+	m_FilesToLink.clear();
 
 	if( m_FileFilters.empty() )
 		return;
@@ -79,9 +81,9 @@ void Project::Build( ICompiler& rCompiler )
 
 			// #TODO: Compiler will be per-file so this check is only temporary
 			if( Extension == ".cpp"
-			 || Extension == ".cxx"
-			 || Extension == ".cc"
-			 || Extension == ".c" )
+				|| Extension == ".cxx"
+				|| Extension == ".cc"
+				|| Extension == ".c" )
 			{
 				bool Found = false;
 				for( const std::filesystem::path& rrFile : m_FilesLeftToBuild )
@@ -114,7 +116,8 @@ bool Project::Serialize( void )
 		std::cerr << "Failed to serialize ";
 
 		if( m_Name.empty() ) std::cerr << "unnamed project.";
-		else                 std::cerr << "project '" << m_Name << "'.";
+		else
+			std::cerr << "project '" << m_Name << "'.";
 
 		std::cerr << " Location not specified.\n";
 
@@ -138,10 +141,26 @@ bool Project::Serialize( void )
 
 		switch( m_Kind )
 		{
-			case Kind::Application:    { Kind.SetString( "Application" );    } break;
-			case Kind::StaticLibrary:  { Kind.SetString( "StaticLibrary" );  } break;
-			case Kind::DynamicLibrary: { Kind.SetString( "DynamicLibrary" ); } break;
-			default:                   { Kind.SetString( "Unspecified" );    } break;
+			case Kind::Application:
+			{
+				Kind.SetString( "Application" );
+			}
+			break;
+			case Kind::StaticLibrary:
+			{
+				Kind.SetString( "StaticLibrary" );
+			}
+			break;
+			case Kind::DynamicLibrary:
+			{
+				Kind.SetString( "DynamicLibrary" );
+			}
+			break;
+			default:
+			{
+				Kind.SetString( "Unspecified" );
+			}
+			break;
 		}
 
 		Serializer.WriteObject( Kind );
@@ -157,7 +176,7 @@ bool Project::Serialize( void )
 			if( !rFileFilter.Name.empty() )
 			{
 				GCL::Object FileFilter( rFileFilter.Name.string(), std::in_place_type< GCL::Object::TableType > );
-	
+
 				std::string FilterPathString = rFileFilter.Path.string();
 				if( !FilterPathString.empty() )
 				{
@@ -165,19 +184,19 @@ bool Project::Serialize( void )
 					FilterPath.SetString( FilterPathString );
 					FileFilter.AddChild( std::move( FilterPath ) );
 				}
-	
+
 				if( !rFileFilter.Files.empty() )
 				{
 					GCL::Object Files( "Files", std::in_place_type< GCL::Object::TableType > );
 					for( const std::filesystem::path& rFile : rFileFilter.Files )
 					{
 						const std::filesystem::path RelativePath = rFile.lexically_relative( m_Location );
-	
+
 						Files.AddChild( GCL::Object( RelativePath.string() ) );
 					}
 					FileFilter.AddChild( std::move( Files ) );
 				}
-	
+
 				Filters.AddChild( std::move( FileFilter ) );
 			}
 		}
@@ -272,7 +291,8 @@ bool Project::Deserialize( void )
 		std::cerr << "Failed to deserialize ";
 
 		if( m_Name.empty() ) std::cerr << "unnamed project.";
-		else                 std::cerr << "project '" << m_Name << "'.";
+		else
+			std::cerr << "project '" << m_Name << "'.";
 
 		std::cerr << " Location not specified.\n";
 
@@ -288,7 +308,7 @@ bool Project::Deserialize( void )
 	if( FileFilter* pEmptyFileFilter = FileFilterByName( "" ) )
 	{
 		auto it = pEmptyFileFilter->Files.begin();
-		while( it != pEmptyFileFilter->Files.end())
+		while( it != pEmptyFileFilter->Files.end() )
 		{
 			bool Found = false;
 			for( FileFilter& rFileFilter : m_FileFilters )
@@ -322,15 +342,9 @@ bool Project::Deserialize( void )
 				it++;
 			}
 		}
-
-		if( pEmptyFileFilter->Files.empty() )
-		{
-			RemoveFileFilter( "" );
-		}
 	}
 
 	FileFilter EmptyFileFilter = {};
-	
 
 	if( !EmptyFileFilter.Files.empty() )
 	{
@@ -399,15 +413,11 @@ void Project::SortFileFilters( void )
 	for( FileFilter& rFileFilter : m_FileFilters )
 	{
 		std::sort( rFileFilter.Files.begin(), rFileFilter.Files.end(), []( const std::filesystem::path& a, const std::filesystem::path& b )
-			{
-				return AlphabeticCompare( a.filename().string(), b.filename().string() );
-			} );
+			{ return AlphabeticCompare( a.filename().string(), b.filename().string() ); } );
 	}
 
 	std::sort( m_FileFilters.begin(), m_FileFilters.end(), []( const FileFilter& a, const FileFilter& b )
-		{
-			return AlphabeticCompare( a.Name.string(), b.Name.string() );
-		} );
+		{ return AlphabeticCompare( a.Name.string(), b.Name.string() ); } );
 
 } // SortFileFilters
 
@@ -435,9 +445,7 @@ FileFilter* Project::NewFileFilter( const std::filesystem::path& Name )
 void Project::RemoveFileFilter( const std::filesystem::path& Name )
 {
 	auto it = std::find_if( m_FileFilters.begin(), m_FileFilters.end(), [ & ]( const FileFilter& FileFilter ) -> bool
-	{
-		return FileFilter.Name == Name;
-	} );
+		{ return FileFilter.Name == Name; } );
 
 	if( it != m_FileFilters.end() )
 	{
@@ -465,6 +473,126 @@ FileFilter* Project::FileFilterByName( const std::filesystem::path& Name )
 
 //////////////////////////////////////////////////////////////////////////
 
+std::filesystem::path Project::FileInFileFilter( const std::filesystem::path& rFile, const std::filesystem::path& rFileFilter )
+{
+	if( FileFilter* pFileFilter = FileFilterByName( rFileFilter ) )
+	{
+		for( const std::filesystem::path& rrFile : pFileFilter->Files )
+		{
+			if( rFile == rrFile )
+				return rrFile;
+		}
+	}
+	return {};
+
+} // FileInFileFilter
+
+//////////////////////////////////////////////////////////////////////////
+
+void Project::RenameFileFilter( const std::filesystem::path& rFileFilter, const std::string& rName )
+{
+	if( FileFilter* pFileFilter = FileFilterByName( rFileFilter ) )
+	{
+		pFileFilter->Name = std::move( rName );
+		SortFileFilters();
+		Serialize();
+	}
+
+} // RenameFileFilter
+
+//////////////////////////////////////////////////////////////////////////
+
+bool Project::NewFile( const std::filesystem::path& rPath, const std::filesystem::path& rFileFilter )
+{
+	if( FileFilter* pFileFilter = FileFilterByName( rFileFilter ) )
+	{
+		if( FileInFileFilter( rPath, rFileFilter ).empty() )
+		{
+			std::ofstream OutputFileStream( rPath, std::ios::binary | std::ios::trunc );
+
+			if( OutputFileStream.is_open() )
+			{
+				pFileFilter->Files.emplace_back( rPath );
+				SortFileFilters();
+				Serialize();
+				OutputFileStream.close();
+				return true;
+			}
+		}
+	}
+
+	return false;
+
+} // NewFile
+
+//////////////////////////////////////////////////////////////////////////
+
+bool Project::AddFile( const std::filesystem::path& rPath, const std::filesystem::path& rFileFilter )
+{
+	if( FileFilter* pFileFilter = FileFilterByName( rFileFilter ) )
+	{
+		if( FileInFileFilter( rPath, rFileFilter ).empty() )
+		{
+			pFileFilter->Files.emplace_back( std::move( rPath ) );
+			SortFileFilters();
+			Serialize();
+			return true;
+		}
+	}
+
+	return false;
+
+} // AddFile
+
+//////////////////////////////////////////////////////////////////////////
+
+void Project::RemoveFile( const std::filesystem::path& rFile, const std::filesystem::path& rFileFilter )
+{
+	if( FileFilter* pFileFilter = FileFilterByName( rFileFilter ) )
+	{
+		for( auto It = pFileFilter->Files.begin(); It != pFileFilter->Files.end(); ++It )
+		{
+			if( *It == rFile )
+			{
+				pFileFilter->Files.erase( It );
+				SortFileFilters();
+				Serialize();
+				break;
+			}
+		}
+	}
+
+} // RemoveFile
+
+//////////////////////////////////////////////////////////////////////////
+
+void Project::RenameFile( const std::filesystem::path& rFile, const std::filesystem::path& rFileFilter, const std::string& rName )
+{
+	if( FileFilter* pFileFilter = FileFilterByName( rFileFilter ) )
+	{
+		for( auto& rrFile : pFileFilter->Files )
+		{
+			if( rrFile == rFile )
+			{
+				const std::filesystem::path OldPath = rrFile;
+
+				if( std::filesystem::exists( OldPath ) )
+				{
+					const std::filesystem::path NewPath = m_Location / pFileFilter->Path / rName;
+					std::filesystem::rename( OldPath, NewPath );
+				}
+
+				rrFile = m_Location / pFileFilter->Path / rName;
+				SortFileFilters();
+				Serialize();
+			}
+		}
+	}
+
+} // RenameFile
+
+//////////////////////////////////////////////////////////////////////////
+
 void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 {
 	Project*         pSelf = static_cast< Project* >( pUser );
@@ -478,10 +606,19 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 	{
 		const std::string& rKindString = Object.String();
 
-		if(      rKindString == "Application"    ) { pSelf->m_Kind = Kind::Application; }
-		else if( rKindString == "StaticLibrary"  ) { pSelf->m_Kind = Kind::StaticLibrary; }
-		else if( rKindString == "DynamicLibrary" ) { pSelf->m_Kind = Kind::DynamicLibrary; }
-		else                                       { pSelf->m_Kind = Kind::Unspecified; }
+		if( rKindString == "Application" ) { pSelf->m_Kind = Kind::Application; }
+		else if( rKindString == "StaticLibrary" )
+		{
+			pSelf->m_Kind = Kind::StaticLibrary;
+		}
+		else if( rKindString == "DynamicLibrary" )
+		{
+			pSelf->m_Kind = Kind::DynamicLibrary;
+		}
+		else
+		{
+			pSelf->m_Kind = Kind::Unspecified;
+		}
 	}
 	else if( Name == "FileFilters" )
 	{
@@ -513,7 +650,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 				}
 			}
 
-			pSelf->m_FileFilters.emplace_back( std::move(FileFilter) );
+			pSelf->m_FileFilters.emplace_back( std::move( FileFilter ) );
 		}
 		pSelf->SortFileFilters();
 	}
@@ -526,7 +663,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 			if( !FilePath.is_absolute() )
 				FilePath = pSelf->m_Location / FilePath;
 
-			FilePath = FilePath.lexically_normal();
+			FilePath                = FilePath.lexically_normal();
 			FileFilter* pFileFilter = pSelf->FileFilterByName( "" );
 			if( !pFileFilter )
 			{
@@ -593,7 +730,7 @@ void Project::BuildNextFile( ICompiler& rCompiler )
 		return;
 	}
 
-//////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
 
 	std::filesystem::path& File = m_FilesLeftToBuild.back();
 	// Listen to every file compilation to check if we're done compiling

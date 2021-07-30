@@ -32,7 +32,6 @@
 #include "GUI/Widgets/TextEdit.h"
 
 #include <fstream>
-
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
 #include <stb_image.h>
@@ -83,16 +82,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					{
 						if( m_RenameText != pWorkspace->m_Name )
 						{
-							const std::filesystem::path OldPath = ( pWorkspace->m_Location / pWorkspace->m_Name ).replace_extension( Workspace::EXTENSION );
-
-							if( std::filesystem::exists( OldPath ) )
-							{
-								const std::filesystem::path NewPath = ( pWorkspace->m_Location / m_RenameText ).replace_extension( Workspace::EXTENSION );
-								std::filesystem::rename( OldPath, NewPath );
-							}
-
-							pWorkspace->m_Name = std::move( m_RenameText );
-							pWorkspace->Serialize();
+							pWorkspace->Rename( m_RenameText );
 						}
 
 						return true;
@@ -118,24 +108,9 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							return false;
 						}
 
-						if( Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName ) )
-						{
-							const std::filesystem::path OldPath = ( pProject->m_Location / pProject->m_Name ).replace_extension( Project::EXTENSION );
+						pWorkspace->RenameProject( m_SelectedProjectName, m_RenameText );
 
-							if( std::filesystem::exists( OldPath ) )
-							{
-								const std::filesystem::path NewPath = ( pProject->m_Location / m_RenameText ).replace_extension( Project::EXTENSION );
-								std::filesystem::rename( OldPath, NewPath );
-							}
-
-							pProject->m_Name = std::move( m_RenameText );
-							pProject->Serialize();
-							pWorkspace->Serialize();
-
-							return true;
-						}
-
-						return false;
+						return true;
 					} );
 			};
 
@@ -160,20 +135,9 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							return false;
 						}
 
-						if( FileFilter* pFileFilter = pProject->FileFilterByName( m_SelectedFileFilterName ) )
-						{
-							pFileFilter->Name = std::move( m_RenameText );
-							pProject->SortFileFilters();
-							pProject->Serialize();
+						pProject->RenameFileFilter( m_SelectedFileFilterName, m_RenameText );
 
-							m_SelectedFileFilterName.clear();
-							m_SelectedProjectName.clear();
-							m_RenameText.clear();
-
-							return true;
-						}
-
-						return false;
+						return true;
 					} );
 			};
 
@@ -250,17 +214,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 									return false;
 								}
 
-								const std::filesystem::path OldPath = m_SelectedFile;
-
-								if( std::filesystem::exists( OldPath ) )
-								{
-									const std::filesystem::path NewPath = pProject->m_Location / pFileFilter->Path / m_RenameText;
-									std::filesystem::rename( OldPath, NewPath );
-								}
-
-								rFile = pProject->m_Location / pFileFilter->Path / m_RenameText;
-								pProject->SortFileFilters();
-								pProject->Serialize();
+								pProject->RenameFile( m_SelectedFile, m_SelectedFileFilterName, m_RenameText );
 
 								MainWindow::Instance().pTextEdit->ReplaceFile( m_SelectedFile, rFile );
 
@@ -517,19 +471,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							{
 								if( Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName ) )
 								{
-									std::filesystem::path FilePath = rLocation / rName;
-									std::ofstream         OutputFileStream( FilePath, std::ios::binary | std::ios::trunc );
-
-									if( OutputFileStream.is_open() )
-									{
-										FileFilter* pFileFilter = pProject->FileFilterByName( "" );
-										if( !pFileFilter )
-										{
-											pFileFilter = pProject->NewFileFilter( "" );
-										}
-										pFileFilter->Files.push_back( FilePath );
-										pProject->Serialize();
-									}
+									pProject->NewFile( rLocation / rName, "" );
 								}
 							}
 
@@ -547,13 +489,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							{
 								Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName );
 
-								FileFilter* pFileFilter = pProject->FileFilterByName( "" );
-								if( !pFileFilter )
-								{
-									pFileFilter = pProject->NewFileFilter( "" );
-								}
-								pFileFilter->Files.push_back( rFile );
-								pProject->Serialize();
+								pProject->AddFile( rFile, "" );
 							}
 
 							m_ProjectNodeToBeExpanded = m_SelectedProjectName;
@@ -631,18 +567,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							{
 								if( Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName ) )
 								{
-									if( FileFilter* pFileFilter = pProject->FileFilterByName( m_SelectedFileFilterName ) )
-									{
-										std::filesystem::path FilePath = rLocation / rName;
-										std::ofstream         OutputFileStream( FilePath, std::ios::binary | std::ios::trunc );
-
-										if( OutputFileStream.is_open() )
-										{
-											pFileFilter->Files.emplace_back( FilePath );
-											pProject->SortFileFilters();
-											pProject->Serialize();
-										}
-									}
+									pProject->NewFile( rLocation / rName, m_SelectedFileFilterName );
 								}
 							}
 
@@ -657,12 +582,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 						{
 							if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 							{
-								Project*    pProject    = pWorkspace->ProjectByName( m_SelectedProjectName );
-								FileFilter* pFileFilter = pProject->FileFilterByName( m_SelectedFileFilterName );
-
-								pFileFilter->Files.push_back( rPath );
-								pProject->SortFileFilters();
-								pProject->Serialize();
+								Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName );
+								pProject->AddFile( rPath, m_SelectedFileFilterName );
 							}
 
 							m_ProjectNodeToBeExpanded = m_SelectedProjectName;
@@ -703,15 +624,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 							if( Project* pSelectedProject = pWorkspace->ProjectByName( m_SelectedProjectName ) )
 							{
-								if( FileFilter* pSelectedFileFilter = pSelectedProject->FileFilterByName( m_SelectedFileFilterName ) )
-								{
-									auto SelectedFileIt = std::find_if( pSelectedFileFilter->Files.begin(), pSelectedFileFilter->Files.end(), [ this ]( const std::filesystem::path& rPath )
-										{ return rPath == m_SelectedFile; } );
-									if( SelectedFileIt != pSelectedFileFilter->Files.end() )
-									{
-										pSelectedFileFilter->Files.erase( SelectedFileIt );
-									}
-								}
+								pSelectedProject->RemoveFile( m_SelectedFile, m_SelectedFileFilterName );
 							}
 						} );
 
