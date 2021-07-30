@@ -14,6 +14,10 @@ jobs:
       with:
         submodules: true
         lfs: true
+        clean: false
+
+    - name: Clean
+      run: git clean -xfd -e third_party/.tablegen -e obj/**/llvm-*
 
     - name: Generate project files
       run: premake5.exe vs2019
