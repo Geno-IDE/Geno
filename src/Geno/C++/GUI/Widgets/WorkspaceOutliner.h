@@ -51,6 +51,7 @@ private:
 
 	bool                  m_ExpandWorkspaceNode     = false;
 
-	CommandStack m_CommandStack = {};
+	CommandStack m_UndoCommandStack = {};
+	CommandStack m_RedoCommandStack = {};
 
 }; // WorkspaceWidget

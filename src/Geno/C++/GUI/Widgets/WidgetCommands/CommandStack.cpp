@@ -38,16 +38,36 @@ void CommandStack::DoCommand( ICommand* pCommand )
 
 //////////////////////////////////////////////////////////////////////////
 
-void CommandStack::UndoCommand( void )
+void CommandStack::UndoCommand( CommandStack& rRedoCommandStack )
 {
 	if( !m_pCommands.empty() )
 	{
 		ICommand*& rpCommand = m_pCommands.top();
-		rpCommand->Undo();
+
+		rRedoCommandStack.m_pCommands.push( rpCommand->Undo() );
 
 		delete rpCommand;
 		rpCommand = nullptr;
 
 		m_pCommands.pop();
 	}
+
 } // UndoCommand
+
+//////////////////////////////////////////////////////////////////////////
+
+void CommandStack::RedoCommand( CommandStack& rUndoCommandStack )
+{
+	if( !m_pCommands.empty() )
+	{
+		ICommand*& rpCommand = m_pCommands.top();
+
+		rUndoCommandStack.m_pCommands.push( rpCommand->Redo() );
+
+		delete rpCommand;
+		rpCommand = nullptr;
+
+		m_pCommands.pop();
+	}
+
+} // RedoCommand

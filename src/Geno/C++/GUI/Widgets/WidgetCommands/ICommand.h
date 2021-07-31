@@ -26,8 +26,9 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	virtual void Execute( void ) = 0;
-	virtual void Undo( void )    = 0;
+	virtual void      Execute( void ) = 0;
+	virtual ICommand* Undo( void )    = 0; // Returns new Redo Command
+	virtual ICommand* Redo( void )    = 0; // Returns new Undo Command
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -64,7 +64,7 @@ void WOC::RenameItemCommand::Execute( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void WOC::RenameItemCommand::Undo( void )
+ICommand* WOC::RenameItemCommand::Undo( void )
 {
 	// m_PreviousName -> Used For Locating Project/FileFilter/File
 	// m_NewName      -> Used As Rename String
@@ -75,7 +75,18 @@ void WOC::RenameItemCommand::Undo( void )
 
 	Execute();
 
+	return new RenameItemCommand( m_RenameItemType, m_NewName, m_PreviousName, m_ProjectName, m_FileFilterName );
+
 } // RenameItemCommand::Undo
+
+//////////////////////////////////////////////////////////////////////////
+
+ICommand* WOC::RenameItemCommand::Redo( void )
+{
+	Execute();
+	return new RenameItemCommand( m_RenameItemType, m_PreviousName, m_NewName, m_ProjectName, m_FileFilterName );
+
+} // RenameItemCommand::Redo
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -116,7 +127,7 @@ void WOC::NewItemCommand::Execute( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void WOC::NewItemCommand::Undo( void )
+ICommand* WOC::NewItemCommand::Undo( void )
 {
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 	switch( m_NewItemType )
@@ -138,7 +149,18 @@ void WOC::NewItemCommand::Undo( void )
 			break;
 	}
 
+	return new NewItemCommand( m_NewItemType, m_Location, m_Name, m_ProjectName, m_FileFilterName );
+
 } // NewItemCommand::Undo
+
+//////////////////////////////////////////////////////////////////////////
+
+ICommand* WOC::NewItemCommand::Redo( void )
+{
+	Execute();
+	return new NewItemCommand( m_NewItemType, m_Location, m_Name, m_ProjectName, m_FileFilterName );
+
+} // NewItemCommand::Redo
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -173,7 +195,7 @@ void WOC::AddItemCommand::Execute( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void WOC::AddItemCommand::Undo( void )
+ICommand* WOC::AddItemCommand::Undo( void )
 {
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 
@@ -190,7 +212,18 @@ void WOC::AddItemCommand::Undo( void )
 			break;
 	}
 
+	return new AddItemCommand( m_AddItemType, m_Path, m_ProjectName, m_FileFilterName );
+
 } // AddItemCommand::Undo
+
+//////////////////////////////////////////////////////////////////////////
+
+ICommand* WOC::AddItemCommand::Redo( void )
+{
+	Execute();
+	return new AddItemCommand( m_AddItemType, m_Path, m_ProjectName, m_FileFilterName );
+
+} // AddItemCommand::Redo
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -232,7 +265,7 @@ void WOC::RemoveItemCommand::Execute( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void WOC::RemoveItemCommand::Undo( void )
+ICommand* WOC::RemoveItemCommand::Undo( void )
 {
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 
@@ -255,4 +288,15 @@ void WOC::RemoveItemCommand::Undo( void )
 			break;
 	}
 
+	return new RemoveItemCommand( m_RemoveItemType, m_Name, m_ProjectName, m_FileFilterName );
+
 } // RemoveItemCommand::Undo
+
+//////////////////////////////////////////////////////////////////////////
+
+ICommand* WOC::RemoveItemCommand::Redo( void )
+{
+	Execute();
+	return new RemoveItemCommand( m_RemoveItemType, m_Name, m_ProjectName, m_FileFilterName );
+
+} // RemoveItemCommand::Redo
