@@ -959,9 +959,9 @@ float TextEdit::GetDistance( File& rFile, Coordinate Position ) const
 
 	float XOffset = 0.0f;
 
-	Position.x = Position.x > ( int )rLine.size() ? ( int )rLine.size() : Position.x;
+	int Length = Position.x > ( int )rLine.size() ? ( int )rLine.size() : Position.x;
 
-	for( int i = 0; i < Position.x; i++ )
+	for( int i = 0; i < Length; i++ )
 	{
 		char c = rLine[ i ].C;
 
@@ -990,6 +990,11 @@ float TextEdit::GetDistance( File& rFile, Coordinate Position ) const
 	if( !String.empty() )
 	{
 		XOffset += ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, String.c_str() ).x;
+	}
+
+	if( int Extra = Position.x - Length )
+	{
+		XOffset += ( float )Extra * Props.SpaceSize;
 	}
 
 	return XOffset;
