@@ -2292,7 +2292,7 @@ void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
 
 void TextEdit::Esc( File& rFile )
 {
-	rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+	rFile.Cursors.erase( rFile.Cursors.begin(), rFile.Cursors.end() - 1 );
 
 	Cursor& rCursor         = rFile.Cursors[ 0 ];
 	rCursor.SelectionStart  = Coordinate( 0, 0 );
