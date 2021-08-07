@@ -714,6 +714,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 				}
 
 				rCursor.Position = Coordinate( GetCoordinateX( rFile, rCursor.Position.y, MouseCoords.x, true ), rCursor.Position.y );
+				Props.CursorBlink = 0;
 
 				SetBoxSelection( rFile, NewPosition, MouseCoords );
 			}
@@ -744,7 +745,11 @@ void TextEdit::HandleMouseInputs( File& rFile )
 					rCursor.SelectionOrigin = rCursor.Position;
 				}
 
-				rCursor.Position = Coordinate( GetCoordinateX( rFile, rCursor.Position.y, MouseCoords.x, true ), rCursor.Position.y );
+				Coordinate TmpPos = Coordinate(GetCoordinateX(rFile, rCursor.Position.y, MouseCoords.x, true), rCursor.Position.y);
+
+				if (rCursor.Position != TmpPos) Props.CursorBlink = 0;
+
+				rCursor.Position = TmpPos;
 
 				SetBoxSelection( rFile, Pos, MouseCoords );
 			}
