@@ -890,7 +890,7 @@ void TextEdit::ScrollToCursor( File& rFile )
 	float Left   = xScroll;
 	float Right  = Left + Size.x - 10.0f;
 
-	Cursor& rCursor = rFile.Cursors[ 0 ];
+	Cursor& rCursor = rFile.Cursors.back();
 
 	float CX = GetDistance( rFile, rCursor.Position );
 	float CY = rCursor.Position.y * Props.CharAdvanceY;
