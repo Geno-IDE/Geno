@@ -641,9 +641,10 @@ void TextEdit::HandleMouseInputs( File& rFile )
 		// Mouse Inputs
 		ImGui::SetMouseCursor( ImGuiMouseCursor_TextInput );
 
-		bool Clicked       = ImGui::IsMouseClicked( ImGuiMouseButton_Left );
-		bool DoubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
-		bool Dragged       = ImGui::IsMouseDragging( ImGuiMouseButton_Left );
+		bool   Clicked       = ImGui::IsMouseClicked( ImGuiMouseButton_Left );
+		bool   DoubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
+		bool   Dragged       = ImGui::IsMouseDragging( ImGuiMouseButton_Left );
+		ImVec2 MouseCoords   = ImGui::GetMousePos();
 
 		if( ImGui::IsMouseReleased( ImGuiMouseButton_Left ) || ( Props.Changes && ImGui::IsMouseDown( ImGuiMouseButton_Left ) ) )
 		{
@@ -665,12 +666,12 @@ void TextEdit::HandleMouseInputs( File& rFile )
 		}
 		else if( Clicked )
 		{
-			Coordinate NewPosition = GetCoordinate( rFile, ImGui::GetMousePos() );
+			Coordinate NewPosition = GetCoordinate( rFile, MouseCoords, Props.CursorMultiMode == MultiCursorMode::Box || Alt );
 
 			if( Ctrl && !( Alt || Shift ) )
 			{
 			}
-			else if( Shift && !( Alt || Ctrl ) )
+			else if( Shift && !Ctrl && Props.CursorMultiMode == MultiCursorMode::Normal )
 			{
 				rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
 
@@ -703,50 +704,78 @@ void TextEdit::HandleMouseInputs( File& rFile )
 					}
 				}
 			}
+			else if( Shift && !Ctrl && Props.CursorMultiMode == MultiCursorMode::Box )
+			{
+				Cursor& rCursor = rFile.Cursors[ 0 ];
+
+				if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) )
+				{
+					rCursor.SelectionOrigin = rCursor.Position;
+				}
+
+				rCursor.Position = Coordinate( GetCoordinateX( rFile, rCursor.Position.y, MouseCoords.x, true ), rCursor.Position.y );
+
+				SetBoxSelection( rFile, NewPosition, MouseCoords );
+			}
 			else
 			{
 				if( !( Ctrl && Alt ) ) rFile.Cursors.clear();
 
-				if( IsCoordinateInSelection( rFile, NewPosition ) == nullptr )
-				{
-					Cursor NewCursor;
+				Cursor NewCursor;
 
-					NewCursor.Position       = NewPosition;
-					NewCursor.SelectionStart = NewCursor.SelectionEnd = Coordinate( 0, 0 );
+				NewCursor.Position       = NewPosition;
+				NewCursor.SelectionStart = NewCursor.SelectionEnd = Coordinate( 0, 0 );
 
-					rFile.Cursors.push_back( NewCursor );
+				rFile.Cursors.push_back( NewCursor );
 
-					Props.CursorBlink = 0;
-				}
+				Props.CursorBlink     = 0;
+				Props.CursorMultiMode = Alt ? MultiCursorMode::Box : MultiCursorMode::Normal;
 			}
 		}
 		else if( Dragged )
 		{
-			Coordinate Pos     = GetCoordinate( rFile, ImGui::GetMousePos() );
-			Cursor&    rCursor = rFile.Cursors[ rFile.Cursors.size() - 1 ];
-
-			if( rCursor.SelectionOrigin != Coordinate( ~0, ~0 ) )
+			if( Props.CursorMultiMode == MultiCursorMode::Box )
 			{
-				if( Pos > rCursor.SelectionOrigin )
+				Coordinate Pos     = GetCoordinate( rFile, MouseCoords, true );
+				Cursor&    rCursor = rFile.Cursors[ 0 ];
+
+				if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) )
 				{
-					rCursor.SelectionEnd   = Pos;
-					rCursor.SelectionStart = rCursor.SelectionOrigin;
-				}
-				else
-				{
-					rCursor.SelectionStart = Pos;
-					rCursor.SelectionEnd   = rCursor.SelectionOrigin;
+					rCursor.SelectionOrigin = rCursor.Position;
 				}
 
-				if( rCursor.Position != Pos ) Props.CursorBlink = 0;
+				rCursor.Position = Coordinate( GetCoordinateX( rFile, rCursor.Position.y, MouseCoords.x, true ), rCursor.Position.y );
 
-				rCursor.Position = Pos;
-
-				DisableIntersectionsInSelection( rFile, ( int )rFile.Cursors.size() - 1 );
+				SetBoxSelection( rFile, Pos, MouseCoords );
 			}
 			else
 			{
-				rCursor.SelectionOrigin = rCursor.Position;
+				Coordinate Pos     = GetCoordinate( rFile, MouseCoords );
+				Cursor&    rCursor = rFile.Cursors[ rFile.Cursors.size() - 1 ];
+
+				if( rCursor.SelectionOrigin != Coordinate( ~0, ~0 ) )
+				{
+					if( Pos > rCursor.SelectionOrigin )
+					{
+						rCursor.SelectionEnd   = Pos;
+						rCursor.SelectionStart = rCursor.SelectionOrigin;
+					}
+					else
+					{
+						rCursor.SelectionStart = Pos;
+						rCursor.SelectionEnd   = rCursor.SelectionOrigin;
+					}
+
+					if( rCursor.Position != Pos ) Props.CursorBlink = 0;
+
+					rCursor.Position = Pos;
+
+					DisableIntersectionsInSelection( rFile, ( int )rFile.Cursors.size() - 1 );
+				}
+				else
+				{
+					rCursor.SelectionOrigin = rCursor.Position;
+				}
 			}
 		}
 
@@ -755,6 +784,97 @@ void TextEdit::HandleMouseInputs( File& rFile )
 	}
 
 } // HandleMouseInputs
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::SetBoxSelection( File& rFile, Coordinate& Pos, ImVec2 Position )
+{
+	rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+
+	Cursor CurrCursor      = rFile.Cursors[ 0 ];
+	float  OriginXDistance = GetDistance( rFile, CurrCursor.SelectionOrigin );
+
+	if( Pos.y > CurrCursor.SelectionOrigin.y )
+	{
+		for( int i = CurrCursor.SelectionOrigin.y + 1; i <= Pos.y; i++ )
+		{
+			Cursor Cursor;
+
+			Cursor.Position        = Coordinate( GetCoordinateX( rFile, i, Position.x, true, false ), i );
+			Cursor.SelectionOrigin = Coordinate( GetCoordinateX( rFile, i, OriginXDistance, true, true ), i );
+
+			int Dir = Cursor.Position.x - Cursor.SelectionOrigin.x;
+
+			if( Dir > 0 )
+			{
+				Cursor.SelectionStart = Cursor.SelectionOrigin;
+				Cursor.SelectionEnd   = Cursor.Position;
+			}
+			else if( Dir < 0 )
+			{
+				Cursor.SelectionStart = Cursor.Position;
+				Cursor.SelectionEnd   = Cursor.SelectionOrigin;
+			}
+			else
+			{
+				Cursor.SelectionStart = Coordinate( 0, 0 );
+				Cursor.SelectionEnd   = Coordinate( 0, 0 );
+			}
+
+			rFile.Cursors.push_back( Cursor );
+		}
+	}
+	else if( Pos.y < CurrCursor.SelectionOrigin.y )
+	{
+		for( int i = CurrCursor.SelectionOrigin.y + -1; i >= Pos.y; i-- )
+		{
+			Cursor Cursor;
+
+			Cursor.Position        = Coordinate( GetCoordinateX( rFile, i, Position.x, true, false ), i );
+			Cursor.SelectionOrigin = Coordinate( GetCoordinateX( rFile, i, OriginXDistance, true, true ), i );
+
+			int Dir = Cursor.Position.x - Cursor.SelectionOrigin.x;
+
+			if( Dir > 0 )
+			{
+				Cursor.SelectionStart = Cursor.SelectionOrigin;
+				Cursor.SelectionEnd   = Cursor.Position;
+			}
+			else if( Dir < 0 )
+			{
+				Cursor.SelectionStart = Cursor.Position;
+				Cursor.SelectionEnd   = Cursor.SelectionOrigin;
+			}
+			else
+			{
+				Cursor.SelectionStart = Coordinate( 0, 0 );
+				Cursor.SelectionEnd   = Coordinate( 0, 0 );
+			}
+
+			rFile.Cursors.push_back( Cursor );
+		}
+	}
+
+	Cursor& rCursor = rFile.Cursors[ 0 ];
+
+	if( Pos.x > rCursor.SelectionOrigin.x )
+	{
+		rCursor.SelectionStart = rCursor.SelectionOrigin;
+		rCursor.SelectionEnd   = Coordinate( GetCoordinateX( rFile, rCursor.Position.y, Position.x, true, false ), rCursor.Position.y );
+	}
+	else if( Pos.x < rCursor.SelectionOrigin.x )
+	{
+		rCursor.SelectionEnd   = rCursor.SelectionOrigin;
+		rCursor.SelectionStart = Coordinate( GetCoordinateX( rFile, rCursor.Position.y, Position.x, true, false ), rCursor.Position.y );
+		;
+	}
+	else
+	{
+		rCursor.SelectionStart = Coordinate( 0, 0 );
+		rCursor.SelectionEnd   = Coordinate( 0, 0 );
+	}
+
+} // SetBoxSelection
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -2341,6 +2461,8 @@ void TextEdit::Esc( File& rFile )
 	rCursor.SelectionStart  = Coordinate( 0, 0 );
 	rCursor.SelectionEnd    = Coordinate( 0, 0 );
 	rCursor.SelectionOrigin = Coordinate( -1, -1 );
+
+	Props.CursorMultiMode = MultiCursorMode::Normal;
 }
 
 void TextEdit::Copy( File& rFile, bool Cut )

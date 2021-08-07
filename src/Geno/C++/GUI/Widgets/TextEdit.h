@@ -174,6 +174,12 @@ private:
 		Insert
 	};
 
+	enum class MultiCursorMode
+	{
+		Normal,
+		Box
+	};
+
 	struct Properties
 	{
 		float           CharAdvanceY;
@@ -183,12 +189,14 @@ private:
 		float           ScrollY;
 		bool            Changes;
 		int             CursorBlink;
-		CursorInputMode CursorMode = CursorInputMode::Normal;
+		CursorInputMode CursorMode      = CursorInputMode::Normal;
+		MultiCursorMode CursorMultiMode = MultiCursorMode::Normal;
 	} Props;
 
 	bool        RenderEditor( File& rFile );
 	void        HandleKeyboardInputs( File& rFile );
 	void        HandleMouseInputs( File& rFile );
+	void        SetBoxSelection( File& rFile, Coordinate& Pos, ImVec2 Position );
 	void        ScrollToCursor( File& rFile );
 	void        CheckLineLengths( File& rFile, int FirstLine, int LastLine );
 	void        CalculeteLineNumMaxWidth( File& rFile );
