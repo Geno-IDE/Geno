@@ -203,7 +203,9 @@ private:
 	void        AdjustCursor( Cursor& Cursor, int XOffset );
 	void        SetSelectionLine( File& rFile, int Line );
 	void        SetSelection( File& rFile, Coordinate Start, Coordinate End, int Cursor );
-	Coordinate  GetCoordinate( File& rFile, ImVec2 Position, bool RelativeToEditor = false );
+	int         GetCoordinateY( File& rFile, float YPosition, bool RelativeToEditor = false );
+	int         GetCoordinateX( File& rFile, int LineIndex, float XPosition, bool AllowPastLine = false, bool RelativeToEditor = false );
+	Coordinate  GetCoordinate( File& rFile, ImVec2 Position, bool AllowPastLine = false, bool RelativeToEditor = false );
 	Coordinate  CalculateTabAlignment( File& rFile, Coordinate FromPosition );
 	float       CalculateTabAlignmentDistance( File& rFile, Coordinate FromPosition );
 	void        AdjustCursors( File& rFile, int Cursor, int XOffset, int YOffset );

@@ -1229,17 +1229,16 @@ void TextEdit::SetSelection( File& rFile, Coordinate Start, Coordinate End, int 
 
 //////////////////////////////////////////////////////////////////////////
 
-TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool RelativeToEditor )
+int TextEdit::GetCoordinateY( File& rFile, float YPosition, bool RelativeToEditor )
 {
 	if( !RelativeToEditor )
 	{
 		ImVec2 Origin = ImGui::GetCursorScreenPos();
 
-		Position.x -= Origin.x;
-		Position.y -= Origin.y + Props.ScrollY;
+		YPosition -= Origin.y + Props.ScrollY;
 	}
 
-	int LineIndex = ( int )( ( Position.y / Props.CharAdvanceY ) + ( !RelativeToEditor ? floorf( Props.ScrollY / Props.CharAdvanceY ) : 0 ) );
+	int LineIndex = ( int )( ( YPosition / Props.CharAdvanceY ) + ( !RelativeToEditor ? floorf( Props.ScrollY / Props.CharAdvanceY ) : 0 ) );
 	int NumLines  = ( int )rFile.Lines.size();
 
 	if( LineIndex > NumLines - 1 )
@@ -1247,16 +1246,32 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool
 		LineIndex = NumLines - 1;
 	}
 
+	return LineIndex;
+} // GetCoordinateY
+
+//////////////////////////////////////////////////////////////////////////
+
+int TextEdit::GetCoordinateX( File& rFile, int LineIndex, float XPosition, bool AllowPastLine, bool RelativeToEditor )
+{
+	if( !RelativeToEditor )
+	{
+		ImVec2 Origin = ImGui::GetCursorScreenPos();
+
+		XPosition -= Origin.x;
+	}
+
 	const Line& rLine       = rFile.Lines[ LineIndex ];
 	int         LineSize    = ( int )rLine.size();
 	char        String[ 2 ] = { 0, 0 };
 	float       Length      = 0.0f;
+	float       Diff        = 0.0f;
+	bool        WithinLine  = false;
+	int         Result      = -1;
 
 	for( int i = 0; i < LineSize; i++ )
 	{
 		String[ 0 ] = rLine[ i ].C;
-
-		float Diff = 0.0f;
+		Diff        = 0.0f;
 
 		if( String[ 0 ] == '\t' )
 		{
@@ -1269,13 +1284,42 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool
 			Length += Diff = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, String ).x;
 		}
 
-		if( Length - ( Diff / 2.0f ) > Position.x )
+		if( Length - ( Diff / 2.0f ) > XPosition )
 		{
-			return Coordinate( i, LineIndex );
+			Result     = i;
+			WithinLine = true;
+			break;
 		}
 	}
 
-	return Coordinate( LineSize, LineIndex );
+	if( WithinLine ) return Result;
+
+	if( AllowPastLine )
+	{
+		Diff = Props.SpaceSize;
+
+		for( int i = LineSize;; i++ )
+		{
+			Length += Diff;
+
+			if( Length - ( Diff / 2.0f ) > XPosition )
+			{
+				return i;
+			}
+		}
+	}
+
+	return LineSize;
+} // GetCoordinateX
+
+//////////////////////////////////////////////////////////////////////////
+
+TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool AllowPastLine, bool RelativeToEditor )
+{
+	int LineIndex = GetCoordinateY( rFile, Position.y, RelativeToEditor );
+	int XIndex    = GetCoordinateX( rFile, LineIndex, Position.x, AllowPastLine, RelativeToEditor );
+
+	return Coordinate( XIndex, LineIndex );
 
 } // GetCoordinate
 
@@ -1283,7 +1327,7 @@ TextEdit::Coordinate TextEdit::GetCoordinate( File& rFile, ImVec2 Position, bool
 
 TextEdit::Coordinate TextEdit::CalculateTabAlignment( File& rFile, Coordinate FromPosition )
 {
-	return GetCoordinate( rFile, ImVec2( CalculateTabAlignmentDistance( rFile, FromPosition ), FromPosition.y * Props.CharAdvanceY ), true );
+	return GetCoordinate( rFile, ImVec2( CalculateTabAlignmentDistance( rFile, FromPosition ), FromPosition.y * Props.CharAdvanceY ), false, true );
 
 } // CalculateTabAlignment
 
@@ -1774,7 +1818,7 @@ void TextEdit::Tab( File& rFile, bool Shift )
 
 				CurrentDist -= Tab * Fraction;
 
-				Coordinate NewCoord = GetCoordinate( rFile, ImVec2( CurrentDist, rCursor.Position.y * Props.CharAdvanceY ), true );
+				Coordinate NewCoord = GetCoordinate( rFile, ImVec2( CurrentDist, rCursor.Position.y * Props.CharAdvanceY ), false, true );
 
 				rLine.erase( rLine.begin() + rCursor.Position.x, rLine.begin() + NewCoord.x );
 
