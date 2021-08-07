@@ -1508,7 +1508,7 @@ void TextEdit::Enter( File& rFile )
 			rLine.erase( Start, rLine.end() );
 		}
 
-		AdjustCursors( rFile, i, rCursor.Position.x, MoveRemainingTextToNewLine ? -1 : 0 );
+		AdjustCursors( rFile, i, rCursor.Position.x, -1 );
 
 		rCursor.Position.y++;
 		rCursor.Position.x = 0;
