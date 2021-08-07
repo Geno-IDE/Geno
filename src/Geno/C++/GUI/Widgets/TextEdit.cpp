@@ -454,7 +454,7 @@ bool TextEdit::RenderEditor( File& rFile )
 					{
 						Elapsed -= Props.CursorBlink;
 
-						float  CursorPos = GetCursorDistance( rFile, j );
+						float  CursorPos = GetDistance( rFile, rCursor.Position );
 						ImVec2 cStart( Pos.x + CursorPos, Pos.y );
 						ImVec2 cEnd( cStart.x, cStart.y + Props.CharAdvanceY - 1 );
 
@@ -948,14 +948,6 @@ int TextEdit::IsLineSelected( File& rFile, int LineIndex, Coordinate* pStart, Co
 	return Count;
 
 } // IsLineSelected
-
-//////////////////////////////////////////////////////////////////////////
-
-float TextEdit::GetCursorDistance( File& rFile, int CursorIndex ) const
-{
-	return GetDistance( rFile, rFile.Cursors[ CursorIndex ].Position );
-
-} // GetCursorDistance
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -195,7 +195,6 @@ private:
 	bool        HasSelection( File& rFile, int cursor ) const;
 	Cursor*     IsCoordinateInSelection( File& rFile, Coordinate Coordinate, int Offset = 0 );
 	int         IsLineSelected( File& rFile, int line, Coordinate* pStart, Coordinate* pEnd ) const;
-	float       GetCursorDistance( File& rFile, int Cursor ) const;
 	float       GetDistance( File& rFile, Coordinate Position ) const;
 	std::string GetWordAt( File& rFile, Cursor& Cursor ) const;
 	std::string GetWordAt( File& rFile, Coordinate Position, Coordinate* pStart, Coordinate* pEnd ) const;
