@@ -2313,6 +2313,10 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift )
 
 void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
 {
+	if (Props.CursorMultiMode == MultiCursorMode::Box) {
+		Esc(rFile);
+	}
+
 	for( Cursor& rCursor : rFile.Cursors )
 	{
 		if( rCursor.Disabled ) continue;
@@ -2392,6 +2396,10 @@ void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
 
 void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
 {
+	if (Props.CursorMultiMode == MultiCursorMode::Box) {
+		Esc(rFile);
+	}
+
 	for( Cursor& rCursor : rFile.Cursors )
 	{
 		if( rCursor.Disabled ) continue;
