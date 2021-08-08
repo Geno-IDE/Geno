@@ -1857,14 +1857,7 @@ void TextEdit::Del( File& rFile )
 		{
 			for( int CursorIndex : CurInText )
 			{
-				Backspace( rFile, CursorIndex, true );
-			}
-
-			for( int CursorIndex : CurNotInText )
-			{
-				Cursor& rCursor = rFile.Cursors[ CursorIndex ];
-
-				if( rCursor.Position.x != 0 ) rCursor.Position.x--;
+				Del( rFile, CursorIndex, false );
 			}
 		}
 	}
@@ -1872,7 +1865,7 @@ void TextEdit::Del( File& rFile )
 	{
 		for( int i = 0; i < ( int )rFile.Cursors.size(); i++ )
 		{
-			Del( rFile, i, false );
+			Del( rFile, i, true );
 		}
 	}
 
@@ -1880,7 +1873,7 @@ void TextEdit::Del( File& rFile )
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEdit::Del( File& rFile, int CursorIndex )
+void TextEdit::Del( File& rFile, int CursorIndex, bool DeleteLine )
 {
 	Cursor& rCursor = rFile.Cursors[ CursorIndex ];
 
@@ -1894,7 +1887,7 @@ void TextEdit::Del( File& rFile, int CursorIndex )
 	{
 		Line& rLine = rFile.Lines[ rCursor.Position.y ];
 
-		if( rCursor.Position.x >= ( int )rLine.size() )
+		if( rCursor.Position.x >= ( int )rLine.size() && DeleteLine )
 		{
 			if( rCursor.Position.y == ( ( int )rFile.Lines.size() - 1 ) ) return;
 
@@ -1906,10 +1899,14 @@ void TextEdit::Del( File& rFile, int CursorIndex )
 
 			AdjustCursors( rFile, CursorIndex, -rCursor.Position.x, 1 );
 		}
-		else
+		else if( rCursor.Position.x < ( int )rLine.size() )
 		{
 			rLine.erase( rLine.begin() + rCursor.Position.x );
 			AdjustCursors( rFile, CursorIndex, 1, 0 );
+		}
+		else
+		{
+			return;
 		}
 
 		Props.Changes = true;
@@ -2659,7 +2656,7 @@ void TextEdit::Copy( File& rFile, bool Cut )
 		}
 		else if( Cut )
 		{
-			Del( rFile, ( int )i );
+			Del( rFile, ( int )i, true );
 		}
 	}
 
