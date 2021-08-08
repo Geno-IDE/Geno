@@ -436,7 +436,7 @@ bool TextEdit::RenderEditor( File& rFile )
 			{
 				bool Focus = ImGui::IsWindowFocused();
 
-				if( !HasSelection( rFile, j ) )
+				if( !HasSelection( rFile, j ) && Props.CursorMultiMode == MultiCursorMode::Normal )
 				{
 					ImVec2 Start( ScreenCursor.x + Props.LineNumMaxWidth - 2, Pos.y );
 					ImVec2 End( ScreenCursor.x + Size.x, Pos.y + Props.CharAdvanceY );
@@ -2334,17 +2334,19 @@ void TextEdit::MoveUp( File& rFile, bool Shift, bool Alt )
 {
 	if( ( Props.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
+		Cursor& rRefCursor = rFile.Cursors[ 0 ];
+
 		if( Props.CursorMultiMode == MultiCursorMode::Normal )
 		{
 			Esc( rFile );
+		}
 
-			Cursor& rCursor = rFile.Cursors[ 0 ];
-
-			rCursor.SelectionOrigin = rCursor.Position;
+		if( rRefCursor.SelectionOrigin == Coordinate( -1, -1 ) )
+		{
+			rRefCursor.SelectionOrigin = rRefCursor.Position;
 		}
 
 		Props.CursorMultiMode = MultiCursorMode::Box;
-		Cursor& rRefCursor    = rFile.Cursors[ 0 ];
 		Cursor& rCursor       = rFile.Cursors.back();
 		float   XDist         = GetDistance( rFile, rCursor.Position );
 		int     Dir           = rCursor.Position.y - rRefCursor.Position.y;
@@ -2437,17 +2439,19 @@ void TextEdit::MoveDown( File& rFile, bool Shift, bool Alt )
 {
 	if( ( Props.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
+		Cursor& rRefCursor = rFile.Cursors[ 0 ];
+
 		if( Props.CursorMultiMode == MultiCursorMode::Normal )
 		{
 			Esc( rFile );
+		}
 
-			Cursor& rCursor = rFile.Cursors[ 0 ];
-
-			rCursor.SelectionOrigin = rCursor.Position;
+		if( rRefCursor.SelectionOrigin == Coordinate( -1, -1 ) )
+		{
+			rRefCursor.SelectionOrigin = rRefCursor.Position;
 		}
 
 		Props.CursorMultiMode = MultiCursorMode::Box;
-		Cursor& rRefCursor    = rFile.Cursors[ 0 ];
 		Cursor& rCursor       = rFile.Cursors.back();
 		float   XDist         = GetDistance( rFile, rCursor.Position );
 		int     Dir           = rCursor.Position.y - rRefCursor.Position.y;
@@ -2540,12 +2544,15 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift, bool Alt )
 {
 	if( ( Props.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
+		Cursor& rCursor = rFile.Cursors[ 0 ];
+
 		if( Props.CursorMultiMode == MultiCursorMode::Normal )
 		{
 			Esc( rFile );
+		}
 
-			Cursor& rCursor = rFile.Cursors[ 0 ];
-
+		if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) )
+		{
 			rCursor.SelectionOrigin = rCursor.Position;
 		}
 
@@ -2673,12 +2680,15 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift, bool Alt )
 {
 	if( ( Props.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
+		Cursor& rCursor = rFile.Cursors[ 0 ];
+
 		if( Props.CursorMultiMode == MultiCursorMode::Normal )
 		{
 			Esc( rFile );
+		}
 
-			Cursor& rCursor = rFile.Cursors[ 0 ];
-
+		if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) )
+		{
 			rCursor.SelectionOrigin = rCursor.Position;
 		}
 
