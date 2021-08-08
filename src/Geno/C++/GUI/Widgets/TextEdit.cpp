@@ -614,7 +614,7 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 			SwapLines( rFile, true );
 		else if( Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
 			SwapLines( rFile, false );
-		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Insert ) ) )
+		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Insert ) ) && Props.CursorMultiMode == MultiCursorMode::Normal )
 			Props.CursorMode = Props.CursorMode == CursorInputMode::Normal ? CursorInputMode::Insert : CursorInputMode::Normal;
 
 		for( int i = 0; i < rIO.InputQueueCharacters.Size; i++ )
@@ -731,7 +731,13 @@ void TextEdit::HandleMouseInputs( File& rFile )
 				rFile.Cursors.push_back( NewCursor );
 
 				Props.CursorBlink     = 0;
-				Props.CursorMultiMode = ( Alt && !Ctrl ) ? MultiCursorMode::Box : MultiCursorMode::Normal;
+				Props.CursorMultiMode = MultiCursorMode::Normal;
+
+				if( Alt && !Ctrl )
+				{
+					Props.CursorMultiMode = MultiCursorMode::Box;
+					Props.CursorMode      = CursorInputMode::Normal;
+				}
 			}
 		}
 		else if( Dragged )
