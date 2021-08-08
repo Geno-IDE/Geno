@@ -2481,13 +2481,35 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift )
 {
 	if( Props.CursorMultiMode == MultiCursorMode::Box && Shift )
 	{
-		Cursor& rCursor = rFile.Cursors.back();
+		Coordinate Coord = rFile.Cursors.back().Position;
 
-		rCursor.Position.x += 1;
+		if( Ctrl )
+		{
+			if( Coord.x == ( int )rFile.Lines[ Coord.y ].size() )
+			{
+				if( Coord.y < ( int )rFile.Lines.size() - 1 )
+				{
+					Coord.x = 0;
+					Coord.y++;
+				}
+			}
 
-		float XDist = GetDistance( rFile, rCursor.Position );
+			Coordinate Start;
+			Coordinate End;
+			GetWordAt( rFile, Coord, &Start, &End );
 
-		SetBoxSelection( rFile, rCursor.Position.y, XDist );
+			if( Coord.x == End.x ) Coord.x++;
+			else
+				Coord.x = End.x;
+		}
+		else
+		{
+			Coord.x += 1;
+		}
+
+		float XDist = GetDistance( rFile, Coord );
+
+		SetBoxSelection( rFile, Coord.y, XDist );
 	}
 	else
 	{
@@ -2582,15 +2604,45 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift )
 {
 	if( Props.CursorMultiMode == MultiCursorMode::Box && Shift )
 	{
-		Cursor& rCursor = rFile.Cursors.back();
+		Coordinate Coord = rFile.Cursors.back().Position;
 
-		if( rCursor.Position.x == 0 ) return;
+		if( Coord.x == 0 && Coord.y == 0 ) return;
 
-		rCursor.Position.x -= 1;
+		if( Ctrl )
+		{
+			if( Coord.x == 0 )
+			{
+				Coord.y--;
+				Coord.x = ( int )rFile.Lines[ Coord.y ].size();
+			}
 
-		float XDist = GetDistance( rFile, rCursor.Position );
+			Coordinate Start;
+			Coordinate End;
+			GetWordAt( rFile, Coord, &Start, &End );
 
-		SetBoxSelection( rFile, rCursor.Position.y, XDist );
+			if( Coord.x == Start.x )
+			{
+				if( Coord.x != 0 )
+				{
+					Coord.x--;
+					GetWordAt( rFile, Coord, &Start, &End );
+
+					Coord.x = Start.x;
+				}
+			}
+			else
+			{
+				Coord.x = Start.x;
+			}
+		}
+		else
+		{
+			Coord.x -= 1;
+		}
+
+		float XDist = GetDistance( rFile, Coord );
+
+		SetBoxSelection( rFile, Coord.y, XDist );
 	}
 	else
 	{
