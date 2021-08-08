@@ -731,7 +731,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 				rFile.Cursors.push_back( NewCursor );
 
 				Props.CursorBlink     = 0;
-				Props.CursorMultiMode = Alt ? MultiCursorMode::Box : MultiCursorMode::Normal;
+				Props.CursorMultiMode = ( Alt && !Ctrl ) ? MultiCursorMode::Box : MultiCursorMode::Normal;
 			}
 		}
 		else if( Dragged )
