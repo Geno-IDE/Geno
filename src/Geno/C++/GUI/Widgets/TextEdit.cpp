@@ -1494,6 +1494,8 @@ void TextEdit::Enter( File& rFile )
 
 		if( rCursor.Disabled ) continue;
 
+		DeleteSelection( rFile, i );
+
 		auto& rLines = rFile.Lines;
 
 		Line  NewLine;
