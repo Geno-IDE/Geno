@@ -2291,11 +2291,34 @@ void TextEdit::EnterTextStuff( File& rFile, char C )
 
 void TextEdit::MoveUp( File& rFile, bool Shift )
 {
-	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	if( Props.CursorMultiMode == MultiCursorMode::Box && Shift )
 	{
+		Cursor& rRefCursor = rFile.Cursors[ 0 ];
+		Cursor& rCursor    = rFile.Cursors.back();
+		float   XDist      = GetDistance( rFile, rCursor.Position );
+		int     Dir        = rCursor.Position.y - rRefCursor.Position.y;
+		int     Line       = -1;
+
+		if( Dir != 0 )
+		{
+			Line = rCursor.Position.y - 1;
+		}
+		else
+		{
+			Line = rRefCursor.Position.y - 1;
+		}
+
+		if( Line < 0 ) return;
+
+		SetBoxSelection( rFile, Line, XDist );
 	}
 	else
 	{
+		if( Props.CursorMultiMode == MultiCursorMode::Box )
+		{
+			Esc( rFile );
+		}
+
 		for( Cursor& rCursor : rFile.Cursors )
 		{
 			if( rCursor.Position.y == 0 ) continue;
@@ -2361,59 +2384,89 @@ void TextEdit::MoveUp( File& rFile, bool Shift )
 
 void TextEdit::MoveDown( File& rFile, bool Shift )
 {
-	for( Cursor& rCursor : rFile.Cursors )
+	if( Props.CursorMultiMode == MultiCursorMode::Box && Shift )
 	{
-		if( rCursor.Position.y == ( int )rFile.Lines.size() - 1 ) continue;
+		Cursor& rRefCursor = rFile.Cursors[ 0 ];
+		Cursor& rCursor    = rFile.Cursors.back();
+		float   XDist      = GetDistance( rFile, rCursor.Position );
+		int     Dir        = rCursor.Position.y - rRefCursor.Position.y;
+		int     Line       = -1;
 
-		if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) && Shift )
+		if( Dir != 0 )
 		{
-			rCursor.SelectionStart = rCursor.SelectionOrigin = rCursor.Position;
+			Line = rCursor.Position.y + 1;
+		}
+		else
+		{
+			Line = rRefCursor.Position.y + 1;
 		}
 
-		rCursor.Position.y++;
+		if( Line >= ( int )rFile.Lines.size() ) return;
 
-		Line& rLine = rFile.Lines[ rCursor.Position.y ];
-
-		if( rCursor.Position.x > ( int )rLine.size() ) rCursor.Position.x = ( int )rLine.size();
-
-		if( Shift )
+		SetBoxSelection( rFile, Line, XDist );
+	}
+	else
+	{
+		if( Props.CursorMultiMode == MultiCursorMode::Box )
 		{
-			if( rCursor.Position < rCursor.SelectionOrigin )
+			Esc( rFile );
+		}
+
+		for( Cursor& rCursor : rFile.Cursors )
+		{
+			if( rCursor.Position.y == ( int )rFile.Lines.size() - 1 ) continue;
+
+			if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) && Shift )
 			{
-				rCursor.SelectionStart = rCursor.Position;
-				rCursor.SelectionEnd   = rCursor.SelectionOrigin;
-			}
-			else
-			{
-				rCursor.SelectionEnd   = rCursor.Position;
-				rCursor.SelectionStart = rCursor.SelectionOrigin;
+				rCursor.SelectionStart = rCursor.SelectionOrigin = rCursor.Position;
 			}
 
-			Cursor* pChamp = &rCursor;
-			int     Offset = 0;
+			rCursor.Position.y++;
 
-			while( Cursor* pOther = IsCoordinateInSelection( rFile, pChamp->Position, Offset ) )
+			Line& rLine = rFile.Lines[ rCursor.Position.y ];
+
+			if( rCursor.Position.x > ( int )rLine.size() ) rCursor.Position.x = ( int )rLine.size();
+
+			if( Shift )
 			{
-				if( pOther == pChamp )
+				if( rCursor.Position < rCursor.SelectionOrigin )
 				{
-					Offset++;
-					continue;
+					rCursor.SelectionStart = rCursor.Position;
+					rCursor.SelectionEnd   = rCursor.SelectionOrigin;
 				}
-				pOther->SelectionStart = pOther->SelectionOrigin = pChamp->SelectionStart;
+				else
+				{
+					rCursor.SelectionEnd   = rCursor.Position;
+					rCursor.SelectionStart = rCursor.SelectionOrigin;
+				}
 
-				pChamp->Disabled = true;
-				pChamp           = pOther;
+				Cursor* pChamp = &rCursor;
+				int     Offset = 0;
+
+				while( Cursor* pOther = IsCoordinateInSelection( rFile, pChamp->Position, Offset ) )
+				{
+					if( pOther == pChamp )
+					{
+						Offset++;
+						continue;
+					}
+					pOther->SelectionStart = pOther->SelectionOrigin = pChamp->SelectionStart;
+
+					pChamp->Disabled = true;
+					pChamp           = pOther;
+				}
+
+				continue;
 			}
 
-			continue;
+			rCursor.SelectionStart = rCursor.SelectionEnd = { 0, 0 };
+			rCursor.SelectionOrigin                       = { -1, -1 };
 		}
 
-		rCursor.SelectionStart = rCursor.SelectionEnd = { 0, 0 };
-		rCursor.SelectionOrigin                       = { -1, -1 };
+		DeleteDisabledCursor( rFile );
+		YeetDuplicateCursors( rFile );
 	}
 
-	DeleteDisabledCursor( rFile );
-	YeetDuplicateCursors( rFile );
 	ScrollToCursor( rFile );
 
 	Props.CursorBlink = 0;
@@ -2424,78 +2477,97 @@ void TextEdit::MoveDown( File& rFile, bool Shift )
 
 void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift )
 {
-	for( Cursor& rCursor : rFile.Cursors )
+	if( Props.CursorMultiMode == MultiCursorMode::Box && Shift )
 	{
-		if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) && Shift )
+		Cursor& rCursor = rFile.Cursors.back();
+
+		rCursor.Position.x += 1;
+
+		float XDist = GetDistance( rFile, rCursor.Position );
+
+		SetBoxSelection( rFile, rCursor.Position.y, XDist );
+	}
+	else
+	{
+		if( Props.CursorMultiMode == MultiCursorMode::Box )
 		{
-			rCursor.SelectionStart = rCursor.SelectionOrigin = rCursor.Position;
+			Esc( rFile );
 		}
 
-		Line& rLine = rFile.Lines[ rCursor.Position.y ];
-
-		if( rCursor.Position.x == ( int )rLine.size() )
+		for( Cursor& rCursor : rFile.Cursors )
 		{
-			if( rCursor.Position.y == ( int )rFile.Lines.size() - 1 ) continue;
-
-			rCursor.Position.x = 0;
-			rCursor.Position.y++;
-			Ctrl = false;
-		}
-		else if( !Ctrl )
-		{
-			rCursor.Position.x++;
-		}
-
-		if( Ctrl )
-		{
-			Coordinate Start;
-			Coordinate End;
-			GetWordAt( rFile, rCursor.Position, &Start, &End );
-
-			if( rCursor.Position.x == End.x ) rCursor.Position.x++;
-			else
-				rCursor.Position.x = End.x;
-		}
-
-		if( Shift )
-		{
-			if( rCursor.Position > rCursor.SelectionOrigin )
+			if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) && Shift )
 			{
-				rCursor.SelectionStart = rCursor.SelectionOrigin;
-				rCursor.SelectionEnd   = rCursor.Position;
-			}
-			else
-			{
-				rCursor.SelectionEnd   = rCursor.SelectionOrigin;
-				rCursor.SelectionStart = rCursor.Position;
+				rCursor.SelectionStart = rCursor.SelectionOrigin = rCursor.Position;
 			}
 
-			Cursor* pChamp = &rCursor;
-			int     Offset = 0;
+			Line& rLine = rFile.Lines[ rCursor.Position.y ];
 
-			while( Cursor* pOther = IsCoordinateInSelection( rFile, pChamp->Position, Offset ) )
+			if( rCursor.Position.x == ( int )rLine.size() )
 			{
-				if( pOther == pChamp )
+				if( rCursor.Position.y == ( int )rFile.Lines.size() - 1 ) continue;
+
+				rCursor.Position.x = 0;
+				rCursor.Position.y++;
+				Ctrl = false;
+			}
+			else if( !Ctrl )
+			{
+				rCursor.Position.x++;
+			}
+
+			if( Ctrl )
+			{
+				Coordinate Start;
+				Coordinate End;
+				GetWordAt( rFile, rCursor.Position, &Start, &End );
+
+				if( rCursor.Position.x == End.x ) rCursor.Position.x++;
+				else
+					rCursor.Position.x = End.x;
+			}
+
+			if( Shift )
+			{
+				if( rCursor.Position > rCursor.SelectionOrigin )
 				{
-					Offset++;
-					continue;
+					rCursor.SelectionStart = rCursor.SelectionOrigin;
+					rCursor.SelectionEnd   = rCursor.Position;
+				}
+				else
+				{
+					rCursor.SelectionEnd   = rCursor.SelectionOrigin;
+					rCursor.SelectionStart = rCursor.Position;
 				}
 
-				pOther->SelectionStart = pOther->SelectionOrigin = pChamp->SelectionStart;
+				Cursor* pChamp = &rCursor;
+				int     Offset = 0;
 
-				pChamp->Disabled = true;
-				pChamp           = pOther;
+				while( Cursor* pOther = IsCoordinateInSelection( rFile, pChamp->Position, Offset ) )
+				{
+					if( pOther == pChamp )
+					{
+						Offset++;
+						continue;
+					}
+
+					pOther->SelectionStart = pOther->SelectionOrigin = pChamp->SelectionStart;
+
+					pChamp->Disabled = true;
+					pChamp           = pOther;
+				}
+
+				continue;
 			}
 
-			continue;
+			rCursor.SelectionStart = rCursor.SelectionEnd = { 0, 0 };
+			rCursor.SelectionOrigin                       = { -1, -1 };
 		}
 
-		rCursor.SelectionStart = rCursor.SelectionEnd = { 0, 0 };
-		rCursor.SelectionOrigin                       = { -1, -1 };
+		DeleteDisabledCursor( rFile );
+		YeetDuplicateCursors( rFile );
 	}
 
-	DeleteDisabledCursor( rFile );
-	YeetDuplicateCursors( rFile );
 	ScrollToCursor( rFile );
 
 	Props.CursorBlink = 0;
@@ -2506,86 +2578,107 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift )
 
 void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift )
 {
-	for( Cursor& rCursor : rFile.Cursors )
+	if( Props.CursorMultiMode == MultiCursorMode::Box && Shift )
 	{
-		if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) && Shift )
+		Cursor& rCursor = rFile.Cursors.back();
+
+		if( rCursor.Position.x == 0 ) return;
+
+		rCursor.Position.x -= 1;
+
+		float XDist = GetDistance( rFile, rCursor.Position );
+
+		SetBoxSelection( rFile, rCursor.Position.y, XDist );
+	}
+	else
+	{
+		if( Props.CursorMultiMode == MultiCursorMode::Box )
 		{
-			rCursor.SelectionEnd = rCursor.SelectionOrigin = rCursor.Position;
+			Esc( rFile );
 		}
 
-		int LineSize = -1;
-
-		if( rCursor.Position.x == 0 && rCursor.Position.y != 0 )
+		for( Cursor& rCursor : rFile.Cursors )
 		{
-			Line& rLine        = rFile.Lines[ --rCursor.Position.y ];
-			rCursor.Position.x = LineSize = ( int )rLine.size();
-		}
-		else if( !Ctrl )
-		{
-			rCursor.Position.x--;
-		}
-
-		if( Ctrl && LineSize == -1 )
-		{
-			Coordinate Start;
-			Coordinate End;
-			GetWordAt( rFile, rCursor.Position, &Start, &End );
-
-			if( rCursor.Position.x == Start.x )
+			if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) && Shift )
 			{
-				if( rCursor.Position.x != 0 )
-				{
-					rCursor.Position.x--;
-					GetWordAt( rFile, rCursor.Position, &Start, &End );
+				rCursor.SelectionEnd = rCursor.SelectionOrigin = rCursor.Position;
+			}
 
+			int LineSize = -1;
+
+			if( rCursor.Position.x == 0 && rCursor.Position.y != 0 )
+			{
+				Line& rLine        = rFile.Lines[ --rCursor.Position.y ];
+				rCursor.Position.x = LineSize = ( int )rLine.size();
+			}
+			else if( !Ctrl )
+			{
+				rCursor.Position.x--;
+			}
+
+			if( Ctrl && LineSize == -1 )
+			{
+				Coordinate Start;
+				Coordinate End;
+				GetWordAt( rFile, rCursor.Position, &Start, &End );
+
+				if( rCursor.Position.x == Start.x )
+				{
+					if( rCursor.Position.x != 0 )
+					{
+						rCursor.Position.x--;
+						GetWordAt( rFile, rCursor.Position, &Start, &End );
+
+						rCursor.Position.x = Start.x;
+					}
+				}
+				else
+				{
 					rCursor.Position.x = Start.x;
 				}
 			}
-			else
-			{
-				rCursor.Position.x = Start.x;
-			}
-		}
 
-		if( Shift )
-		{
-			if( rCursor.Position > rCursor.SelectionOrigin )
+			if( Shift )
 			{
-				rCursor.SelectionStart = rCursor.SelectionOrigin;
-				rCursor.SelectionEnd   = rCursor.Position;
-			}
-			else
-			{
-				rCursor.SelectionEnd   = rCursor.SelectionOrigin;
-				rCursor.SelectionStart = rCursor.Position;
-			}
-
-			Cursor* pChamp = &rCursor;
-			int     Offset = 0;
-
-			while( Cursor* pOther = IsCoordinateInSelection( rFile, pChamp->Position, Offset ) )
-			{
-				if( pOther == pChamp )
+				if( rCursor.Position > rCursor.SelectionOrigin )
 				{
-					Offset++;
-					continue;
+					rCursor.SelectionStart = rCursor.SelectionOrigin;
+					rCursor.SelectionEnd   = rCursor.Position;
+				}
+				else
+				{
+					rCursor.SelectionEnd   = rCursor.SelectionOrigin;
+					rCursor.SelectionStart = rCursor.Position;
 				}
 
-				pOther->SelectionEnd = pOther->SelectionOrigin = pChamp->SelectionEnd;
+				Cursor* pChamp = &rCursor;
+				int     Offset = 0;
 
-				pChamp->Disabled = true;
-				pChamp           = pOther;
+				while( Cursor* pOther = IsCoordinateInSelection( rFile, pChamp->Position, Offset ) )
+				{
+					if( pOther == pChamp )
+					{
+						Offset++;
+						continue;
+					}
+
+					pOther->SelectionEnd = pOther->SelectionOrigin = pChamp->SelectionEnd;
+
+					pChamp->Disabled = true;
+					pChamp           = pOther;
+				}
+
+				continue;
 			}
 
-			continue;
+			rCursor.SelectionStart = rCursor.SelectionEnd = { 0, 0 };
+			rCursor.SelectionOrigin                       = { -1, -1 };
 		}
 
-		rCursor.SelectionStart = rCursor.SelectionEnd = { 0, 0 };
-		rCursor.SelectionOrigin                       = { -1, -1 };
+		DeleteDisabledCursor( rFile );
+		YeetDuplicateCursors( rFile );
 	}
 
-	DeleteDisabledCursor( rFile );
-	YeetDuplicateCursors( rFile );
 	ScrollToCursor( rFile );
 
 	Props.CursorBlink = 0;
