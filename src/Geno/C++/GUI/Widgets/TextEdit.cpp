@@ -252,7 +252,8 @@ void TextEdit::OnDragDrop( const Drop& rDrop, int X, int Y )
 
 			default:
 			{
-			} break;
+			}
+			break;
 		}
 	}
 
@@ -2331,8 +2332,9 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift )
 
 void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
 {
-	if (Props.CursorMultiMode == MultiCursorMode::Box) {
-		Esc(rFile);
+	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	{
+		Esc( rFile );
 	}
 
 	for( Cursor& rCursor : rFile.Cursors )
@@ -2414,8 +2416,9 @@ void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
 
 void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
 {
-	if (Props.CursorMultiMode == MultiCursorMode::Box) {
-		Esc(rFile);
+	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	{
+		Esc( rFile );
 	}
 
 	for( Cursor& rCursor : rFile.Cursors )
