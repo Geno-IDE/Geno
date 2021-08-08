@@ -1675,6 +1675,7 @@ void TextEdit::DeleteSelection( File& rFile, int CursorIndex )
 void TextEdit::Enter( File& rFile )
 {
 	Props.Changes = true;
+	Props.CursorMultiMode = MultiCursorMode::Normal;
 
 	for( int i = 0; i < ( int )rFile.Cursors.size(); ++i )
 	{
@@ -1687,7 +1688,7 @@ void TextEdit::Enter( File& rFile )
 		Line  NewLine;
 		Line& rLine = rLines[ rCursor.Position.y ];
 
-		bool MoveRemainingTextToNewLine = rCursor.Position.x != ( int )rLine.size();
+		bool MoveRemainingTextToNewLine = rCursor.Position.x < ( int )rLine.size();
 
 		if( MoveRemainingTextToNewLine )
 		{
