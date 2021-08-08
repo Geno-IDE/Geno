@@ -1601,7 +1601,20 @@ void TextEdit::DeleteSelection( File& rFile, int CursorIndex )
 
 		if( rCursor.SelectionEnd.y == rCursor.SelectionStart.y )
 		{
-			rLine.erase( rLine.begin() + rCursor.SelectionStart.x, rLine.begin() + rCursor.SelectionEnd.x );
+			int End        = rCursor.SelectionEnd.x;
+			int Start      = rCursor.SelectionStart.x;
+			int LineLength = ( int )rLine.size();
+
+			if( Start > LineLength )
+			{
+				return;
+			}
+			else if( End > LineLength )
+			{
+				End = LineLength;
+			}
+
+			rLine.erase( rLine.begin() + Start, rLine.begin() + End );
 
 			XOffset = rCursor.SelectionEnd.x - rCursor.SelectionStart.x;
 		}
