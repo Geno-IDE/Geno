@@ -196,7 +196,8 @@ private:
 	bool               RenderEditor( File& rFile );
 	void               HandleKeyboardInputs( File& rFile );
 	void               HandleMouseInputs( File& rFile );
-	void               SetBoxSelection( File& rFile, int LineIndex, ImVec2 Position );
+	ImVec2             ConvertToEditorPosition( ImVec2 Position );
+	void               SetBoxSelection( File& rFile, int LineIndex, float XPosition );
 	void               ScrollToCursor( File& rFile );
 	void               CheckLineLengths( File& rFile, int FirstLine, int LastLine );
 	void               CalculeteLineNumMaxWidth( File& rFile );
@@ -211,9 +212,9 @@ private:
 	void               AdjustCursor( Cursor& Cursor, int XOffset );
 	void               SetSelectionLine( File& rFile, int Line );
 	void               SetSelection( File& rFile, Coordinate Start, Coordinate End, int Cursor );
-	int                GetCoordinateY( File& rFile, float YPosition, bool RelativeToEditor = false );
-	int                GetCoordinateX( File& rFile, int LineIndex, float XPosition, bool AllowPastLine = false, bool RelativeToEditor = false );
-	Coordinate         GetCoordinate( File& rFile, ImVec2 Position, bool AllowPastLine = false, bool RelativeToEditor = false );
+	int                GetCoordinateY( File& rFile, float YPosition );
+	int                GetCoordinateX( File& rFile, int LineIndex, float XPosition, bool AllowPastLine = false );
+	Coordinate         GetCoordinate( File& rFile, ImVec2 Position, bool AllowPastLine = false );
 	Coordinate         CalculateTabAlignment( File& rFile, Coordinate FromPosition );
 	float              CalculateTabAlignmentDistance( File& rFile, Coordinate FromPosition );
 	void               AdjustCursors( File& rFile, int Cursor, int XOffset, int YOffset );
