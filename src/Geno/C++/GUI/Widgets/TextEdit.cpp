@@ -2305,9 +2305,6 @@ void TextEdit::EnterTextStuff( File& rFile, char C, int CursorIndex )
 
 	Line& rLine = rFile.Lines[ rCursor.Position.y ];
 
-	rCursor.Position.x++;
-	rCursor.SelectionOrigin = Coordinate( -1, -1 );
-
 	bool EndOfLine = rCursor.Position.x >= ( int )rLine.size();
 
 	if( EndOfLine )
@@ -2316,14 +2313,16 @@ void TextEdit::EnterTextStuff( File& rFile, char C, int CursorIndex )
 	}
 	else if( Props.CursorMode == CursorInputMode::Insert )
 	{
-		rLine[ rCursor.Position.x - 1 ].C = C;
+		rLine[ rCursor.Position.x ].C = C;
 	}
 	else
 	{
-		rLine.insert( rLine.begin() + rCursor.Position.x - 1, Glyph( C, m_Palette.Default ) );
+		rLine.insert( rLine.begin() + rCursor.Position.x, Glyph( C, m_Palette.Default ) );
 
 		AdjustCursors( rFile, CursorIndex, -1, 0 );
 	}
+
+	rCursor.Position.x++;
 
 	ScrollToCursor( rFile );
 
