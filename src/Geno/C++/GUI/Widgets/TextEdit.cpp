@@ -1919,106 +1919,266 @@ void TextEdit::Del( File& rFile, int CursorIndex, bool DeleteLine )
 
 void TextEdit::Tab( File& rFile, bool Shift )
 {
-	for( int i = 0; i < ( int )rFile.Cursors.size(); i++ )
+	if( Props.CursorMultiMode == MultiCursorMode::Box )
 	{
-		Cursor& rCursor = rFile.Cursors[ i ];
+		std::vector< int > CurInText    = CursorsInText( rFile );
+		std::vector< int > CurNotInText = CursorsNotInText( rFile );
 
-		if( rCursor.Disabled ) continue;
-
-		bool Selection = HasSelection( rFile, i );
-
-		if( Shift )
+		if( ( int )CurInText.size() == 0 )
 		{
-			if( Selection && rCursor.SelectionStart.y != rCursor.SelectionEnd.y )
+			if( Shift )
 			{
-				for( int j = rCursor.SelectionStart.y; j <= rCursor.SelectionEnd.y; j++ )
+				for( Cursor& rCursor : rFile.Cursors )
 				{
-					Line& rLine = rFile.Lines[ j ];
+					rCursor.Position.x -= ( int )TabSize;
 
-					if( rLine.empty() ) continue;
-
-					Coordinate Start;
-					Coordinate End;
-
-					std::string Word = GetWordAt( rFile, Coordinate( 0, j ), &Start, &End );
-
-					if( Word.empty() ) continue;
-					if( Word[ 0 ] != ' ' && Word[ 0 ] != '\t' ) continue;
-
-					Coordinate NewCoord = CalculateTabAlignment( rFile, End );
-
-					if( NewCoord == End ) NewCoord.x--;
-
-					if( Start.x > NewCoord.x ) NewCoord.x = Start.x;
-
-					rLine.erase( rLine.begin() + NewCoord.x, rLine.begin() + End.x );
-
-					AdjustCursorIfInText( rFile, rCursor, j, NewCoord.x - End.x );
+					if( rCursor.SelectionOrigin != Coordinate( -1, -1 ) )
+					{
+						rCursor.SelectionOrigin.x -= ( int )TabSize;
+						rCursor.SelectionStart.x -= ( int )TabSize;
+						rCursor.SelectionEnd.x -= ( int )TabSize;
+					}
 				}
 
-				Props.Changes = true;
+				bool InText = CursorsInText( rFile ).size() != 0;
 
-				continue;
-			}
-
-			Coordinate Pos = Selection ? rCursor.SelectionStart : rCursor.Position;
-
-			if( Pos.x == 0 ) continue;
-
-			Line& rLine = rFile.Lines[ rCursor.Position.y ];
-
-			char Chr = rLine[ Pos.x - 1 ].C;
-
-			if( Chr != ' ' && Chr != '\t' ) continue;
-
-			Coordinate Start;
-			Coordinate End;
-
-			GetWordAt( rFile, Coordinate( Pos.x - 1, Pos.y ), &Start, &End );
-
-			if( End != Pos )
-			{
-				if( End > Pos )
+				if( InText )
 				{
-					End = Pos;
-				}
-				else
-				{
-					Start = End;
-					End   = Pos;
+					do
+					{
+						for( Cursor& rCursor : rFile.Cursors )
+						{
+							rCursor.Position.x += 1;
+
+							if( rCursor.SelectionOrigin != Coordinate( -1, -1 ) )
+							{
+								rCursor.SelectionOrigin.x += 1;
+								rCursor.SelectionStart.x += 1;
+								rCursor.SelectionEnd.x += 1;
+							}
+						}
+
+						InText = CursorsInText( rFile ).size() != 0;
+					}
+					while( InText );
+
+					for( Cursor& rCursor : rFile.Cursors )
+					{
+						rCursor.Position.x -= 1;
+
+						if( rCursor.SelectionOrigin != Coordinate( -1, -1 ) )
+						{
+							rCursor.SelectionOrigin.x -= 1;
+							rCursor.SelectionStart.x -= 1;
+							rCursor.SelectionEnd.x -= 1;
+						}
+					}
 				}
 			}
-
-			Coordinate NewCoord = CalculateTabAlignment( rFile, End );
-
-			if( NewCoord == End ) NewCoord.x--;
-
-			if( Start.x > NewCoord.x ) NewCoord.x = Start.x;
-
-			rLine.erase( rLine.begin() + NewCoord.x, rLine.begin() + End.x );
-
-			int Offset = End.x - NewCoord.x;
-
-			rCursor.Position.x -= Offset;
-
-			if( Selection )
+			else
 			{
-				rCursor.SelectionOrigin.x -= Offset;
-				rCursor.SelectionStart.x -= Offset;
-				rCursor.SelectionEnd.x -= Offset;
+				for( Cursor& rCursor : rFile.Cursors )
+				{
+					rCursor.Position.x += ( int )TabSize;
+
+					if( rCursor.SelectionOrigin != Coordinate( -1, -1 ) )
+					{
+						rCursor.SelectionOrigin.x += ( int )TabSize;
+						rCursor.SelectionStart.x += ( int )TabSize;
+						rCursor.SelectionEnd.x += ( int )TabSize;
+					}
+				}
 			}
-
-			AdjustCursors( rFile, i, Offset, 0 );
-
-			Props.Changes = true;
 		}
 		else
 		{
-			if( HasSelection( rFile, i ) )
+			bool AllWhitespace = true;
+
+			if( Shift )
+			{
+				for( int CursorIndex : CurInText )
+				{
+					bool Selection = HasSelection( rFile, CursorIndex );
+
+					Coordinate Pos = Selection ? rFile.Cursors[ CursorIndex ].SelectionStart : rFile.Cursors[ CursorIndex ].Position;
+
+					if( Pos.x == 0 )
+					{
+						AllWhitespace = false;
+						break;
+					}
+
+					char Whitespace = rFile.Lines[ Pos.y ][ Pos.x - 1 ].C;
+
+					if( Whitespace != ' ' && Whitespace != '\t' )
+					{
+						AllWhitespace = false;
+						break;
+					}
+				}
+			}
+
+			if( AllWhitespace )
+			{
+				for( int CursorIndex : CurInText )
+				{
+					Tab( rFile, Shift, CursorIndex );
+				}
+
+				bool Selection = HasSelection( rFile, CurInText[ 0 ] );
+
+				Coordinate Pos = Selection ? rFile.Cursors[ CurInText[ 0 ] ].SelectionStart : rFile.Cursors[ CurInText[ 0 ] ].Position;
+
+				float XDist = GetDistance( rFile, Pos );
+
+				for( int CursorIndex : CurNotInText )
+				{
+					Cursor& rCursor = rFile.Cursors[ CursorIndex ];
+
+					int NewX = GetCoordinateX( rFile, rCursor.Position.y, XDist, true, true );
+					int Diff = NewX - ( Selection ? rCursor.SelectionStart.x : rCursor.Position.x );
+
+					rCursor.Position.x += Diff;
+
+					if( Selection )
+					{
+						rCursor.SelectionStart.x += Diff;
+						rCursor.SelectionEnd.x += Diff;
+						rCursor.SelectionOrigin.x += Diff;
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		for( int i = 0; i < ( int )rFile.Cursors.size(); i++ )
+		{
+			Tab( rFile, Shift, i );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::Tab( File& rFile, bool Shift, int CursorIndex )
+{
+	Cursor& rCursor = rFile.Cursors[ CursorIndex ];
+
+	if( rCursor.Disabled ) return;
+
+	bool Selection = HasSelection( rFile, CursorIndex );
+
+	if( Shift )
+	{
+		if( Selection && rCursor.SelectionStart.y != rCursor.SelectionEnd.y )
+		{
+			for( int j = rCursor.SelectionStart.y; j <= rCursor.SelectionEnd.y; j++ )
+			{
+				Line& rLine = rFile.Lines[ j ];
+
+				if( rLine.empty() ) continue;
+
+				Coordinate Start;
+				Coordinate End;
+
+				std::string Word = GetWordAt( rFile, Coordinate( 0, j ), &Start, &End );
+
+				if( Word.empty() ) continue;
+				if( Word[ 0 ] != ' ' && Word[ 0 ] != '\t' ) continue;
+
+				Coordinate NewCoord = CalculateTabAlignment( rFile, End );
+
+				if( NewCoord == End ) NewCoord.x--;
+
+				if( Start.x > NewCoord.x ) NewCoord.x = Start.x;
+
+				rLine.erase( rLine.begin() + NewCoord.x, rLine.begin() + End.x );
+
+				AdjustCursorIfInText( rFile, rCursor, j, NewCoord.x - End.x );
+			}
+
+			Props.Changes = true;
+
+			return;
+		}
+
+		Coordinate Pos = Selection ? rCursor.SelectionStart : rCursor.Position;
+
+		if( Pos.x == 0 ) return;
+
+		Line& rLine = rFile.Lines[ rCursor.Position.y ];
+
+		char Chr = rLine[ Pos.x - 1 ].C;
+
+		if( Chr != ' ' && Chr != '\t' ) return;
+
+		Coordinate Start;
+		Coordinate End;
+
+		GetWordAt( rFile, Coordinate( Pos.x - 1, Pos.y ), &Start, &End );
+
+		if( End != Pos )
+		{
+			if( End > Pos )
+			{
+				End = Pos;
+			}
+			else
+			{
+				Start = End;
+				End   = Pos;
+			}
+		}
+
+		Coordinate NewCoord = CalculateTabAlignment( rFile, End );
+
+		if( NewCoord == End ) NewCoord.x--;
+
+		if( Start.x > NewCoord.x ) NewCoord.x = Start.x;
+
+		rLine.erase( rLine.begin() + NewCoord.x, rLine.begin() + End.x );
+
+		int Offset = End.x - NewCoord.x;
+
+		rCursor.Position.x -= Offset;
+
+		if( Selection )
+		{
+			rCursor.SelectionOrigin.x -= Offset;
+			rCursor.SelectionStart.x -= Offset;
+			rCursor.SelectionEnd.x -= Offset;
+		}
+
+		AdjustCursors( rFile, CursorIndex, Offset, 0 );
+
+		Props.Changes = true;
+	}
+	else
+	{
+		if( Props.CursorMultiMode == MultiCursorMode::Box )
+		{
+			Coordinate Pos   = Selection ? rCursor.SelectionStart : rCursor.Position;
+			Line&      rLine = rFile.Lines[ Pos.y ];
+
+			rLine.insert( rLine.begin() + Pos.x, Glyph( '\t', m_Palette.Default ) );
+
+			rCursor.Position.x += 1;
+
+			if( Selection )
+			{
+				rCursor.SelectionStart.x += 1;
+				rCursor.SelectionEnd.x += 1;
+				rCursor.SelectionOrigin.x += 1;
+			}
+		}
+		else
+		{
+			if( HasSelection( rFile, CursorIndex ) )
 			{
 				if( rCursor.SelectionStart.y == rCursor.SelectionEnd.y )
 				{
-					DeleteSelection( rFile, i );
+					DeleteSelection( rFile, CursorIndex );
 				}
 				else
 				{
@@ -2033,7 +2193,7 @@ void TextEdit::Tab( File& rFile, bool Shift )
 
 					Props.Changes = true;
 
-					continue;
+					return;
 				}
 			}
 
@@ -2043,7 +2203,7 @@ void TextEdit::Tab( File& rFile, bool Shift )
 			{
 				rLine.insert( rLine.begin() + rCursor.Position.x, Glyph( '\t', m_Palette.Default ) );
 
-				AdjustCursors( rFile, i, -1, 0 );
+				AdjustCursors( rFile, CursorIndex, -1, 0 );
 			}
 			else
 			{
@@ -2066,9 +2226,9 @@ void TextEdit::Tab( File& rFile, bool Shift )
 
 			rCursor.Position.x++;
 			rCursor.SelectionOrigin = Coordinate( -1, -1 );
-
-			Props.Changes = true;
 		}
+
+		Props.Changes = true;
 	}
 
 	ScrollToCursor( rFile );
