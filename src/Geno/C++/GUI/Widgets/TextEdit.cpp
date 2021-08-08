@@ -2245,40 +2245,81 @@ void TextEdit::Tab( File& rFile, bool Shift, int CursorIndex )
 
 void TextEdit::EnterTextStuff( File& rFile, char C )
 {
+	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	{
+		std::vector< int > CurInText    = CursorsInText( rFile );
+		std::vector< int > CurNotInText = CursorsNotInText( rFile );
+
+		if( HasSelection( rFile, 0 ) )
+		{
+			for( int CursorIndex : CurInText )
+			{
+				DeleteSelection( rFile, CursorIndex );
+			}
+
+			for( int CursorIndex : CurNotInText )
+			{
+				Cursor& rCursor = rFile.Cursors[ CursorIndex ];
+
+				rCursor.Position.x      = rCursor.SelectionStart.x;
+				rCursor.SelectionStart  = Coordinate( 0, 0 );
+				rCursor.SelectionEnd    = Coordinate( 0, 0 );
+				rCursor.SelectionOrigin = Coordinate( -1, -1 );
+			}
+		}
+
+		for( int CursorIndex : CurNotInText )
+		{
+			Cursor& rCursor = rFile.Cursors[ CursorIndex ];
+			Line&   rLine   = rFile.Lines[ rCursor.Position.y ];
+			int     Count   = rCursor.Position.x - ( int )rLine.size();
+
+			rLine.insert( rLine.end(), Count, Glyph( ' ', m_Palette.Default ) );
+		}
+	}
+
+	for( int i = 0; i < ( int )rFile.Cursors.size(); i++ )
+	{
+		EnterTextStuff( rFile, C, i );
+	}
+
+} // EnterTextStuff
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::EnterTextStuff( File& rFile, char C, int CursorIndex )
+{
 	Props.Changes = true;
 
-	for( int i = 0; i < ( int )rFile.Cursors.size(); ++i )
+	Cursor& rCursor = rFile.Cursors[ CursorIndex ];
+
+	if( rCursor.Disabled ) return;
+
+	if( HasSelection( rFile, CursorIndex ) )
 	{
-		Cursor& rCursor = rFile.Cursors[ i ];
+		DeleteSelection( rFile, CursorIndex );
+	}
 
-		if( rCursor.Disabled ) continue;
+	Line& rLine = rFile.Lines[ rCursor.Position.y ];
 
-		if( HasSelection( rFile, i ) )
-		{
-			DeleteSelection( rFile, i );
-		}
+	rCursor.Position.x++;
+	rCursor.SelectionOrigin = Coordinate( -1, -1 );
 
-		Line& rLine = rFile.Lines[ rCursor.Position.y ];
+	bool EndOfLine = rCursor.Position.x >= ( int )rLine.size();
 
-		rCursor.Position.x++;
-		rCursor.SelectionOrigin = Coordinate( -1, -1 );
+	if( EndOfLine )
+	{
+		rLine.push_back( Glyph( C, m_Palette.Default ) );
+	}
+	else if( Props.CursorMode == CursorInputMode::Insert )
+	{
+		rLine[ rCursor.Position.x - 1 ].C = C;
+	}
+	else
+	{
+		rLine.insert( rLine.begin() + rCursor.Position.x - 1, Glyph( C, m_Palette.Default ) );
 
-		bool EndOfLine = rCursor.Position.x >= ( int )rLine.size();
-
-		if( EndOfLine )
-		{
-			rLine.push_back( Glyph( C, m_Palette.Default ) );
-		}
-		else if( Props.CursorMode == CursorInputMode::Insert )
-		{
-			rLine[ rCursor.Position.x - 1 ].C = C;
-		}
-		else
-		{
-			rLine.insert( rLine.begin() + rCursor.Position.x - 1, Glyph( C, m_Palette.Default ) );
-
-			AdjustCursors( rFile, i, -1, 0 );
-		}
+		AdjustCursors( rFile, CursorIndex, -1, 0 );
 	}
 
 	ScrollToCursor( rFile );
