@@ -230,6 +230,7 @@ private:
 	void               Tab( File& rFile, bool Shift );
 	void               Tab( File& rFile, bool Shift, int CursorIndex );
 	void               EnterTextStuff( File& rFile, char C );
+	void               EnterTextStuff( File& rFile, char C, int CursorIndex );
 	void               MoveUp( File& rFile, bool Shift, bool Alt );
 	void               MoveDown( File& rFile, bool Shift, bool Alt );
 	void               MoveRight( File& rFile, bool Ctrl, bool Shift, bool Alt );
