@@ -666,7 +666,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 		}
 		else if( Clicked )
 		{
-			Coordinate NewPosition = GetCoordinate( rFile, MouseCoords, Props.CursorMultiMode == MultiCursorMode::Box || Alt );
+			Coordinate NewPosition = GetCoordinate( rFile, MouseCoords, Alt && !Ctrl);
 
 			if( Ctrl && !( Alt || Shift ) )
 			{
