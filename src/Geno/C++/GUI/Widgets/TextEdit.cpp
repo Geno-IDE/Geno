@@ -714,7 +714,6 @@ void TextEdit::HandleMouseInputs( File& rFile )
 					rCursor.SelectionOrigin = rCursor.Position;
 				}
 
-				rCursor.Position  = Coordinate( GetCoordinateX( rFile, rCursor.Position.y, MouseCoords.x, true ), rCursor.Position.y );
 				Props.CursorBlink = 0;
 
 				SetBoxSelection( rFile, NewPosition.y, MouseCoords.x );
@@ -755,8 +754,6 @@ void TextEdit::HandleMouseInputs( File& rFile )
 				Coordinate TmpPos = Coordinate( GetCoordinateX( rFile, rCursor.Position.y, MouseCoords.x, true ), rCursor.Position.y );
 
 				if( rCursor.Position != TmpPos ) Props.CursorBlink = 0;
-
-				rCursor.Position = TmpPos;
 
 				SetBoxSelection( rFile, Line, MouseCoords.x );
 			}
@@ -882,6 +879,8 @@ void TextEdit::SetBoxSelection( File& rFile, int LineIndex, float XPosition )
 	Cursor& rCursor = rFile.Cursors[ 0 ];
 
 	int PosX = GetCoordinateX( rFile, rCursor.Position.y, XPosition, true );
+
+	rCursor.Position.x = PosX;
 
 	if( PosX > rCursor.SelectionOrigin.x )
 	{
