@@ -645,12 +645,12 @@ void TextEdit::HandleMouseInputs( File& rFile )
 		bool   Clicked       = ImGui::IsMouseClicked( ImGuiMouseButton_Left );
 		bool   DoubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
 		bool   Dragged       = ImGui::IsMouseDragging( ImGuiMouseButton_Left );
-		ImVec2 MouseCoords   = ConvertToEditorPosition( ImGui::GetMousePos() );
+		ImVec2 MouseCoords   = GetMousePosition();
 
 		if( ImGui::IsMouseReleased( ImGuiMouseButton_Left ) || ( Props.Changes && ImGui::IsMouseDown( ImGuiMouseButton_Left ) ) )
 		{
 			if( Props.Changes )
-				rFile.Cursors[ rFile.Cursors.size() - 1 ].SelectionOrigin = GetCoordinate( rFile, ImGui::GetMousePos() );
+				rFile.Cursors[ rFile.Cursors.size() - 1 ].SelectionOrigin = GetCoordinate( rFile, MouseCoords );
 
 			DeleteDisabledCursor( rFile );
 		}
@@ -796,14 +796,15 @@ void TextEdit::HandleMouseInputs( File& rFile )
 
 //////////////////////////////////////////////////////////////////////////
 
-ImVec2 TextEdit::ConvertToEditorPosition( ImVec2 Position )
+ImVec2 TextEdit::GetMousePosition()
 {
-	ImVec2 Origin = ImGui::GetCursorScreenPos();
+	ImVec2 Origin   = ImGui::GetCursorScreenPos();
+	ImVec2 MousePos = ImGui::GetMousePos();
 
-	Position.x -= Origin.x;
-	Position.y -= Origin.y;
+	MousePos.x -= Origin.x;
+	MousePos.y -= Origin.y;
 
-	return Position;
+	return MousePos;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -196,7 +196,7 @@ private:
 	bool               RenderEditor( File& rFile );
 	void               HandleKeyboardInputs( File& rFile );
 	void               HandleMouseInputs( File& rFile );
-	ImVec2             ConvertToEditorPosition( ImVec2 Position );
+	ImVec2             GetMousePosition();
 	void               SetBoxSelection( File& rFile, int LineIndex, float XPosition );
 	void               ScrollToCursor( File& rFile );
 	void               CheckLineLengths( File& rFile, int FirstLine, int LastLine );
