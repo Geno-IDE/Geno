@@ -125,6 +125,18 @@ public:
 
 	typedef std::vector< Glyph > Line;
 
+	enum class CursorInputMode
+	{
+		Normal,
+		Insert
+	};
+
+	enum class MultiCursorMode
+	{
+		Normal,
+		Box
+	};
+
 	struct File
 	{
 		std::filesystem::path Path;
@@ -140,6 +152,8 @@ public:
 		float              LongestLineLength;
 		std::vector< int > LongestLines;
 
+		CursorInputMode CursorMode      = CursorInputMode::Normal;
+		MultiCursorMode CursorMultiMode = MultiCursorMode::Normal;
 	}; // File
 
 	//////////////////////////////////////////////////////////////////////////
@@ -168,29 +182,15 @@ private:
 
 	typedef Coordinate Scroll;
 
-	enum class CursorInputMode
-	{
-		Normal,
-		Insert
-	};
-
-	enum class MultiCursorMode
-	{
-		Normal,
-		Box
-	};
-
 	struct Properties
 	{
-		float           CharAdvanceY;
-		float           LineNumMaxWidth;
-		float           SpaceSize;
-		float           ScrollX;
-		float           ScrollY;
-		bool            Changes;
-		int             CursorBlink;
-		CursorInputMode CursorMode      = CursorInputMode::Normal;
-		MultiCursorMode CursorMultiMode = MultiCursorMode::Normal;
+		float CharAdvanceY;
+		float LineNumMaxWidth;
+		float SpaceSize;
+		float ScrollX;
+		float ScrollY;
+		bool  Changes;
+		int   CursorBlink;
 	} Props;
 
 	bool               RenderEditor( File& rFile );

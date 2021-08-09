@@ -436,7 +436,7 @@ bool TextEdit::RenderEditor( File& rFile )
 			{
 				bool Focus = ImGui::IsWindowFocused();
 
-				if( !HasSelection( rFile, j ) && Props.CursorMultiMode == MultiCursorMode::Normal )
+				if( !HasSelection( rFile, j ) && rFile.CursorMultiMode == MultiCursorMode::Normal )
 				{
 					ImVec2 Start( ScreenCursor.x + Props.LineNumMaxWidth - 2, Pos.y );
 					ImVec2 End( ScreenCursor.x + Size.x, Pos.y + Props.CharAdvanceY );
@@ -461,7 +461,7 @@ bool TextEdit::RenderEditor( File& rFile )
 
 						unsigned int Color = 0;
 
-						switch( Props.CursorMode )
+						switch( rFile.CursorMode )
 						{
 							case CursorInputMode::Normal:
 								cEnd.x += 1.0f;
@@ -610,8 +610,8 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 			Copy( rFile, true );
 		else if( !Alt && !Shift && Ctrl && ImGui::IsKeyPressed( 'V' ) )
 			Paste( rFile );
-		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Insert ) ) && Props.CursorMultiMode == MultiCursorMode::Normal )
-			Props.CursorMode = Props.CursorMode == CursorInputMode::Normal ? CursorInputMode::Insert : CursorInputMode::Normal;
+		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Insert ) ) && rFile.CursorMultiMode == MultiCursorMode::Normal )
+			rFile.CursorMode = rFile.CursorMode == CursorInputMode::Normal ? CursorInputMode::Insert : CursorInputMode::Normal;
 
 		for( int i = 0; i < rIO.InputQueueCharacters.Size; i++ )
 		{
@@ -668,7 +668,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 			if( Ctrl && !( Alt || Shift ) )
 			{
 			}
-			else if( Shift && !Ctrl && Props.CursorMultiMode == MultiCursorMode::Normal )
+			else if( Shift && !Ctrl && rFile.CursorMultiMode == MultiCursorMode::Normal )
 			{
 				rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
 
@@ -701,7 +701,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 					}
 				}
 			}
-			else if( Shift && !Ctrl && Props.CursorMultiMode == MultiCursorMode::Box )
+			else if( Shift && !Ctrl && rFile.CursorMultiMode == MultiCursorMode::Box )
 			{
 				Cursor& rCursor = rFile.Cursors[ 0 ];
 
@@ -726,18 +726,18 @@ void TextEdit::HandleMouseInputs( File& rFile )
 				rFile.Cursors.push_back( NewCursor );
 
 				Props.CursorBlink     = 0;
-				Props.CursorMultiMode = MultiCursorMode::Normal;
+				rFile.CursorMultiMode = MultiCursorMode::Normal;
 
 				if( Alt && !Ctrl )
 				{
-					Props.CursorMultiMode = MultiCursorMode::Box;
-					Props.CursorMode      = CursorInputMode::Normal;
+					rFile.CursorMultiMode = MultiCursorMode::Box;
+					rFile.CursorMode      = CursorInputMode::Normal;
 				}
 			}
 		}
 		else if( Dragged )
 		{
-			if( Props.CursorMultiMode == MultiCursorMode::Box )
+			if( rFile.CursorMultiMode == MultiCursorMode::Box )
 			{
 				int     Line    = GetCoordinateY( rFile, MouseCoords.y );
 				Cursor& rCursor = rFile.Cursors[ 0 ];
@@ -1669,7 +1669,7 @@ void TextEdit::DeleteSelection( File& rFile, int CursorIndex )
 void TextEdit::Enter( File& rFile )
 {
 	Props.Changes         = true;
-	Props.CursorMultiMode = MultiCursorMode::Normal;
+	rFile.CursorMultiMode = MultiCursorMode::Normal;
 
 	for( int i = 0; i < ( int )rFile.Cursors.size(); ++i )
 	{
@@ -1710,7 +1710,7 @@ void TextEdit::Enter( File& rFile )
 
 void TextEdit::Backspace( File& rFile )
 {
-	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	if( rFile.CursorMultiMode == MultiCursorMode::Box )
 	{
 		std::vector< int > CurInText    = CursorsInText( rFile );
 		std::vector< int > CurNotInText = CursorsNotInText( rFile );
@@ -1826,7 +1826,7 @@ void TextEdit::Backspace( File& rFile, int CursorIndex, bool DeleteLine )
 
 void TextEdit::Del( File& rFile )
 {
-	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	if( rFile.CursorMultiMode == MultiCursorMode::Box )
 	{
 		std::vector< int > CurInText    = CursorsInText( rFile );
 		std::vector< int > CurNotInText = CursorsNotInText( rFile );
@@ -1920,7 +1920,7 @@ void TextEdit::Del( File& rFile, int CursorIndex, bool DeleteLine )
 
 void TextEdit::Tab( File& rFile, bool Shift )
 {
-	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	if( rFile.CursorMultiMode == MultiCursorMode::Box )
 	{
 		std::vector< int > CurInText    = CursorsInText( rFile );
 		std::vector< int > CurNotInText = CursorsNotInText( rFile );
@@ -2157,7 +2157,7 @@ void TextEdit::Tab( File& rFile, bool Shift, int CursorIndex )
 	}
 	else
 	{
-		if( Props.CursorMultiMode == MultiCursorMode::Box )
+		if( rFile.CursorMultiMode == MultiCursorMode::Box )
 		{
 			Coordinate Pos   = Selection ? rCursor.SelectionStart : rCursor.Position;
 			Line&      rLine = rFile.Lines[ Pos.y ];
@@ -2200,7 +2200,7 @@ void TextEdit::Tab( File& rFile, bool Shift, int CursorIndex )
 
 			Line& rLine = rFile.Lines[ rCursor.Position.y ];
 
-			if( Props.CursorMode == CursorInputMode::Normal )
+			if( rFile.CursorMode == CursorInputMode::Normal )
 			{
 				rLine.insert( rLine.begin() + rCursor.Position.x, Glyph( '\t', m_Palette.Default ) );
 
@@ -2277,7 +2277,7 @@ void TextEdit::PrepareBoxModeForInput( File& rFile )
 
 void TextEdit::EnterTextStuff( File& rFile, char C )
 {
-	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	if( rFile.CursorMultiMode == MultiCursorMode::Box )
 	{
 		PrepareBoxModeForInput( rFile );
 	}
@@ -2312,7 +2312,7 @@ void TextEdit::EnterTextStuff( File& rFile, char C, int CursorIndex )
 	{
 		rLine.push_back( Glyph( C, m_Palette.Default ) );
 	}
-	else if( Props.CursorMode == CursorInputMode::Insert )
+	else if( rFile.CursorMode == CursorInputMode::Insert )
 	{
 		rLine[ rCursor.Position.x ].C = C;
 	}
@@ -2341,11 +2341,11 @@ void TextEdit::MoveUp( File& rFile, bool Shift, bool Alt )
 		return;
 	}
 
-	if( ( Props.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
+	if( ( rFile.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
 		Cursor& rRefCursor = rFile.Cursors[ 0 ];
 
-		if( Props.CursorMultiMode == MultiCursorMode::Normal )
+		if( rFile.CursorMultiMode == MultiCursorMode::Normal )
 		{
 			Esc( rFile );
 		}
@@ -2355,7 +2355,7 @@ void TextEdit::MoveUp( File& rFile, bool Shift, bool Alt )
 			rRefCursor.SelectionOrigin = rRefCursor.Position;
 		}
 
-		Props.CursorMultiMode = MultiCursorMode::Box;
+		rFile.CursorMultiMode = MultiCursorMode::Box;
 		Cursor& rCursor       = rFile.Cursors.back();
 		float   XDist         = GetDistance( rFile, rCursor.Position );
 		int     Dir           = rCursor.Position.y - rRefCursor.Position.y;
@@ -2376,7 +2376,7 @@ void TextEdit::MoveUp( File& rFile, bool Shift, bool Alt )
 	}
 	else
 	{
-		if( Props.CursorMultiMode == MultiCursorMode::Box )
+		if( rFile.CursorMultiMode == MultiCursorMode::Box )
 		{
 			Esc( rFile );
 		}
@@ -2452,11 +2452,11 @@ void TextEdit::MoveDown( File& rFile, bool Shift, bool Alt )
 		return;
 	}
 
-	if( ( Props.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
+	if( ( rFile.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
 		Cursor& rRefCursor = rFile.Cursors[ 0 ];
 
-		if( Props.CursorMultiMode == MultiCursorMode::Normal )
+		if( rFile.CursorMultiMode == MultiCursorMode::Normal )
 		{
 			Esc( rFile );
 		}
@@ -2466,7 +2466,7 @@ void TextEdit::MoveDown( File& rFile, bool Shift, bool Alt )
 			rRefCursor.SelectionOrigin = rRefCursor.Position;
 		}
 
-		Props.CursorMultiMode = MultiCursorMode::Box;
+		rFile.CursorMultiMode = MultiCursorMode::Box;
 		Cursor& rCursor       = rFile.Cursors.back();
 		float   XDist         = GetDistance( rFile, rCursor.Position );
 		int     Dir           = rCursor.Position.y - rRefCursor.Position.y;
@@ -2487,7 +2487,7 @@ void TextEdit::MoveDown( File& rFile, bool Shift, bool Alt )
 	}
 	else
 	{
-		if( Props.CursorMultiMode == MultiCursorMode::Box )
+		if( rFile.CursorMultiMode == MultiCursorMode::Box )
 		{
 			Esc( rFile );
 		}
@@ -2557,11 +2557,11 @@ void TextEdit::MoveDown( File& rFile, bool Shift, bool Alt )
 
 void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift, bool Alt )
 {
-	if( ( Props.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
+	if( ( rFile.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
 		Cursor& rCursor = rFile.Cursors[ 0 ];
 
-		if( Props.CursorMultiMode == MultiCursorMode::Normal )
+		if( rFile.CursorMultiMode == MultiCursorMode::Normal )
 		{
 			Esc( rFile );
 		}
@@ -2571,7 +2571,7 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift, bool Alt )
 			rCursor.SelectionOrigin = rCursor.Position;
 		}
 
-		Props.CursorMultiMode = MultiCursorMode::Box;
+		rFile.CursorMultiMode = MultiCursorMode::Box;
 		Coordinate Coord      = rFile.Cursors.back().Position;
 
 		if( Ctrl )
@@ -2604,7 +2604,7 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift, bool Alt )
 	}
 	else
 	{
-		if( Props.CursorMultiMode == MultiCursorMode::Box )
+		if( rFile.CursorMultiMode == MultiCursorMode::Box )
 		{
 			Esc( rFile );
 		}
@@ -2693,11 +2693,11 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift, bool Alt )
 
 void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift, bool Alt )
 {
-	if( ( Props.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
+	if( ( rFile.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
 		Cursor& rCursor = rFile.Cursors[ 0 ];
 
-		if( Props.CursorMultiMode == MultiCursorMode::Normal )
+		if( rFile.CursorMultiMode == MultiCursorMode::Normal )
 		{
 			Esc( rFile );
 		}
@@ -2707,7 +2707,7 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift, bool Alt )
 			rCursor.SelectionOrigin = rCursor.Position;
 		}
 
-		Props.CursorMultiMode = MultiCursorMode::Box;
+		rFile.CursorMultiMode = MultiCursorMode::Box;
 		Coordinate Coord      = rFile.Cursors.back().Position;
 
 		if( Coord.x == 0 && Coord.y == 0 ) return;
@@ -2750,7 +2750,7 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift, bool Alt )
 	}
 	else
 	{
-		if( Props.CursorMultiMode == MultiCursorMode::Box )
+		if( rFile.CursorMultiMode == MultiCursorMode::Box )
 		{
 			Esc( rFile );
 		}
@@ -2847,7 +2847,7 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift, bool Alt )
 
 void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
 {
-	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	if( rFile.CursorMultiMode == MultiCursorMode::Box )
 	{
 		Esc( rFile );
 	}
@@ -2931,7 +2931,7 @@ void TextEdit::Home( File& rFile, bool Ctrl, bool Shift )
 
 void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
 {
-	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	if( rFile.CursorMultiMode == MultiCursorMode::Box )
 	{
 		Esc( rFile );
 	}
@@ -3006,7 +3006,7 @@ void TextEdit::Esc( File& rFile )
 	rCursor.SelectionEnd    = Coordinate( 0, 0 );
 	rCursor.SelectionOrigin = Coordinate( -1, -1 );
 
-	Props.CursorMultiMode = MultiCursorMode::Normal;
+	rFile.CursorMultiMode = MultiCursorMode::Normal;
 } // Esc
 
 //////////////////////////////////////////////////////////////////////////
@@ -3154,7 +3154,7 @@ void TextEdit::Paste( File& rFile )
 
 void TextEdit::SwapLines( File& rFile, bool Up )
 {
-	if( rFile.Cursors.size() > 1 && Props.CursorMultiMode == MultiCursorMode::Normal ) rFile.Cursors.erase( rFile.Cursors.begin(), rFile.Cursors.end() - 1 );
+	if( rFile.Cursors.size() > 1 && rFile.CursorMultiMode == MultiCursorMode::Normal ) rFile.Cursors.erase( rFile.Cursors.begin(), rFile.Cursors.end() - 1 );
 
 	int     LineToMove  = -1;
 	int     Destination = -1;
@@ -3164,7 +3164,7 @@ void TextEdit::SwapLines( File& rFile, bool Up )
 
 	if( Up )
 	{
-		if( Props.CursorMultiMode == MultiCursorMode::Box && rFile.Cursors.size() > 1 )
+		if( rFile.CursorMultiMode == MultiCursorMode::Box && rFile.Cursors.size() > 1 )
 		{
 			int Dir = rBackCursor.Position.y - rCursor.Position.y;
 
@@ -3222,7 +3222,7 @@ void TextEdit::SwapLines( File& rFile, bool Up )
 	}
 	else
 	{
-		if( Props.CursorMultiMode == MultiCursorMode::Box && rFile.Cursors.size() > 1 )
+		if( rFile.CursorMultiMode == MultiCursorMode::Box && rFile.Cursors.size() > 1 )
 		{
 			int Dir = rBackCursor.Position.y - rCursor.Position.y;
 
