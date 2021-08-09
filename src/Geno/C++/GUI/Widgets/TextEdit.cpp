@@ -441,7 +441,7 @@ bool TextEdit::RenderEditor( File& rFile )
 			{
 				bool Focus = ImGui::IsWindowFocused();
 
-				if( !HasSelection( rFile, j ) && rFile.CursorMultiMode == MultiCursorMode::Normal )
+				if( !HasSelection( rFile, j ) && ( rFile.CursorMultiMode == MultiCursorMode::Normal || rFile.Cursors.size() == 1 ) )
 				{
 					ImVec2 Start( ScreenCursor.x + Props.LineNumMaxWidth - 2, Pos.y );
 					ImVec2 End( ScreenCursor.x + Size.x, Pos.y + Props.CharAdvanceY );
@@ -675,6 +675,13 @@ void TextEdit::HandleMouseInputs( File& rFile )
 			}
 			else if( Shift && !Ctrl && rFile.CursorMultiMode == MultiCursorMode::Normal )
 			{
+				if( Alt )
+				{
+					rFile.CursorMultiMode = MultiCursorMode::Box;
+					HandleMouseInputs( rFile );
+					return;
+				}
+
 				rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
 
 				Cursor& rCursor = rFile.Cursors[ 0 ];
@@ -2619,7 +2626,7 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift, bool Alt )
 	{
 		if( rFile.CursorMultiMode == MultiCursorMode::Box )
 		{
-			Esc( rFile );
+			End( rFile, false, false );
 		}
 
 		for( Cursor& rCursor : rFile.Cursors )
@@ -2765,7 +2772,7 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift, bool Alt )
 	{
 		if( rFile.CursorMultiMode == MultiCursorMode::Box )
 		{
-			Esc( rFile );
+			End( rFile, false, false );
 		}
 
 		for( Cursor& rCursor : rFile.Cursors )
