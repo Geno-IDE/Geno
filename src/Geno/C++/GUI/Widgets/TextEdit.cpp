@@ -3140,59 +3140,128 @@ void TextEdit::Paste( File& rFile )
 
 void TextEdit::SwapLines( File& rFile, bool Up )
 {
-	if( rFile.Cursors.size() > 1 ) rFile.Cursors.erase( rFile.Cursors.begin(), rFile.Cursors.end() - 1);
+	if( rFile.Cursors.size() > 1 && Props.CursorMultiMode == MultiCursorMode::Normal ) rFile.Cursors.erase( rFile.Cursors.begin(), rFile.Cursors.end() - 1 );
 
-	int     LineToMove;
-	int     Destination;
-	bool    Selection = HasSelection( rFile, 0 );
-	Cursor& rCursor   = rFile.Cursors[ 0 ];
+	int     LineToMove  = -1;
+	int     Destination = -1;
+	bool    Selection   = HasSelection( rFile, 0 );
+	Cursor& rCursor     = rFile.Cursors[ 0 ];
+	Cursor& rBackCursor = rFile.Cursors.back();
 
 	if( Up )
 	{
-		if( Selection )
+		if( Props.CursorMultiMode == MultiCursorMode::Box && rFile.Cursors.size() > 1 )
 		{
-			LineToMove  = rCursor.SelectionStart.y - 1;
-			Destination = rCursor.SelectionEnd.y + 1;
+			int Dir = rBackCursor.Position.y - rCursor.Position.y;
+
+			if( Dir > 0 )
+			{
+				LineToMove  = rCursor.Position.y - 1;
+				Destination = rBackCursor.Position.y + 1;
+			}
+			if( Dir < 0 )
+			{
+				LineToMove  = rBackCursor.Position.y - 1;
+				Destination = rCursor.Position.y + 1;
+			}
+
+			if( LineToMove == -1 ) return;
+
+			for( Cursor& rCur : rFile.Cursors )
+			{
+				rCur.Position.y--;
+
+				if( Selection )
+				{
+					rCur.SelectionStart.y--;
+					rCur.SelectionEnd.y--;
+					rCur.SelectionOrigin.y--;
+				}
+			}
+
+			Selection = true;
 		}
 		else
 		{
-			LineToMove  = rCursor.Position.y - 1;
-			Destination = rCursor.Position.y + 1;
-		}
+			if( Selection )
+			{
+				LineToMove  = rCursor.SelectionStart.y - 1;
+				Destination = rCursor.SelectionEnd.y + 1;
+			}
+			else
+			{
+				LineToMove  = rCursor.Position.y - 1;
+				Destination = rCursor.Position.y + 1;
+			}
 
-		if( LineToMove == -1 ) return;
+			if( LineToMove == -1 ) return;
 
-		rCursor.Position.y--;
+			rCursor.Position.y--;
 
-		if( Selection )
-		{
-			rCursor.SelectionStart.y--;
-			rCursor.SelectionEnd.y--;
-			rCursor.SelectionOrigin.y--;
+			if( Selection )
+			{
+				rCursor.SelectionStart.y--;
+				rCursor.SelectionEnd.y--;
+				rCursor.SelectionOrigin.y--;
+			}
 		}
 	}
 	else
 	{
-		if( Selection )
+		if( Props.CursorMultiMode == MultiCursorMode::Box && rFile.Cursors.size() > 1 )
 		{
-			LineToMove  = rCursor.SelectionEnd.y + 1;
-			Destination = rCursor.SelectionStart.y;
+			int Dir = rBackCursor.Position.y - rCursor.Position.y;
+
+			if( Dir > 0 )
+			{
+				LineToMove  = rBackCursor.Position.y + 1;
+				Destination = rCursor.Position.y;
+			}
+			if( Dir < 0 )
+			{
+				LineToMove  = rCursor.Position.y + 1;
+				Destination = rBackCursor.Position.y;
+			}
+
+			if( LineToMove + 1 == ( int )rFile.Lines.size() ) return;
+
+			for( Cursor& rCur : rFile.Cursors )
+			{
+				rCur.Position.y++;
+
+				if( Selection )
+				{
+					rCur.SelectionStart.y++;
+					rCur.SelectionEnd.y++;
+					rCur.SelectionOrigin.y++;
+				}
+			}
+
+			Selection = true;
 		}
 		else
 		{
-			LineToMove  = rCursor.Position.y;
-			Destination = rCursor.Position.y + 2;
-		}
+			if( Selection )
+			{
+				LineToMove  = rCursor.SelectionEnd.y + 1;
+				Destination = rCursor.SelectionStart.y;
+			}
+			else
+			{
+				LineToMove  = rCursor.Position.y;
+				Destination = rCursor.Position.y + 2;
+			}
 
-		if( LineToMove + 1 == ( int )rFile.Lines.size() ) return;
+			if( LineToMove + 1 == ( int )rFile.Lines.size() ) return;
 
-		rCursor.Position.y++;
+			rCursor.Position.y++;
 
-		if( Selection )
-		{
-			rCursor.SelectionStart.y++;
-			rCursor.SelectionEnd.y++;
-			rCursor.SelectionOrigin.y++;
+			if( Selection )
+			{
+				rCursor.SelectionStart.y++;
+				rCursor.SelectionEnd.y++;
+				rCursor.SelectionOrigin.y++;
+			}
 		}
 	}
 
