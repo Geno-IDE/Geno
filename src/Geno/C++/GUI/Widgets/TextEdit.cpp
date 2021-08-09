@@ -3146,7 +3146,6 @@ void TextEdit::SwapLines( File& rFile, bool Up )
 
 	int     LineToMove;
 	int     Destination;
-	int     LineToDelete;
 	bool    Selection = HasSelection( rFile, 0 );
 	Cursor& rCursor   = rFile.Cursors[ 0 ];
 
@@ -3154,13 +3153,13 @@ void TextEdit::SwapLines( File& rFile, bool Up )
 	{
 		if( Selection )
 		{
-			LineToMove = LineToDelete = rCursor.SelectionStart.y - 1;
-			Destination               = rCursor.SelectionEnd.y + 1;
+			LineToMove  = rCursor.SelectionStart.y - 1;
+			Destination = rCursor.SelectionEnd.y + 1;
 		}
 		else
 		{
-			LineToMove = LineToDelete = rCursor.Position.y - 1;
-			Destination               = rCursor.Position.y + 1;
+			LineToMove  = rCursor.Position.y - 1;
+			Destination = rCursor.Position.y + 1;
 		}
 
 		if( LineToMove == -1 ) return;
@@ -3178,15 +3177,13 @@ void TextEdit::SwapLines( File& rFile, bool Up )
 	{
 		if( Selection )
 		{
-			LineToMove = LineToDelete = rCursor.SelectionEnd.y + 1;
-			Destination               = rCursor.SelectionStart.y;
-
-			LineToDelete++;
+			LineToMove  = rCursor.SelectionEnd.y + 1;
+			Destination = rCursor.SelectionStart.y;
 		}
 		else
 		{
-			LineToMove = LineToDelete = rCursor.Position.y;
-			Destination               = rCursor.Position.y + 2;
+			LineToMove  = rCursor.Position.y;
+			Destination = rCursor.Position.y + 2;
 		}
 
 		if( LineToMove + 1 == ( int )rFile.Lines.size() ) return;
@@ -3204,7 +3201,7 @@ void TextEdit::SwapLines( File& rFile, bool Up )
 	auto& rLines = rFile.Lines;
 
 	rLines.insert( rLines.begin() + Destination, rLines[ LineToMove ] );
-	rLines.erase( rLines.begin() + LineToDelete );
+	rLines.erase( rLines.begin() + LineToMove + ( ( !Up && Selection ) ? 1 : 0 ) );
 
 	ScrollToCursor( rFile );
 
