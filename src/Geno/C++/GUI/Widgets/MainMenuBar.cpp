@@ -25,6 +25,7 @@
 #include "GUI/Widgets/OutputWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
+#include "GUI/Modals/GenoDiscordSettingsModal.h"
 #include "Discord/DiscordRPC.h"
 
 #include <Common/LocalAppData.h>
@@ -59,6 +60,7 @@ void MainMenuBar::Draw( void )
 			ImGui::EndMenu();
 		}
 
+
 		if( ImGui::BeginMenu( "Build", WorkspaceActive ) )
 		{
 			if( ImGui::MenuItem( "Build And Run", "F5" ) ) ActionBuildBuildAndRun();
@@ -80,6 +82,13 @@ void MainMenuBar::Draw( void )
 		{
 			if( ImGui::MenuItem( "Demo" ) ) ShowDemoWindow ^= 1;
 			if( ImGui::MenuItem( "About" ) ) ShowAboutWindow ^= 1;
+
+			ImGui::EndMenu();
+		}
+
+		if( ImGui::BeginMenu( "Extensions" ) )
+		{
+			if( ImGui::MenuItem( "GenoDiscord" ) ) ActionExtShowGenoDiscord();
 
 			ImGui::EndMenu();
 		}
@@ -131,6 +140,13 @@ void MainMenuBar::ActionFileNewWorkspace( void )
 		{ Application::Instance().NewWorkspace( rLocation, rName ); } );
 
 } // ActionFileNewWorkspace
+
+//////////////////////////////////////////////////////////////////////////
+
+void MainMenuBar::ActionExtShowGenoDiscord( void )
+{
+	GenoDiscordSettingsModal::Instance().Show();
+} // ActionExtShowGenoDiscord
 
 //////////////////////////////////////////////////////////////////////////
 

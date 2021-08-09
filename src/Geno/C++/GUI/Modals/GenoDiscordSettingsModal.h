@@ -17,43 +17,31 @@
 
 #pragma once
 
-// Using win64_dyn state
-#include <discord_rpc.h>
+#include "GUI/Modals/IModal.h"
 #include <Common/Macros.h>
 
- // Geno Discord here as discord is a namespace
-class GenoDiscord
+#include <filesystem>
+#include <string>
+
+class GenoDiscordSettingsModal : public IModal
 {
-	GENO_SINGLETON( GenoDiscord )
+	GENO_SINGLETON( GenoDiscordSettingsModal )
 
-	struct GenoDiscordSettings 
-	{
-		bool ShowFilename = true;
-		bool ShowWrksName = true;
-		bool ShowTime     = true;
-		bool Show         = true;
-	}; // GenoDiscordSettings
-
-public:
-	GenoDiscord( void )  = default;
-	~GenoDiscord( void ) = default;
+	GenoDiscordSettingsModal() = default;
 
 	//////////////////////////////////////////////////////////////////////////
+
 public:
-	void UpdateDiscord  ( void );
-	void InitDiscord    ( void );
-	void Shutdown       ( void );
+	void Show();
+
+	virtual std::string PopupID( void ) override;
+
+	virtual std::string Title( void ) override;
+
+	virtual void UpdateDerived( void ) override;
+
 	//////////////////////////////////////////////////////////////////////////
-public:
-	DiscordRichPresence m_CurrentRPC{};
 
-	GenoDiscordSettings m_Settings;
-
-	std::string m_CurrentFile;
-	std::string m_Workspace;
-	std::string m_CurrentFileExt;
-
-protected:
 private:
-}; // GenoDiscord
 
+}; // GenoDiscordSettingsModal

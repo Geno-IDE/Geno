@@ -65,10 +65,10 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	MainMenuBar*       pMenuBar           = nullptr;
-	WorkspaceOutliner* pWorkspaceOutliner = nullptr;
-	TextEdit*          pTextEdit          = nullptr;
-	OutputWindow*      pOutputWindow      = nullptr;
+	MainMenuBar*         pMenuBar                 = nullptr;
+	WorkspaceOutliner*   pWorkspaceOutliner       = nullptr;
+	TextEdit*            pTextEdit                = nullptr;
+	OutputWindow*        pOutputWindow            = nullptr;
 
 //////////////////////////////////////////////////////////////////////////
 

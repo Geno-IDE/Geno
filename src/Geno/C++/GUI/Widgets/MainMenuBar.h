@@ -39,22 +39,24 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	bool ShowDemoWindow        = false;
-	bool ShowAboutWindow       = false;
-	bool ShowTextEdit          = false;
-	bool ShowWorkspaceOutliner = false;
-	bool ShowOutputWindow      = false;
+	bool ShowTextEdit            = false;
+	bool ShowDemoWindow          = false;
+	bool ShowAboutWindow         = false;
+	bool ShowOutputWindow        = false;
+	bool ShowWorkspaceOutliner   = false;
+	bool ShowGenoDiscordSettings = false;
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
-	void ActionFileNewWorkspace  ( void );
-	void ActionFileOpenWorkspace ( void );
-	void ActionFileCloseWorkspace( void );
-	void ActionBuildBuildAndRun  ( void );
-	void ActionBuildBuild        ( void );
-	void AddBuildMatrixColumn    ( BuildMatrix::Column& rColumn );
+	void ActionFileNewWorkspace    ( void );
+	void ActionExtShowGenoDiscord  ( void );
+	void ActionFileOpenWorkspace   ( void );
+	void ActionFileCloseWorkspace  ( void );
+	void ActionBuildBuildAndRun    ( void );
+	void ActionBuildBuild          ( void );
+	void AddBuildMatrixColumn      ( BuildMatrix::Column& rColumn );
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -27,6 +27,8 @@
 static const auto s_StartTime = std::chrono::system_clock::now();
 static int64_t s_StartInUnixTime = -1;
 
+//////////////////////////////////////////////////////////////////////////
+
 static const char* GetImgFromStr( const std::string& str )
 {
 	if( str == ".txt" )
@@ -49,6 +51,8 @@ static const char* GetImgFromStr( const std::string& str )
 
 //////////////////////////////////////////////////////////////////////////
 
+// NOTE(beast) prb a memory leak here not sure
+
 void GenoDiscord::UpdateDiscord( void )
 {
 	s_StartInUnixTime = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( s_StartTime.time_since_epoch() ).count();
@@ -64,30 +68,37 @@ void GenoDiscord::UpdateDiscord( void )
 	discordPresence ={};
 #endif
 
-	DiscordRichPresence DiscordPresence;
-	memset( &DiscordPresence, 0, sizeof( DiscordPresence ) );
+	if( m_Settings.Show )
+	{
+		DiscordRichPresence DiscordPresence;
+		memset( &DiscordPresence, 0, sizeof( DiscordPresence ) );
 
-	if( m_CurrentFile == "" || m_CurrentFile == "No File" )
-		DiscordPresence.state = "No File";
-	else if( m_CurrentFile != ( const char* )"No File" )
-		DiscordPresence.state = m_CurrentFile.c_str();
+		if( m_Settings.ShowFilename )
+			if( m_CurrentFile == "" || m_CurrentFile == "No File" )
+				DiscordPresence.state = "No File";
+			else if( m_CurrentFile != ( const char* )"No File" )
+				DiscordPresence.state = m_CurrentFile.c_str();
 
-	DiscordPresence.details = m_Workspace.c_str();
+		if( m_Settings.ShowWrksName )
+			DiscordPresence.details = m_Workspace.c_str();
 
-	DiscordPresence.startTimestamp  = ( int64_t )s_StartInUnixTime;
+		if( m_Settings.ShowTime )
+			DiscordPresence.startTimestamp  = ( int64_t )s_StartInUnixTime;
 
-	DiscordPresence.instance = 0;
+		DiscordPresence.instance = 0;
 
-	DiscordPresence.largeImageKey = GetImgFromStr( m_CurrentFileExt );
-	DiscordPresence.smallImageKey = GetImgFromStr( "genoinrt" );
-	DiscordPresence.smallImageText = "Geno";
+		DiscordPresence.largeImageKey = GetImgFromStr( m_CurrentFileExt );
+		DiscordPresence.smallImageKey = GetImgFromStr( "genoinrt" );
+		DiscordPresence.smallImageText = "Geno";
 
-	m_CurrentRPC = DiscordPresence;
+		m_CurrentRPC = DiscordPresence;
 
-	DiscordPresence ={};
+		DiscordPresence ={};
 
-	Discord_UpdatePresence( &m_CurrentRPC );
-	Discord_RunCallbacks();
+		Discord_UpdatePresence( &m_CurrentRPC );
+		Discord_RunCallbacks();
+	}
+
 } // UpdateDiscord
 
 //////////////////////////////////////////////////////////////////////////
