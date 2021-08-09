@@ -229,6 +229,7 @@ private:
 	void               Del( File& rFile, int CursorIndex, bool DeleteLine );
 	void               Tab( File& rFile, bool Shift );
 	void               Tab( File& rFile, bool Shift, int CursorIndex );
+	void               PrepareBoxModeForInput( File& rFile );
 	void               EnterTextStuff( File& rFile, char C );
 	void               EnterTextStuff( File& rFile, char C, int CursorIndex );
 	void               MoveUp( File& rFile, bool Shift, bool Alt );

@@ -2240,39 +2240,46 @@ void TextEdit::Tab( File& rFile, bool Shift, int CursorIndex )
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEdit::EnterTextStuff( File& rFile, char C )
+void TextEdit::PrepareBoxModeForInput( File& rFile )
 {
-	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	std::vector< int > CurInText    = CursorsInText( rFile );
+	std::vector< int > CurNotInText = CursorsNotInText( rFile );
+
+	if( HasSelection( rFile, 0 ) )
 	{
-		std::vector< int > CurInText    = CursorsInText( rFile );
-		std::vector< int > CurNotInText = CursorsNotInText( rFile );
-
-		if( HasSelection( rFile, 0 ) )
+		for( int CursorIndex : CurInText )
 		{
-			for( int CursorIndex : CurInText )
-			{
-				DeleteSelection( rFile, CursorIndex );
-			}
-
-			for( int CursorIndex : CurNotInText )
-			{
-				Cursor& rCursor = rFile.Cursors[ CursorIndex ];
-
-				rCursor.Position.x      = rCursor.SelectionStart.x;
-				rCursor.SelectionStart  = Coordinate( 0, 0 );
-				rCursor.SelectionEnd    = Coordinate( 0, 0 );
-				rCursor.SelectionOrigin = Coordinate( -1, -1 );
-			}
+			DeleteSelection( rFile, CursorIndex );
 		}
 
 		for( int CursorIndex : CurNotInText )
 		{
 			Cursor& rCursor = rFile.Cursors[ CursorIndex ];
-			Line&   rLine   = rFile.Lines[ rCursor.Position.y ];
-			int     Count   = rCursor.Position.x - ( int )rLine.size();
 
-			rLine.insert( rLine.end(), Count, Glyph( ' ', m_Palette.Default ) );
+			rCursor.Position.x      = rCursor.SelectionStart.x;
+			rCursor.SelectionStart  = Coordinate( 0, 0 );
+			rCursor.SelectionEnd    = Coordinate( 0, 0 );
+			rCursor.SelectionOrigin = Coordinate( -1, -1 );
 		}
+	}
+
+	for( int CursorIndex : CurNotInText )
+	{
+		Cursor& rCursor = rFile.Cursors[ CursorIndex ];
+		Line&   rLine   = rFile.Lines[ rCursor.Position.y ];
+		int     Count   = rCursor.Position.x - ( int )rLine.size();
+
+		rLine.insert( rLine.end(), Count, Glyph( ' ', m_Palette.Default ) );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::EnterTextStuff( File& rFile, char C )
+{
+	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	{
+		PrepareBoxModeForInput( rFile );
 	}
 
 	for( int i = 0; i < ( int )rFile.Cursors.size(); i++ )
