@@ -814,6 +814,8 @@ void TextEdit::SetBoxSelection( File& rFile, int LineIndex, float XPosition )
 
 	if( LineIndex > CurrCursor.SelectionOrigin.y )
 	{
+		rFile.BoxModeDir = rFile.BoxModeDir = BoxModeDirection::Down;
+
 		for( int i = CurrCursor.SelectionOrigin.y + 1; i <= LineIndex; i++ )
 		{
 			Cursor Cursor;
@@ -844,6 +846,8 @@ void TextEdit::SetBoxSelection( File& rFile, int LineIndex, float XPosition )
 	}
 	else if( LineIndex < CurrCursor.SelectionOrigin.y )
 	{
+		rFile.BoxModeDir = BoxModeDirection::Up;
+
 		for( int i = CurrCursor.SelectionOrigin.y + -1; i >= LineIndex; i-- )
 		{
 			Cursor Cursor;
@@ -871,6 +875,8 @@ void TextEdit::SetBoxSelection( File& rFile, int LineIndex, float XPosition )
 
 			rFile.Cursors.push_back( Cursor );
 		}
+	} else {
+		rFile.BoxModeDir = BoxModeDirection::None;
 	}
 
 	Cursor& rCursor = rFile.Cursors[ 0 ];
@@ -2360,10 +2366,9 @@ void TextEdit::MoveUp( File& rFile, bool Shift, bool Alt )
 		rFile.CursorMultiMode = MultiCursorMode::Box;
 		Cursor& rCursor       = rFile.Cursors.back();
 		float   XDist         = GetDistance( rFile, rCursor.Position );
-		int     Dir           = rCursor.Position.y - rRefCursor.Position.y;
 		int     Line          = -1;
 
-		if( Dir != 0 )
+		if( rFile.BoxModeDir != BoxModeDirection::None )
 		{
 			Line = rCursor.Position.y - 1;
 		}
@@ -2471,10 +2476,9 @@ void TextEdit::MoveDown( File& rFile, bool Shift, bool Alt )
 		rFile.CursorMultiMode = MultiCursorMode::Box;
 		Cursor& rCursor       = rFile.Cursors.back();
 		float   XDist         = GetDistance( rFile, rCursor.Position );
-		int     Dir           = rCursor.Position.y - rRefCursor.Position.y;
 		int     Line          = -1;
 
-		if( Dir != 0 )
+		if( rFile.BoxModeDir != BoxModeDirection::None )
 		{
 			Line = rCursor.Position.y + 1;
 		}
@@ -3166,16 +3170,14 @@ void TextEdit::SwapLines( File& rFile, bool Up )
 
 	if( Up )
 	{
-		if( rFile.CursorMultiMode == MultiCursorMode::Box && rFile.Cursors.size() > 1 )
+		if( rFile.CursorMultiMode == MultiCursorMode::Box && rFile.BoxModeDir != BoxModeDirection::None )
 		{
-			int Dir = rBackCursor.Position.y - rCursor.Position.y;
-
-			if( Dir > 0 )
+			if( rFile.BoxModeDir == BoxModeDirection::Down )
 			{
 				LineToMove  = rCursor.Position.y - 1;
 				Destination = rBackCursor.Position.y + 1;
 			}
-			if( Dir < 0 )
+			if( rFile.BoxModeDir == BoxModeDirection::Up )
 			{
 				LineToMove  = rBackCursor.Position.y - 1;
 				Destination = rCursor.Position.y + 1;
@@ -3224,16 +3226,14 @@ void TextEdit::SwapLines( File& rFile, bool Up )
 	}
 	else
 	{
-		if( rFile.CursorMultiMode == MultiCursorMode::Box && rFile.Cursors.size() > 1 )
+		if( rFile.CursorMultiMode == MultiCursorMode::Box && rFile.BoxModeDir != BoxModeDirection::None )
 		{
-			int Dir = rBackCursor.Position.y - rCursor.Position.y;
-
-			if( Dir > 0 )
+			if( rFile.BoxModeDir == BoxModeDirection::Down )
 			{
 				LineToMove  = rBackCursor.Position.y + 1;
 				Destination = rCursor.Position.y;
 			}
-			if( Dir < 0 )
+			if( rFile.BoxModeDir == BoxModeDirection::Up )
 			{
 				LineToMove  = rCursor.Position.y + 1;
 				Destination = rBackCursor.Position.y;
