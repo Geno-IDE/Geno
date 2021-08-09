@@ -539,7 +539,11 @@ bool TextEdit::RenderEditor( File& rFile )
 
 	CheckLineLengths( rFile, FirstLine, LastLine );
 
-	ImGui::Dummy( ImVec2( rFile.LongestLineLength + DummyExtraX, ( rFile.Lines.size() + DummyExtraY ) * Props.CharAdvanceY ) );
+	float Width = GetMaxCursorDistance( rFile );
+
+	if( rFile.LongestLineLength > Width ) Width = rFile.LongestLineLength;
+
+	ImGui::Dummy( ImVec2( Width + DummyExtraX, ( rFile.Lines.size() + DummyExtraY ) * Props.CharAdvanceY ) );
 
 	ImGui::PopAllowKeyboardFocus();
 	ImGui::EndChild();
@@ -1011,6 +1015,25 @@ void TextEdit::CheckLineLengths( File& rFile, int FirstLine, int LastLine )
 	}
 
 } // CheckLineLengths
+
+//////////////////////////////////////////////////////////////////////////
+
+float TextEdit::GetMaxCursorDistance( File& rFile )
+{
+	float Distance = 0.0f;
+
+	for( Cursor& rCursor : rFile.Cursors )
+	{
+		if( rCursor.Disabled ) continue;
+
+		float L = GetDistance( rFile, rCursor.Position );
+
+		if( L > Distance ) Distance = L;
+	}
+
+	return Distance;
+
+} // GetMaxCursorDistance
 
 //////////////////////////////////////////////////////////////////////////
 

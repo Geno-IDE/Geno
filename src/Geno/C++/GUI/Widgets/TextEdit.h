@@ -208,6 +208,7 @@ private:
 	void               SetBoxSelection( File& rFile, int LineIndex, float XPosition );
 	void               ScrollToCursor( File& rFile );
 	void               CheckLineLengths( File& rFile, int FirstLine, int LastLine );
+	float              GetMaxCursorDistance( File& rFile );
 	void               CalculeteLineNumMaxWidth( File& rFile );
 	bool               HasSelection( File& rFile, int cursor ) const;
 	Cursor*            IsCoordinateInSelection( File& rFile, Coordinate Coordinate, int Offset = 0 );
