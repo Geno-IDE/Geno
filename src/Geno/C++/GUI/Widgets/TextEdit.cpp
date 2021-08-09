@@ -2271,7 +2271,7 @@ void TextEdit::PrepareBoxModeForInput( File& rFile )
 
 		rLine.insert( rLine.end(), Count, Glyph( ' ', m_Palette.Default ) );
 	}
-}
+} // PrepareBoxModeForInput
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -3007,7 +3007,9 @@ void TextEdit::Esc( File& rFile )
 	rCursor.SelectionOrigin = Coordinate( -1, -1 );
 
 	Props.CursorMultiMode = MultiCursorMode::Normal;
-}
+} // Esc
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::Copy( File& rFile, bool Cut )
 {
