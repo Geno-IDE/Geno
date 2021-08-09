@@ -30,6 +30,7 @@
 #include "GUI/Modals/ProjectSettingsModal.h"
 #include "GUI/Widgets/MainMenuBar.h"
 #include "GUI/Widgets/TextEdit.h"
+#include "Discord/DiscordRPC.h"
 
 #include <fstream>
 
@@ -723,5 +724,10 @@ void WorkspaceOutliner::Show( bool* pOpen )
 		}
 	}
 	ImGui::End();
+
+	if( Application::Instance().CurrentWorkspace() )
+		GenoDiscord::Instance().m_Workspace = Application::Instance().CurrentWorkspace()->m_Name;
+	else
+		GenoDiscord::Instance().m_Workspace = "No Workspace";
 
 } // Show

@@ -25,6 +25,7 @@
 #include "GUI/Widgets/OutputWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
+#include "Discord/DiscordRPC.h"
 
 #include <Common/LocalAppData.h>
 #include <Common/Process.h>
@@ -136,7 +137,9 @@ void MainMenuBar::ActionFileNewWorkspace( void )
 void MainMenuBar::ActionFileOpenWorkspace( void )
 {
 	OpenFileModal::Instance().Show( "Open Workspace", "*.gwks", []( const std::filesystem::path& rFile )
-		{ Application::Instance().LoadWorkspace( rFile ); } );
+	{
+		Application::Instance().LoadWorkspace( rFile );
+	} );
 
 } // ActionFileOpenWorkspace
 

@@ -22,6 +22,8 @@
 
 #include <iostream>
 
+#include "Discord/DiscordRPC.h"
+
 //////////////////////////////////////////////////////////////////////////
 
 Application::~Application( void )
@@ -31,11 +33,11 @@ Application::~Application( void )
 
 } // ~Application
 
-//////////////////////////////////////////////////////////////////////////
-
 int Application::Run( int NumArgs, char** ppArgs )
 {
 	HandleCommandLineArgs( NumArgs, ppArgs );
+
+	GenoDiscord::Instance().InitDiscord();
 
 	MainWindow::Instance();
 
@@ -45,8 +47,12 @@ int Application::Run( int NumArgs, char** ppArgs )
 		if( !m_ModalStack.empty() )
 			m_ModalStack.front()->Update();
 
+		GenoDiscord::Instance().UpdateDiscord();
+		
 		MainWindow::Instance().EndFrame();
 	}
+
+	GenoDiscord::Instance().Shutdown();
 
 	return 0;
 

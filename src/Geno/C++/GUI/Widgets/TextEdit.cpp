@@ -22,6 +22,7 @@
 #include "Common/LocalAppData.h"
 #include "GUI/MainWindow.h"
 #include "GUI/Widgets/MainMenuBar.h"
+#include "Discord/DiscordRPC.h"
 
 #include <fstream>
 #include <iostream>
@@ -155,6 +156,9 @@ void TextEdit::Show( bool* pOpen )
 				if( ImGui::BeginTabItem( FileString.c_str(), &rFile.Open, rFile.Changed ? ImGuiTabItemFlags_UnsavedDocument : 0 ) )
 				{
 					m_ActiveFilePath = rFile.Path;
+
+					GenoDiscord::Instance().m_CurrentFile = FileString;
+					GenoDiscord::Instance().m_CurrentFileExt = rFile.Path.extension().string();
 
 					ImGui::PushFont( MainWindow::Instance().GetFontMono() );
 
@@ -1510,7 +1514,7 @@ void TextEdit::Enter( File& rFile )
 			rLine.erase( Start, rLine.end() );
 		}
 
-		AdjustCursors( rFile, i, rCursor.Position.x, -1 );
+		AdjustCursors( rFile, i, rCursor.Position.x, MoveRemainingTextToNewLine ? -1 : 0 );
 
 		rCursor.Position.y++;
 		rCursor.Position.x = 0;
