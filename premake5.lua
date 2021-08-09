@@ -30,6 +30,7 @@ app( 'Geno' )
 		'third_party/glfw/include',
 		'third_party/imgui',
 		'third_party/stb',
+		'third_party/discordrpc/include',
 	}
 
 	filter 'system:windows'
@@ -37,6 +38,7 @@ app( 'Geno' )
 			'shell32',
 			'gdi32',
 			'opengl32',
+			'third_party/discordrpc/lib/discord-rpc.lib',
 		}
 
 	filter 'system:linux'
