@@ -3095,6 +3095,11 @@ void TextEdit::Paste( File& rFile )
 
 	if( ClipBoard.empty() ) return;
 
+	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	{
+		PrepareBoxModeForInput( rFile );
+	}
+
 	std::vector< Line > Lines = SplitLines( ClipBoard );
 
 	for( size_t i = 0; i < rFile.Cursors.size(); i++ )
