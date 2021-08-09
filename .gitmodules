@@ -10,3 +10,9 @@
 [submodule "premake/premake-geno"]
 	path = premake/premake-geno
 	url = https://github.com/Geno-IDE/premake-geno.git
+[submodule "third_party/rapidjson"]
+	path = third_party/rapidjson
+	url = https://github.com/Tencent/rapidjson
+[submodule "third_party/discord-rpc"]
+	path = third_party/discord-rpc
+	url = https://github.com/discord/discord-rpc
