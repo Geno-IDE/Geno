@@ -610,10 +610,6 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 			Copy( rFile, true );
 		else if( !Alt && !Shift && Ctrl && ImGui::IsKeyPressed( 'V' ) )
 			Paste( rFile );
-		else if( Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_UpArrow ) ) )
-			SwapLines( rFile, true );
-		else if( Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_DownArrow ) ) )
-			SwapLines( rFile, false );
 		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Insert ) ) && Props.CursorMultiMode == MultiCursorMode::Normal )
 			Props.CursorMode = Props.CursorMode == CursorInputMode::Normal ? CursorInputMode::Insert : CursorInputMode::Normal;
 
@@ -2332,6 +2328,12 @@ void TextEdit::EnterTextStuff( File& rFile, char C, int CursorIndex )
 
 void TextEdit::MoveUp( File& rFile, bool Shift, bool Alt )
 {
+	if( Alt && !Shift )
+	{
+		SwapLines( rFile, true );
+		return;
+	}
+
 	if( ( Props.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
 		Cursor& rRefCursor = rFile.Cursors[ 0 ];
@@ -2437,6 +2439,12 @@ void TextEdit::MoveUp( File& rFile, bool Shift, bool Alt )
 
 void TextEdit::MoveDown( File& rFile, bool Shift, bool Alt )
 {
+	if( Alt && !Shift )
+	{
+		SwapLines( rFile, false );
+		return;
+	}
+
 	if( ( Props.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
 		Cursor& rRefCursor = rFile.Cursors[ 0 ];
@@ -3132,7 +3140,7 @@ void TextEdit::Paste( File& rFile )
 
 void TextEdit::SwapLines( File& rFile, bool Up )
 {
-	if( rFile.Cursors.size() > 1 ) rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+	if( rFile.Cursors.size() > 1 ) rFile.Cursors.erase( rFile.Cursors.begin(), rFile.Cursors.end() - 1);
 
 	int     LineToMove;
 	int     Destination;
