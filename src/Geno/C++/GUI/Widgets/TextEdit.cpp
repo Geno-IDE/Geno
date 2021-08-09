@@ -819,7 +819,7 @@ void TextEdit::SetBoxSelection( File& rFile, int LineIndex, float XPosition )
 
 	if( LineIndex > CurrCursor.SelectionOrigin.y )
 	{
-		rFile.BoxModeDir = rFile.BoxModeDir = BoxModeDirection::Down;
+		rFile.BoxModeDir = BoxModeDirection::Down;
 
 		for( int i = CurrCursor.SelectionOrigin.y + 1; i <= LineIndex; i++ )
 		{
