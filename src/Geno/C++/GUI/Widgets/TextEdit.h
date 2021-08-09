@@ -184,7 +184,7 @@ public:
 
 private:
 	void                SplitLines( File& rFile );
-	std::vector< Line > SplitLines( const std::string String );
+	std::vector< Line > SplitLines( const std::string String, int* Count = nullptr );
 	void                JoinLines( File& rFile );
 	std::string         GetString( const Line& rLine, int Start, int End );
 
