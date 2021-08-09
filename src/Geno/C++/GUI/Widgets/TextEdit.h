@@ -137,6 +137,13 @@ public:
 		Box
 	};
 
+	enum class BoxModeDirection
+	{
+		Up,
+		Down,
+		None
+	};
+
 	struct File
 	{
 		std::filesystem::path Path;
@@ -152,8 +159,9 @@ public:
 		float              LongestLineLength;
 		std::vector< int > LongestLines;
 
-		CursorInputMode CursorMode      = CursorInputMode::Normal;
-		MultiCursorMode CursorMultiMode = MultiCursorMode::Normal;
+		BoxModeDirection BoxModeDir      = BoxModeDirection::None;
+		CursorInputMode  CursorMode      = CursorInputMode::Normal;
+		MultiCursorMode  CursorMultiMode = MultiCursorMode::Normal;
 	}; // File
 
 	//////////////////////////////////////////////////////////////////////////
