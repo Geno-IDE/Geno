@@ -302,7 +302,7 @@ void TextEdit::SplitLines( File& rFile )
 
 //////////////////////////////////////////////////////////////////////////
 
-std::vector< TextEdit::Line > TextEdit::SplitLines( const std::string String )
+std::vector< TextEdit::Line > TextEdit::SplitLines( const std::string String, int* Count )
 {
 	Line                LineBuffer;
 	std::vector< Line > Lines;
@@ -324,6 +324,11 @@ std::vector< TextEdit::Line > TextEdit::SplitLines( const std::string String )
 	}
 
 	if( !LineBuffer.empty() ) Lines.push_back( LineBuffer );
+
+	if( Count )
+	{
+		*Count = ( int )Lines.size();
+	}
 
 	// We make a lot of assumptions that line vectors contain at least one element.
 	// Let's make sure the vector is never empty, even for empty input strings.
@@ -875,7 +880,9 @@ void TextEdit::SetBoxSelection( File& rFile, int LineIndex, float XPosition )
 
 			rFile.Cursors.push_back( Cursor );
 		}
-	} else {
+	}
+	else
+	{
 		rFile.BoxModeDir = BoxModeDirection::None;
 	}
 
@@ -3101,14 +3108,33 @@ void TextEdit::Paste( File& rFile )
 
 	if( ClipBoard.empty() ) return;
 
-	if( Props.CursorMultiMode == MultiCursorMode::Box )
+	int                 NumLinesInClipboard = 0;
+	int                 NumCursors          = ( int )rFile.Cursors.size();
+	std::vector< Line > Lines               = SplitLines( ClipBoard, &NumLinesInClipboard );
+
+	if( rFile.CursorMultiMode == MultiCursorMode::Box )
 	{
 		PrepareBoxModeForInput( rFile );
+
+		if( NumCursors >= NumLinesInClipboard )
+		{
+			NumCursors--;
+			for( int i = 0; i < NumLinesInClipboard; i++ )
+			{
+				Cursor& rCursor   = rFile.Cursors[ rFile.BoxModeDir == BoxModeDirection::Down ? i : NumCursors - i ];
+				Line&   rLine     = rFile.Lines[ rCursor.Position.y ];
+				Line&   rClipLine = Lines[ i ];
+
+				rLine.insert( rLine.begin() + rCursor.Position.x, rClipLine.begin(), rClipLine.end() );
+			}
+
+			Props.Changes = true;
+
+			return;
+		}
 	}
 
-	std::vector< Line > Lines = SplitLines( ClipBoard );
-
-	for( size_t i = 0; i < rFile.Cursors.size(); i++ )
+	for( int i = 0; i < NumCursors; i++ )
 	{
 		Cursor& rCursor = rFile.Cursors[ i ];
 
