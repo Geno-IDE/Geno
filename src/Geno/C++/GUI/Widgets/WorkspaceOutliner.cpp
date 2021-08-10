@@ -32,8 +32,9 @@
 #include "GUI/Widgets/TextEdit.h"
 #include "WidgetCommands/WOC.h"
 
-#include <GLFW/glfw3.h>
 #include <fstream>
+
+#include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
 #include <stb_image.h>
