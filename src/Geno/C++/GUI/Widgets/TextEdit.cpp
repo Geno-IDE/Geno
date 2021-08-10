@@ -749,6 +749,8 @@ void TextEdit::HandleMouseInputs( File& rFile )
 					rFile.CursorMultiMode = MultiCursorMode::Box;
 					rFile.CursorMode      = CursorInputMode::Normal;
 				}
+
+				YeetDuplicateCursors( rFile );
 			}
 		}
 		else if( Dragged )
@@ -1835,10 +1837,10 @@ void TextEdit::Backspace( File& rFile, int CursorIndex, bool DeleteLine )
 
 			rLines.erase( rLines.begin() + rCursor.Position.y );
 
-			AdjustCursors( rFile, CursorIndex, -x, 1 );
-
 			rCursor.Position.x = x;
 			rCursor.Position.y--;
+
+			AdjustCursors( rFile, CursorIndex, -x, 1 );
 
 			Props.Changes = true;
 		}
