@@ -18,7 +18,7 @@
 #pragma once
 
 // Using win64_dyn state
-#include <discord_rpc.h>
+#include <Discord/discord_rpc.h>
 #include <Common/Macros.h>
 
  // Geno Discord here as discord is a namespace

@@ -16,6 +16,7 @@ startproject( 'Geno' )
 third_party_library 'glew'
 third_party_library 'glfw'
 third_party_library 'imgui'
+third_party_library 'discordrpc'
 
 library 'Common'
 	sysincludedirs {
@@ -30,6 +31,7 @@ app( 'Geno' )
 		'third_party/glfw/include',
 		'third_party/imgui',
 		'third_party/stb',
+		'third_party/rapidjson/include',
 		'third_party/discordrpc/include',
 	}
 
@@ -38,7 +40,6 @@ app( 'Geno' )
 			'shell32',
 			'gdi32',
 			'opengl32',
-			'third_party/discordrpc/lib/discord-rpc.lib',
 		}
 
 	filter 'system:linux'
