@@ -29,6 +29,8 @@ static int64_t s_StartInUnixTime = -1;
 
 //////////////////////////////////////////////////////////////////////////
 
+// TODO: Make this better
+
 static const char* GetImgFromStr( const std::string& str )
 {
 	if( str == ".txt" )
@@ -96,8 +98,9 @@ void GenoDiscord::UpdateDiscord( void )
 		DiscordPresence ={};
 
 		Discord_UpdatePresence( &m_CurrentRPC );
-		Discord_RunCallbacks();
 	}
+
+	Discord_RunCallbacks();
 
 } // UpdateDiscord
 
