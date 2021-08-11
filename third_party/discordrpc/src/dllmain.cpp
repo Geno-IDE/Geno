@@ -1,4 +1,4 @@
-#ifdef _DISCORD_WINDOWS
+#if defined (_DISCORD_WINDOWS) && defined(_DISCORD_BUILD_DLL)
 #include <windows.h>
 
 // outsmart GCC's missing-declarations warning
