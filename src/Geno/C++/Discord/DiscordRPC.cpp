@@ -23,7 +23,6 @@
 
 #include <iostream>
 #include <chrono>
-#include <cstring>
 
 static const auto s_StartTime = std::chrono::system_clock::now();
 static int64_t s_StartInUnixTime = -1;
@@ -79,9 +78,13 @@ void GenoDiscord::UpdateDiscord( void )
 		if( m_Settings.ShowFilename )
 		{
 			if( m_CurrentFile == "" || m_CurrentFile == "No File" )
+			{
 				DiscordPresence.state = "No File";
+			}
 			else if( m_CurrentFile != ( const char* )"No File" )
+			{
 				DiscordPresence.state = m_CurrentFile.c_str();
+			}
 		}
 
 		if( m_Settings.ShowWrksName )

@@ -21,6 +21,9 @@
 #include <Discord/discord_rpc.h>
 #include <Common/Macros.h>
 
+#include <string>
+#include <cstring>
+
  // Geno Discord here as discord is a namespace
 class GenoDiscord
 {
