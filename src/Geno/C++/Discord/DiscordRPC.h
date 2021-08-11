@@ -49,9 +49,9 @@ public:
 
 	GenoDiscordSettings m_Settings;
 
-	std::string m_CurrentFile;
-	std::string m_Workspace;
-	std::string m_CurrentFileExt;
+	std::string m_CurrentFile = "";
+	std::string m_Workspace = "";
+	std::string m_CurrentFileExt = "";
 
 protected:
 private:

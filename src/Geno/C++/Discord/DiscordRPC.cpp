@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <chrono>
+#include <cstring>
 
 static const auto s_StartTime = std::chrono::system_clock::now();
 static int64_t s_StartInUnixTime = -1;
@@ -76,10 +77,12 @@ void GenoDiscord::UpdateDiscord( void )
 		memset( &DiscordPresence, 0, sizeof( DiscordPresence ) );
 
 		if( m_Settings.ShowFilename )
+		{
 			if( m_CurrentFile == "" || m_CurrentFile == "No File" )
 				DiscordPresence.state = "No File";
 			else if( m_CurrentFile != ( const char* )"No File" )
 				DiscordPresence.state = m_CurrentFile.c_str();
+		}
 
 		if( m_Settings.ShowWrksName )
 			DiscordPresence.details = m_Workspace.c_str();
@@ -124,25 +127,6 @@ static void handleDiscordError( int errcode, const char* message )
 	printf( "\nDiscord: error (%d: %s)\n", errcode, message );
 } // handleDiscordError
 
-static void handleDiscordJoin( const char* scrt )
-{
-	// To stop error C2220
-	scrt;
-} // handleDiscordJoin
-
-// We don't use these but we need it in order  for the discord rpc to work
-static void handleDiscordSpectate( const char* scrt )
-{
-	// To stop error C2220
-	scrt;
-} // handleDiscordSpectate
-
-static void handleDiscordJoinRequest( const DiscordUser* request )
-{
-	// To stop error C2220
-	request;
-} // handleDiscordJoinRequest
-
 //////////////////////////////////////////////////////////////////////////
 
 void GenoDiscord::InitDiscord( void )
@@ -153,9 +137,6 @@ void GenoDiscord::InitDiscord( void )
 	handlers.ready = handleDiscordReady;
 	handlers.disconnected = handleDiscordDisconnected;
 	handlers.errored = handleDiscordError;
-	handlers.joinGame = handleDiscordJoin;
-	handlers.spectateGame = handleDiscordSpectate;
-	handlers.joinRequest = handleDiscordJoinRequest;
 
 	Discord_Initialize( GENO_DISCORD_APP_ID_STR, &handlers, 1, NULL );
 } // Init Discord
