@@ -26,6 +26,7 @@
 #include <imgui.h>
 
 #if defined( _WIN32 )
+#include <Windows.h>
 #undef ReplaceFile
 #endif // _WIN32
 
