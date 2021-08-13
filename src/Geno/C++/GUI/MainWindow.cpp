@@ -59,6 +59,7 @@ MainWindow::MainWindow( void )
 	m_Width                  = 3 * rMonitor.Width()  / 4;
 	m_Height                 = 3 * rMonitor.Height() / 4;
 
+	glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 );
 	
@@ -94,6 +95,9 @@ MainWindow::MainWindow( void )
 
 	SendMessage( WindowHandle, WM_SETICON, ICON_BIG,   ( LPARAM )IconHandleLarge );
 	SendMessage( WindowHandle, WM_SETICON, ICON_SMALL, ( LPARAM )IconHandleSmall );
+
+	// Fix the fact that GLFW doesn't set WS_THICKFRAME or WS_MAXIMIZEBOX for non-decorated windows (Required for resizability)
+	SetWindowLong( WindowHandle, GWL_STYLE, GetWindowLong( WindowHandle, GWL_STYLE ) | WS_THICKFRAME | WS_MAXIMIZEBOX );
 
 	// Create drop target
 	m_pDropTarget = new Win32DropTarget();
