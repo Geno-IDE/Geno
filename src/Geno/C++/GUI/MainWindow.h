@@ -24,6 +24,10 @@
 
 #include <imgui.h>
 
+#if defined( _WIN32 )
+#include <Windows.h>
+#endif // _WIN32
+
 class  MainMenuBar;
 class  OutputWindow;
 class  TextEdit;
@@ -82,6 +86,12 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
+#if defined( _WIN32 )
+	static LRESULT CustomWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam );
+#endif // _WIN32
+
+//////////////////////////////////////////////////////////////////////////
+
 	std::filesystem::path m_IniPath            = { };
 
 	std::optional< Drop > m_DraggedDrop        = { };
@@ -98,6 +108,7 @@ private:
 	int                   m_DragPosY           = 0;
 
 #if defined( _WIN32 )
+	WNDPROC               m_DefaultWindowProc  = nullptr;
 	Win32DropTarget*      m_pDropTarget        = nullptr;
 #endif // _WIN32
 

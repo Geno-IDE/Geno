@@ -99,6 +99,10 @@ MainWindow::MainWindow( void )
 	// Fix the fact that GLFW doesn't set WS_THICKFRAME or WS_MAXIMIZEBOX for non-decorated windows (Required for resizability)
 	SetWindowLong( WindowHandle, GWL_STYLE, GetWindowLong( WindowHandle, GWL_STYLE ) | WS_THICKFRAME | WS_MAXIMIZEBOX );
 
+	// Override window procedure with custom one to allow native window moving behavior without a title bar
+	SetWindowLongPtr( WindowHandle, GWLP_USERDATA, ( LONG_PTR )this );
+	m_DefaultWindowProc = ( WNDPROC )SetWindowLongPtr( WindowHandle, GWLP_WNDPROC, ( LONG_PTR )CustomWindowProc );
+
 	// Create drop target
 	m_pDropTarget = new Win32DropTarget();
 
@@ -359,3 +363,31 @@ void MainWindow::ImGuiSettingsWriteAllCB( ImGuiContext* pContext, ImGuiSettingsH
 	}
 
 } // ImGuiSettingsWriteAllCB
+
+//////////////////////////////////////////////////////////////////////////
+
+#if defined( _WIN32 )
+
+LRESULT MainWindow::CustomWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam )
+{
+	MainWindow* pSelf = ( MainWindow* )GetWindowLongPtr( Handle, GWLP_USERDATA );
+
+	if( Msg == WM_NCHITTEST )
+	{
+		POINT MousePos;
+		RECT  WindowRect;
+
+		GetCursorPos( &MousePos );
+		GetWindowRect( Handle, &WindowRect );
+
+		if( PtInRect( &WindowRect, MousePos ) )
+		{
+			return HTCAPTION;
+		}
+	}
+
+	return CallWindowProc( pSelf->m_DefaultWindowProc, Handle, Msg, WParam, LParam );
+
+} // CustomWindowProc
+
+#endif // _WIN32
