@@ -42,8 +42,4 @@ void GenoDiscordSettingsModal::UpdateDerived( void )
 
 void GenoDiscordSettingsModal::Show()
 {
-	if( Open() )
-	{
-		ImGui::Text( "aa" );
-	}
 } // Show
