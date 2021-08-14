@@ -24,10 +24,9 @@
 #include <string>
 #include <cstring>
 
- // Geno Discord here as discord is a namespace
-class GenoDiscord
+class DiscordRPC
 {
-	GENO_SINGLETON( GenoDiscord )
+	GENO_SINGLETON( DiscordRPC )
 
 	struct GenoDiscordSettings 
 	{
@@ -38,8 +37,8 @@ class GenoDiscord
 	}; // GenoDiscordSettings
 
 public:
-	GenoDiscord( void )  = default;
-	~GenoDiscord( void ) = default;
+	DiscordRPC( void )  = default;
+	~DiscordRPC( void ) = default;
 
 	//////////////////////////////////////////////////////////////////////////
 public:

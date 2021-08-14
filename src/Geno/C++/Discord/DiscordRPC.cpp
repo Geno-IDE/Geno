@@ -55,7 +55,7 @@ static const char* GetImgFromStr( const std::string& str )
 
 // NOTE(beast) prb a memory leak here not sure
 
-void GenoDiscord::UpdateDiscord( void )
+void DiscordRPC::UpdateDiscord( void )
 {
 	s_StartInUnixTime = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( s_StartTime.time_since_epoch() ).count();
 
@@ -132,7 +132,7 @@ static void handleDiscordError( int errcode, const char* message )
 
 //////////////////////////////////////////////////////////////////////////
 
-void GenoDiscord::InitDiscord( void )
+void DiscordRPC::InitDiscord( void )
 {
 	DiscordEventHandlers handlers;
 	memset( &handlers, 0, sizeof( handlers ) );
@@ -146,7 +146,7 @@ void GenoDiscord::InitDiscord( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void GenoDiscord::Shutdown( void )
+void DiscordRPC::Shutdown( void )
 {
 	Discord_Shutdown();
 } // Shutdown

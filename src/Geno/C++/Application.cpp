@@ -37,7 +37,7 @@ int Application::Run( int NumArgs, char** ppArgs )
 {
 	HandleCommandLineArgs( NumArgs, ppArgs );
 
-	GenoDiscord::Instance().InitDiscord();
+	DiscordRPC::Instance().InitDiscord();
 
 	MainWindow::Instance();
 
@@ -47,12 +47,12 @@ int Application::Run( int NumArgs, char** ppArgs )
 		if( !m_ModalStack.empty() )
 			m_ModalStack.front()->Update();
 
-		GenoDiscord::Instance().UpdateDiscord();
+		DiscordRPC::Instance().UpdateDiscord();
 		
 		MainWindow::Instance().EndFrame();
 	}
 
-	GenoDiscord::Instance().Shutdown();
+	DiscordRPC::Instance().Shutdown();
 
 	return 0;
 

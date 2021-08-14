@@ -726,8 +726,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 	ImGui::End();
 
 	if( Application::Instance().CurrentWorkspace() )
-		GenoDiscord::Instance().m_Workspace = Application::Instance().CurrentWorkspace()->m_Name;
+		DiscordRPC::Instance().m_Workspace = Application::Instance().CurrentWorkspace()->m_Name;
 	else
-		GenoDiscord::Instance().m_Workspace = "No Workspace";
+		DiscordRPC::Instance().m_Workspace = "No Workspace";
 
 } // Show

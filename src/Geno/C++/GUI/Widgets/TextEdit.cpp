@@ -157,8 +157,8 @@ void TextEdit::Show( bool* pOpen )
 				{
 					m_ActiveFilePath = rFile.Path;
 
-					GenoDiscord::Instance().m_CurrentFile = FileString;
-					GenoDiscord::Instance().m_CurrentFileExt = rFile.Path.extension().string();
+					DiscordRPC::Instance().m_CurrentFile = FileString;
+					DiscordRPC::Instance().m_CurrentFileExt = rFile.Path.extension().string();
 
 					ImGui::PushFont( MainWindow::Instance().GetFontMono() );
 
