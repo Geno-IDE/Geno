@@ -400,18 +400,39 @@ LRESULT MainWindow::CustomWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPAR
 {
 	MainWindow* pSelf = ( MainWindow* )GetWindowLongPtr( Handle, GWLP_USERDATA );
 
-	if( Msg == WM_NCHITTEST )
+	switch( Msg )
 	{
-		POINT MousePos;
-		RECT  WindowRect;
-
-		GetCursorPos( &MousePos );
-		GetWindowRect( Handle, &WindowRect );
-
-		if( PtInRect( &WindowRect, MousePos ) )
+		case WM_NCHITTEST:
 		{
-			return HTCAPTION;
-		}
+			POINT MousePos;
+			RECT  WindowRect;
+
+			GetCursorPos( &MousePos );
+			GetWindowRect( Handle, &WindowRect );
+
+			if( PtInRect( &WindowRect, MousePos ) )
+			{
+				// Drag the menu bar to move the window
+				if( !ImGui::IsAnyItemHovered() && ( MousePos.y < ( WindowRect.top + pSelf->pMenuBar->Height() ) ) )
+					return HTCAPTION;
+			}
+
+		} break;
+
+		case WM_NCCALCSIZE:
+		{
+			if( WParam == FALSE )
+				return 0;
+
+			LPNCCALCSIZE_PARAMS CalcSizeParams = ( LPNCCALCSIZE_PARAMS )LParam;
+
+			// We need to modify the new rectangle for it to resize correctly after the user has snapped the window in some direction.
+			InflateRect( &CalcSizeParams->rgrc[ 0 ], -1, -1 );
+			InvalidateRect( Handle, &CalcSizeParams->rgrc[ 0 ], TRUE );
+
+			return 0;
+
+		} break;
 	}
 
 	return CallWindowProc( pSelf->m_DefaultWindowProc, Handle, Msg, WParam, LParam );
