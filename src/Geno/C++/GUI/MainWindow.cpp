@@ -204,11 +204,11 @@ bool MainWindow::BeginFrame( void )
 
 	pMenuBar->Draw();
 
-	if( pMenuBar->ShowDemoWindow               ) ImGui::ShowDemoWindow    ( &pMenuBar->ShowDemoWindow );
-	if( pMenuBar->ShowAboutWindow              ) ImGui::ShowAboutWindow   ( &pMenuBar->ShowAboutWindow );
-	if( pMenuBar->ShowWorkspaceOutliner        ) pWorkspaceOutliner       ->Show ( &pMenuBar->ShowWorkspaceOutliner );
-	if( pMenuBar->ShowTextEdit                 ) pTextEdit                ->Show ( &pMenuBar->ShowTextEdit );
-	if( pMenuBar->ShowOutputWindow             ) pOutputWindow            ->Show ( &pMenuBar->ShowOutputWindow );
+	if( pMenuBar->ShowDemoWindow        ) ImGui::ShowDemoWindow(    &pMenuBar->ShowDemoWindow );
+	if( pMenuBar->ShowAboutWindow       ) ImGui::ShowAboutWindow(   &pMenuBar->ShowAboutWindow );
+	if( pMenuBar->ShowWorkspaceOutliner ) pWorkspaceOutliner->Show( &pMenuBar->ShowWorkspaceOutliner );
+	if( pMenuBar->ShowTextEdit          ) pTextEdit         ->Show( &pMenuBar->ShowTextEdit );
+	if( pMenuBar->ShowOutputWindow      ) pOutputWindow     ->Show( &pMenuBar->ShowOutputWindow );
 
 	return true;
 

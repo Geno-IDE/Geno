@@ -30,7 +30,7 @@ std::string GenoDiscordSettingsModal::Title( void )
 
 void GenoDiscordSettingsModal::UpdateDerived( void )
 {
-	ImGui::Text( "Show File Name" );      ImGui::SameLine(); ImGui::Checkbox( "##gd-ext-file",   &DiscordRPC::Instance().m_Settings.ShowFilename );
+	ImGui::Text( "Show File Name" );      ImGui::SameLine(); ImGui::Checkbox( "##gd-ext-file",  &DiscordRPC::Instance().m_Settings.ShowFilename );
 	ImGui::Text( "Show Workspace Name" ); ImGui::SameLine(); ImGui::Checkbox( "##gd-ext-wks",   &DiscordRPC::Instance().m_Settings.ShowWrksName );
 	ImGui::Text( "Show Time" );           ImGui::SameLine(); ImGui::Checkbox( "##gd-ext-time",  &DiscordRPC::Instance().m_Settings.ShowTime );
 	ImGui::Text( "Show" );                ImGui::SameLine(); ImGui::Checkbox( "##gd-ext-show",  &DiscordRPC::Instance().m_Settings.Show );
