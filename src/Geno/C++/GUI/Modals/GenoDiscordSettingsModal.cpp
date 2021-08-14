@@ -43,5 +43,5 @@ void GenoDiscordSettingsModal::UpdateDerived( void )
 void GenoDiscordSettingsModal::Show()
 {
 	if( Open() )
-	{}
+		ImGui::SetWindowSize( ImVec2( 365, 189 ) );
 } // Show
