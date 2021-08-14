@@ -433,6 +433,29 @@ LRESULT MainWindow::CustomWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPAR
 			return 0;
 
 		} break;
+
+		case WM_ENTERSIZEMOVE:
+		{
+			SetTimer( Handle, 1, USER_TIMER_MINIMUM, NULL );
+
+		} break;
+
+		case WM_EXITSIZEMOVE:
+		{
+			KillTimer( Handle, 1 );
+
+		} break;
+
+		case WM_TIMER:
+		{
+			const UINT_PTR TimerID = ( UINT_PTR )WParam;
+
+			if( TimerID == 1 )
+			{
+				pSelf->Render();
+			}
+
+		} break;
 	}
 
 	return CallWindowProc( pSelf->m_DefaultWindowProc, Handle, Msg, WParam, LParam );
