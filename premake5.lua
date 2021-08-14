@@ -31,9 +31,6 @@ app( 'Geno' )
 		'third_party/imgui',
 		'third_party/stb',
 	}
-	libdirs {
-		'third_party/glew/lib/Release/%{cfg.platform}'
-	}
 
 	filter 'system:windows'
 		links {
