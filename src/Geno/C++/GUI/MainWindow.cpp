@@ -19,6 +19,7 @@
 
 #include "Application.h"
 #include "Common/LocalAppData.h"
+#include "GUI/Modals/IModal.h"
 #include "GUI/Platform/Win32/Win32DropTarget.h"
 #include "GUI/PrimaryMonitor.h"
 #include "GUI/Widgets/MainMenuBar.h"
@@ -193,14 +194,20 @@ void MainWindow::MakeCurrent( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-bool MainWindow::BeginFrame( void )
+bool MainWindow::Update( void )
 {
-	if( glfwWindowShouldClose( m_pWindow ) )
-		return false;
+	glfwPollEvents();
 
+	return !glfwWindowShouldClose( m_pWindow );
+
+} // Update
+
+//////////////////////////////////////////////////////////////////////////
+
+void MainWindow::Render( void )
+{
 	const ImVec4 Color = ImGui::GetStyleColorVec4( ImGuiCol_WindowBg );
 
-	glfwPollEvents();
 	glClearColor( Color.x, Color.y, Color.z, 1.0f );
 	glClear( GL_COLOR_BUFFER_BIT );
 
@@ -225,14 +232,10 @@ bool MainWindow::BeginFrame( void )
 
 	StatusBar::Instance().Show();
 
-	return true;
+	// This will update all modals recursively
+	if( !m_Modals.empty() )
+		m_Modals.front()->Update();
 
-} // BeginFrame
-
-//////////////////////////////////////////////////////////////////////////
-
-void MainWindow::EndFrame( void )
-{
 	ImGui::PopFont();
 	ImGui::Render();
 
@@ -247,7 +250,39 @@ void MainWindow::EndFrame( void )
 
 	glfwSwapBuffers( m_pWindow );
 
-} // EndFrame
+} // Render
+
+//////////////////////////////////////////////////////////////////////////
+
+void MainWindow::PushModal( IModal* pModal )
+{
+	m_Modals.push_back( pModal );
+
+} // PushModal
+
+  //////////////////////////////////////////////////////////////////////////
+
+void MainWindow::PopModal( void )
+{
+	m_Modals.pop_back();
+
+} // PopModal
+
+//////////////////////////////////////////////////////////////////////////
+
+IModal* MainWindow::NextModal( IModal* pPrevious )
+{
+	if( auto Modal = std::find( m_Modals.begin(), m_Modals.end(), pPrevious ); Modal != m_Modals.end() )
+	{
+		if( ++Modal == m_Modals.end() )
+			return nullptr;
+
+		return *Modal;
+	}
+
+	return nullptr;
+
+} // NextModal
 
 //////////////////////////////////////////////////////////////////////////
 

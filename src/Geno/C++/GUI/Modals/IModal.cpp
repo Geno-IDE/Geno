@@ -17,8 +17,8 @@
 
 #include "IModal.h"
 
-#include "Application.h"
 #include "Auxiliary/ImGuiAux.h"
+#include "GUI/MainWindow.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -47,7 +47,7 @@ void IModal::Update( void )
 		{
 			UpdateDerived();
 
-			if( IModal* pNext = Application::Instance().NextModal( this ) )
+			if( IModal* pNext = MainWindow::Instance().NextModal( this ) )
 				pNext->Update();
 		}
 		ImGui::EndChild();
@@ -65,7 +65,7 @@ void IModal::Close( void )
 
 	ImGui::CloseCurrentPopup();
 
-	Application::Instance().PopModal();
+	MainWindow::Instance().PopModal();
 
 	OnClose();
 
@@ -79,7 +79,7 @@ bool IModal::Open( void )
 	if( m_Open )
 		return false;
 
-	Application::Instance().PushModal( this );
+	MainWindow::Instance().PushModal( this );
 
 	m_Open = true;
 

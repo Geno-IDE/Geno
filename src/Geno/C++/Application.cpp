@@ -43,15 +43,11 @@ int Application::Run( int NumArgs, char** ppArgs )
 
 	MainWindow::Instance();
 
-	while( MainWindow::Instance().BeginFrame() )
+	while( MainWindow::Instance().Update() )
 	{
-		// This will update all modals recursively
-		if( !m_ModalStack.empty() )
-			m_ModalStack.front()->Update();
+		MainWindow::Instance().Render();
 
 		DiscordRPC::Instance().UpdateDiscord();
-		
-		MainWindow::Instance().EndFrame();
 	}
 
 	DiscordRPC::Instance().Shutdown();
@@ -106,38 +102,6 @@ void Application::CloseWorkspace( void )
 	m_CurrentWorkspace.reset();
 
 } // CloseWorkspace
-
-//////////////////////////////////////////////////////////////////////////
-
-void Application::PushModal( IModal* pModal )
-{
-	m_ModalStack.push_back( pModal );
-
-} // PushModal
-
-//////////////////////////////////////////////////////////////////////////
-
-void Application::PopModal( void )
-{
-	m_ModalStack.pop_back();
-
-} // PopModal
-
-//////////////////////////////////////////////////////////////////////////
-
-IModal* Application::NextModal( IModal* pPrevious )
-{
-	if( auto Modal = std::find( m_ModalStack.begin(), m_ModalStack.end(), pPrevious ); Modal != m_ModalStack.end() )
-	{
-		if( ++Modal == m_ModalStack.end() )
-			return nullptr;
-
-		return *Modal;
-	}
-
-	return nullptr;
-
-} // NextModal
 
 //////////////////////////////////////////////////////////////////////////
 

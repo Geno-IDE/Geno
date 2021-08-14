@@ -28,6 +28,7 @@
 #include <Windows.h>
 #endif // _WIN32
 
+class  IModal;
 class  MainMenuBar;
 class  OutputWindow;
 class  TextEdit;
@@ -49,15 +50,22 @@ class MainWindow
 
 public:
 
-	void MakeCurrent         ( void );
-	bool BeginFrame          ( void );
-	void EndFrame            ( void );
-	void PushHorizontalLayout( void );
-	void PopHorizontalLayout ( void );
-	void DragEnter           ( Drop Drop, int X, int Y );
-	void DragOver            ( int X, int Y );
-	void DragLeave           ( void );
-	void DragDrop            ( const Drop& rDrop, int X, int Y );
+	using ModalVector = std::vector< IModal* >;
+
+//////////////////////////////////////////////////////////////////////////
+
+	void    MakeCurrent         ( void );
+	bool    Update              ( void );
+	void    Render              ( void );
+	void    PushModal           ( IModal* pModal );
+	void    PopModal            ( void );
+	IModal* NextModal           ( IModal* pPrevious );
+	void    PushHorizontalLayout( void );
+	void    PopHorizontalLayout ( void );
+	void    DragEnter           ( Drop Drop, int X, int Y );
+	void    DragOver            ( int X, int Y );
+	void    DragLeave           ( void );
+	void    DragDrop            ( const Drop& rDrop, int X, int Y );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -91,6 +99,8 @@ private:
 #endif // _WIN32
 
 //////////////////////////////////////////////////////////////////////////
+
+	ModalVector           m_Modals             = { };
 
 	std::filesystem::path m_IniPath            = { };
 
