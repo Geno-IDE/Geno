@@ -32,7 +32,7 @@ app( 'Geno' )
 		'third_party/imgui',
 		'third_party/stb',
 		'third_party/rapidjson/include',
-		'third_party/discordrpc/include',
+		'third_party/discord-rpc/include',
 	}
 
 	filter 'system:windows'

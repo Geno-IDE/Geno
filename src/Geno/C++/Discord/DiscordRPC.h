@@ -18,7 +18,7 @@
 #pragma once
 
 // Using win64_dyn state
-#include <Discord/discord_rpc.h>
+#include <discord_rpc.h>
 #include <Common/Macros.h>
 
 #include <string>
