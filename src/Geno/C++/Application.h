@@ -40,9 +40,6 @@ public:
 	void       NewWorkspace    ( std::filesystem::path Location, std::string Name );
 	bool       LoadWorkspace   ( std::filesystem::path Path );
 	void       CloseWorkspace  ( void );
-	void       PushModal       ( IModal* pModal );
-	void       PopModal        ( void );
-	IModal*    NextModal       ( IModal* pPrevious );
 	Workspace* CurrentWorkspace( void );
 	
 //////////////////////////////////////////////////////////////////////////
@@ -58,7 +55,6 @@ private:
 //////////////////////////////////////////////////////////////////////////
 
 	std::optional< Workspace > m_CurrentWorkspace;
-	std::vector< IModal* >     m_ModalStack;
 	std::filesystem::path      m_ExePath;
 	std::filesystem::path      m_AppDir;
 	std::filesystem::path      m_DataDir;
