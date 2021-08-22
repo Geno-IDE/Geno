@@ -96,8 +96,10 @@ MainWindow::MainWindow( void )
 	SendMessage( WindowHandle, WM_SETICON, ICON_BIG,   ( LPARAM )IconHandleLarge );
 	SendMessage( WindowHandle, WM_SETICON, ICON_SMALL, ( LPARAM )IconHandleSmall );
 
-	// Fix the fact that GLFW doesn't set WS_THICKFRAME or WS_MAXIMIZEBOX for non-decorated windows (Required for resizability)
-	SetWindowLong( WindowHandle, GWL_STYLE, GetWindowLong( WindowHandle, GWL_STYLE ) | WS_THICKFRAME | WS_MAXIMIZEBOX );
+	// Add some necessary window styles manually.
+	// First of all, fix the fact that GLFW doesn't set WS_THICKFRAME or WS_MAXIMIZEBOX for non-decorated windows (Required for resizability).
+	// Secondly, add WS_CAPTION so that we get a smooth animation when we minimize and maximize the window.
+	SetWindowLong( WindowHandle, GWL_STYLE, GetWindowLong( WindowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX );
 
 	// Override window procedure with custom one to allow native window moving behavior without a title bar
 	SetWindowLongPtr( WindowHandle, GWLP_USERDATA, ( LONG_PTR )this );
