@@ -304,6 +304,30 @@ void MainWindow::PopHorizontalLayout( void )
 
 //////////////////////////////////////////////////////////////////////////
 
+void MainWindow::Minimize( void )
+{
+	const bool WasMinimized = ( glfwGetWindowAttrib( m_pWindow, GLFW_ICONIFIED ) == GLFW_TRUE );
+
+	// Minimize the window, unless it was already minimized. In that case, restore it.
+	if( !WasMinimized ) glfwIconifyWindow( m_pWindow );
+	else                glfwRestoreWindow( m_pWindow );
+
+} // Minimize
+
+//////////////////////////////////////////////////////////////////////////
+
+void MainWindow::Maximize( void )
+{
+	const bool WasMaximized = ( glfwGetWindowAttrib( m_pWindow, GLFW_MAXIMIZED ) == GLFW_TRUE );
+
+	// Maximize the window, unless it was already maximized. In that case, restore it.
+	if( !WasMaximized ) glfwMaximizeWindow( m_pWindow );
+	else                glfwRestoreWindow( m_pWindow );
+
+} // Maximize
+
+//////////////////////////////////////////////////////////////////////////
+
 void MainWindow::DragEnter( Drop Drop, int X, int Y )
 {
 	m_DraggedDrop = std::move( Drop );
