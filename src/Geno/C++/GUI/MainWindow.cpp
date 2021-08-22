@@ -447,9 +447,37 @@ LRESULT MainWindow::CustomWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPAR
 
 			if( PtInRect( &WindowRect, MousePos ) )
 			{
-				// Drag the menu bar to move the window
-				if( !ImGui::IsAnyItemHovered() && ( MousePos.y < ( WindowRect.top + pSelf->pTitleBar->Height() ) ) )
-					return HTCAPTION;
+				const int BorderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+				const int BorderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+
+				if( MousePos.y < ( WindowRect.top + BorderY ) )
+				{
+					if(      MousePos.x <  ( WindowRect.left  + BorderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); return HTTOPLEFT;  }
+					else if( MousePos.x >= ( WindowRect.right - BorderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); return HTTOPRIGHT; }
+					else                                                    { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTTOP;      }
+				}
+				else if( MousePos.y >= ( WindowRect.bottom - BorderY ) )
+				{
+					if(      MousePos.x <  ( WindowRect.left  + BorderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); return HTBOTTOMLEFT;  }
+					else if( MousePos.x >= ( WindowRect.right - BorderX ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); return HTBOTTOMRIGHT; }
+					else                                                    { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );   return HTBOTTOM;      }
+				}
+				else if( MousePos.x < ( WindowRect.left + BorderX ) )
+				{
+					ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW );
+					return HTLEFT;
+				}
+				else if( MousePos.x >= ( WindowRect.right - BorderX ) )
+				{
+					ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW );
+					return HTRIGHT;
+				}
+				else
+				{
+					// Drag the menu bar to move the window
+					if( !ImGui::IsAnyItemHovered() && ( MousePos.y < ( WindowRect.top + pSelf->pTitleBar->Height() ) ) )
+						return HTCAPTION;
+				}
 			}
 
 		} break;
