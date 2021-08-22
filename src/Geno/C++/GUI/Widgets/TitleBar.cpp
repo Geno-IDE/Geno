@@ -97,7 +97,9 @@ void TitleBar::Draw( void )
 
 		if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 		{
+			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + 10.0f );
 			ImGui::Separator();
+			ImGui::SetCursorPosX( ImGui::GetCursorPosX() + 10.0f );
 
 			for( BuildMatrix::Column& rColumn : pWorkspace->m_BuildMatrix.m_Columns )
 			{
@@ -223,6 +225,8 @@ void TitleBar::AddBuildMatrixColumn( BuildMatrix::Column& rColumn )
 
 	// Add combo for this column
 	ImGui::SetNextItemWidth( 100.0f );
+	ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 1, 1 ) );
+	ImGui::SetCursorPosY( 10.0f );
 	if( ImGui::BeginCombo( Label.c_str(), rColumn.CurrentConfiguration.c_str() ) )
 	{
 		for( auto& [ rName, rConfiguration ] : rColumn.Configurations )
@@ -233,5 +237,6 @@ void TitleBar::AddBuildMatrixColumn( BuildMatrix::Column& rColumn )
 
 		ImGui::EndCombo();
 	}
+	ImGui::PopStyleVar();
 
 } // AddBuildMatrixColumn
