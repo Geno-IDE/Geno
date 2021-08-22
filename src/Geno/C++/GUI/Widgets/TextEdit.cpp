@@ -22,6 +22,7 @@
 #include "Common/LocalAppData.h"
 #include "GUI/MainWindow.h"
 #include "GUI/Widgets/MainMenuBar.h"
+#include <GUI/Widgets/StatusBar.h>
 
 #include <fstream>
 #include <iostream>
@@ -287,6 +288,8 @@ void TextEdit::SaveFile( File& rFile )
 	ofs << rFile.Text;
 
 	rFile.Changed = false;
+
+	StatusBar::Instance().SetText( "Item saved : " + rFile.Path.string() );
 
 } // SaveFile
 

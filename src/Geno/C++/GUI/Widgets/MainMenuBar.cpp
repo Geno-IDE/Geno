@@ -25,6 +25,7 @@
 #include "GUI/Widgets/OutputWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
+#include "GUI/Widgets/StatusBar.h"
 
 #include <Common/LocalAppData.h>
 #include <Common/Process.h>
