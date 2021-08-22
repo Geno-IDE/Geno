@@ -31,7 +31,10 @@
 
 #include <Common/LocalAppData.h>
 #include <Common/Process.h>
+
 #include <GLFW/glfw3.h>
+#include <imgui_internal.h>
+
 #include <functional>
 #include <imgui.h>
 #include <iostream>
@@ -104,6 +107,90 @@ void TitleBar::Draw( void )
 			for( BuildMatrix::Column& rColumn : pWorkspace->m_BuildMatrix.m_Columns )
 			{
 				AddBuildMatrixColumn( rColumn );
+			}
+		}
+
+		// System buttons
+		{
+			const float  ButtonSize = ImGui::GetFrameHeight();
+			const float  IconMargin = ButtonSize * 0.33f;
+			ImRect       ButtonRect = ImRect( ImGui::GetWindowPos() + ImVec2( ImGui::GetWindowWidth() - ButtonSize, 0.0f ), ImGui::GetWindowPos() + ImGui::GetWindowSize() );
+			ImDrawList*  pDrawList  = ImGui::GetWindowDrawList();
+
+			// Exit button
+			{
+				bool Hovered = false;
+				bool Held    = false;
+				bool Pressed = ImGui::ButtonBehavior( ButtonRect, ImGui::GetID( "EXIT" ), &Hovered, &Held, 0 );
+
+				if( Hovered )
+				{
+					const ImU32 Color = ImGui::GetColorU32( Held ? ImGuiCol_ButtonActive : ImGuiCol_ButtonHovered );
+					pDrawList->AddRectFilled( ButtonRect.Min, ButtonRect.Max, Color );
+				}
+
+				// Render the cross
+				{
+					const ImU32 Color = ImGui::GetColorU32( ImGuiCol_Text );
+					pDrawList->AddLine( ButtonRect.Min + ImVec2( IconMargin, IconMargin ),                         ButtonRect.Max - ImVec2( IconMargin, IconMargin ),                         Color, 1.0f );
+					pDrawList->AddLine( ButtonRect.Min + ImVec2( ButtonRect.GetWidth() - IconMargin, IconMargin ), ButtonRect.Max - ImVec2( ButtonRect.GetWidth() - IconMargin, IconMargin ), Color, 1.0f );
+				}
+
+				if( Pressed )
+					exit( 0 );
+
+				ButtonRect.Min.x -= ButtonSize;
+				ButtonRect.Max.x -= ButtonSize;
+			}
+
+			// Maximize button
+			{
+				bool Hovered = false;
+				bool Held    = false;
+				bool Pressed = ImGui::ButtonBehavior( ButtonRect, ImGui::GetID( "MAXIMIZE" ), &Hovered, &Held, 0 );
+
+				if( Hovered )
+				{
+					const ImU32 Color = ImGui::GetColorU32( Held ? ImGuiCol_ButtonActive : ImGuiCol_ButtonHovered );
+					pDrawList->AddRectFilled( ButtonRect.Min, ButtonRect.Max, Color );
+				}
+
+				// Render the box
+				{
+					const ImU32 Color = ImGui::GetColorU32( ImGuiCol_Text );
+					pDrawList->AddRect( ButtonRect.Min + ImVec2( IconMargin, IconMargin ), ButtonRect.Max - ImVec2( IconMargin, IconMargin ), Color, 0.0f, 0, 1.0f );
+				}
+
+				if( Pressed )
+					MainWindow::Instance().Maximize();
+
+				ButtonRect.Min.x -= ButtonSize;
+				ButtonRect.Max.x -= ButtonSize;
+			}
+
+			// Minimize button
+			{
+				bool Hovered = false;
+				bool Held    = false;
+				bool Pressed = ImGui::ButtonBehavior( ButtonRect, ImGui::GetID( "MINIMIZE" ), &Hovered, &Held, 0 );
+
+				if( Hovered )
+				{
+					const ImU32 Color = ImGui::GetColorU32( Held ? ImGuiCol_ButtonActive : ImGuiCol_ButtonHovered );
+					pDrawList->AddRectFilled( ButtonRect.Min, ButtonRect.Max, Color );
+				}
+
+				// Render the Line
+				{
+					const ImU32 Color = ImGui::GetColorU32( ImGuiCol_Text );
+					pDrawList->AddLine( ButtonRect.Min + ImVec2( IconMargin, ButtonRect.GetHeight() / 2 ), ButtonRect.Max - ImVec2( IconMargin, ButtonRect.GetHeight() / 2 ), Color, 1.0f );
+				}
+
+				if( Pressed )
+					MainWindow::Instance().Minimize();
+
+				ButtonRect.Min.x -= ButtonSize;
+				ButtonRect.Max.x -= ButtonSize;
 			}
 		}
 
@@ -237,6 +324,7 @@ void TitleBar::AddBuildMatrixColumn( BuildMatrix::Column& rColumn )
 
 		ImGui::EndCombo();
 	}
+	ImGui::SetCursorPosY( 0.0f );
 	ImGui::PopStyleVar();
 
 } // AddBuildMatrixColumn
