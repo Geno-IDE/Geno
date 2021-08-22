@@ -27,7 +27,7 @@ class  Drop;
 struct CompilationDone;
 struct WorkspaceOpened;
 
-class MainMenuBar
+class TitleBar
 {
 public:
 
@@ -62,4 +62,4 @@ private:
 
 	float m_Height = 0.0f;
 
-}; // MainMenuBar
+}; // TitleBar
