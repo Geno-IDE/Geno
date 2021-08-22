@@ -1,4 +1,7 @@
 return function()
+	defines {
+		'GLFW_RESIZE_NESW_CURSOR',
+	}
 	sysincludedirs {
 		'third_party/glew/include',
 		'third_party/glfw/include',
