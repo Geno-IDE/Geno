@@ -44,6 +44,8 @@ void TitleBar::Draw( void )
 {
 	const bool WorkspaceActive = Application::Instance().CurrentWorkspace() != nullptr;
 
+	ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10.0f, 10.0f ) );
+
 	if( ImGui::BeginMainMenuBar() )
 	{
 		m_Height = ImGui::GetWindowHeight();
@@ -105,6 +107,8 @@ void TitleBar::Draw( void )
 
 		ImGui::EndMainMenuBar();
 	}
+
+	ImGui::PopStyleVar();
 
 	// Keybinds
 
