@@ -62,6 +62,8 @@ public:
 	IModal* NextModal           ( IModal* pPrevious );
 	void    PushHorizontalLayout( void );
 	void    PopHorizontalLayout ( void );
+	void    Minimize            ( void );
+	void    Maximize            ( void );
 	void    DragEnter           ( Drop Drop, int X, int Y );
 	void    DragOver            ( int X, int Y );
 	void    DragLeave           ( void );
