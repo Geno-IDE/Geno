@@ -29,7 +29,7 @@
 #endif // _WIN32
 
 class  IModal;
-class  MainMenuBar;
+class  TitleBar;
 class  OutputWindow;
 class  TextEdit;
 class  Win32DropTarget;
@@ -77,7 +77,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	MainMenuBar*       pMenuBar           = nullptr;
+	TitleBar*          pTitleBar          = nullptr;
 	WorkspaceOutliner* pWorkspaceOutliner = nullptr;
 	TextEdit*          pTextEdit          = nullptr;
 	OutputWindow*      pOutputWindow      = nullptr;

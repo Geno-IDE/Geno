@@ -22,7 +22,7 @@
 #include "GUI/Modals/IModal.h"
 #include "GUI/Platform/Win32/Win32DropTarget.h"
 #include "GUI/PrimaryMonitor.h"
-#include "GUI/Widgets/MainMenuBar.h"
+#include "GUI/Widgets/TitleBar.h"
 #include "GUI/Widgets/OutputWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
@@ -142,7 +142,7 @@ MainWindow::MainWindow( void )
 	ImGui_ImplOpenGL3_Init( "#version 330 core" );
 
 	// Create widgets
-	pMenuBar           = new MainMenuBar();
+	pTitleBar          = new TitleBar();
 	pWorkspaceOutliner = new WorkspaceOutliner();
 	pTextEdit          = new TextEdit();
 	pOutputWindow      = new OutputWindow();
@@ -157,7 +157,7 @@ MainWindow::~MainWindow( void )
 	delete pOutputWindow;
 	delete pTextEdit;
 	delete pWorkspaceOutliner;
-	delete pMenuBar;
+	delete pTitleBar;
 
 #if defined( _WIN32 )
 
@@ -217,13 +217,13 @@ void MainWindow::Render( void )
 	ImGui::DockSpaceOverViewport( nullptr, ImGuiDockNodeFlags_NoWindowMenuButton );
 	ImGui::PushFont( m_pFontSans );
 
-	pMenuBar->Draw();
+	pTitleBar->Draw();
 
-	if( pMenuBar->ShowDemoWindow        ) ImGui::ShowDemoWindow(    &pMenuBar->ShowDemoWindow );
-	if( pMenuBar->ShowAboutWindow       ) ImGui::ShowAboutWindow(   &pMenuBar->ShowAboutWindow );
-	if( pMenuBar->ShowWorkspaceOutliner ) pWorkspaceOutliner->Show( &pMenuBar->ShowWorkspaceOutliner );
-	if( pMenuBar->ShowTextEdit          ) pTextEdit         ->Show( &pMenuBar->ShowTextEdit );
-	if( pMenuBar->ShowOutputWindow      ) pOutputWindow     ->Show( &pMenuBar->ShowOutputWindow );
+	if( pTitleBar->ShowDemoWindow        ) ImGui::ShowDemoWindow(    &pTitleBar->ShowDemoWindow );
+	if( pTitleBar->ShowAboutWindow       ) ImGui::ShowAboutWindow(   &pTitleBar->ShowAboutWindow );
+	if( pTitleBar->ShowWorkspaceOutliner ) pWorkspaceOutliner->Show( &pTitleBar->ShowWorkspaceOutliner );
+	if( pTitleBar->ShowTextEdit          ) pTextEdit         ->Show( &pTitleBar->ShowTextEdit );
+	if( pTitleBar->ShowOutputWindow      ) pOutputWindow     ->Show( &pTitleBar->ShowOutputWindow );
 
 	// This will update all modals recursively
 	if( !m_Modals.empty() )
@@ -370,9 +370,9 @@ void MainWindow::ImGuiSettingsReadLineCB( ImGuiContext* /*pContext*/, ImGuiSetti
 	const char* pName = ( const char* )pEntry;
 	int         Bool;
 
-	if(      strcmp( pName, "Text Edit" ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pMenuBar->ShowTextEdit          = Bool; }
-	else if( strcmp( pName, "Workspace" ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pMenuBar->ShowWorkspaceOutliner = Bool; }
-	else if( strcmp( pName, "Output"    ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pMenuBar->ShowOutputWindow      = Bool; }
+	if(      strcmp( pName, "Text Edit" ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pTitleBar->ShowTextEdit          = Bool; }
+	else if( strcmp( pName, "Workspace" ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pTitleBar->ShowWorkspaceOutliner = Bool; }
+	else if( strcmp( pName, "Output"    ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pTitleBar->ShowOutputWindow      = Bool; }
 
 } // ImGuiSettingsReadLineCB
 
@@ -413,7 +413,7 @@ LRESULT MainWindow::CustomWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPAR
 			if( PtInRect( &WindowRect, MousePos ) )
 			{
 				// Drag the menu bar to move the window
-				if( !ImGui::IsAnyItemHovered() && ( MousePos.y < ( WindowRect.top + pSelf->pMenuBar->Height() ) ) )
+				if( !ImGui::IsAnyItemHovered() && ( MousePos.y < ( WindowRect.top + pSelf->pTitleBar->Height() ) ) )
 					return HTCAPTION;
 			}
 

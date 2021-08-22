@@ -15,7 +15,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "MainMenuBar.h"
+#include "TitleBar.h"
 
 #include "Application.h"
 #include "Compilers/ICompiler.h"
@@ -39,7 +39,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-void MainMenuBar::Draw( void )
+void TitleBar::Draw( void )
 {
 	const bool WorkspaceActive = Application::Instance().CurrentWorkspace() != nullptr;
 
@@ -133,7 +133,7 @@ void MainMenuBar::Draw( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void MainMenuBar::ActionFileNewWorkspace( void )
+void TitleBar::ActionFileNewWorkspace( void )
 {
 	NewItemModal::Instance().Show( "New Workspace", ".gwks", {}, []( const std::string& rName, const std::filesystem::path& rLocation )
 		{ Application::Instance().NewWorkspace( rLocation, rName ); } );
@@ -145,6 +145,7 @@ void MainMenuBar::ActionFileNewWorkspace( void )
 void MainMenuBar::ActionExtShowGenoDiscord( void )
 {
 	DiscordRPCSettingsModal::Instance().Show();
+
 } // ActionExtShowGenoDiscord
 
 //////////////////////////////////////////////////////////////////////////
@@ -160,7 +161,7 @@ void MainMenuBar::ActionFileOpenWorkspace( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void MainMenuBar::ActionFileCloseWorkspace( void )
+void TitleBar::ActionFileCloseWorkspace( void )
 {
 	Application::Instance().CloseWorkspace();
 
@@ -168,7 +169,7 @@ void MainMenuBar::ActionFileCloseWorkspace( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void MainMenuBar::ActionBuildBuildAndRun( void )
+void TitleBar::ActionBuildBuildAndRun( void )
 {
 	if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 	{
@@ -191,7 +192,7 @@ void MainMenuBar::ActionBuildBuildAndRun( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void MainMenuBar::ActionBuildBuild( void )
+void TitleBar::ActionBuildBuild( void )
 {
 	if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 	{
@@ -204,7 +205,7 @@ void MainMenuBar::ActionBuildBuild( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void MainMenuBar::AddBuildMatrixColumn( BuildMatrix::Column& rColumn )
+void TitleBar::AddBuildMatrixColumn( BuildMatrix::Column& rColumn )
 {
 	ImGui::Spacing();
 	ImGui::Text( "%s:", rColumn.Name.c_str() );

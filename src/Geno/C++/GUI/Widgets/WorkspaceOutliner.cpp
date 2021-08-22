@@ -28,7 +28,7 @@
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Modals/ProjectSettingsModal.h"
-#include "GUI/Widgets/MainMenuBar.h"
+#include "GUI/Widgets/TitleBar.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "Discord/DiscordRPC.h"
 
@@ -276,7 +276,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 					if( ImGui::IsItemClicked() )
 					{
-						auto& ShowTextEdit = MainWindow::Instance().pMenuBar->ShowTextEdit;
+						auto& ShowTextEdit = MainWindow::Instance().pTitleBar->ShowTextEdit;
 						if( !ShowTextEdit )
 						{
 							ShowTextEdit = true;
