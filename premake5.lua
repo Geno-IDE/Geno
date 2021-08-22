@@ -40,6 +40,7 @@ app( 'Geno' )
 			'shell32',
 			'gdi32',
 			'opengl32',
+			'dwmapi',
 		}
 
 	filter 'system:linux'

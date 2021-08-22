@@ -39,6 +39,10 @@
 #include <imgui_internal.h>
 
 #if defined( _WIN32 )
+#include <dwmapi.h>
+#endif // _WIN32
+
+#if defined( _WIN32 )
 #include "win32-resource.h"
 #define sscanf sscanf_s
 #endif // _WIN32
@@ -101,6 +105,11 @@ MainWindow::MainWindow( void )
 	// First of all, fix the fact that GLFW doesn't set WS_THICKFRAME or WS_MAXIMIZEBOX for non-decorated windows (Required for resizability).
 	// Secondly, add WS_CAPTION so that we get a smooth animation when we minimize and maximize the window.
 	SetWindowLong( WindowHandle, GWL_STYLE, GetWindowLong( WindowHandle, GWL_STYLE ) | WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX );
+
+	// Fix missing drop shadow
+	MARGINS ShadowMargins;
+	ShadowMargins = { 1, 1, 1, 1 };
+	DwmExtendFrameIntoClientArea( WindowHandle, &ShadowMargins );
 
 	// Override window procedure with custom one to allow native window moving behavior without a title bar
 	SetWindowLongPtr( WindowHandle, GWLP_USERDATA, ( LONG_PTR )this );
