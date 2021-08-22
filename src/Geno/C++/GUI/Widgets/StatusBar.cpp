@@ -17,6 +17,9 @@
 
 #include "StatusBar.h"
 
+#include <thread>
+#include <chrono>
+
 #include "GUI/PrimaryMonitor.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -28,6 +31,8 @@ StatusBar::~StatusBar( void )
 
 //////////////////////////////////////////////////////////////////////////
 
+// TODO: I'm not sure if we need this
+
 void StatusBar::Init( void )
 {
 	m_Height = 24;
@@ -38,12 +43,10 @@ void StatusBar::Init( void )
 
 void StatusBar::SetColor( float r, float g, float b )
 {
-	m_Color = { r,g,b, 0.0f };
 }
 
 void StatusBar::SetColor( ImVec4 color )
 {
-	m_Color = color;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,16 +86,12 @@ void StatusBar::Show( bool* pOpen )
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0 );
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0 );
 
-	ImGui::PushStyleColor( ImGuiCol_WindowBg, m_Color );
-
-
 	if( ImGui::Begin( "Status Bar", &m_Active, window_flags ) )
 	{
 		ImGui::Text( m_Text.c_str() );
 	}
 
 	ImGui::PopStyleVar( 3 );
-	ImGui::PopStyleColor( 1 );
 	ImGui::End();
 
 } // Show

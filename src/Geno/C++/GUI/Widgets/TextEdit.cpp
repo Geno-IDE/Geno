@@ -23,6 +23,7 @@
 #include "GUI/MainWindow.h"
 #include "GUI/Widgets/MainMenuBar.h"
 #include "Discord/DiscordRPC.h"
+#include <GUI/Widgets/StatusBar.h>
 
 #include <fstream>
 #include <iostream>
@@ -291,6 +292,8 @@ void TextEdit::SaveFile( File& rFile )
 	ofs << rFile.Text;
 
 	rFile.Changed = false;
+
+	StatusBar::Instance().SetText( "Item saved : " + rFile.Path.string() );
 
 } // SaveFile
 

@@ -44,6 +44,8 @@ public:
 	void SetText( std::string txt );
 	void SetText( const char* txt );
 
+	void Clear() { m_Text = "Ready"; }
+
 	//////////////////////////////////////////////////////////////////////////
 
 	int&       Height()       { return m_Height; }
@@ -53,12 +55,10 @@ public:
 	const int& Width() const  { return m_Width; }
 
 private:
-	int  m_Height  =  0;
-	int  m_Width   =  0;
-	bool m_Active  =  0;
-
-	std::string m_Text = "Ready";
-
-	ImVec4 m_Color;
+	int         m_Height               = 0;
+	int         m_Width                = 0;
+	bool        m_Active               = 0;
+	std::string m_Text                 = "Ready";
+	ImVec4      m_Color;
 
 }; // StatusBar
