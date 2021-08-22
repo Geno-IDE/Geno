@@ -22,6 +22,7 @@
 #include <vector>
 
 #include <Common/Macros.h>
+#include <Common/Texture2D.h>
 
 class  Drop;
 struct CompilationDone;
@@ -30,6 +31,10 @@ struct WorkspaceOpened;
 class TitleBar
 {
 public:
+
+	TitleBar( void );
+
+//////////////////////////////////////////////////////////////////////////
 
 	void Draw( void );
 
@@ -60,6 +65,8 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-	float m_Height = 0.0f;
+	Texture2D m_IconTexture = { };
+
+	float     m_Height      = 0.0f;
 
 }; // TitleBar

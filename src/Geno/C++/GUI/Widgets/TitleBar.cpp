@@ -18,6 +18,7 @@
 #include "TitleBar.h"
 
 #include "Application.h"
+#include "Auxiliary/STBAux.h"
 #include "Compilers/ICompiler.h"
 #include "GUI/MainWindow.h"
 #include "GUI/Modals/NewItemModal.h"
@@ -42,6 +43,14 @@
 
 //////////////////////////////////////////////////////////////////////////
 
+TitleBar::TitleBar( void )
+	: m_IconTexture( STBAux::LoadImageTexture( "Icons/Geno.png" ) )
+{
+
+} // TitleBar
+
+//////////////////////////////////////////////////////////////////////////
+
 void TitleBar::Draw( void )
 {
 	const bool WorkspaceActive = Application::Instance().CurrentWorkspace() != nullptr;
@@ -50,7 +59,14 @@ void TitleBar::Draw( void )
 
 	if( ImGui::BeginMainMenuBar() )
 	{
+		constexpr float IconSizeRatio = 0.85f;
+
 		m_Height = ImGui::GetWindowHeight();
+
+		ImGui::SetCursorPosX( m_Height * ( 1.0f - IconSizeRatio ) * 0.5f );
+		ImGui::SetCursorPosY( m_Height * ( 1.0f - IconSizeRatio ) * 0.5f );
+		ImGui::Image( m_IconTexture.GetID(), ImVec2( m_Height, m_Height ) * IconSizeRatio );
+		ImGui::SetCursorPosY( 0.0f );
 
 		if( ImGui::BeginMenu( "File" ) )
 		{
