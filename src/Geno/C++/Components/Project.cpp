@@ -521,7 +521,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 	{
 		for( const GCL::Object& rFilePathObj : Object.Table() )
 		{
-			std::filesystem::path FilePath = rFilePathObj.String();
+			std::filesystem::path FilePath = rFilePathObj.Name();
 
 			if( !FilePath.is_absolute() )
 				FilePath = pSelf->m_Location / FilePath;
@@ -539,7 +539,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 	{
 		for( const GCL::Object& rFilePathObj : Object.Table() )
 		{
-			std::filesystem::path FilePath = rFilePathObj.String();
+			std::filesystem::path FilePath = rFilePathObj.Name();
 
 			if( !FilePath.is_absolute() )
 				FilePath = pSelf->m_Location / FilePath;
@@ -552,7 +552,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 	{
 		for( const GCL::Object& rFilePathObj : Object.Table() )
 		{
-			std::filesystem::path FilePath = rFilePathObj.String();
+			std::filesystem::path FilePath = rFilePathObj.Name();
 
 			if( !FilePath.is_absolute() )
 				FilePath = pSelf->m_Location / FilePath;
@@ -565,7 +565,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 	{
 		for( const GCL::Object& rDefineObj : Object.Table() )
 		{
-			std::string Define = rDefineObj.String();
+			std::string Define( rDefineObj.Name() );
 
 			pSelf->m_Defines.emplace_back( std::move( Define ) );
 		}
@@ -574,7 +574,7 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 	{
 		for( const GCL::Object& rLibraryObj : Object.Table() )
 		{
-			std::string Library = rLibraryObj.String();
+			std::string Library( rLibraryObj.Name() );
 
 			pSelf->m_Libraries.emplace_back( std::move( Library ) );
 		}
