@@ -459,8 +459,7 @@ LRESULT MainWindow::CustomWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPAR
 
 			LPNCCALCSIZE_PARAMS CalcSizeParams = ( LPNCCALCSIZE_PARAMS )LParam;
 
-			// We need to modify the new rectangle for it to resize correctly after the user has snapped the window in some direction.
-			InflateRect( &CalcSizeParams->rgrc[ 0 ], -1, -1 );
+			// Force the window to be redrawn
 			InvalidateRect( Handle, &CalcSizeParams->rgrc[ 0 ], TRUE );
 
 			return 0;
