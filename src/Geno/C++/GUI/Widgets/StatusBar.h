@@ -22,8 +22,18 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include <imgui.h>
+
+// TODO: Move into StatusBar class?
+struct StatusBarMessage
+{
+	std::string Message = "";
+	int64_t Timestamp = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
+	int ExpiryTime = 5; // Time in seconds
+	int ExpiryTimeCurrent = 0;
+}; // StatusBarMessage
 
 class StatusBar
 {
@@ -43,6 +53,7 @@ public:
 
 	void SetText( std::string txt );
 	void SetText( const char* txt );
+	void SetTextOnce( const char* txt );
 
 	void Clear() { m_Text = "Ready"; }
 
@@ -60,5 +71,6 @@ private:
 	bool        m_Active               = 0;
 	std::string m_Text                 = "Ready";
 	ImVec4      m_Color;
+	std::vector<StatusBarMessage> m_Messages;
 
 }; // StatusBar
