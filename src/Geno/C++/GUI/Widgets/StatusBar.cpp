@@ -16,16 +16,20 @@
 */
 
 #include "StatusBar.h"
+#include "GUI/PrimaryMonitor.h"
 
 #include <thread>
 #include <chrono>
-
-#include "GUI/PrimaryMonitor.h"
 
 //////////////////////////////////////////////////////////////////////////
 
 StatusBar::~StatusBar( void )
 {
+	m_Height  = 0;
+	m_Width  = 0;
+	m_Messages.clear();
+	m_Text = "";
+	m_Active = false;
 
 } // ~StatusBar
 
@@ -37,16 +41,22 @@ void StatusBar::Init( void )
 {
 	m_Height = 24;
 	m_Width = PrimaryMonitor::Instance().Width();
+
+	SetTextOnce( "Ready" );
 } // Init
 
-//////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
 
 void StatusBar::SetColor( float r, float g, float b )
 {
+	r;
+	g;
+	b;
 }
 
 void StatusBar::SetColor( ImVec4 color )
 {
+	color;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,12 +64,33 @@ void StatusBar::SetColor( ImVec4 color )
 void StatusBar::SetText( std::string txt )
 {
 	m_Text = txt;
+
+	m_Messages.clear();
+	m_Messages.push_back( { m_Text } );
 }
 
 void StatusBar::SetText( const char* txt )
 {
 	m_Text = txt;
+
+	m_Messages.clear();
+	m_Messages.push_back( { m_Text } );
 }
+
+void StatusBar::SetTextOnce( const char* txt )
+{
+	static bool _ = false;
+	if( !_ )
+	{
+		m_Text = txt;
+
+		m_Messages.clear();
+		m_Messages.push_back( { m_Text } );
+
+		_ = true;
+	}
+
+} // SetTextOnce
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -86,9 +117,25 @@ void StatusBar::Show( bool* pOpen )
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0 );
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0 );
 
+	for( StatusBarMessage& msg : m_Messages )
+	{
+		if( msg.Message != "Ready" )
+		{
+			int64_t expiryInUnixTime = msg.Timestamp + msg.ExpiryTime;
+			int64_t currentTime = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
+
+			if( currentTime == expiryInUnixTime )
+			{
+				m_Messages.clear();
+				SetText( "Ready" );
+			}
+		}
+	}
+
 	if( ImGui::Begin( "Status Bar", &m_Active, window_flags ) )
 	{
-		ImGui::Text( m_Text.c_str() );
+		if( m_Messages.size() > 0 )
+			ImGui::Text( m_Messages.at( 0 ).Message.c_str() );
 	}
 
 	ImGui::PopStyleVar( 3 );
