@@ -6,8 +6,6 @@ function library( name )
 	project( name )
 
 	kind 'StaticLib'
-	links( libraries )
-	links( third_party_libraries )
 	location 'build/%{_ACTION}'
 
 	files {
