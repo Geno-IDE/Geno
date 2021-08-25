@@ -32,7 +32,7 @@ struct StatusBarMessage
 	std::string Message = "";
 	int64_t Timestamp = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
 	int ExpiryTime = 5; // Time in seconds
-	int ExpiryTimeCurrent = 0;
+
 }; // StatusBarMessage
 
 class StatusBar
@@ -66,11 +66,11 @@ public:
 	const int& Width() const  { return m_Width; }
 
 private:
-	int         m_Height               = 0;
-	int         m_Width                = 0;
-	bool        m_Active               = 0;
-	std::string m_Text                 = "Ready";
-	ImVec4      m_Color;
-	std::vector<StatusBarMessage> m_Messages;
+	int              m_Height               = 0;
+	int              m_Width                = 0;
+	bool             m_Active               = 0;
+	std::string      m_Text                 = "Ready";
+	ImVec4           m_Color;
+	StatusBarMessage m_Message;
 
 }; // StatusBar
