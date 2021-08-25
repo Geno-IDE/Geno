@@ -235,8 +235,6 @@ void Workspace::BuildNextProject( void )
 				{
 					std::cerr << "Project was preemptively popped from list\n";
 				}
-
-				StatusBar::Instance().Clear();
 			};
 
 			ProjectIt->Build( *Configuration.m_Compiler );
@@ -244,6 +242,7 @@ void Workspace::BuildNextProject( void )
 		else
 		{
 			std::cerr << "No compiler set when building project '" << ProjectIt->m_Name << "'.\n";
+			StatusBar::Instance().SetText( "No compiler set when building project" );
 			m_ProjectsLeftToBuild.pop_back();
 			BuildNextProject();
 		}
