@@ -21,6 +21,7 @@
 
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
+
 #include <fstream>
 #include <iostream>
 
@@ -28,7 +29,7 @@
 
 Project::Project( std::filesystem::path Location )
 	: m_Location( std::move( Location ) )
-	, m_Name( "MyProject" )
+	, m_Name    ( "MyProject" )
 {
 	NewFileFilter( "" ); // Create Default Empty FileFilter
 
@@ -57,7 +58,7 @@ Project& Project::operator=( Project&& rrOther )
 	m_FilesLeftToBuild   = std::move( rrOther.m_FilesLeftToBuild );
 	m_FilesToLink        = std::move( rrOther.m_FilesToLink );
 
-	rrOther.m_Kind = Kind::Unspecified;
+	rrOther.m_Kind       = Kind::Unspecified;
 
 	return *this;
 
@@ -68,7 +69,7 @@ Project& Project::operator=( Project&& rrOther )
 void Project::Build( ICompiler& rCompiler )
 {
 	m_FilesLeftToBuild.clear();
-	m_FilesToLink.clear();
+	m_FilesToLink     .clear();
 
 	if( m_FileFilters.empty() )
 		return;
@@ -81,9 +82,9 @@ void Project::Build( ICompiler& rCompiler )
 
 			// #TODO: Compiler will be per-file so this check is only temporary
 			if( Extension == ".cpp"
-				|| Extension == ".cxx"
-				|| Extension == ".cc"
-				|| Extension == ".c" )
+			 || Extension == ".cxx"
+			 || Extension == ".cc"
+			 || Extension == ".c" )
 			{
 				bool Found = false;
 				for( const std::filesystem::path& rrFile : m_FilesLeftToBuild )
@@ -116,8 +117,7 @@ bool Project::Serialize( void )
 		std::cerr << "Failed to serialize ";
 
 		if( m_Name.empty() ) std::cerr << "unnamed project.";
-		else
-			std::cerr << "project '" << m_Name << "'.";
+		else                 std::cerr << "project '" << m_Name << "'.";
 
 		std::cerr << " Location not specified.\n";
 
@@ -141,26 +141,10 @@ bool Project::Serialize( void )
 
 		switch( m_Kind )
 		{
-			case Kind::Application:
-			{
-				Kind.SetString( "Application" );
-			}
-			break;
-			case Kind::StaticLibrary:
-			{
-				Kind.SetString( "StaticLibrary" );
-			}
-			break;
-			case Kind::DynamicLibrary:
-			{
-				Kind.SetString( "DynamicLibrary" );
-			}
-			break;
-			default:
-			{
-				Kind.SetString( "Unspecified" );
-			}
-			break;
+			case Kind::Application:    { Kind.SetString( "Application" );    } break;
+			case Kind::StaticLibrary:  { Kind.SetString( "StaticLibrary" );  } break;
+			case Kind::DynamicLibrary: { Kind.SetString( "DynamicLibrary" ); } break;
+			default:                   { Kind.SetString( "Unspecified" );    } break;
 		}
 
 		Serializer.WriteObject( Kind );
@@ -291,8 +275,7 @@ bool Project::Deserialize( void )
 		std::cerr << "Failed to deserialize ";
 
 		if( m_Name.empty() ) std::cerr << "unnamed project.";
-		else
-			std::cerr << "project '" << m_Name << "'.";
+		else                 std::cerr << "project '" << m_Name << "'.";
 
 		std::cerr << " Location not specified.\n";
 
@@ -413,11 +396,15 @@ void Project::SortFileFilters( void )
 	for( FileFilter& rFileFilter : m_FileFilters )
 	{
 		std::sort( rFileFilter.Files.begin(), rFileFilter.Files.end(), []( const std::filesystem::path& a, const std::filesystem::path& b )
-			{ return AlphabeticCompare( a.filename().string(), b.filename().string() ); } );
+			{
+				return AlphabeticCompare( a.filename().string(), b.filename().string() );
+			} );
 	}
 
 	std::sort( m_FileFilters.begin(), m_FileFilters.end(), []( const FileFilter& a, const FileFilter& b )
-		{ return AlphabeticCompare( a.Name.string(), b.Name.string() ); } );
+		{
+			return AlphabeticCompare( a.Name.string(), b.Name.string() );
+		} );
 
 } // SortFileFilters
 
@@ -445,7 +432,9 @@ FileFilter* Project::NewFileFilter( const std::filesystem::path& Name )
 void Project::RemoveFileFilter( const std::filesystem::path& Name )
 {
 	auto it = std::find_if( m_FileFilters.begin(), m_FileFilters.end(), [ & ]( const FileFilter& FileFilter ) -> bool
-		{ return FileFilter.Name == Name; } );
+		{
+			return FileFilter.Name == Name;
+		} );
 
 	if( it != m_FileFilters.end() )
 	{
@@ -606,19 +595,10 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 	{
 		const std::string& rKindString = Object.String();
 
-		if( rKindString == "Application" ) { pSelf->m_Kind = Kind::Application; }
-		else if( rKindString == "StaticLibrary" )
-		{
-			pSelf->m_Kind = Kind::StaticLibrary;
-		}
-		else if( rKindString == "DynamicLibrary" )
-		{
-			pSelf->m_Kind = Kind::DynamicLibrary;
-		}
-		else
-		{
-			pSelf->m_Kind = Kind::Unspecified;
-		}
+		if(      rKindString == "Application" )    { pSelf->m_Kind = Kind::Application; }
+		else if( rKindString == "StaticLibrary" )  { pSelf->m_Kind = Kind::StaticLibrary; }
+		else if( rKindString == "DynamicLibrary" ) { pSelf->m_Kind = Kind::DynamicLibrary; }
+		else                                       { pSelf->m_Kind = Kind::Unspecified; }
 	}
 	else if( Name == "FileFilters" )
 	{
@@ -730,7 +710,7 @@ void Project::BuildNextFile( ICompiler& rCompiler )
 		return;
 	}
 
-	//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 	std::filesystem::path& File = m_FilesLeftToBuild.back();
 	// Listen to every file compilation to check if we're done compiling

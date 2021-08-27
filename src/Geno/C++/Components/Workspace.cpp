@@ -20,15 +20,16 @@
 #include "Compilers/CompilerGCC.h"
 #include "Compilers/CompilerMSVC.h"
 
+#include <iostream>
+
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
-#include <iostream>
 
 //////////////////////////////////////////////////////////////////////////
 
 Workspace::Workspace( std::filesystem::path Location )
 	: m_Location( std::move( Location ) )
-	, m_Name( "MyWorkspace" )
+	, m_Name    ( "MyWorkspace" )
 {
 } // Workspace
 
@@ -265,8 +266,7 @@ void Workspace::BuildNextProject( void )
 		return;
 
 	// Find the next project to build
-	auto ProjectIt = std::find_if( m_Projects.begin(), m_Projects.end(), [ this ]( ::Project& rProject )
-		{ return ( rProject.m_Name == m_ProjectsLeftToBuild.back() ); } );
+	auto ProjectIt = std::find_if( m_Projects.begin(), m_Projects.end(), [ this ]( ::Project& rProject ) { return ( rProject.m_Name == m_ProjectsLeftToBuild.back() ); } );
 	if( ProjectIt == m_Projects.end() )
 	{
 		// If next project was not found, remove it from the queue and try again
@@ -284,8 +284,7 @@ void Workspace::BuildNextProject( void )
 			ProjectIt->Events.BuildFinished += [ this ]( Project& rProject, std::filesystem::path OutputFile, bool Success )
 			{
 				if( Success ) std::cout << "=== " << rProject.m_Name << " finished successfully ===\n";
-				else
-					std::cerr << "=== " << rProject.m_Name << " finished with errors ===\n";
+				else          std::cerr << "=== " << rProject.m_Name << " finished with errors ===\n";
 
 				auto NextProject = std::find( m_ProjectsLeftToBuild.begin(), m_ProjectsLeftToBuild.end(), rProject.m_Name );
 				if( NextProject != m_ProjectsLeftToBuild.end() )
@@ -293,8 +292,7 @@ void Workspace::BuildNextProject( void )
 					m_ProjectsLeftToBuild.erase( NextProject );
 
 					if( m_ProjectsLeftToBuild.empty() ) OnBuildFinished( OutputFile, Success );
-					else
-						BuildNextProject();
+					else                                BuildNextProject();
 				}
 				else
 				{
@@ -362,28 +360,17 @@ void Workspace::DeserializeBuildMatrixColumn( BuildMatrix::Column& rColumn, cons
 		{
 			const GCL::Object::TableType& rTable = rConfigurationObj.Table();
 
-			if( auto Compiler = std::find_if( rTable.begin(), rTable.end(), []( const GCL::Object& rObject )
-					{ return rObject.Name() == "Compiler"; } );
-				Compiler != rTable.end() && Compiler->IsString() )
+			if( auto Compiler = std::find_if( rTable.begin(), rTable.end(), []( const GCL::Object& rObject ) { return rObject.Name() == "Compiler"; } )
+			;   Compiler != rTable.end() && Compiler->IsString() )
 			{
 				const GCL::Object::StringType& rCompilerValue = Compiler->String();
 
-				if( false )
-					;
+				if( false );
 #if defined( _WIN32 )
-				else if( rCompilerValue == "MSVC" )
-				{
-					Configuration.m_Compiler = std::make_shared< CompilerMSVC >();
-				}
+				else if( rCompilerValue == "MSVC" ) { Configuration.m_Compiler = std::make_shared< CompilerMSVC >(); }
 #endif // _WIN32
-				else if( rCompilerValue == "GCC" )
-				{
-					Configuration.m_Compiler = std::make_shared< CompilerGCC >();
-				}
-				else
-				{
-					std::cerr << "Unrecognized compiler '" << rCompilerValue << "' for this workspace.\n";
-				}
+				else if( rCompilerValue == "GCC" ) { Configuration.m_Compiler = std::make_shared< CompilerGCC >(); }
+				else                               { std::cerr << "Unrecognized compiler '" << rCompilerValue << "' for this workspace.\n"; }
 			}
 		}
 
