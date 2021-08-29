@@ -21,7 +21,6 @@ return function()
 		}
 
 		removefiles {
-			'third_party/discord-rpc/src/connection_unix.cpp',
 			'third_party/discord-rpc/src/connection_win.cpp',
 			'third_party/discord-rpc/src/discord_register_linux.cpp',
 			'third_party/discord-rpc/src/discord_register_win.cpp',
