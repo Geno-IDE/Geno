@@ -183,6 +183,44 @@ void TextEdit::Show( bool* pOpen )
 			ImGui::EndTabBar();
 		}
 	}
+
+	for ( auto& file : m_Files )
+	{
+		if( file.Path.string() == m_ActiveFilePath )
+		{
+			if( file.Cursors.size() )
+			{
+				int length = -1;
+
+				for ( Line& line : file.Lines )
+				{
+					for ( Glyph& glyph : line )
+					{
+						std::string glyphChar = std::to_string( glyph.C );
+
+						length += static_cast< int >( glyphChar.size() );
+					}
+				}
+
+				auto& cursor = file.Cursors.at( 0 );
+
+				int chPos = 0;
+				chPos = cursor.Position.x + 1;
+
+				int row = 0;
+				row = ( cursor.Position.y / static_cast< int >( ImGui::GetWindowWidth() ) );
+
+				int colunm = 0;
+				colunm =  cursor.Position.x - ( row * static_cast< int >( ImGui::GetWindowWidth() ) );
+
+				int lines = 0;
+				lines = static_cast< int >( file.Lines.size() );
+
+				StatusBar::Instance().SetCurrentFileInfo( colunm, cursor.Position.y, chPos, length, m_CurrentLine, lines );
+			}
+		}
+	}
+
 	ImGui::End();
 	ImGui::PopStyleColor();
 
@@ -411,11 +449,15 @@ bool TextEdit::RenderEditor( File& rFile )
 		ImVec2 Pos( ScreenCursor.x + Props.LineNumMaxWidth - Props.ScrollX, ScreenCursor.y + ( i - FirstLine ) * Props.CharAdvanceY );
 		Line&  rLine = rFile.Lines[ i ];
 
+		if( rFile.Cursors.size() >= 1 )
+			m_CurrentLine = rFile.Cursors.at( 0 ).Position.y + 1;
+
 		Coordinate SelectedStart[ 16 ];
 		Coordinate SelectedEnd[ 16 ];
 
 		if( int Count = IsLineSelected( rFile, i, SelectedStart, SelectedEnd ) )
 		{
+
 			for( int j = 0; j < Count; j++ )
 			{
 				float StartX = 0.0f;

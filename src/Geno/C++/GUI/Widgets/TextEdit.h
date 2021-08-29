@@ -266,4 +266,6 @@ private:
 
 	std::filesystem::path m_ActiveFilePath = {};
 
+	int m_CurrentLine = -1;
+
 }; // TextEdit

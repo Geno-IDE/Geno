@@ -55,21 +55,29 @@ public:
 	void SetText( const char* txt );
 	void SetTextOnce( const char* txt );
 
+	void SetCurrentFileInfo( int column, int row, int pos, int length, int line, int lines );
+	//void DrawCurrentFileInfo( int& column, int& row, int& pos, int& length, int& line, int lineEndMode = -1, int indentMode = -1 );
+
 	void Clear() { m_Text = "Ready"; }
 
 	//////////////////////////////////////////////////////////////////////////
 
-	int&       Height()       { return m_Height; }
-	const int& Height() const { return m_Height; }
+	int&               Height()           { return m_Height; }
+	const int&         Height() const     { return m_Height; }
 
-	int&       Width()        { return m_Width; }
-	const int& Width() const  { return m_Width; }
+	int&               Width()            { return m_Width;  }
+	const int&         Width() const      { return m_Width;  }
+
+	std::string&       Text()             { return m_Text;   }
+	const std::string& Text() const       { return m_Text;   }
+
 
 private:
 	int              m_Height               = 0;
 	int              m_Width                = 0;
 	bool             m_Active               = 0;
 	std::string      m_Text                 = "Ready";
+	std::string      m_TextEditInfo         = "";
 	ImVec4           m_Color;
 	StatusBarMessage m_Message;
 
