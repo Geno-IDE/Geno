@@ -92,6 +92,13 @@ void StatusBar::SetTextOnce( const char* txt )
 
 //////////////////////////////////////////////////////////////////////////
 
+void StatusBar::SetCurrentFileInfo( int column, int row, int pos, int length, int line, int lines )
+{
+	m_TextEditInfo = "Col :  " + std::to_string( column ) + "    Row :  " + std::to_string( row ) + "    Ln :  " + std::to_string( line ) + "    Pos :  " + std::to_string( pos ) + "    Length :  " + std::to_string( length ) + "    Lines :  " + std::to_string( lines );
+} // SetCurrentFileInfo
+
+//////////////////////////////////////////////////////////////////////////
+
 void StatusBar::Show( bool* pOpen )
 {
 	m_Active = pOpen;
@@ -133,6 +140,13 @@ void StatusBar::Show( bool* pOpen )
 	if( ImGui::Begin( "Status Bar", &m_Active, window_flags ) )
 	{
 		ImGui::Text( m_Message.Message.c_str() );
+
+		ImVec2 textSize = ImGui::CalcTextSize( m_TextEditInfo.c_str() );
+
+		ImGui::SameLine( ImGui::GetWindowWidth() - 30 - textSize.x - textSize.y );
+		ImGui::Text( m_TextEditInfo.c_str() );
+
+		ImGui::SameLine();
 	}
 
 	ImGui::PopStyleVar( 3 );
