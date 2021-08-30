@@ -187,7 +187,7 @@ void StatusBar::Show( bool* pOpen )
 
 		if( currentTime == expiryInUnixTime )
 		{
-			m_Message ={};
+			m_Message = {};
 			SetText( "Ready" );
 		}
 	}
