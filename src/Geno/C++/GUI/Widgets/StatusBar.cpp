@@ -21,6 +21,12 @@
 #include <thread>
 #include <chrono>
 
+#ifdef __linux__ || __APPLE__
+#define UNUSED(X) (void)(X)
+#elif defined(_WIN32)
+#define UNUSED(X) X;
+#endif // __linux__
+
 //////////////////////////////////////////////////////////////////////////
 
 StatusBar::~StatusBar( void )
@@ -134,6 +140,8 @@ void StatusBar::SetTextOnce( const char* txt )
 
 void StatusBar::SetCurrentFileInfo( int column, int row, int pos, int length, int line /*= 0*/, int lines /*= 0 */ )
 {
+	UNUSED( line );
+
 	m_TextEditInfo = "Col :  "
 		+                    std::to_string ( column )
 		+ "    Row :  "    + std::to_string ( row    )
