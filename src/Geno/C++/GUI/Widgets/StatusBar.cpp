@@ -132,12 +132,8 @@ void StatusBar::SetTextOnce( const char* txt )
 
 //////////////////////////////////////////////////////////////////////////
 
-void StatusBar::SetCurrentFileInfo( int column, int row, int pos, int length, int line, int lines )
+void StatusBar::SetCurrentFileInfo( int column, int row, int pos, int length, int line /*= 0*/, int lines /*= 0 */ )
 {
-	// I dont want to remove the line just yet
-	line = 1; // Place Holder
-	line + line + 1;
-
 	m_TextEditInfo = "Col :  "
 		+                    std::to_string ( column )
 		+ "    Row :  "    + std::to_string ( row    )

@@ -64,7 +64,7 @@ public:
 	void SetText( const char* txt );
 	void SetTextOnce( const char* txt );
 
-	void SetCurrentFileInfo( int column, int row, int pos, int length, int line, int lines );
+	void SetCurrentFileInfo( int column, int row, int pos, int length, int line = 0, int lines = 0 );
 	//void DrawCurrentFileInfo( int& column, int& row, int& pos, int& length, int& line, int lineEndMode = -1, int indentMode = -1 );
 
 	void Clear() { m_Text = "Ready"; }
