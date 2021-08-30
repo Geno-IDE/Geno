@@ -83,9 +83,9 @@ void StatusBar::SetColor( StatusBarColor color )
 			m_Col_B = 224;
 			break;
 		case StatusBarColor::ORANGE:
-			m_Col_R = 230;
-			m_Col_G = 119;
-			m_Col_B = 16;
+			m_Col_R = 202;
+			m_Col_G = 81;
+			m_Col_B = 0;
 			break;
 		case StatusBarColor::RED:
 			m_Col_R = 135;
@@ -141,11 +141,11 @@ void StatusBar::SetTextOnce( const char* txt )
 void StatusBar::SetCurrentFileInfo( int column, int row, int pos, int length, int line /*= 0*/, int lines /*= 0 */ )
 {
 	UNUSED( line );
+	UNUSED( pos );
 
 	m_TextEditInfo = "Col :  "
 		+                    std::to_string ( column )
 		+ "    Row :  "    + std::to_string ( row    )
-		+ "    Pos :  "    + std::to_string ( pos    )
 		+ "    Length :  " + std::to_string ( length )
 		+ "    Lines :  "  + std::to_string ( lines  );
 } // SetCurrentFileInfo
