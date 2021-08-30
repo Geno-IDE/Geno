@@ -21,7 +21,7 @@
 #include <thread>
 #include <chrono>
 
-#ifdef __linux__ || __APPLE__
+#if defined( __linux__ ) || defined ( __APPLE__ )
 #define UNUSED(X) (void)(X)
 #elif defined(_WIN32)
 #define UNUSED(X) X;
