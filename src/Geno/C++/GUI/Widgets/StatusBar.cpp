@@ -67,8 +67,8 @@ void StatusBar::SetColor( StatusBarColor color )
 			m_Col_B = -1;
 			break;
 		case StatusBarColor::BLACK:
-			m_Col_R;
-			m_Col_G;
+			m_Col_R = 0;
+			m_Col_G = 0;
 			m_Col_B = 0;
 			break;
 		case StatusBarColor::BLUE:
@@ -134,7 +134,9 @@ void StatusBar::SetTextOnce( const char* txt )
 
 void StatusBar::SetCurrentFileInfo( int column, int row, int pos, int length, int line, int lines )
 {
+	// I dont want to remove the line just yet
 	line = 1; // Place Holder
+	line + line;
 
 	m_TextEditInfo = "Col :  "
 		+                    std::to_string ( column )
@@ -192,9 +194,11 @@ void StatusBar::Show( bool* pOpen )
 
 		if( m_TextEditInfo != "" )
 		{
-			ImVec2 textSize = ImGui::CalcTextSize( m_TextEditInfo.c_str() );
+			const char* txt = m_TextEditInfo.c_str();
+
+			ImVec2 textSize = ImGui::CalcTextSize( txt );
 			ImGui::SameLine( ImGui::GetWindowWidth() - 30 - textSize.x - textSize.y );
-			ImGui::Text( m_TextEditInfo.c_str() );
+			ImGui::Text( txt );
 		}
 
 	}
