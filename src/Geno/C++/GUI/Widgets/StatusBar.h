@@ -35,6 +35,15 @@ struct StatusBarMessage
 
 }; // StatusBarMessage
 
+enum class StatusBarColor
+{
+	DEFAULT,
+	BLACK,
+	BLUE,
+	ORANGE,
+	RED
+};
+
 class StatusBar
 {
 	GENO_SINGLETON( StatusBar )
@@ -48,8 +57,8 @@ public:
 	void Show ( bool* pOpen );
 	void Init ( void );
 
-	void SetColor( float r, float g, float b );
-	void SetColor( ImVec4 color );
+	void SetColor( int r, int g, int b );
+	void SetColor( StatusBarColor color );
 
 	void SetText( std::string txt );
 	void SetText( const char* txt );
@@ -73,12 +82,12 @@ public:
 
 
 private:
-	int              m_Height               = 0;
-	int              m_Width                = 0;
-	bool             m_Active               = 0;
-	std::string      m_Text                 = "Ready";
-	std::string      m_TextEditInfo         = "";
-	ImVec4           m_Color;
+	int              m_Height                   = 0;
+	int              m_Width                    = 0;
+	bool             m_Active                   = 0;
+	std::string      m_Text                     = "Ready";
+	std::string      m_TextEditInfo             = "";
+	int              m_Col_R, m_Col_G, m_Col_B  = 0;
 	StatusBarMessage m_Message;
 
 }; // StatusBar
