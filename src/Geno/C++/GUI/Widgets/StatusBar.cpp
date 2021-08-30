@@ -136,7 +136,7 @@ void StatusBar::SetCurrentFileInfo( int column, int row, int pos, int length, in
 {
 	// I dont want to remove the line just yet
 	line = 1; // Place Holder
-	line + line;
+	line + line + 1;
 
 	m_TextEditInfo = "Col :  "
 		+                    std::to_string ( column )
@@ -190,7 +190,7 @@ void StatusBar::Show( bool* pOpen )
 
 	if( ImGui::Begin( "Status Bar", &m_Active, window_flags ) )
 	{
-		ImGui::Text( m_Message.Message.c_str() );
+		ImGui::Text( "%s", m_Message.Message.c_str() );
 
 		if( m_TextEditInfo != "" )
 		{
@@ -198,7 +198,7 @@ void StatusBar::Show( bool* pOpen )
 
 			ImVec2 textSize = ImGui::CalcTextSize( txt );
 			ImGui::SameLine( ImGui::GetWindowWidth() - 30 - textSize.x - textSize.y );
-			ImGui::Text( txt );
+			ImGui::Text( "%s", txt );
 		}
 
 	}
