@@ -26,10 +26,10 @@
 StatusBar::~StatusBar( void )
 {
 	m_Height  = 0;
-	m_Width  = 0;
+	m_Width   = 0;
 	m_Message = {};
-	m_Text = "";
-	m_Active = false;
+	m_Text    = "";
+	m_Active  = false;
 } // ~StatusBar
 
 //////////////////////////////////////////////////////////////////////////
@@ -136,7 +136,12 @@ void StatusBar::SetCurrentFileInfo( int column, int row, int pos, int length, in
 {
 	line = 1; // Place Holder
 
-	m_TextEditInfo = "Col :  " + std::to_string( column ) + "    Row :  " + std::to_string( row ) + "    Pos :  " + std::to_string( pos ) + "    Length :  " + std::to_string( length ) + "    Lines :  " + std::to_string( lines );
+	m_TextEditInfo = "Col :  "
+		+                    std::to_string ( column )
+		+ "    Row :  "    + std::to_string ( row    )
+		+ "    Pos :  "    + std::to_string ( pos    )
+		+ "    Length :  " + std::to_string ( length )
+		+ "    Lines :  "  + std::to_string ( lines  );
 } // SetCurrentFileInfo
 
 //////////////////////////////////////////////////////////////////////////
