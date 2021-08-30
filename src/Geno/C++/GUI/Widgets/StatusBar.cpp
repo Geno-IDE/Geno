@@ -30,7 +30,6 @@ StatusBar::~StatusBar( void )
 	m_Message = {};
 	m_Text = "";
 	m_Active = false;
-
 } // ~StatusBar
 
 //////////////////////////////////////////////////////////////////////////
@@ -47,15 +46,54 @@ void StatusBar::Init( void )
 
   //////////////////////////////////////////////////////////////////////////
 
-void StatusBar::SetColor( float r, float g, float b )
+void StatusBar::SetColor( int r, int g, int b )
 {
-	m_Color ={ r, g, b, 0.0F };
-}
+	m_Col_R = r;
+	m_Col_G = g;
+	m_Col_B = b;
+} // SetColor
 
-void StatusBar::SetColor( ImVec4 color )
+void StatusBar::SetColor( StatusBarColor color )
 {
-	m_Color = color;
-}
+	m_Col_R = 0;
+	m_Col_G = 0;
+	m_Col_B = 0;
+
+	switch( color )
+	{
+		case StatusBarColor::DEFAULT:
+			m_Col_R = -1;
+			m_Col_G = -1;
+			m_Col_B = -1;
+			break;
+		case StatusBarColor::BLACK:
+			m_Col_R;
+			m_Col_G;
+			m_Col_B = 0;
+			break;
+		case StatusBarColor::BLUE:
+			m_Col_R = 70;
+			m_Col_G = 129;
+			m_Col_B = 224;
+			break;
+		case StatusBarColor::ORANGE:
+			m_Col_R = 230;
+			m_Col_G = 119;
+			m_Col_B = 16;
+			break;
+		case StatusBarColor::RED:
+			m_Col_R = 135;
+			m_Col_G = 20;
+			m_Col_B = 20;
+			break;
+		default:
+			m_Col_R = -1;
+			m_Col_G = -1;
+			m_Col_B = -1;
+			break;
+	}
+
+} // SetColor
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -65,7 +103,7 @@ void StatusBar::SetText( std::string txt )
 
 	m_Message = {};
 	m_Message.Message = m_Text;
-}
+} // Set Text
 
 void StatusBar::SetText( const char* txt )
 {
@@ -73,7 +111,7 @@ void StatusBar::SetText( const char* txt )
 
 	m_Message = {};
 	m_Message.Message = m_Text;
-}
+}  // Set Text
 
 void StatusBar::SetTextOnce( const char* txt )
 {
@@ -85,6 +123,8 @@ void StatusBar::SetTextOnce( const char* txt )
 		m_Message = {};
 		m_Message.Message = m_Text;
 
+		SetColor( StatusBarColor::RED );
+
 		_ = true;
 	}
 
@@ -94,7 +134,9 @@ void StatusBar::SetTextOnce( const char* txt )
 
 void StatusBar::SetCurrentFileInfo( int column, int row, int pos, int length, int line, int lines )
 {
-	m_TextEditInfo = "Col :  " + std::to_string( column ) + "    Row :  " + std::to_string( row ) + "    Ln :  " + std::to_string( line ) + "    Pos :  " + std::to_string( pos ) + "    Length :  " + std::to_string( length ) + "    Lines :  " + std::to_string( lines );
+	line = 1; // Place Holder
+
+	m_TextEditInfo = "Col :  " + std::to_string( column ) + "    Row :  " + std::to_string( row ) + "    Pos :  " + std::to_string( pos ) + "    Length :  " + std::to_string( length ) + "    Lines :  " + std::to_string( lines );
 } // SetCurrentFileInfo
 
 //////////////////////////////////////////////////////////////////////////
@@ -122,7 +164,10 @@ void StatusBar::Show( bool* pOpen )
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0 );
 	ImGui::PushStyleVar( ImGuiStyleVar_WindowRounding, 0 );
 
-	ImGui::PushStyleColor( ImGuiCol_WindowBg, { m_Color.x, m_Color.y, m_Color.z, m_Color.w } );
+	if( m_Col_R == -1 && m_Col_G == -1 && m_Col_B == -1 )
+		ImGui::PushStyleColor( ImGuiCol_WindowBg, ImVec4( ImColor( 0xF0202020 ) ) );
+	else
+		ImGui::PushStyleColor( ImGuiCol_WindowBg, ImVec4( ImColor( m_Col_R, m_Col_G, m_Col_B ) ) );
 
 	if( m_Message.Message != "Ready" )
 	{
@@ -136,21 +181,23 @@ void StatusBar::Show( bool* pOpen )
 		}
 	}
 
-
 	if( ImGui::Begin( "Status Bar", &m_Active, window_flags ) )
 	{
 		ImGui::Text( m_Message.Message.c_str() );
 
-		ImVec2 textSize = ImGui::CalcTextSize( m_TextEditInfo.c_str() );
+		if( m_TextEditInfo != "" )
+		{
+			ImVec2 textSize = ImGui::CalcTextSize( m_TextEditInfo.c_str() );
+			ImGui::SameLine( ImGui::GetWindowWidth() - 30 - textSize.x - textSize.y );
+			ImGui::Text( m_TextEditInfo.c_str() );
+		}
 
-		ImGui::SameLine( ImGui::GetWindowWidth() - 30 - textSize.x - textSize.y );
-		ImGui::Text( m_TextEditInfo.c_str() );
-
-		ImGui::SameLine();
 	}
 
 	ImGui::PopStyleVar( 3 );
+
 	ImGui::PopStyleColor( 1 );
+
 	ImGui::End();
 
 } // Show

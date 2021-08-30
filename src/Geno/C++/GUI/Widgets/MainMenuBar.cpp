@@ -159,12 +159,16 @@ void MainMenuBar::ActionBuildBuildAndRun( void )
 
 		pWorkspace->Events.BuildFinished += []( Workspace& /*rWorkspace*/, std::filesystem::path OutputFile, bool /*Success*/ )
 		{
+			StatusBar::Instance().SetColor( StatusBarColor::ORANGE );
+
 			const std::string OutputString = OutputFile.string();
 
 			std::cout << "=== Running " << OutputString << "===\n";
 
 			const int ExitCode = Process::ResultOf( OutputFile.wstring() );
 			std::cout << "=== " << OutputString << " finished with exit code " << ExitCode << " ===\n";
+
+			StatusBar::Instance().SetColor( StatusBarColor::RED );
 		};
 
 		pWorkspace->Build();
