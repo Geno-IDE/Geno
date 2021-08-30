@@ -204,9 +204,6 @@ void TextEdit::Show( bool* pOpen )
 
 				auto& cursor = file.Cursors.at( 0 );
 
-				int chPos = 0;
-				chPos = cursor.Position.x + 1;
-
 				int row = 0;
 				row = ( cursor.Position.y / static_cast< int >( ImGui::GetWindowWidth() ) );
 
@@ -216,7 +213,7 @@ void TextEdit::Show( bool* pOpen )
 				int lines = 0;
 				lines = static_cast< int >( file.Lines.size() );
 
-				StatusBar::Instance().SetCurrentFileInfo( colunm, cursor.Position.y, chPos, length, m_CurrentLine, lines );
+				StatusBar::Instance().SetCurrentFileInfo( colunm, cursor.Position.y, 0, length, 0, lines );
 			}
 		}
 	}
