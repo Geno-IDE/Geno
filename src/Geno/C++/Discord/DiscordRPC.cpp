@@ -15,6 +15,13 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+/*
+ * If you want to change this to your own discord app do the following:
+ * 1. Make the discord application in the discord website (https://discord.com/developers/applications/me).
+ * 2. Add the required art; C++ Logo, C# Logo, C Logo, And Geno Logo. You always add more such as a txt image.
+ * 3. Name the art with the correct names, C++ Logo would become "img_l_cpp_format", C Logo would be become "img_l_c_format", Geno Logo would be come "img_l_geno_wks_format" or "img_l_geno_prj_format" or "img_s_geno" etc.
+ * 4. Make sure that you set the default image to something!
+ */
 #define GENO_DISCORD_APP_ID 873985189037097052       // Geno IDE discord app
 #define GENO_DISCORD_APP_ID_STR "873985189037097052" // Geno IDE discord app
 
@@ -24,8 +31,8 @@
 #include <iostream>
 #include <chrono>
 
-static const auto s_StartTime = std::chrono::system_clock::now();
-static int64_t s_StartInUnixTime = -1;
+static const auto s_StartTime        = std::chrono::system_clock::now();
+static int64_t    s_StartInUnixTime  = -1;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -35,7 +42,7 @@ static const char* GetImgFromStr( const std::string& str )
 {
 	if( str == ".txt" )
 		return "img_l_txt_format";
-	else if( str == ".cpp" || str == ".hpp" || str == ".h" /* Assume .h is c++ */ )
+	else if( str == ".cpp" || str == ".hpp" || str == ".h" /* Assume .h is c++ */ || str == ".cxx" )
 		return "img_l_cpp_format";
 	else if( str == ".c" )
 		return "img_l_c_format";
@@ -53,22 +60,9 @@ static const char* GetImgFromStr( const std::string& str )
 
 //////////////////////////////////////////////////////////////////////////
 
-// NOTE(beast) prb a memory leak here not sure
-
 void DiscordRPC::UpdateDiscord( void )
 {
 	s_StartInUnixTime = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( s_StartTime.time_since_epoch() ).count();
-
-#if OLD
-	DiscordRichPresence discordPresence;
-	memset( &discordPresence, 0, sizeof( discordPresence ) );
-	discordPresence.state = m_CurrentRPC.state;
-	discordPresence.details = m_CurrentRPC.details;
-	discordPresence.startTimestamp = 150766587586;
-	discordPresence.instance = 0;
-	m_CurrentRPC = discordPresence;
-	discordPresence ={};
-#endif
 
 	if( m_Settings.Show )
 	{
@@ -114,6 +108,8 @@ void DiscordRPC::UpdateDiscord( void )
 
 static void handleDiscordReady( const DiscordUser* connectedUser )
 {
+	// Print to status bar
+
 	printf( "\nDiscord: connected to user %s#%s - %s\n",
 		   connectedUser->username,
 		   connectedUser->discriminator,
@@ -122,11 +118,15 @@ static void handleDiscordReady( const DiscordUser* connectedUser )
 
 static void handleDiscordDisconnected( int errcode, const char* message )
 {
+	// Print to status bar
+
 	printf( "\nDiscord: disconnected (%d: %s)\n", errcode, message );
 } // handleDiscordDisconnected
 
 static void handleDiscordError( int errcode, const char* message )
 {
+	// Print to status bar
+
 	printf( "\nDiscord: error (%d: %s)\n", errcode, message );
 } // handleDiscordError
 
