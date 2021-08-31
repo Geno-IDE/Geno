@@ -196,15 +196,7 @@ void TextEdit::Show( bool* pOpen )
 			{
 				int length = -1;
 
-				for ( Line& line : file.Lines )
-				{
-					for ( Glyph& glyph : line )
-					{
-						std::string glyphChar = std::to_string( glyph.C );
-
-						length += static_cast< int >( glyphChar.size() );
-					}
-				}
+				length = static_cast< int >( file.Text.size() );
 
 				auto& cursor = file.Cursors.at( 0 );
 
