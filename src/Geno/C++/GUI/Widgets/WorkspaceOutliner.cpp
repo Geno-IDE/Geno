@@ -725,8 +725,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 	}
 	ImGui::End();
 
-	if( Application::Instance().CurrentWorkspace() )
-		DiscordRPC::Instance().m_Workspace = Application::Instance().CurrentWorkspace()->m_Name;
+	if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
+		DiscordRPC::Instance().m_Workspace = pWorkspace->m_Name;
 	else
 		DiscordRPC::Instance().m_Workspace = "No Workspace";
 

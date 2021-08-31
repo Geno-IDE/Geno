@@ -23,18 +23,19 @@
 
 #include <string>
 #include <cstring>
+#include <chrono>
 
 class DiscordRPC
 {
 	GENO_SINGLETON( DiscordRPC )
 
-	struct GenoDiscordSettings 
+	struct DiscordSettings 
 	{
 		bool ShowFilename = true;
 		bool ShowWrksName = true;
 		bool ShowTime     = true;
 		bool Show         = true;
-	}; // GenoDiscordSettings
+	}; // DiscordSettings
 
 public:
 	DiscordRPC( void )  = default;
@@ -49,7 +50,7 @@ public:
 public:
 	DiscordRichPresence m_CurrentRPC{};
 
-	GenoDiscordSettings m_Settings;
+	DiscordSettings m_Settings;
 
 	std::string m_CurrentFile = "";
 	std::string m_Workspace = "";
@@ -57,5 +58,8 @@ public:
 
 protected:
 private:
+	const std::chrono::system_clock::time_point m_StartTime        = std::chrono::system_clock::now();
+	int64_t                                     m_StartInUnixTime  = -1;
+
 }; // GenoDiscord
 

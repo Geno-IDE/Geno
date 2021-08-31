@@ -60,7 +60,6 @@ void MainMenuBar::Draw( void )
 			ImGui::EndMenu();
 		}
 
-
 		if( ImGui::BeginMenu( "Build", WorkspaceActive ) )
 		{
 			if( ImGui::MenuItem( "Build And Run", "F5" ) ) ActionBuildBuildAndRun();

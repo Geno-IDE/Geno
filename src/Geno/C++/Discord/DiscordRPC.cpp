@@ -29,10 +29,6 @@
 #include "Application.h"
 
 #include <iostream>
-#include <chrono>
-
-static const auto s_StartTime        = std::chrono::system_clock::now();
-static int64_t    s_StartInUnixTime  = -1;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -66,8 +62,7 @@ void DiscordRPC::UpdateDiscord( void )
 
 	if( m_Settings.Show )
 	{
-		DiscordRichPresence DiscordPresence;
-		memset( &DiscordPresence, 0, sizeof( DiscordPresence ) );
+		DiscordRichPresence DiscordPresence{};
 
 		if( m_Settings.ShowFilename )
 		{
@@ -106,7 +101,7 @@ void DiscordRPC::UpdateDiscord( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-static void handleDiscordReady( const DiscordUser* connectedUser )
+static void HandleDiscordReady( const DiscordUser* connectedUser )
 {
 	// Print to status bar
 
@@ -114,32 +109,31 @@ static void handleDiscordReady( const DiscordUser* connectedUser )
 		   connectedUser->username,
 		   connectedUser->discriminator,
 		   connectedUser->userId );
-} // handleDiscordReady
+} // HandleDiscordReady
 
-static void handleDiscordDisconnected( int errcode, const char* message )
+static void HandleDiscordDisconnected( int errcode, const char* message )
 {
 	// Print to status bar
 
 	printf( "\nDiscord: disconnected (%d: %s)\n", errcode, message );
-} // handleDiscordDisconnected
+} // HandleDiscordDisconnected
 
-static void handleDiscordError( int errcode, const char* message )
+static void HandleDiscordError( int errcode, const char* message )
 {
 	// Print to status bar
 
 	printf( "\nDiscord: error (%d: %s)\n", errcode, message );
-} // handleDiscordError
+} // HandleDiscordError
 
 //////////////////////////////////////////////////////////////////////////
 
 void DiscordRPC::InitDiscord( void )
 {
-	DiscordEventHandlers handlers;
-	memset( &handlers, 0, sizeof( handlers ) );
+	DiscordEventHandlers handlers{};
 
-	handlers.ready = handleDiscordReady;
-	handlers.disconnected = handleDiscordDisconnected;
-	handlers.errored = handleDiscordError;
+	handlers.ready        = HandleDiscordReady;
+	handlers.disconnected = HandleDiscordDisconnected;
+	handlers.errored      = HandleDiscordError;
 
 	Discord_Initialize( GENO_DISCORD_APP_ID_STR, &handlers, 1, NULL );
 } // Init Discord
