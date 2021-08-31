@@ -58,7 +58,7 @@ static const char* GetImgFromStr( const std::string& str )
 
 void DiscordRPC::UpdateDiscord( void )
 {
-	s_StartInUnixTime = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( s_StartTime.time_since_epoch() ).count();
+	m_StartInUnixTime = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( m_StartTime.time_since_epoch() ).count();
 
 	if( m_Settings.Show )
 	{
@@ -80,7 +80,7 @@ void DiscordRPC::UpdateDiscord( void )
 			DiscordPresence.details = m_Workspace.c_str();
 
 		if( m_Settings.ShowTime )
-			DiscordPresence.startTimestamp  = ( int64_t )s_StartInUnixTime;
+			DiscordPresence.startTimestamp  = ( int64_t )m_StartInUnixTime;
 
 		DiscordPresence.instance = 0;
 
