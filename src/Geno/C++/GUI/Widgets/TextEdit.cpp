@@ -438,15 +438,11 @@ bool TextEdit::RenderEditor( File& rFile )
 		ImVec2 Pos( ScreenCursor.x + Props.LineNumMaxWidth - Props.ScrollX, ScreenCursor.y + ( i - FirstLine ) * Props.CharAdvanceY );
 		Line&  rLine = rFile.Lines[ i ];
 
-		if( rFile.Cursors.size() >= 1 )
-			m_CurrentLine = rFile.Cursors.at( 0 ).Position.y + 1;
-
 		Coordinate SelectedStart[ 16 ];
 		Coordinate SelectedEnd[ 16 ];
 
 		if( int Count = IsLineSelected( rFile, i, SelectedStart, SelectedEnd ) )
 		{
-
 			for( int j = 0; j < Count; j++ )
 			{
 				float StartX = 0.0f;
