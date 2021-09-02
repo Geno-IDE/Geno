@@ -16,17 +16,26 @@
  */
 
 #include "DiscordRPCSettingsModal.h"
+
 #include "Discord/DiscordRPC.h"
+
+//////////////////////////////////////////////////////////////////////////
 
 std::string DiscordRPCSettingsModal::PopupID( void )
 {
 	return "EXT_DISCORD_RPC_MODAL";
+
 } // PopupID
+
+//////////////////////////////////////////////////////////////////////////
 
 std::string DiscordRPCSettingsModal::Title( void )
 {
 	return "Discord RPC Settings";
+
 } // Title
+
+//////////////////////////////////////////////////////////////////////////
 
 void DiscordRPCSettingsModal::UpdateDerived( void )
 {
@@ -40,8 +49,11 @@ void DiscordRPCSettingsModal::UpdateDerived( void )
 
 } // UpdateDerived
 
-void DiscordRPCSettingsModal::Show()
+//////////////////////////////////////////////////////////////////////////
+
+void DiscordRPCSettingsModal::Show( void )
 {
 	if( Open() )
 		ImGui::SetWindowSize( ImVec2( 365, 189 ) );
+
 } // Show

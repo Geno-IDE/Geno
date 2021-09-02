@@ -16,50 +16,55 @@
  */
 
 #pragma once
-
-// Using win64_dyn state
-#include <discord_rpc.h>
 #include <Common/Macros.h>
 
 #include <string>
 #include <cstring>
 #include <chrono>
 
+#include <discord_rpc.h>
+
 class DiscordRPC
 {
-	GENO_SINGLETON( DiscordRPC )
+	GENO_SINGLETON( DiscordRPC );
 
-	struct DiscordSettings 
+//////////////////////////////////////////////////////////////////////////
+
+public:
+
+	struct Settings 
 	{
 		bool ShowFilename = true;
 		bool ShowWrksName = true;
 		bool ShowTime     = true;
 		bool Show         = true;
-	}; // DiscordSettings
 
-public:
-	DiscordRPC( void )  = default;
-	~DiscordRPC( void ) = default;
+	}; // Settings
 
-	//////////////////////////////////////////////////////////////////////////
-public:
-	void UpdateDiscord  ( void );
-	void InitDiscord    ( void );
-	void Shutdown       ( void );
-	//////////////////////////////////////////////////////////////////////////
-public:
-	DiscordRichPresence m_CurrentRPC{};
+//////////////////////////////////////////////////////////////////////////
 
-	DiscordSettings m_Settings;
+	DiscordRPC( void ) = default;
 
-	std::string m_CurrentFile = "";
-	std::string m_Workspace = "";
-	std::string m_CurrentFileExt = "";
+//////////////////////////////////////////////////////////////////////////
 
-protected:
+	void UpdateDiscord ( void );
+	void InitDiscord   ( void );
+	void Shutdown      ( void );
+
+//////////////////////////////////////////////////////////////////////////
+
+	DiscordRichPresence m_CurrentRPC         = { };
+	Settings            m_Settings           = { };
+
+	std::string         m_CurrentFile        = { };
+	std::string         m_Workspace          = { };
+	std::string         m_CurrentFileExt     = { };
+
+//////////////////////////////////////////////////////////////////////////
+
 private:
+
 	const std::chrono::system_clock::time_point m_StartTime        = std::chrono::system_clock::now();
 	int64_t                                     m_StartInUnixTime  = -1;
 
-}; // GenoDiscord
-
+}; // DiscordRPC

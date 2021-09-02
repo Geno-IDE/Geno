@@ -16,8 +16,8 @@
  */
 
 #pragma once
-
 #include "GUI/Modals/IModal.h"
+
 #include <Common/Macros.h>
 
 #include <filesystem>
@@ -25,23 +25,24 @@
 
 class DiscordRPCSettingsModal : public IModal
 {
-	GENO_SINGLETON( DiscordRPCSettingsModal )
+	GENO_SINGLETON( DiscordRPCSettingsModal );
 
-	DiscordRPCSettingsModal() = default;
-
-	//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 public:
-	void Show();
 
-	virtual std::string PopupID( void ) override;
+	DiscordRPCSettingsModal( void ) = default;
 
-	virtual std::string Title( void ) override;
+//////////////////////////////////////////////////////////////////////////
 
-	virtual void UpdateDerived( void ) override;
+public:
 
-	//////////////////////////////////////////////////////////////////////////
+	void Show( void );
 
-private:
+//////////////////////////////////////////////////////////////////////////
 
-}; // GenoDiscordSettingsModal
+	virtual std::string PopupID       ( void ) override;
+	virtual std::string Title         ( void ) override;
+	virtual void        UpdateDerived ( void ) override;
+
+}; // DiscordRPCSettingsModal
