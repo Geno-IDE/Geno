@@ -15,20 +15,20 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "GenoDiscordSettingsModal.h"
+#include "DiscordRPCSettingsModal.h"
 #include "Discord/DiscordRPC.h"
 
-std::string GenoDiscordSettingsModal::PopupID( void )
+std::string DiscordRPCSettingsModal::PopupID( void )
 {
-	return "EXT_GENO_DISCORD_MODAL";
+	return "EXT_DISCORD_RPC_MODAL";
 } // PopupID
 
-std::string GenoDiscordSettingsModal::Title( void )
+std::string DiscordRPCSettingsModal::Title( void )
 {
-	return "Geno Discord Settings";
+	return "Discord RPC Settings";
 } // Title
 
-void GenoDiscordSettingsModal::UpdateDerived( void )
+void DiscordRPCSettingsModal::UpdateDerived( void )
 {
 	ImGui::Text( "Show File Name" );      ImGui::SameLine(); ImGui::Checkbox( "##gd-ext-file",  &DiscordRPC::Instance().m_Settings.ShowFilename );
 	ImGui::Text( "Show Workspace Name" ); ImGui::SameLine(); ImGui::Checkbox( "##gd-ext-wks",   &DiscordRPC::Instance().m_Settings.ShowWrksName );
@@ -40,7 +40,7 @@ void GenoDiscordSettingsModal::UpdateDerived( void )
 
 } // UpdateDerived
 
-void GenoDiscordSettingsModal::Show()
+void DiscordRPCSettingsModal::Show()
 {
 	if( Open() )
 		ImGui::SetWindowSize( ImVec2( 365, 189 ) );

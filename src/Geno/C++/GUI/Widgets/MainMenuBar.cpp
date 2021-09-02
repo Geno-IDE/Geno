@@ -25,7 +25,7 @@
 #include "GUI/Widgets/OutputWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
-#include "GUI/Modals/GenoDiscordSettingsModal.h"
+#include "GUI/Modals/DiscordRPCSettingsModal.h"
 #include "Discord/DiscordRPC.h"
 
 #include <Common/LocalAppData.h>
@@ -144,7 +144,7 @@ void MainMenuBar::ActionFileNewWorkspace( void )
 
 void MainMenuBar::ActionExtShowGenoDiscord( void )
 {
-	GenoDiscordSettingsModal::Instance().Show();
+	DiscordRPCSettingsModal::Instance().Show();
 } // ActionExtShowGenoDiscord
 
 //////////////////////////////////////////////////////////////////////////

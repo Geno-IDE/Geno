@@ -23,11 +23,11 @@
 #include <filesystem>
 #include <string>
 
-class GenoDiscordSettingsModal : public IModal
+class DiscordRPCSettingsModal : public IModal
 {
-	GENO_SINGLETON( GenoDiscordSettingsModal )
+	GENO_SINGLETON( DiscordRPCSettingsModal )
 
-	GenoDiscordSettingsModal() = default;
+	DiscordRPCSettingsModal() = default;
 
 	//////////////////////////////////////////////////////////////////////////
 
