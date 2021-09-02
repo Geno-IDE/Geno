@@ -87,7 +87,9 @@ private:
 	bool             m_Active                   = 0;
 	std::string      m_Text                     = "Ready";
 	std::string      m_TextEditInfo             = "";
-	int              m_Col_R, m_Col_G, m_Col_B  = 0;
+	int              m_Col_R                    = 0;
+	int              m_Col_G                    = 0;
+	int              m_Col_B                    = 0;
 	StatusBarMessage m_Message;
 
 }; // StatusBar
