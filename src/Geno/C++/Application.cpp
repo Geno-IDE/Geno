@@ -33,6 +33,8 @@ Application::~Application( void )
 
 } // ~Application
 
+//////////////////////////////////////////////////////////////////////////
+
 int Application::Run( int NumArgs, char** ppArgs )
 {
 	HandleCommandLineArgs( NumArgs, ppArgs );
