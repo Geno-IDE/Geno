@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#define DISCORD_APP_ID "873985189037097052"
+#define DISCORD_APP_ID "883058757163159633"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -29,22 +29,16 @@
 
 static const char* GetImgFromStr( const std::string& str )
 {
-	if( str == ".txt" )
-		return "img_l_txt_format";
-	else if( str == ".cpp" || str == ".hpp" || str == ".h" /* Assume .h is c++ */ || str == ".cxx" )
-		return "img_l_cpp_format";
+	if( str == ".cpp" || str == ".hpp" || str == ".h" /* Assume .h is c++ */ || str == ".cxx" )
+		return "cpp";
 	else if( str == ".c" )
-		return "img_l_c_format";
+		return "c";
 	else if( str == ".cs" )
-		return "img_l_cs_format"; // Just when (if) geno supports cs
+		return "csharp";
 	else if( str == "genoinrt" )
-		return "img_s_geno";
-	else if( str == ".gwks" )
-		return "img_l_geno_wks_format";
-	else if( str == ".gprj" )
-		return "img_l_geno_prj_format";
+		return "geno";
 	else
-		return "img_l_default_format";
+		return "default";
 
 } // GetImgFromStr
 
