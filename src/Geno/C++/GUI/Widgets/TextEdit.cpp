@@ -22,6 +22,7 @@
 #include "Common/LocalAppData.h"
 #include "GUI/MainWindow.h"
 #include "GUI/Widgets/MainMenuBar.h"
+#include "GUI/Widgets/StatusBar.h"
 #include "Discord/DiscordRPC.h"
 #include <GUI/Widgets/StatusBar.h>
 
