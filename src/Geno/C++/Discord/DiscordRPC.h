@@ -16,50 +16,55 @@
  */
 
 #pragma once
-#include "Components/BuildMatrix.h"
-
-#include <string_view>
-#include <vector>
-
 #include <Common/Macros.h>
 
-class  Drop;
-struct CompilationDone;
-struct WorkspaceOpened;
+#include <string>
+#include <cstring>
+#include <chrono>
 
-class MainMenuBar
+#include <discord_rpc.h>
+
+class DiscordRPC
 {
+	GENO_SINGLETON( DiscordRPC );
+
+//////////////////////////////////////////////////////////////////////////
+
 public:
 
-	void Draw( void );
+	struct Settings 
+	{
+		bool ShowFilename = true;
+		bool ShowWrksName = true;
+		bool ShowTime     = true;
+		bool Show         = true;
+
+	}; // Settings
 
 //////////////////////////////////////////////////////////////////////////
 
-	float Height( void ) const { return m_Height; }
+	DiscordRPC( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 
-	bool ShowTextEdit            = false;
-	bool ShowDemoWindow          = false;
-	bool ShowAboutWindow         = false;
-	bool ShowOutputWindow        = false;
-	bool ShowWorkspaceOutliner   = false;
-	bool ShowGenoDiscordSettings = false;
+	void UpdateDiscord ( void );
+	void InitDiscord   ( void );
+	void Shutdown      ( void );
+
+//////////////////////////////////////////////////////////////////////////
+
+	DiscordRichPresence m_CurrentRPC         = { };
+	Settings            m_Settings           = { };
+
+	std::string         m_CurrentFile        = { };
+	std::string         m_Workspace          = { };
+	std::string         m_CurrentFileExt     = { };
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
-	void ActionFileNewWorkspace    ( void );
-	void ActionExtShowGenoDiscord  ( void );
-	void ActionFileOpenWorkspace   ( void );
-	void ActionFileCloseWorkspace  ( void );
-	void ActionBuildBuildAndRun    ( void );
-	void ActionBuildBuild          ( void );
-	void AddBuildMatrixColumn      ( BuildMatrix::Column& rColumn );
+	const std::chrono::system_clock::time_point m_StartTime        = std::chrono::system_clock::now();
+	int64_t                                     m_StartInUnixTime  = -1;
 
-//////////////////////////////////////////////////////////////////////////
-
-	float m_Height = 0.0f;
-
-}; // MainMenuBar
+}; // DiscordRPC

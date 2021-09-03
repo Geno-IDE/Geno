@@ -15,51 +15,45 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include "Components/BuildMatrix.h"
+#include "DiscordRPCSettingsModal.h"
 
-#include <string_view>
-#include <vector>
+#include "Discord/DiscordRPC.h"
 
-#include <Common/Macros.h>
+//////////////////////////////////////////////////////////////////////////
 
-class  Drop;
-struct CompilationDone;
-struct WorkspaceOpened;
-
-class MainMenuBar
+std::string DiscordRPCSettingsModal::PopupID( void )
 {
-public:
+	return "EXT_DISCORD_RPC_MODAL";
 
-	void Draw( void );
-
-//////////////////////////////////////////////////////////////////////////
-
-	float Height( void ) const { return m_Height; }
+} // PopupID
 
 //////////////////////////////////////////////////////////////////////////
 
-	bool ShowTextEdit            = false;
-	bool ShowDemoWindow          = false;
-	bool ShowAboutWindow         = false;
-	bool ShowOutputWindow        = false;
-	bool ShowWorkspaceOutliner   = false;
-	bool ShowGenoDiscordSettings = false;
+std::string DiscordRPCSettingsModal::Title( void )
+{
+	return "Discord RPC Settings";
+
+} // Title
 
 //////////////////////////////////////////////////////////////////////////
 
-private:
+void DiscordRPCSettingsModal::UpdateDerived( void )
+{
+	ImGui::Text( "Show File Name" );      ImGui::SameLine(); ImGui::Checkbox( "##gd-ext-file",  &DiscordRPC::Instance().m_Settings.ShowFilename );
+	ImGui::Text( "Show Workspace Name" ); ImGui::SameLine(); ImGui::Checkbox( "##gd-ext-wks",   &DiscordRPC::Instance().m_Settings.ShowWrksName );
+	ImGui::Text( "Show Time" );           ImGui::SameLine(); ImGui::Checkbox( "##gd-ext-time",  &DiscordRPC::Instance().m_Settings.ShowTime );
+	ImGui::Text( "Show" );                ImGui::SameLine(); ImGui::Checkbox( "##gd-ext-show",  &DiscordRPC::Instance().m_Settings.Show );
 
-	void ActionFileNewWorkspace    ( void );
-	void ActionExtShowGenoDiscord  ( void );
-	void ActionFileOpenWorkspace   ( void );
-	void ActionFileCloseWorkspace  ( void );
-	void ActionBuildBuildAndRun    ( void );
-	void ActionBuildBuild          ( void );
-	void AddBuildMatrixColumn      ( BuildMatrix::Column& rColumn );
+	if( ImGui::Button( "Close" ) )
+		Close();
+
+} // UpdateDerived
 
 //////////////////////////////////////////////////////////////////////////
 
-	float m_Height = 0.0f;
+void DiscordRPCSettingsModal::Show( void )
+{
+	if( Open() )
+		ImGui::SetWindowSize( ImVec2( 365, 189 ) );
 
-}; // MainMenuBar
+} // Show
