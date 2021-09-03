@@ -21,7 +21,7 @@
 
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
-#include <GUI/Widgets/StatusBar.h>
+#include "GUI/Widgets/StatusBar.h"
 
 #include <iostream>
 
