@@ -47,8 +47,6 @@ void StatusBar::Init( void )
 	m_Height = 24;
 	m_Width = PrimaryMonitor::Instance().Width();
 
-	SetColor( Color::RED );
-
 	SetText( "Ready" );
 } // Init
 
