@@ -210,7 +210,7 @@ void TextEdit::Show( bool* pOpen )
 				int lines = 0;
 				lines = static_cast< int >( file.Lines.size() );
 
-				StatusBar::Instance().SetCurrentFileInfo( colunm, cursor.Position.y, 0, length, 0, lines );
+				StatusBar::Instance().SetCurrentFileInfo( colunm, cursor.Position.y, length, lines );
 			}
 		}
 	}

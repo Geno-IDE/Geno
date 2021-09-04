@@ -26,27 +26,28 @@
 
 #include <imgui.h>
 
-// TODO: Move into StatusBar class?
-struct StatusBarMessage
-{
-	std::string Message = "";
-	int64_t Timestamp = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
-	int ExpiryTime = 5; // Time in seconds
-
-}; // StatusBarMessage
-
-enum class StatusBarColor
-{
-	DEFAULT,
-	BLACK,
-	BLUE,
-	ORANGE,
-	RED
-};
-
 class StatusBar
 {
 	GENO_SINGLETON( StatusBar )
+public:
+
+	struct StatusBarMessage
+	{
+		std::string Message = "";
+		int64_t Timestamp = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
+		int ExpiryTime = 5; // Time in seconds
+
+	}; // StatusBarMessage
+
+	enum class StatusBarColor
+	{
+		DEFAULT,
+		BLACK,
+		BLUE,
+		ORANGE,
+		RED
+	}; // StatusBarColor
+
 public:
 	StatusBar  ( void ) = default;
 	~StatusBar ( void );
@@ -54,19 +55,17 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 
 public:
-	void Show ( bool* pOpen );
-	void Init ( void );
+	void Show();
+	void Init( void );
 
 	void SetColor( int r, int g, int b );
 	void SetColor( StatusBarColor color );
 
 	void SetText( std::string txt );
 	void SetText( const char* txt );
-	void SetTextOnce( const char* txt );
 
-	void SetCurrentFileInfo( int column, int row, int pos, int length, int line = 0, int lines = 0 );
-	//void DrawCurrentFileInfo( int& column, int& row, int& pos, int& length, int& line, int lineEndMode = -1, int indentMode = -1 );
-
+	void SetCurrentFileInfo( int column, int row, int length, int lines );
+	
 	void Clear() { m_Text = "Ready"; }
 
 	//////////////////////////////////////////////////////////////////////////
