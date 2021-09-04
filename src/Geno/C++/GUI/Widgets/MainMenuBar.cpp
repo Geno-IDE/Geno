@@ -29,7 +29,6 @@
 #include "GUI/Modals/DiscordRPCSettingsModal.h"
 #include "Discord/DiscordRPC.h"
 
-
 #include <Common/LocalAppData.h>
 #include <Common/Process.h>
 #include <GLFW/glfw3.h>

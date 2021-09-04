@@ -47,7 +47,7 @@ void StatusBar::Init( void )
 	m_Height = 24;
 	m_Width = PrimaryMonitor::Instance().Width();
 
-	SetTextOnce( "Ready" );
+	SetText( "Ready" );
 } // Init
 
   //////////////////////////////////////////////////////////////////////////
@@ -105,43 +105,26 @@ void StatusBar::SetColor( StatusBarColor color )
 
 void StatusBar::SetText( std::string txt )
 {
-	m_Text = txt;
+	m_Text = std::move( txt );
 
 	m_Message = {};
 	m_Message.Message = m_Text;
 } // Set Text
 
+//////////////////////////////////////////////////////////////////////////
+
 void StatusBar::SetText( const char* txt )
 {
-	m_Text = txt;
+	m_Text = std::move( txt );
 
 	m_Message = {};
 	m_Message.Message = m_Text;
-}  // Set Text
-
-void StatusBar::SetTextOnce( const char* txt )
-{
-	static bool _ = false;
-	if( !_ )
-	{
-		m_Text = txt;
-
-		m_Message = {};
-		m_Message.Message = m_Text;
-
-		SetColor( StatusBarColor::RED );
-
-		_ = true;
-	}
-
-} // SetTextOnce
+}  // SetText
 
 //////////////////////////////////////////////////////////////////////////
 
-void StatusBar::SetCurrentFileInfo( int column, int row, int pos, int length, int line /*= 0*/, int lines /*= 0 */ )
+void StatusBar::SetCurrentFileInfo( int column, int row, int length, int lines /*= 0 */ )
 {
-	UNUSED( line );
-	UNUSED( pos );
 
 	m_TextEditInfo = "Col :  "
 		+                    std::to_string ( column )
@@ -152,9 +135,9 @@ void StatusBar::SetCurrentFileInfo( int column, int row, int pos, int length, in
 
 //////////////////////////////////////////////////////////////////////////
 
-void StatusBar::Show( bool* pOpen )
+void StatusBar::Show()
 {
-	m_Active = pOpen;
+	m_Active = true;
 
 	ImGuiViewport* viewport = ImGui::GetMainViewport();
 

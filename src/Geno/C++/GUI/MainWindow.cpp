@@ -139,6 +139,8 @@ MainWindow::MainWindow( void )
 	pTextEdit          = new TextEdit();
 	pOutputWindow      = new OutputWindow();
 
+	StatusBar::Instance().Init();
+
 } // MainWindow
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,14 +201,12 @@ bool MainWindow::BeginFrame( void )
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 
-	StatusBar::Instance().Init();
-
-	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGuiViewport* pViewport = ImGui::GetMainViewport();
 	ImGui::NewFrame();
 
-	viewport->WorkSize.y -= static_cast< float >( StatusBar::Instance().Height() );
+	pViewport->WorkSize.y -= static_cast< float >( StatusBar::Instance().Height() );
 
-	ImGui::DockSpaceOverViewport( viewport );
+	ImGui::DockSpaceOverViewport( pViewport );
 
 	ImGui::PushFont( m_pFontSans );
 
@@ -218,8 +218,7 @@ bool MainWindow::BeginFrame( void )
 	if( pMenuBar->ShowTextEdit          ) pTextEdit         ->Show( &pMenuBar->ShowTextEdit );
 	if( pMenuBar->ShowOutputWindow      ) pOutputWindow     ->Show( &pMenuBar->ShowOutputWindow );
 
-	bool ivsb_show = true;
-	StatusBar::Instance().Show( &ivsb_show );
+	StatusBar::Instance().Show();
 
 	return true;
 
