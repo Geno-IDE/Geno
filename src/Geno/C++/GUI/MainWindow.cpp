@@ -46,6 +46,85 @@
 #define sscanf sscanf_s
 #endif // _WIN32
 
+#if defined( __APPLE__ )
+#define _GLFW_COCOA
+#include <../src/internal.h> // MarcasRealAccount: Dangerous piece of code
+#undef _GLFW_COCOA
+
+@interface GLFWContentView : NSView< NSTextInputClient >
+{
+	_GLFWwindow*               window;
+	NSTrackingArea*            trackingArea;
+	NSMutableAttributedString* markedText;
+}
+
+- ( instancetype )initWithGlfwWindow:( _GLFWwindow* )initWindow;
+
+@end
+
+@interface GenoContentView : GLFWContentView
+{
+	MainWindow* mainWindow;
+	BOOL        movingWindow;
+};
+
+- ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow;
+
+@end
+
+@implementation GenoContentView
+
+- ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow
+{
+	self = [super initWithGlfwWindow:initWindow];
+	if( self != nil )
+	{
+		mainWindow   = mainGenoWindow;
+		movingWindow = NO;
+	}
+	return self;
+}
+
+- ( void )dealloc
+{
+	[super dealloc];
+}
+
+- ( void )mouseDown:( NSEvent* )event
+{
+	const NSPoint pos  = [event locationInWindow];
+	const NSRect  rect = [self frame];
+
+	if( !ImGui::IsAnyItemHovered() && ( pos.y > ( rect.size.height - mainWindow->pTitleBar->Height() ) ) )
+	{
+		[self.window performWindowDragWithEvent:event];
+		movingWindow = YES;
+		return;
+	}
+	movingWindow = NO;
+	[super mouseDown:event];
+}
+
+- ( void )mouseDragged:( NSEvent* )event
+{
+	if( movingWindow ) return;
+	[super mouseDragged:event];
+}
+
+- ( void )mouseUp:( NSEvent* )event
+{
+	if( movingWindow )
+	{
+		movingWindow = NO;
+		return;
+	}
+	[super mouseUp:event];
+}
+
+@end
+
+#endif // __APPLE__
+
 //////////////////////////////////////////////////////////////////////////
 
 static std::string IniFilename;
@@ -118,6 +197,20 @@ MainWindow::MainWindow( void )
 	m_pDropTarget = new Win32DropTarget();
 
 #endif // _WIN32
+
+#if defined( __APPLE__ )
+
+	_GLFWwindow* GlfwWindow = reinterpret_cast< _GLFWwindow* >( m_pWindow );
+	id           oldView    = GlfwWindow->ns.view;
+	GlfwWindow->ns.view     = [[GenoContentView alloc] initWithMainWindow:this:GlfwWindow];
+	[GlfwWindow->ns.object setContentView:GlfwWindow->ns.view];
+	[GlfwWindow->ns.view setWantsBestResolutionOpenGLSurface:GlfwWindow->ns.retina];
+	[GlfwWindow->context.nsgl.object setView:GlfwWindow->ns.view];
+	[oldView release];
+
+	[GlfwWindow->ns.object setStyleMask:[GlfwWindow->ns.object styleMask] | NSWindowStyleMaskResizable];
+
+#endif // __APPLE__
 
 	m_IniPath       = LocalAppData::Instance().Path() / L"imgui.ini";
 	m_pImGuiContext = ImGui::CreateContext();
