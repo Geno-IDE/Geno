@@ -29,41 +29,6 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-static std::string LineModeToString( LineEndMode mode )
-{
-	switch( mode )
-	{
-		case LineEndMode::CR:
-			return "8-Bit (CR)";
-		case LineEndMode::LF:
-			return "Unix (LF)";
-		case LineEndMode::CRLF:
-			return "Windows (CR-LF)";
-		default:
-			return "";
-	}
-
-} // LineModeToString
-
-//////////////////////////////////////////////////////////////////////////
-
-/*
-static LineEndMode LineModeToString( std::string& str )
-{
-	if( str == "8-Bit (CR)" )
-		return LineEndMode::CR;
-	else if( str == "Unix (LF)" )
-		return LineEndMode::LF;
-	else
-		return LineEndMode::CRLF;
-
-} // StringToLineMode
-
-UNUSED_FUNC( LineModeToString );
-*/
-
-//////////////////////////////////////////////////////////////////////////
-
 StatusBar::~StatusBar( void )
 {
 	m_Height  = 0;
