@@ -62,7 +62,6 @@ public:
 	void SetColor( StatusBarColor color );
 
 	void SetText( std::string txt );
-	void SetText( const char* txt );
 
 	void SetCurrentFileInfo( int column, int row, int length, int lines );
 	

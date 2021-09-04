@@ -113,16 +113,6 @@ void StatusBar::SetText( std::string txt )
 
 //////////////////////////////////////////////////////////////////////////
 
-void StatusBar::SetText( const char* txt )
-{
-	m_Text = std::move( txt );
-
-	m_Message = {};
-	m_Message.Message = m_Text;
-}  // SetText
-
-//////////////////////////////////////////////////////////////////////////
-
 void StatusBar::SetCurrentFileInfo( int column, int row, int length, int lines /*= 0 */ )
 {
 
