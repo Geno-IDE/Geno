@@ -383,25 +383,7 @@ void TextEdit::JoinLines( File& rFile )
 		std::string Line  = GetString( rLine, 0, ( int )rLine.size() );
 
 		rFile.Text.append( Line );
-
-		switch( StatusBar::Instance().LineEnd() )
-		{
-			case LineEndMode::CRLF:
-			{
-				rFile.Text.push_back( '\r' + '\n' );
-				break;
-			}
-			case LineEndMode::CR:
-			{
-				rFile.Text.push_back( '\r' );
-				break;
-			}
-			case LineEndMode::LF:
-			{
-				rFile.Text.push_back( '\n' );
-				break;
-			}
-		}
+		rFile.Text.push_back( '\n' );
 	}
 
 } // JoinLines
@@ -3125,24 +3107,7 @@ void TextEdit::Copy( File& rFile, bool Cut )
 				Line&       rLine = rFile.Lines[ rCursor.SelectionStart.y ];
 				std::string Text  = GetString( rLine, rCursor.SelectionStart.x, rCursor.SelectionEnd.x );
 
-				switch( StatusBar::Instance().LineEnd() )
-				{
-					case LineEndMode::CRLF:
-					{
-						ClipBuffer.append( Text + "\r\n" );
-						break;
-					}
-					case LineEndMode::CR:
-					{
-						ClipBuffer.append( Text + "\r" );
-						break;
-					}
-					case LineEndMode::LF:
-					{
-						ClipBuffer.append( Text + "\n" );
-						break;
-					}
-				}
+				ClipBuffer.append( Text + "\n" );
 			}
 			else
 			{
@@ -3157,34 +3122,19 @@ void TextEdit::Copy( File& rFile, bool Cut )
 
 					if( rLine.empty() )
 					{
-						if( StatusBar::Instance().LineEnd() == LineEndMode::CRLF )
-							ClipBuffer.append( Text + "\r\n" );
-						else if( StatusBar::Instance().LineEnd() == LineEndMode::CR )
-							ClipBuffer.append( Text + "\r" );
-						else
-							ClipBuffer.append( Text + "\n" );
+						ClipBuffer.push_back( '\n' );
 						continue;
 					}
 
 					Text = GetString( rLine, 0, ( int )rLine.size() );
 
-					if( StatusBar::Instance().LineEnd() == LineEndMode::CRLF )
-						ClipBuffer.append( Text + "\r\n" );
-					else if( StatusBar::Instance().LineEnd() == LineEndMode::CR )
-						ClipBuffer.append( Text + "\r" );
-					else
-						ClipBuffer.append( Text + "\n" );
+					ClipBuffer.append( Text + "\n" );
 				}
 
 				Line& rLastLine = rFile.Lines[ rCursor.SelectionEnd.y ];
 				Text            = GetString( rLastLine, 0, rCursor.SelectionEnd.x );
 
-				if( StatusBar::Instance().LineEnd() == LineEndMode::CRLF )
-					ClipBuffer.append( Text + "\r\n" );
-				else if( StatusBar::Instance().LineEnd() == LineEndMode::CR )
-					ClipBuffer.append( Text + "\r" );
-				else
-					ClipBuffer.append( Text + "\n" );
+				ClipBuffer.append( Text + "\n" );
 			}
 
 			if( Cut ) DeleteSelection( rFile, ( int )i );
@@ -3196,12 +3146,7 @@ void TextEdit::Copy( File& rFile, bool Cut )
 
 			if( Cut ) rFile.Lines.erase( rFile.Lines.begin() + rCursor.Position.y );
 
-			if( StatusBar::Instance().LineEnd() == LineEndMode::CRLF )
-				ClipBuffer.append( Text + "\r\n" );
-			else if( StatusBar::Instance().LineEnd() == LineEndMode::CR )
-				ClipBuffer.append( Text + "\r" );
-			else
-				ClipBuffer.append( Text + "\n" );
+			ClipBuffer.append( Text + "\n" );
 		}
 		else if( Cut )
 		{
