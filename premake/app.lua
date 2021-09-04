@@ -44,6 +44,9 @@ function app( name )
 	filter 'system:ios'
 		files { 'src/%{prj.name}/Resources/Info.plist' }
 
+	filter 'system:macosx'
+		files { 'src/%{prj.name}/C++/**.mm' }
+
 	filter { 'system:macosx or ios', 'files:**.cpp' }
 		compileas 'Objective-C++'
 
