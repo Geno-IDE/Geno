@@ -31,15 +31,15 @@ class StatusBar
 	GENO_SINGLETON( StatusBar )
 public:
 
-	struct StatusBarMessage
+	struct Message
 	{
-		std::string Message = "";
+		std::string Msg = "";
 		int64_t Timestamp = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
 		int ExpiryTime = 5; // Time in seconds
 
 	}; // StatusBarMessage
 
-	enum class StatusBarColor
+	enum class Color
 	{
 		DEFAULT,
 		BLACK,
@@ -59,7 +59,7 @@ public:
 	void Init( void );
 
 	void SetColor( int r, int g, int b );
-	void SetColor( StatusBarColor color );
+	void SetColor( Color color );
 
 	void SetText( std::string txt );
 
@@ -88,6 +88,6 @@ private:
 	int              m_Col_R                    = 0;
 	int              m_Col_G                    = 0;
 	int              m_Col_B                    = 0;
-	StatusBarMessage m_Message;
+	Message          m_Message                  = { };
 
 }; // StatusBar

@@ -47,6 +47,8 @@ void StatusBar::Init( void )
 	m_Height = 24;
 	m_Width = PrimaryMonitor::Instance().Width();
 
+	SetColor( Color::RED );
+
 	SetText( "Ready" );
 } // Init
 
@@ -59,7 +61,7 @@ void StatusBar::SetColor( int r, int g, int b )
 	m_Col_B = b;
 } // SetColor
 
-void StatusBar::SetColor( StatusBarColor color )
+void StatusBar::SetColor( Color color )
 {
 	m_Col_R = 0;
 	m_Col_G = 0;
@@ -67,27 +69,27 @@ void StatusBar::SetColor( StatusBarColor color )
 
 	switch( color )
 	{
-		case StatusBarColor::DEFAULT:
+		case Color::DEFAULT:
 			m_Col_R = -1;
 			m_Col_G = -1;
 			m_Col_B = -1;
 			break;
-		case StatusBarColor::BLACK:
+		case Color::BLACK:
 			m_Col_R = 0;
 			m_Col_G = 0;
 			m_Col_B = 0;
 			break;
-		case StatusBarColor::BLUE:
+		case Color::BLUE:
 			m_Col_R = 70;
 			m_Col_G = 129;
 			m_Col_B = 224;
 			break;
-		case StatusBarColor::ORANGE:
+		case Color::ORANGE:
 			m_Col_R = 202;
 			m_Col_G = 81;
 			m_Col_B = 0;
 			break;
-		case StatusBarColor::RED:
+		case Color::RED:
 			m_Col_R = 135;
 			m_Col_G = 20;
 			m_Col_B = 20;
@@ -108,7 +110,7 @@ void StatusBar::SetText( std::string txt )
 	m_Text = std::move( txt );
 
 	m_Message = {};
-	m_Message.Message = m_Text;
+	m_Message.Msg = m_Text;
 } // Set Text
 
 //////////////////////////////////////////////////////////////////////////
@@ -153,7 +155,7 @@ void StatusBar::Show()
 	else
 		ImGui::PushStyleColor( ImGuiCol_WindowBg, ImVec4( ImColor( m_Col_R, m_Col_G, m_Col_B ) ) );
 
-	if( m_Message.Message != "Ready" )
+	if( m_Message.Msg != "Ready" )
 	{
 		int64_t expiryInUnixTime = m_Message.Timestamp + m_Message.ExpiryTime;
 		int64_t currentTime = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
@@ -167,7 +169,7 @@ void StatusBar::Show()
 
 	if( ImGui::Begin( "Status Bar", &m_Active, window_flags ) )
 	{
-		ImGui::Text( "%s", m_Message.Message.c_str() );
+		ImGui::Text( "%s", m_Message.Msg.c_str() );
 
 		if( m_TextEditInfo != "" )
 		{
