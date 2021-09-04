@@ -44,6 +44,13 @@ enum class StatusBarColor
 	RED
 };
 
+enum class LineEndMode
+{
+	CR   = 0xE,
+	LF   = 0x19,
+	CRLF = 0x27
+};
+
 class StatusBar
 {
 	GENO_SINGLETON( StatusBar )
@@ -80,7 +87,8 @@ public:
 	std::string&       Text()             { return m_Text;   }
 	const std::string& Text() const       { return m_Text;   }
 
-
+	LineEndMode&        LineEnd()          { return m_LineEndMode; }
+	
 private:
 	int              m_Height                   = 0;
 	int              m_Width                    = 0;
@@ -91,5 +99,12 @@ private:
 	int              m_Col_G                    = 0;
 	int              m_Col_B                    = 0;
 	StatusBarMessage m_Message;
+
+#ifdef _WIN32
+	LineEndMode      m_LineEndMode              = LineEndMode::CRLF;
+#elif defined(__linux__ || __APPLE__)
+	LineEndMode      m_LineEndMode              = LineEndMode::LF;
+#endif // _WIN32
+
 
 }; // StatusBar
