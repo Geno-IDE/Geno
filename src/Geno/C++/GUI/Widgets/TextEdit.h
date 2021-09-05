@@ -208,6 +208,7 @@ private:
 	ImVec2             GetMousePosition();
 	void               SetBoxSelection( File& rFile, int LineIndex, float XPosition );
 	void               ScrollToCursor( File& rFile );
+	void               ScrollTo( File& rFile, Coordinate Position );
 	void               CheckLineLengths( File& rFile, int FirstLine, int LastLine );
 	float              GetMaxCursorDistance( File& rFile );
 	void               CalculeteLineNumMaxWidth( File& rFile );
