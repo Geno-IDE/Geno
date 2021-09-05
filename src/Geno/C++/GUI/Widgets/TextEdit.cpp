@@ -953,6 +953,14 @@ void TextEdit::SetBoxSelection( File& rFile, int LineIndex, float XPosition )
 
 void TextEdit::ScrollToCursor( File& rFile )
 {
+	ScrollTo( rFile, rFile.Cursors.back().Position );
+
+} // ScrollToCursor
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::ScrollTo( File& rFile, Coordinate Position )
+{
 	float yScroll = ImGui::GetScrollY();
 	float xScroll = ImGui::GetScrollX();
 
@@ -963,18 +971,16 @@ void TextEdit::ScrollToCursor( File& rFile )
 	float Left   = xScroll;
 	float Right  = Left + Size.x - 10.0f;
 
-	Cursor& rCursor = rFile.Cursors.back();
-
-	float CX = GetDistance( rFile, rCursor.Position );
-	float CY = rCursor.Position.y * Props.CharAdvanceY;
+	float CX = GetDistance( rFile, Position );
+	float CY = Position.y * Props.CharAdvanceY;
 
 	if( CY < Top )
 	{
-		ImGui::SetScrollY( rCursor.Position.y * Props.CharAdvanceY );
+		ImGui::SetScrollY( Position.y * Props.CharAdvanceY );
 	}
 	else if( CY > Bottom )
 	{
-		ImGui::SetScrollY( rCursor.Position.y * Props.CharAdvanceY - Size.y + ( Props.CharAdvanceY * 2 ) );
+		ImGui::SetScrollY( Position.y * Props.CharAdvanceY - Size.y + ( Props.CharAdvanceY * 2 ) );
 	}
 
 	if( CX < Left )
@@ -986,7 +992,7 @@ void TextEdit::ScrollToCursor( File& rFile )
 		ImGui::SetScrollX( CX - Size.x + 10.0f );
 	}
 
-} // ScrollToCursor
+} // ScrollTo
 
 //////////////////////////////////////////////////////////////////////////
 
