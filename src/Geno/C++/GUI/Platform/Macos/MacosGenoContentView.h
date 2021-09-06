@@ -33,6 +33,7 @@ struct _GLFWwindow;
 @interface GenoWindowDelegate : GLFWWindowDelegate
 {
 	MainWindow* mainWindow;
+	NSTimer*    resizeTimer;
 }
 
 - ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow;

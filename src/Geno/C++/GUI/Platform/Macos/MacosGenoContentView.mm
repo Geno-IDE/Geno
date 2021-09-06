@@ -1,3 +1,5 @@
+// TODO(MarcasRealAccount): Find fix for Maximize button not re rendering whilst resizing.
+//                          Find fix for function not called when window edge is pressed initally until mouse moves.
 #if defined( __APPLE__ )
 #include <GL/glew.h>
 
@@ -12,7 +14,8 @@
 	self = [super initWithGlfwWindow:initWindow];
 	if( self != nil )
 	{
-		mainWindow = mainGenoWindow;
+		mainWindow  = mainGenoWindow;
+		resizeTimer = nil;
 	}
 	return self;
 }
@@ -28,12 +31,31 @@
 - ( void )windowDidResize:( NSNotification* )notification
 {
 	[super windowDidResize:notification];
-	
+
 	MainWindow::Instance().Render();
-	
-	const NSRect rect = [window->ns.view frame];
-	[window->ns.view   setNeedsDisplayInRect:rect];
-	[window->ns.object displayIfNeeded];
+}
+
+- ( void )windowWillStartLiveResize:( NSNotification* )notification
+{
+	if( resizeTimer ) return;
+	double interval = 1.0 / window->videoMode.refreshRate;
+	resizeTimer = [NSTimer timerWithTimeInterval:interval
+                                         repeats:YES
+                                           block:^ ( NSTimer* ) {
+		MainWindow::Instance().Render();
+	}];
+	NSRunLoop* runLoop = [NSRunLoop currentRunLoop];
+	[runLoop addTimer:resizeTimer
+              forMode:NSRunLoopCommonModes];
+}
+
+- ( void )windowDidEndLiveResize:( NSNotification* )notification
+{
+	if( resizeTimer )
+	{
+		[resizeTimer invalidate];
+		resizeTimer = nil;
+	}
 }
 
 @end
