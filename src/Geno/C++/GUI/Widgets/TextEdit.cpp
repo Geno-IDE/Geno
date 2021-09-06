@@ -433,29 +433,23 @@ bool TextEdit::RenderEditor( File& rFile )
 		ImVec2 Pos( ScreenCursor.x + Props.LineNumMaxWidth - Props.ScrollX, ScreenCursor.y + ( i - FirstLine ) * Props.CharAdvanceY );
 		Line&  rLine = rFile.Lines[ i ];
 
-		if( rLine.size() == 0 ) continue;
+		std::vector< LineSelectionItem > Selections = IsLineSelected( rFile, i );
 
-		Coordinate SelectedStart[ 16 ];
-		Coordinate SelectedEnd[ 16 ];
-
-		if( int Count = IsLineSelected( rFile, i, SelectedStart, SelectedEnd ) )
+		for( LineSelectionItem& Item : Selections )
 		{
-			for( int j = 0; j < Count; j++ )
+			float StartX = 0.0f;
+			float EndX   = EmptyLineSelectionWidth;
+
+			if( Item.Start != Item.End )
 			{
-				float StartX = 0.0f;
-				float EndX   = EmptyLineSelectionWidth;
-
-				if( SelectedStart[ j ] != SelectedEnd[ j ] )
-				{
-					StartX = GetDistance( rFile, SelectedStart[ j ] );
-					EndX   = GetDistance( rFile, SelectedEnd[ j ] );
-				}
-
-				ImVec2 Start( ScreenCursor.x + Props.LineNumMaxWidth + StartX - Props.ScrollX, Pos.y );
-				ImVec2 End( ScreenCursor.x + Props.LineNumMaxWidth + EndX - Props.ScrollX, Pos.y + Props.CharAdvanceY );
-
-				pDrawList->AddRectFilled( Start, End, m_Palette.Selection );
+				StartX = GetDistance( rFile, Item.Start );
+				EndX   = GetDistance( rFile, Item.End );
 			}
+
+			ImVec2 Start( ScreenCursor.x + Props.LineNumMaxWidth + StartX - Props.ScrollX, Pos.y );
+			ImVec2 End( ScreenCursor.x + Props.LineNumMaxWidth + EndX - Props.ScrollX, Pos.y + Props.CharAdvanceY );
+
+			pDrawList->AddRectFilled( Start, End, Item.Type == LineSelectionItem::Selection ? m_Palette.Selection : m_Palette.SearchHighlight );
 		}
 
 		for( int j = 0; j < ( int )rFile.Cursors.size(); j++ )
@@ -519,13 +513,12 @@ bool TextEdit::RenderEditor( File& rFile )
 
 		std::string StringBuffer;
 
-		float         XOffset   = 0.0f;
-		unsigned int  PrevColor = ( unsigned int )rLine.size() ? rLine[ 0 ].Color : m_Palette.Default;
-		unsigned char Searched  = rLine[ 0 ].SearchState;
+		float        XOffset   = 0.0f;
+		unsigned int PrevColor = ( unsigned int )rLine.size() ? rLine[ 0 ].Color : m_Palette.Default;
 
 		for( Glyph& rGlyph : rLine )
 		{
-			if( rGlyph.Color != PrevColor || ( rGlyph.C == '\t' && !StringBuffer.empty() ) || rGlyph.SearchState != Searched )
+			if( rGlyph.Color != PrevColor || ( rGlyph.C == '\t' && !StringBuffer.empty() ) )
 			{
 				ImVec2 RenderStart( Pos.x + XOffset, Pos.y );
 
@@ -534,13 +527,7 @@ bool TextEdit::RenderEditor( File& rFile )
 				XOffset += TextWidth;
 				StringBuffer.clear();
 
-				if( Searched != Glyph::NoSearch )
-				{
-					pDrawList->AddRectFilled( RenderStart, ImVec2( RenderStart.x + TextWidth, RenderStart.y + Props.CharAdvanceY ), Searched == Glyph::Highlight ? m_Palette.SearchHighlight : m_Palette.SearchActive );
-				}
-
 				PrevColor = rGlyph.Color;
-				Searched  = rGlyph.SearchState;
 
 				if( rGlyph.C == '\t' )
 				{
@@ -576,11 +563,6 @@ bool TextEdit::RenderEditor( File& rFile )
 			float TextWidth = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, StringBuffer.c_str() ).x;
 			XOffset += TextWidth;
 			StringBuffer.clear();
-
-			if( Searched )
-			{
-				pDrawList->AddRectFilled( RenderStart, ImVec2( RenderStart.x + TextWidth, RenderStart.y + Props.CharAdvanceY ), Searched == Glyph::Highlight ? m_Palette.SearchHighlight : m_Palette.SearchActive );
-			}
 		}
 	}
 
@@ -1144,50 +1126,76 @@ TextEdit::Cursor* TextEdit::IsCoordinateInSelection( File& rFile, Coordinate Coo
 
 //////////////////////////////////////////////////////////////////////////
 
-int TextEdit::IsLineSelected( File& rFile, int LineIndex, Coordinate* pStart, Coordinate* pEnd ) const
+TextEdit::LineSelectionItem TextEdit::IsSelectionOnLine( File& rFile, int LineIndex, Coordinate Start, Coordinate End ) const
 {
-	int Count = 0;
+	LineSelectionItem Item( LineSelectionItem::None );
+
+	if( LineIndex == Start.y )
+	{
+		Item.Start = Start;
+
+		if( LineIndex == End.y )
+		{
+			Item.End = End;
+		}
+		else
+		{
+			Item.End.y = LineIndex;
+			Item.End.x = ( int )rFile.Lines[ LineIndex ].size();
+		}
+	}
+	else if( LineIndex >= Start.y && LineIndex <= End.y )
+	{
+		Item.Start.x = 0;
+		Item.Start.y = LineIndex;
+
+		if( LineIndex == End.y )
+		{
+			Item.End = End;
+		}
+		else
+		{
+			Item.End.y = LineIndex;
+			Item.End.x = ( int )rFile.Lines[ LineIndex ].size();
+		}
+	}
+	else
+	{
+		Item.Type = -1;
+	}
+
+	return Item;
+}
+
+std::vector< TextEdit::LineSelectionItem > TextEdit::IsLineSelected( File& rFile, int LineIndex ) const
+{
+	std::vector< LineSelectionItem > Selections;
 
 	for( Cursor& rCursor : rFile.Cursors )
 	{
 		if( rCursor.SelectionStart == rCursor.SelectionEnd || rCursor.Disabled ) continue;
 
-		if( LineIndex == rCursor.SelectionStart.y )
-		{
-			*( pStart + Count ) = rCursor.SelectionStart;
+		LineSelectionItem Item = IsSelectionOnLine( rFile, LineIndex, rCursor.SelectionStart, rCursor.SelectionEnd );
 
-			if( LineIndex == rCursor.SelectionEnd.y )
-			{
-				*( pEnd + Count ) = rCursor.SelectionEnd;
-			}
-			else
-			{
-				( pEnd + Count )->y = LineIndex;
-				( pEnd + Count )->x = ( int )rFile.Lines[ LineIndex ].size();
-			}
+		if( Item.Type == -1 ) continue;
 
-			Count++;
-		}
-		else if( LineIndex >= rCursor.SelectionStart.y && LineIndex <= rCursor.SelectionEnd.y )
-		{
-			( pStart + Count )->x = 0;
-			( pStart + Count )->y = LineIndex;
+		Item.Type = LineSelectionItem::Selection;
 
-			if( LineIndex == rCursor.SelectionEnd.y )
-			{
-				*( pEnd + Count ) = rCursor.SelectionEnd;
-			}
-			else
-			{
-				( pEnd + Count )->y = LineIndex;
-				( pEnd + Count )->x = ( int )rFile.Lines[ LineIndex ].size();
-			}
-
-			Count++;
-		}
+		Selections.push_back( Item );
 	}
 
-	return Count;
+	for( LineSelectionItem& Search : rFile.SearchResult )
+	{
+		LineSelectionItem Item = IsSelectionOnLine( rFile, LineIndex, Search.Start, Search.End );
+
+		if( Item.Type == -1 ) continue;
+
+		Item.Type = LineSelectionItem::Search;
+
+		Selections.push_back( Item );
+	}
+
+	return Selections;
 
 } // IsLineSelected
 
@@ -3490,14 +3498,6 @@ std::vector< int > TextEdit::CursorsNotInText( File& rFile )
 
 void TextEdit::ClearSearch( File& rFile )
 {
-	for( SearchItem& Result : rFile.SearchResult )
-	{
-		for( Glyph* pGlyph : Result.Glyphs )
-		{
-			pGlyph->SearchState = Glyph::NoSearch;
-		}
-	}
-
 	rFile.SearchResult.clear();
 } // ClearSearch
 
@@ -3593,7 +3593,7 @@ void TextEdit::Search( File& rFile, bool CaseSensitve, std::string SearchString 
 {
 	PrepareSearchString( SearchString );
 
-	rFile.SearchResult.clear();
+	ClearSearch( rFile );
 
 	Coordinate            Start( 0, 0 );
 	std::vector< Glyph* > Matches;
@@ -3623,20 +3623,14 @@ void TextEdit::Search( File& rFile, bool CaseSensitve, std::string SearchString 
 		}
 		else
 		{
-			SearchItem Res;
+			LineSelectionItem Res( LineSelectionItem::Search );
 
-			Res.Start  = Start;
-			Res.End    = Next;
-			Res.Glyphs = Matches;
-
-			Res.End.x--;
+			Res.Start = Start;
+			Res.End   = Next;
 
 			Start = Next;
 
-			for( Glyph* pGlyph : Matches )
-			{
-				pGlyph->SearchState = Glyph::Highlight;
-			}
+			rFile.SearchResult.push_back( Res );
 		}
 
 		Matches.clear();
