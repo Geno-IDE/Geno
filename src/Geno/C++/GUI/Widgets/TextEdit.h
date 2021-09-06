@@ -56,21 +56,12 @@ public:
 
 	struct Glyph
 	{
-		enum
-		{
-			NoSearch,
-			Highlight,
-			Active
-		};
-
-		unsigned int  Color;
-		char          C;
-		unsigned char SearchState;
+		unsigned int Color;
+		char         C;
 
 		Glyph( char C, unsigned int Color )
 			: Color( Color )
 			, C( C )
-			, SearchState( NoSearch )
 		{
 		}
 	};
@@ -156,12 +147,30 @@ public:
 		None
 	};
 
-	struct SearchItem
+	struct SearchDialog
 	{
+		bool Searching     = false;
+		bool CaseSensitive = false;
+	};
+
+	struct LineSelectionItem
+	{
+		enum
+		{
+			None,
+			Selection,
+			Search
+		};
+
 		Coordinate Start;
 		Coordinate End;
 
-		std::vector< Glyph* > Glyphs;
+		int Type;
+
+		LineSelectionItem( int Type = None )
+			: Type( Type )
+		{
+		}
 	};
 
 	struct File
@@ -179,7 +188,9 @@ public:
 		float              LongestLineLength;
 		std::vector< int > LongestLines;
 
-		std::vector< SearchItem > SearchResult;
+		std::vector< LineSelectionItem > SearchResult;
+
+		SearchDialog SearchDiag;
 
 		BoxModeDirection BoxModeDir      = BoxModeDirection::None;
 		CursorInputMode  CursorMode      = CursorInputMode::Normal;
@@ -223,64 +234,65 @@ private:
 		int   CursorBlink;
 	} Props;
 
-	bool               RenderEditor( File& rFile );
-	void               HandleKeyboardInputs( File& rFile );
-	void               HandleMouseInputs( File& rFile );
-	ImVec2             GetMousePosition();
-	void               SetBoxSelection( File& rFile, int LineIndex, float XPosition );
-	void               ScrollToCursor( File& rFile );
-	void               ScrollTo( File& rFile, Coordinate Position );
-	void               CheckLineLengths( File& rFile, int FirstLine, int LastLine );
-	float              GetMaxCursorDistance( File& rFile );
-	void               CalculeteLineNumMaxWidth( File& rFile );
-	bool               HasSelection( File& rFile, int cursor ) const;
-	Cursor*            IsCoordinateInSelection( File& rFile, Coordinate Coordinate, int Offset = 0 );
-	int                IsLineSelected( File& rFile, int line, Coordinate* pStart, Coordinate* pEnd ) const;
-	float              GetDistance( File& rFile, Coordinate Position ) const;
-	std::string        GetWordAt( File& rFile, Cursor& Cursor ) const;
-	std::string        GetWordAt( File& rFile, Coordinate Position, Coordinate* pStart, Coordinate* pEnd ) const;
-	bool               IsCoordinateInText( File& rFile, Coordinate Position );
-	void               AdjustCursorIfInText( File& rFile, Cursor& rCursor, int Line, int XOffset );
-	void               AdjustCursor( Cursor& Cursor, int XOffset );
-	void               SetSelectionLine( File& rFile, int Line );
-	void               SetSelection( File& rFile, Coordinate Start, Coordinate End, int Cursor );
-	void               SelectAll( File& rFile );
-	int                GetCoordinateY( File& rFile, float YPosition );
-	int                GetCoordinateX( File& rFile, int LineIndex, float XPosition, bool AllowPastLine = false );
-	Coordinate         GetCoordinate( File& rFile, ImVec2 Position, bool AllowPastLine = false );
-	Coordinate         CalculateTabAlignment( File& rFile, Coordinate FromPosition );
-	float              CalculateTabAlignmentDistance( File& rFile, Coordinate FromPosition );
-	void               AdjustCursors( File& rFile, int Cursor, int XOffset, int YOffset );
-	void               YeetDuplicateCursors( File& rFile );
-	void               DisableIntersectionsInSelection( File& rFile, int Cursor );
-	void               DeleteDisabledCursor( File& rFile );
-	void               DeleteSelection( File& rFile, int Cursor );
-	void               Enter( File& rFile );
-	void               Backspace( File& rFile );
-	void               Backspace( File& rFile, int CursorIndex, bool DeleteLine );
-	void               Del( File& rFile );
-	void               Del( File& rFile, int CursorIndex, bool DeleteLine );
-	void               Tab( File& rFile, bool Shift );
-	void               Tab( File& rFile, bool Shift, int CursorIndex );
-	void               PrepareBoxModeForInput( File& rFile );
-	void               EnterTextStuff( File& rFile, char C );
-	void               EnterTextStuff( File& rFile, char C, int CursorIndex );
-	void               MoveUp( File& rFile, bool Shift, bool Alt );
-	void               MoveDown( File& rFile, bool Shift, bool Alt );
-	void               MoveRight( File& rFile, bool Ctrl, bool Shift, bool Alt );
-	void               MoveLeft( File& rFile, bool Ctrl, bool Shift, bool Alt );
-	void               Home( File& rFile, bool Ctrl, bool Shift );
-	void               End( File& rFile, bool Ctrl, bool Shift );
-	void               Esc( File& rFile );
-	void               Copy( File& rFile, bool Cut );
-	void               Paste( File& rFile );
-	void               SwapLines( File& rFile, bool Up );
-	std::vector< int > CursorsInText( File& rFile );
-	std::vector< int > CursorsNotInText( File& rFile );
-	void               PrepareSearchString( std::string& rSearchString );
-	void               ClearSearch( File& rFile );
-	Coordinate         SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate LineStart, int SearchStringOffset, std::vector< Glyph* >& rMatches );
-	void               Search( File& rFile, bool CaseSensitve, std::string SearchString );
+	bool                             RenderEditor( File& rFile );
+	void                             HandleKeyboardInputs( File& rFile );
+	void                             HandleMouseInputs( File& rFile );
+	ImVec2                           GetMousePosition();
+	void                             SetBoxSelection( File& rFile, int LineIndex, float XPosition );
+	void                             ScrollToCursor( File& rFile );
+	void                             ScrollTo( File& rFile, Coordinate Position );
+	void                             CheckLineLengths( File& rFile, int FirstLine, int LastLine );
+	float                            GetMaxCursorDistance( File& rFile );
+	void                             CalculeteLineNumMaxWidth( File& rFile );
+	bool                             HasSelection( File& rFile, int cursor ) const;
+	Cursor*                          IsCoordinateInSelection( File& rFile, Coordinate Coordinate, int Offset = 0 );
+	LineSelectionItem                IsSelectionOnLine( File& rFile, int LineIndex, Coordinate Start, Coordinate End ) const;
+	std::vector< LineSelectionItem > IsLineSelected( File& rFile, int LineIndex ) const;
+	float                            GetDistance( File& rFile, Coordinate Position ) const;
+	std::string                      GetWordAt( File& rFile, Cursor& Cursor ) const;
+	std::string                      GetWordAt( File& rFile, Coordinate Position, Coordinate* pStart, Coordinate* pEnd ) const;
+	bool                             IsCoordinateInText( File& rFile, Coordinate Position );
+	void                             AdjustCursorIfInText( File& rFile, Cursor& rCursor, int Line, int XOffset );
+	void                             AdjustCursor( Cursor& Cursor, int XOffset );
+	void                             SetSelectionLine( File& rFile, int Line );
+	void                             SetSelection( File& rFile, Coordinate Start, Coordinate End, int Cursor );
+	void                             SelectAll( File& rFile );
+	int                              GetCoordinateY( File& rFile, float YPosition );
+	int                              GetCoordinateX( File& rFile, int LineIndex, float XPosition, bool AllowPastLine = false );
+	Coordinate                       GetCoordinate( File& rFile, ImVec2 Position, bool AllowPastLine = false );
+	Coordinate                       CalculateTabAlignment( File& rFile, Coordinate FromPosition );
+	float                            CalculateTabAlignmentDistance( File& rFile, Coordinate FromPosition );
+	void                             AdjustCursors( File& rFile, int Cursor, int XOffset, int YOffset );
+	void                             YeetDuplicateCursors( File& rFile );
+	void                             DisableIntersectionsInSelection( File& rFile, int Cursor );
+	void                             DeleteDisabledCursor( File& rFile );
+	void                             DeleteSelection( File& rFile, int Cursor );
+	void                             Enter( File& rFile );
+	void                             Backspace( File& rFile );
+	void                             Backspace( File& rFile, int CursorIndex, bool DeleteLine );
+	void                             Del( File& rFile );
+	void                             Del( File& rFile, int CursorIndex, bool DeleteLine );
+	void                             Tab( File& rFile, bool Shift );
+	void                             Tab( File& rFile, bool Shift, int CursorIndex );
+	void                             PrepareBoxModeForInput( File& rFile );
+	void                             EnterTextStuff( File& rFile, char C );
+	void                             EnterTextStuff( File& rFile, char C, int CursorIndex );
+	void                             MoveUp( File& rFile, bool Shift, bool Alt );
+	void                             MoveDown( File& rFile, bool Shift, bool Alt );
+	void                             MoveRight( File& rFile, bool Ctrl, bool Shift, bool Alt );
+	void                             MoveLeft( File& rFile, bool Ctrl, bool Shift, bool Alt );
+	void                             Home( File& rFile, bool Ctrl, bool Shift );
+	void                             End( File& rFile, bool Ctrl, bool Shift );
+	void                             Esc( File& rFile );
+	void                             Copy( File& rFile, bool Cut );
+	void                             Paste( File& rFile );
+	void                             SwapLines( File& rFile, bool Up );
+	std::vector< int >               CursorsInText( File& rFile );
+	std::vector< int >               CursorsNotInText( File& rFile );
+	void                             PrepareSearchString( std::string& rSearchString );
+	void                             ClearSearch( File& rFile );
+	Coordinate                       SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate LineStart, int SearchStringOffset, std::vector< Glyph* >& rMatches );
+	void                             Search( File& rFile, bool CaseSensitve, std::string SearchString );
 
 	Palette m_Palette;
 
