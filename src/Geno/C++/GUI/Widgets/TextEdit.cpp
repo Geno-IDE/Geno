@@ -62,6 +62,8 @@ TextEdit::TextEdit( void )
 	m_Palette.Cursor              = 0xFFf8f8f8;
 	m_Palette.CursorInsert        = 0x80f8f8f8;
 	m_Palette.Selection           = 0x80a06020;
+	m_Palette.SearchHighlight     = 0x80002c4f;
+	m_Palette.SearchActive        = 0x80f7da5d;
 	m_Palette.CurrentLine         = 0x40000000;
 	m_Palette.CurrentLineInactive = 0x40808080;
 	m_Palette.CurrentLineEdge     = 0x40a0a0a0;
@@ -431,6 +433,8 @@ bool TextEdit::RenderEditor( File& rFile )
 		ImVec2 Pos( ScreenCursor.x + Props.LineNumMaxWidth - Props.ScrollX, ScreenCursor.y + ( i - FirstLine ) * Props.CharAdvanceY );
 		Line&  rLine = rFile.Lines[ i ];
 
+		if( rLine.size() == 0 ) continue;
+
 		Coordinate SelectedStart[ 16 ];
 		Coordinate SelectedEnd[ 16 ];
 
@@ -515,19 +519,28 @@ bool TextEdit::RenderEditor( File& rFile )
 
 		std::string StringBuffer;
 
-		float        XOffset   = 0.0f;
-		unsigned int PrevColor = ( unsigned int )rLine.size() ? rLine[ 0 ].Color : m_Palette.Default;
+		float         XOffset   = 0.0f;
+		unsigned int  PrevColor = ( unsigned int )rLine.size() ? rLine[ 0 ].Color : m_Palette.Default;
+		unsigned char Searched  = rLine[ 0 ].SearchState;
 
 		for( Glyph& rGlyph : rLine )
 		{
-			if( rGlyph.Color != PrevColor || ( rGlyph.C == '\t' && !StringBuffer.empty() ) )
+			if( rGlyph.Color != PrevColor || ( rGlyph.C == '\t' && !StringBuffer.empty() ) || rGlyph.SearchState != Searched )
 			{
-				pDrawList->AddText( ImVec2( Pos.x + XOffset, Pos.y ), PrevColor, StringBuffer.c_str() );
+				ImVec2 RenderStart( Pos.x + XOffset, Pos.y );
+
+				pDrawList->AddText( RenderStart, PrevColor, StringBuffer.c_str() );
 				float TextWidth = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, StringBuffer.c_str() ).x;
 				XOffset += TextWidth;
 				StringBuffer.clear();
 
+				if( Searched != Glyph::NoSearch )
+				{
+					pDrawList->AddRectFilled( RenderStart, ImVec2( RenderStart.x + TextWidth, RenderStart.y + Props.CharAdvanceY ), Searched == Glyph::Highlight ? m_Palette.SearchHighlight : m_Palette.SearchActive );
+				}
+
 				PrevColor = rGlyph.Color;
+				Searched  = rGlyph.SearchState;
 
 				if( rGlyph.C == '\t' )
 				{
@@ -539,6 +552,10 @@ bool TextEdit::RenderEditor( File& rFile )
 					Fraction       = Fraction - floorf( Fraction );
 
 					XOffset -= Tab * Fraction;
+				}
+				else
+				{
+					StringBuffer.push_back( rGlyph.C );
 				}
 			}
 			else if( rGlyph.C == '\t' )
@@ -553,10 +570,17 @@ bool TextEdit::RenderEditor( File& rFile )
 
 		if( !StringBuffer.empty() )
 		{
-			pDrawList->AddText( ImVec2( Pos.x + XOffset, Pos.y ), PrevColor, StringBuffer.c_str() );
+			ImVec2 RenderStart( Pos.x + XOffset, Pos.y );
+
+			pDrawList->AddText( RenderStart, PrevColor, StringBuffer.c_str() );
 			float TextWidth = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, StringBuffer.c_str() ).x;
 			XOffset += TextWidth;
 			StringBuffer.clear();
+
+			if( Searched )
+			{
+				pDrawList->AddRectFilled( RenderStart, ImVec2( RenderStart.x + TextWidth, RenderStart.y + Props.CharAdvanceY ), Searched == Glyph::Highlight ? m_Palette.SearchHighlight : m_Palette.SearchActive );
+			}
 		}
 	}
 
@@ -3461,3 +3485,155 @@ std::vector< int > TextEdit::CursorsNotInText( File& rFile )
 
 	return Cursors;
 } // CursorsNotInText
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::ClearSearch( File& rFile )
+{
+	for( SearchItem& Result : rFile.SearchResult )
+	{
+		for( Glyph* pGlyph : Result.Glyphs )
+		{
+			pGlyph->SearchState = Glyph::NoSearch;
+		}
+	}
+
+	rFile.SearchResult.clear();
+} // ClearSearch
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::PrepareSearchString( std::string& rSearchString )
+{
+	for( int i = 0; i < rSearchString.length(); i++ )
+	{
+		char C = rSearchString[ i ];
+
+		if( C == '\\' )
+		{
+			if( i == rSearchString.length() - 1 ) break;
+
+			char C2 = rSearchString[ i + 1 ];
+
+			switch( C2 )
+			{
+				case 'n':
+					rSearchString[ i ] = '\n';
+					break;
+				case 't':
+					rSearchString[ i ] = '\t';
+					break;
+				default:
+					continue;
+			}
+
+			rSearchString.erase( rSearchString.begin() + i + 1 );
+		}
+	}
+} // PrepareSearchString
+
+//////////////////////////////////////////////////////////////////////////
+
+TextEdit::Coordinate TextEdit::SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate Start, int SearchStringOffset, std::vector< Glyph* >& rMatches )
+{
+	Line& rLine = rFile.Lines[ Start.y ];
+
+	int OgX = Start.x;
+
+	for( int i = SearchStringOffset; i < rSearchString.length(); i++ )
+	{
+		char C     = rSearchString[ i ];
+		int  Index = OgX + ( i - SearchStringOffset );
+		bool EOL   = Index == rLine.size();
+
+		if( EOL )
+		{
+			if( C == '\n' )
+			{
+				Coordinate Next = Coordinate( 0, Start.y + 1 );
+				Coordinate Res  = SearchInLine( rFile, CaseSensitive, rSearchString, Next, i + 1, rMatches );
+
+				if( Next == Res ) return Coordinate( OgX, Start.y );
+
+				return Res;
+			}
+			else
+			{
+				return Coordinate( OgX, Start.y );
+			}
+		}
+
+		Glyph* pGlyph = &rLine[ Index ];
+
+		if( pGlyph->C != C )
+		{
+			return Coordinate( OgX, Start.y );
+		}
+
+		rMatches.push_back( pGlyph );
+
+		Start.x++;
+	}
+
+	return Start;
+
+} // SearchInLine
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::Search( File& rFile, bool CaseSensitve, std::string SearchString )
+{
+	PrepareSearchString( SearchString );
+
+	rFile.SearchResult.clear();
+
+	Coordinate            Start( 0, 0 );
+	std::vector< Glyph* > Matches;
+
+	while( true )
+	{
+		Coordinate Next = SearchInLine( rFile, CaseSensitve, SearchString, Start, 0, Matches );
+
+		if( Next == Start )
+		{
+			Line& rLine = rFile.Lines[ Start.y ];
+
+			if( Start.x == rLine.size() )
+			{
+				if( Start.y == rFile.Lines.size() - 1 )
+				{
+					break;
+				}
+
+				Start.y++;
+				Start.x = 0;
+			}
+			else
+			{
+				Start.x++;
+			}
+		}
+		else
+		{
+			SearchItem Res;
+
+			Res.Start  = Start;
+			Res.End    = Next;
+			Res.Glyphs = Matches;
+
+			Res.End.x--;
+
+			Start = Next;
+
+			for( Glyph* pGlyph : Matches )
+			{
+				pGlyph->SearchState = Glyph::Highlight;
+			}
+		}
+
+		Matches.clear();
+	}
+
+} // Search
+
+//////////////////////////////////////////////////////////////////////////
