@@ -252,7 +252,7 @@ void TitleBar::ActionFileNewWorkspace( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void MainMenuBar::ActionExtShowGenoDiscord( void )
+void TitleBar::ActionExtShowGenoDiscord( void )
 {
 	DiscordRPCSettingsModal::Instance().Show();
 
@@ -260,7 +260,7 @@ void MainMenuBar::ActionExtShowGenoDiscord( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void MainMenuBar::ActionFileOpenWorkspace( void )
+void TitleBar::ActionFileOpenWorkspace( void )
 {
 	OpenFileModal::Instance().Show( "Open Workspace", "*.gwks", []( const std::filesystem::path& rFile )
 	{
