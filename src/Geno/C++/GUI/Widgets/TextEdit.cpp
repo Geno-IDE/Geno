@@ -3565,7 +3565,15 @@ TextEdit::Coordinate TextEdit::SearchInLine( File& rFile, bool CaseSensitive, co
 
 		Glyph* pGlyph = &rLine[ Index ];
 
-		if( pGlyph->C != C )
+		char GC = pGlyph->C;
+
+		if( !CaseSensitive )
+		{
+			GC = std::tolower( GC, std::locale() );
+			C  = std::tolower( C, std::locale() );
+		}
+
+		if( GC != C )
 		{
 			return Coordinate( OgX, Start.y );
 		}
