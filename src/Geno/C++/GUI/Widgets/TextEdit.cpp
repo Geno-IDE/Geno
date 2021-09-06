@@ -21,7 +21,6 @@
 #include "Common/Drop.h"
 #include "Common/LocalAppData.h"
 #include "GUI/MainWindow.h"
-#include "GUI/Widgets/MainMenuBar.h"
 #include "GUI/Widgets/TitleBar.h"
 #include "Discord/DiscordRPC.h"
 
