@@ -126,7 +126,8 @@ MainWindow::MainWindow( void )
 
 #if defined( __APPLE__ )
 	_GLFWwindow* GlfwWindow = reinterpret_cast< _GLFWwindow* >( m_pWindow );
-	[[[GenoContentView alloc] initWithMainWindow:this:GlfwWindow] setGLFWVariables];
+	[[[GenoWindowDelegate alloc] initWithMainWindow:this:GlfwWindow] setGLFWVariables];
+	[[[GenoContentView alloc]    initWithMainWindow:this:GlfwWindow] setGLFWVariables];
 #endif // __APPLE__
 
 	m_IniPath       = LocalAppData::Instance().Path() / L"imgui.ini";
@@ -226,6 +227,9 @@ bool MainWindow::Update( void )
 
 void MainWindow::Render( void )
 {
+	if( b_Rendering ) return;
+	b_Rendering = true;
+
 	const ImVec4 Color = ImGui::GetStyleColorVec4( ImGuiCol_WindowBg );
 
 	glClearColor( Color.x, Color.y, Color.z, 1.0f );
@@ -269,6 +273,8 @@ void MainWindow::Render( void )
 	}
 
 	glfwSwapBuffers( m_pWindow );
+
+	b_Rendering = false;
 
 } // Render
 
