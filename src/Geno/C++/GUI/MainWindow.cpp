@@ -491,14 +491,7 @@ LRESULT MainWindow::CustomWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPAR
 
 		case WM_NCCALCSIZE:
 		{
-			if( WParam == FALSE )
-				return 0;
-
-			LPNCCALCSIZE_PARAMS CalcSizeParams = ( LPNCCALCSIZE_PARAMS )LParam;
-
-			// Force the window to be redrawn
-			InvalidateRect( Handle, &CalcSizeParams->rgrc[ 0 ], TRUE );
-
+			// Preserve the old client area and align it with the upper-left corner of the new client area
 			return 0;
 
 		} break;
@@ -523,6 +516,13 @@ LRESULT MainWindow::CustomWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPAR
 			{
 				pSelf->Render();
 			}
+
+		} break;
+
+		case WM_SIZE:
+		case WM_MOVE:
+		{
+			pSelf->Render();
 
 		} break;
 	}
