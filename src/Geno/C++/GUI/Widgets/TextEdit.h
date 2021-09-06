@@ -47,6 +47,8 @@ public:
 		unsigned int Cursor;
 		unsigned int CursorInsert;
 		unsigned int Selection;
+		unsigned int SearchHighlight;
+		unsigned int SearchActive;
 		unsigned int CurrentLine;
 		unsigned int CurrentLineInactive;
 		unsigned int CurrentLineEdge;
@@ -54,12 +56,21 @@ public:
 
 	struct Glyph
 	{
-		char         C;
-		unsigned int Color;
+		enum
+		{
+			NoSearch,
+			Highlight,
+			Active
+		};
+
+		unsigned int  Color;
+		char          C;
+		unsigned char SearchState;
 
 		Glyph( char C, unsigned int Color )
-			: C( C )
-			, Color( Color )
+			: Color( Color )
+			, C( C )
+			, SearchState( NoSearch )
 		{
 		}
 	};
@@ -145,6 +156,14 @@ public:
 		None
 	};
 
+	struct SearchItem
+	{
+		Coordinate Start;
+		Coordinate End;
+
+		std::vector< Glyph* > Glyphs;
+	};
+
 	struct File
 	{
 		std::filesystem::path Path;
@@ -159,6 +178,8 @@ public:
 
 		float              LongestLineLength;
 		std::vector< int > LongestLines;
+
+		std::vector< SearchItem > SearchResult;
 
 		BoxModeDirection BoxModeDir      = BoxModeDirection::None;
 		CursorInputMode  CursorMode      = CursorInputMode::Normal;
@@ -256,6 +277,10 @@ private:
 	void               SwapLines( File& rFile, bool Up );
 	std::vector< int > CursorsInText( File& rFile );
 	std::vector< int > CursorsNotInText( File& rFile );
+	void               PrepareSearchString( std::string& rSearchString );
+	void               ClearSearch( File& rFile );
+	Coordinate         SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate LineStart, int SearchStringOffset, std::vector< Glyph* >& rMatches );
+	void               Search( File& rFile, bool CaseSensitve, std::string SearchString );
 
 	Palette m_Palette;
 
