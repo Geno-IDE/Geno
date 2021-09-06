@@ -5,6 +5,39 @@
 
 #include "GUI/Widgets/TitleBar.h"
 
+@implementation GenoWindowDelegate
+
+- ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow
+{
+	self = [super initWithGlfwWindow:initWindow];
+	if( self != nil )
+	{
+		mainWindow = mainGenoWindow;
+	}
+	return self;
+}
+
+- ( void )setGLFWVariables
+{
+	id oldDelegate = window->ns.delegate;
+	window->ns.delegate = self;
+	[window->ns.object setDelegate:window->ns.delegate];
+	[oldDelegate release];
+}
+
+- ( void )windowDidResize:( NSNotification* )notification
+{
+	[super windowDidResize:notification];
+	
+	MainWindow::Instance().Render();
+	
+	const NSRect rect = [window->ns.view frame];
+	[window->ns.view   setNeedsDisplayInRect:rect];
+	[window->ns.object displayIfNeeded];
+}
+
+@end
+
 @implementation GenoContentView
 
 - ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow
@@ -12,8 +45,10 @@
 	self = [super initWithGlfwWindow:initWindow];
 	if( self != nil )
 	{
-		mainWindow   = mainGenoWindow;
-		movingWindow = NO;
+		mainWindow        = mainGenoWindow;
+		lastTitlebarClick = 0;
+		lastTitlebarPos   = { 0.0f, 0.0f };
+		movingWindow      = NO;
 	}
 	return self;
 }
@@ -22,8 +57,8 @@
 {
 	id oldView = window->ns.view;
 	window->ns.view = self;
-	[window->ns.object setContentView:self];
-	[window->ns.view setWantsBestResolutionOpenGLSurface:window->ns.retina];
+	[window->ns.object           setContentView:self];
+	[window->ns.view             setWantsBestResolutionOpenGLSurface:window->ns.retina];
 	[window->context.nsgl.object setView:self];
 	[oldView release];
 
@@ -39,21 +74,26 @@
 {
 	const NSPoint pos  = [event locationInWindow];
 	const NSRect  rect = [self frame];
-
 	if( !ImGui::IsAnyItemHovered() && ( pos.y > ( rect.size.height - mainWindow->pTitleBar->Height() ) ) )
 	{
+		const NSPoint        screenPos = [NSEvent mouseLocation];
+		const NSTimeInterval timestamp = [event timestamp];
+		if( ( timestamp - lastTitlebarClick ) < 1.0 && NSEqualPoints( screenPos, lastTitlebarPos ) )
+		{
+			MainWindow::Instance().Maximize();
+			lastTitlebarClick = 0;
+			lastTitlebarPos   = { 0.0f, 0.0f };
+			movingWindow      = NO;
+			return;
+		}
 		[self.window performWindowDragWithEvent:event];
-		movingWindow = YES;
+		lastTitlebarClick = timestamp;
+		lastTitlebarPos   = screenPos;
+		movingWindow      = YES;
 		return;
 	}
 	movingWindow = NO;
 	[super mouseDown:event];
-}
-
-- ( void )mouseDragged:( NSEvent* )event
-{
-	if( movingWindow ) return;
-	[super mouseDragged:event];
 }
 
 - ( void )mouseUp:( NSEvent* )event
@@ -64,6 +104,12 @@
 		return;
 	}
 	[super mouseUp:event];
+}
+
+- ( void )mouseMoved:( NSEvent* )event
+{
+	if( movingWindow ) return;
+	[super mouseMoved:event];
 }
 
 @end
