@@ -8,6 +8,17 @@
 
 struct _GLFWwindow;
 
+@interface GLFWWindowDelegate : NSObject
+{
+	_GLFWwindow* window;
+}
+
+- ( instancetype )initWithGlfwWindow:( _GLFWwindow* )initWindow;
+
+- ( void )windowDidResize:( NSNotification* )notification;
+
+@end
+
 @interface GLFWContentView : NSView< NSTextInputClient >
 {
 	_GLFWwindow*               window;
@@ -19,10 +30,23 @@ struct _GLFWwindow;
 
 @end
 
-@interface GenoContentView : GLFWContentView
+@interface GenoWindowDelegate : GLFWWindowDelegate
 {
 	MainWindow* mainWindow;
-	BOOL        movingWindow;
+}
+
+- ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow;
+
+- ( void )setGLFWVariables;
+
+@end
+
+@interface GenoContentView : GLFWContentView
+{
+	MainWindow*    mainWindow;
+	NSTimeInterval lastTitlebarClick;
+	NSPoint        lastTitlebarPos;
+	BOOL           movingWindow;
 };
 
 - ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow;

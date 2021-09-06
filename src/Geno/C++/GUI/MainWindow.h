@@ -71,6 +71,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
+	bool        IsRendering   ( void ) const { return b_Rendering; }
 	const Drop* GetDraggedDrop( void ) const { return m_DraggedDrop.has_value() ? &m_DraggedDrop.value() : nullptr; }
 	ImFont*     GetFontSans   ( void ) const { return m_pFontSans; }
 	ImFont*     GetFontMono   ( void ) const { return m_pFontMono; }
@@ -101,6 +102,8 @@ private:
 #endif // _WIN32
 
 //////////////////////////////////////////////////////////////////////////
+
+	bool b_Rendering = false;
 
 	ModalVector           m_Modals             = { };
 
