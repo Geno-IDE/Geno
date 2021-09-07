@@ -28,7 +28,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
 const char* WINDOW_NAME = "Text Edit";
@@ -419,6 +418,10 @@ bool TextEdit::RenderEditor( File& rFile )
 
 	ImGui::SetCursorScreenPos( ImVec2( ScreenCursor.x + Props.LineNumMaxWidth, ScreenCursor.y ) );
 	ImGui::BeginChild( "##TextEditor", ImVec2( Size.x - Props.LineNumMaxWidth, 0 ), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar );
+
+	ImGuiID      FocusId = ImGui::GetFocusID();
+	ImGuiWindow* pWindow = ImGui::GetCurrentWindow();
+
 	HandleKeyboardInputs( rFile );
 	HandleMouseInputs( rFile );
 
@@ -449,7 +452,7 @@ bool TextEdit::RenderEditor( File& rFile )
 			ImVec2 Start( ScreenCursor.x + Props.LineNumMaxWidth + StartX - Props.ScrollX, Pos.y );
 			ImVec2 End( ScreenCursor.x + Props.LineNumMaxWidth + EndX - Props.ScrollX, Pos.y + Props.CharAdvanceY );
 
-			pDrawList->AddRectFilled( Start, End, Item.Type == LineSelectionItem::Selection ? m_Palette.Selection : m_Palette.SearchHighlight );
+			pDrawList->AddRectFilled( Start, End, Item.Type == LineSelectionItem::Search ? m_Palette.SearchHighlight : m_Palette.Selection );
 		}
 
 		for( int j = 0; j < ( int )rFile.Cursors.size(); j++ )
@@ -595,6 +598,12 @@ bool TextEdit::RenderEditor( File& rFile )
 
 	ImGui::EndChild();
 
+	if( rFile.SearchDiag.Searching )
+	{
+		ImGui::SetCursorScreenPos( ScreenCursor );
+		ShowSearchDialog( rFile, FocusId, pWindow );
+	}
+
 	ImGui::PopStyleVar();
 	ImGui::PopStyleColor();
 
@@ -652,6 +661,8 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 			rFile.CursorMode = rFile.CursorMode == CursorInputMode::Normal ? CursorInputMode::Insert : CursorInputMode::Normal;
 		else if( !Alt && Ctrl && !Shift && ImGui::IsKeyPressed( 'A' ) )
 			SelectAll( rFile );
+		else if( !Alt && Ctrl && !Shift && ImGui::IsKeyPressed( 'F' ) )
+			rFile.SearchDiag.Searching = true;
 
 		for( int i = 0; i < rIO.InputQueueCharacters.Size; i++ )
 		{
@@ -1190,7 +1201,7 @@ std::vector< TextEdit::LineSelectionItem > TextEdit::IsLineSelected( File& rFile
 
 		if( Item.Type == -1 ) continue;
 
-		Item.Type = LineSelectionItem::Search;
+		Item.Type = Search.Type;
 
 		Selections.push_back( Item );
 	}
@@ -3127,7 +3138,11 @@ void TextEdit::Esc( File& rFile )
 	rCursor.SelectionEnd    = Coordinate( 0, 0 );
 	rCursor.SelectionOrigin = Coordinate( -1, -1 );
 
-	rFile.CursorMultiMode = MultiCursorMode::Normal;
+	rFile.CursorMultiMode       = MultiCursorMode::Normal;
+	rFile.SearchDiag.Searching  = false;
+	rFile.SearchDiag.ActiveItem = -1;
+
+	ClearSearch( rFile );
 } // Esc
 
 //////////////////////////////////////////////////////////////////////////
@@ -3639,3 +3654,116 @@ void TextEdit::Search( File& rFile, bool CaseSensitve, std::string SearchString 
 } // Search
 
 //////////////////////////////////////////////////////////////////////////
+
+void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWindow )
+{
+	SearchDialog& rDiag   = rFile.SearchDiag;
+	float         Width   = 350.0f;
+	float         Height  = 60.0f;
+	float         Padding = 4.0f;
+	ImVec2        Cursor  = ImGui::GetCursorPos();
+	ImVec2        Size    = ImGui::GetContentRegionAvail();
+
+	Cursor.x = Size.x - Width - 14;
+
+	ImGui::SetCursorPos( Cursor );
+	ImGui::PushStyleColor( ImGuiCol_ChildBg, ImGui::ColorConvertU32ToFloat4( 0xFF080808 ) );
+	ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 6.0f );
+	ImGui::BeginChild( "##Search", ImVec2( Width, Height ) );
+	ImGui::PushStyleVar( ImGuiStyleVar_FrameRounding, 6.0f );
+
+	Cursor.y += Padding;
+	Cursor.x += Padding;
+
+	ImGui::SetCursorPos( ImVec2( Padding, Padding ) );
+
+	if( ImGui::IsWindowAppearing() )
+	{
+		ImGui::SetKeyboardFocusHere( 0 );
+	}
+
+	if( ImGui::InputText( "", &rDiag.SearchTerm ) )
+	{
+		Search( rFile, false, rDiag.SearchTerm );
+
+		if( rDiag.SearchTerm.size() == 0 )
+		{
+			rDiag.ActiveItem = -1;
+		}
+	}
+
+	ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( Padding, Padding ) );
+	ImGui::SameLine();
+
+	bool Shift = ImGui::GetIO().KeyShift;
+
+	if( ImGui::Button( "Next" ) || ( ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Enter ) ) && ImGui::IsWindowFocused() && !Shift ) )
+	{
+		int PrevActive = rDiag.ActiveItem;
+
+		rDiag.ActiveItem++;
+
+		if( rDiag.ActiveItem == rFile.SearchResult.size() )
+		{
+			rDiag.ActiveItem = -1;
+		}
+
+		if( PrevActive != -1 )
+		{
+			LineSelectionItem& Prev = rFile.SearchResult[ PrevActive ];
+			Prev.Type               = LineSelectionItem::Search;
+		}
+
+		if( rDiag.ActiveItem != -1 )
+		{
+			LineSelectionItem& Curr = rFile.SearchResult[ rDiag.ActiveItem ];
+			Curr.Type               = LineSelectionItem::SearchActive;
+		}
+	}
+
+	ImGui::SameLine();
+
+	if( ImGui::Button( "Prev" ) || ( ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Enter ) ) && ImGui::IsWindowFocused() && Shift ) )
+	{
+		int PrevActive = rDiag.ActiveItem;
+
+		if( rDiag.ActiveItem == -1 )
+		{
+			rDiag.ActiveItem = ( int )rFile.SearchResult.size() - 1;
+		}
+		else
+		{
+			rDiag.ActiveItem--;
+		}
+
+		if( PrevActive != -1 )
+		{
+			LineSelectionItem& Prev = rFile.SearchResult[ PrevActive ];
+			Prev.Type               = LineSelectionItem::Search;
+		}
+
+		if( rDiag.ActiveItem != -1 )
+		{
+			LineSelectionItem& Curr = rFile.SearchResult[ rDiag.ActiveItem ];
+			Curr.Type               = LineSelectionItem::SearchActive;
+		}
+	}
+
+	ImGui::SameLine();
+
+	if( ImGui::Button( "Close" ) || ( ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Escape ) ) && ImGui::IsWindowFocused() ) )
+	{
+		rDiag.Searching  = false;
+		rDiag.ActiveItem = -1;
+		ClearSearch( rFile );
+
+		ImGui::SetFocusID( FocusId, pWindow );
+	}
+
+	ImGui::PopStyleVar();
+	ImGui::PopStyleVar();
+
+	ImGui::EndChild();
+	ImGui::PopStyleVar();
+	ImGui::PopStyleColor();
+}
