@@ -24,6 +24,7 @@
 #include <vector>
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #if defined( _WIN32 )
 #include <Windows.h>
@@ -151,6 +152,9 @@ public:
 	{
 		bool Searching     = false;
 		bool CaseSensitive = false;
+		int  ActiveItem    = -1;
+
+		std::string SearchTerm;
 	};
 
 	struct LineSelectionItem
@@ -159,7 +163,8 @@ public:
 		{
 			None,
 			Selection,
-			Search
+			Search,
+			SearchActive
 		};
 
 		Coordinate Start;
@@ -293,6 +298,8 @@ private:
 	void                             ClearSearch( File& rFile );
 	Coordinate                       SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate LineStart, int SearchStringOffset, std::vector< Glyph* >& rMatches );
 	void                             Search( File& rFile, bool CaseSensitve, std::string SearchString );
+
+	void ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWindow );
 
 	Palette m_Palette;
 
