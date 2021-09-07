@@ -163,7 +163,7 @@ void TextEdit::Show( bool* pOpen )
 				{
 					m_ActiveFilePath = rFile.Path;
 
-					DiscordRPC::Instance().m_CurrentFile = FileString;
+					DiscordRPC::Instance().m_CurrentFile    = FileString;
 					DiscordRPC::Instance().m_CurrentFileExt = rFile.Path.extension().string();
 
 					ImGui::PushFont( MainWindow::Instance().GetFontMono() );
