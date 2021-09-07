@@ -25,6 +25,7 @@
 #include "GUI/Widgets/OutputWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
+#include "GUI/Widgets/StatusBar.h"
 #include "GUI/Modals/DiscordRPCSettingsModal.h"
 #include "Discord/DiscordRPC.h"
 
