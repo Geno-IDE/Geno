@@ -42,6 +42,8 @@ constexpr float DummyExtraY             = 10.0f;
 
 float TextEdit::FontSize = 15.0f;
 
+static float ScrollBarSize = 0.0f;
+
 //////////////////////////////////////////////////////////////////////////
 
 TextEdit::TextEdit( void )
@@ -66,6 +68,8 @@ TextEdit::TextEdit( void )
 	m_Palette.CurrentLine         = 0x40000000;
 	m_Palette.CurrentLineInactive = 0x40808080;
 	m_Palette.CurrentLineEdge     = 0x40a0a0a0;
+
+	ScrollBarSize = ImGui::GetStyle().ScrollbarSize;
 
 } // TextEdit
 
@@ -475,7 +479,7 @@ bool TextEdit::RenderEditor( File& rFile )
 				if( !HasSelection( rFile, j ) && ( rFile.CursorMultiMode == MultiCursorMode::Normal || rFile.Cursors.size() == 1 ) )
 				{
 					ImVec2 Start( ScreenCursor.x + Props.LineNumMaxWidth - 2, Pos.y );
-					ImVec2 End( ScreenCursor.x + Size.x, Pos.y + Props.CharAdvanceY );
+					ImVec2 End( ScreenCursor.x + Size.x - ScrollBarSize, Pos.y + Props.CharAdvanceY );
 
 					pDrawList->AddRectFilled( Start, End, Focus ? m_Palette.CurrentLine : m_Palette.CurrentLineInactive );
 					pDrawList->AddRect( Start, End, m_Palette.CurrentLineEdge );
