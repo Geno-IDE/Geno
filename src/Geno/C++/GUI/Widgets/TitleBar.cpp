@@ -63,7 +63,11 @@ void TitleBar::Draw( void )
 
 		m_Height = ImGui::GetWindowHeight();
 
+#if defined( __APPLE__ )
+		ImGui::SetCursorPosX( 67.0f + m_Height * ( 1.0f - IconSizeRatio ) * 0.5f );
+#else
 		ImGui::SetCursorPosX( m_Height * ( 1.0f - IconSizeRatio ) * 0.5f );
+#endif
 		ImGui::SetCursorPosY( m_Height * ( 1.0f - IconSizeRatio ) * 0.5f );
 		ImGui::Image( m_IconTexture.GetID(), ImVec2( m_Height, m_Height ) * IconSizeRatio );
 		ImGui::SetCursorPosY( 0.0f );
@@ -125,6 +129,7 @@ void TitleBar::Draw( void )
 			}
 		}
 
+#if !defined( __APPLE__ )
 		// System buttons
 		{
 			const float  ButtonSize = ImGui::GetFrameHeight();
@@ -208,6 +213,7 @@ void TitleBar::Draw( void )
 				ButtonRect.Max.x -= ButtonSize;
 			}
 		}
+#endif
 
 		ImGui::EndMainMenuBar();
 	}
