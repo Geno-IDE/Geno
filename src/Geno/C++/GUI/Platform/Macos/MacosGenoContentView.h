@@ -48,6 +48,11 @@ struct _GLFWwindow;
 	NSTimeInterval lastTitlebarClick;
 	NSPoint        lastTitlebarPos;
 	BOOL           movingWindow;
+
+	NSButton*      closeButton;
+	NSButton*      miniaturizeButton;
+	NSButton*      zoomButton;
+	BOOL           mouseInsideStandardButtons;
 };
 
 - ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow;
