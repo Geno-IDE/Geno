@@ -3555,6 +3555,8 @@ TextEdit::Coordinate TextEdit::SearchInLine( File& rFile, bool CaseSensitive, co
 
 	int OgX = Start.x;
 
+	if (OgX > rLine.size()) return Start;
+
 	for( int i = SearchStringOffset; i < rSearchString.length(); i++ )
 	{
 		char C     = rSearchString[ i ];
@@ -3563,8 +3565,13 @@ TextEdit::Coordinate TextEdit::SearchInLine( File& rFile, bool CaseSensitive, co
 
 		if( EOL )
 		{
-			if( C == '\n' )
+			if( C == '\n')
 			{
+				if (i + 1 == rSearchString.length()) {
+					Start.x++;
+					return Start;
+				}
+
 				Coordinate Next = Coordinate( 0, Start.y + 1 );
 				Coordinate Res  = SearchInLine( rFile, CaseSensitive, rSearchString, Next, i + 1, rMatches );
 
@@ -3621,9 +3628,9 @@ void TextEdit::Search( File& rFile, bool CaseSensitve, std::string SearchString 
 		{
 			Line& rLine = rFile.Lines[ Start.y ];
 
-			if( Start.x == rLine.size() )
+			if( Start.x >= rLine.size() )
 			{
-				if( Start.y == rFile.Lines.size() - 1 )
+				if( Start.y >= rFile.Lines.size() - 1 )
 				{
 					break;
 				}
