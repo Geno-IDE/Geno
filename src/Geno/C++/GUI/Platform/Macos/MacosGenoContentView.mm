@@ -1,13 +1,11 @@
-// TODO(MarcasRealAccount): Find fix for Maximize button not re rendering whilst resizing.
-//                          Find fix for live resize not starting when window edge is pressed initally until mouse moves.
+// TODO(MarcasRealAccount): Find fix for live resize not starting when window edge is pressed initally until mouse moves.
+//                          Find fix for window not re rendering when fullscreen/zoom popup is visible.
 #if defined( __APPLE__ )
 #include <GL/glew.h>
 
 #include "MacosGenoContentView.h"
 
 #include "GUI/Widgets/TitleBar.h"
-
-#include <iostream>
 
 @implementation GenoWindowDelegate
 
@@ -36,7 +34,7 @@
 	NSButton* closeButton       = [window->ns.object standardWindowButton:NSWindowCloseButton];
 	NSButton* miniaturizeButton = [window->ns.object standardWindowButton:NSWindowMiniaturizeButton];
 	NSButton* zoomButton        = [window->ns.object standardWindowButton:NSWindowZoomButton];
-	[closeButton       setFrameOrigin:{ 7.0f, [window->ns.view frame].size.height - 26.0f }];
+	[closeButton       setFrameOrigin:{ 7.0f,  [window->ns.view frame].size.height - 26.0f }];
 	[miniaturizeButton setFrameOrigin:{ 27.0f, [window->ns.view frame].size.height - 26.0f }];
 	[zoomButton        setFrameOrigin:{ 47.0f, [window->ns.view frame].size.height - 26.0f }];
 
@@ -65,11 +63,20 @@
 	}
 }
 
-- ( void )windowDidUpdate:( NSNotification* )notification
+- ( void )windowDidBecomeKey:( NSNotification* )notification
 {
-	id notificationObject = [notification object];
-	if( notificationObject )
-		return; // std::cout << "Window Did Update\n";
+	[super windowDidBecomeKey:notification];
+	[[window->ns.object standardWindowButton:NSWindowCloseButton]       setEnabled:YES];
+	[[window->ns.object standardWindowButton:NSWindowMiniaturizeButton] setEnabled:YES];
+	[[window->ns.object standardWindowButton:NSWindowZoomButton]        setEnabled:YES];
+}
+
+- ( void )windowDidResignKey:( NSNotification* )notification
+{
+	[super windowDidResignKey:notification];
+	[[window->ns.object standardWindowButton:NSWindowCloseButton]       setEnabled:NO];
+	[[window->ns.object standardWindowButton:NSWindowMiniaturizeButton] setEnabled:NO];
+	[[window->ns.object standardWindowButton:NSWindowZoomButton]        setEnabled:NO];
 }
 
 @end
