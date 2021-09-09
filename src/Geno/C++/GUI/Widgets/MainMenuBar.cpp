@@ -25,6 +25,7 @@
 #include "GUI/Widgets/OutputWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
+#include "GUI/Widgets/StatusBar.h"
 #include "GUI/Modals/DiscordRPCSettingsModal.h"
 #include "Discord/DiscordRPC.h"
 
@@ -176,12 +177,16 @@ void MainMenuBar::ActionBuildBuildAndRun( void )
 
 		pWorkspace->Events.BuildFinished += []( Workspace& /*rWorkspace*/, std::filesystem::path OutputFile, bool /*Success*/ )
 		{
+			StatusBar::Instance().SetColor( StatusBar::Color::ORANGE );
+
 			const std::string OutputString = OutputFile.string();
 
 			std::cout << "=== Running " << OutputString << "===\n";
 
 			const int ExitCode = Process::ResultOf( OutputFile.wstring() );
 			std::cout << "=== " << OutputString << " finished with exit code " << ExitCode << " ===\n";
+
+			StatusBar::Instance().SetColor( StatusBar::Color::RED );
 		};
 
 		pWorkspace->Build();

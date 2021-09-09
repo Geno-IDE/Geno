@@ -22,7 +22,9 @@
 #include "Common/LocalAppData.h"
 #include "GUI/MainWindow.h"
 #include "GUI/Widgets/MainMenuBar.h"
+#include "GUI/Widgets/StatusBar.h"
 #include "Discord/DiscordRPC.h"
+#include <GUI/Widgets/StatusBar.h>
 
 #include <fstream>
 #include <iostream>
@@ -186,6 +188,33 @@ void TextEdit::Show( bool* pOpen )
 			ImGui::EndTabBar();
 		}
 	}
+
+	for ( auto& file : m_Files )
+	{
+		if( file.Path.string() == m_ActiveFilePath )
+		{
+			if( file.Cursors.size() )
+			{
+				int length = -1;
+
+				length = static_cast< int >( file.Text.size() );
+
+				auto& cursor = file.Cursors.at( 0 );
+
+				int row = 0;
+				row = ( cursor.Position.y / static_cast< int >( ImGui::GetWindowWidth() ) );
+
+				int colunm = 0;
+				colunm =  cursor.Position.x - ( row * static_cast< int >( ImGui::GetWindowWidth() ) );
+
+				int lines = 0;
+				lines = static_cast< int >( file.Lines.size() );
+
+				StatusBar::Instance().SetCurrentFileInfo( colunm, cursor.Position.y, length, lines );
+			}
+		}
+	}
+
 	ImGui::End();
 	ImGui::PopStyleColor();
 
@@ -291,6 +320,8 @@ void TextEdit::SaveFile( File& rFile )
 	ofs << rFile.Text;
 
 	rFile.Changed = false;
+
+	StatusBar::Instance().SetText( "Item saved : " + rFile.Path.string() );
 
 } // SaveFile
 
@@ -412,11 +443,15 @@ bool TextEdit::RenderEditor( File& rFile )
 		ImVec2 Pos( ScreenCursor.x + Props.LineNumMaxWidth - Props.ScrollX, ScreenCursor.y + ( i - FirstLine ) * Props.CharAdvanceY );
 		Line&  rLine = rFile.Lines[ i ];
 
+		if( rFile.Cursors.size() >= 1 )
+			m_CurrentLine = rFile.Cursors.at( 0 ).Position.y + 1;
+
 		Coordinate SelectedStart[ 16 ];
 		Coordinate SelectedEnd[ 16 ];
 
 		if( int Count = IsLineSelected( rFile, i, SelectedStart, SelectedEnd ) )
 		{
+
 			for( int j = 0; j < Count; j++ )
 			{
 				float StartX = 0.0f;
