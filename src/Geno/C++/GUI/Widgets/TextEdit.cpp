@@ -3552,7 +3552,7 @@ void TextEdit::PrepareSearchString( std::string& rSearchString )
 char toLower(char c) {
 	//TODO: stuff
 	if (c >= 'A' && c <= 'Z') {
-		return c - 32;
+		return c + 32;
 	}
 
 	return c;
