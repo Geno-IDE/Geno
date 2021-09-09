@@ -25,6 +25,8 @@
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
 
+#include "GUI/Widgets/StatusBar.h"
+
 //////////////////////////////////////////////////////////////////////////
 
 Workspace::Workspace( std::filesystem::path Location )
@@ -210,8 +212,16 @@ void Workspace::BuildNextProject( void )
 
 			ProjectIt->Events.BuildFinished += [ this ]( Project& rProject, std::filesystem::path OutputFile, bool Success )
 			{
-				if( Success ) std::cout << "=== " << rProject.m_Name << " finished successfully ===\n";
-				else          std::cerr << "=== " << rProject.m_Name << " finished with errors ===\n";
+				if( Success )
+				{
+					std::cout << "=== " << rProject.m_Name << " finished successfully ===\n";
+					StatusBar::Instance().SetText( "Build finished successfully" );
+				}
+				else
+				{
+					std::cerr << "=== " << rProject.m_Name << " finished with errors ===\n";
+					StatusBar::Instance().SetText( "Build failed" );
+				}
 
 				auto NextProject = std::find( m_ProjectsLeftToBuild.begin(), m_ProjectsLeftToBuild.end(), rProject.m_Name );
 				if( NextProject != m_ProjectsLeftToBuild.end() )
@@ -232,6 +242,7 @@ void Workspace::BuildNextProject( void )
 		else
 		{
 			std::cerr << "No compiler set when building project '" << ProjectIt->m_Name << "'.\n";
+			StatusBar::Instance().SetText( "No compiler set when building project" );
 			m_ProjectsLeftToBuild.pop_back();
 			BuildNextProject();
 		}
