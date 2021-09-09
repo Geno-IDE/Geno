@@ -3624,6 +3624,8 @@ TextEdit::Coordinate TextEdit::SearchInLine( File& rFile, bool CaseSensitive, co
 
 void TextEdit::Search( File& rFile, bool CaseSensitve, std::string SearchString )
 {
+	auto start = std::chrono::high_resolution_clock::now();
+
 	PrepareSearchString( SearchString );
 
 	ClearSearch( rFile );
@@ -3668,6 +3670,13 @@ void TextEdit::Search( File& rFile, bool CaseSensitve, std::string SearchString 
 
 		Matches.clear();
 	}
+
+	long long elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start).count();
+
+	if (elapsed > 1000)
+		std::cout << "Serached File: " << rFile.Path.string() + " in " << float((float)elapsed / 1000) << "ms\n";
+	else
+		std::cout << "Serached File: " << rFile.Path.string() + " in " << elapsed << "us\n";
 
 } // Search
 
