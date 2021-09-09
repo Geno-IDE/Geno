@@ -16,6 +16,8 @@ struct _GLFWwindow;
 - ( instancetype )initWithGlfwWindow:( _GLFWwindow* )initWindow;
 
 - ( void )windowDidResize:( NSNotification* )notification;
+- ( void )windowDidBecomeKey:( NSNotification* )notification;
+- ( void )windowDidResignKey:( NSNotification* )notification;
 
 @end
 
