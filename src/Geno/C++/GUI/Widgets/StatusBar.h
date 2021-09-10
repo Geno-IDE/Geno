@@ -28,16 +28,19 @@
 
 class StatusBar
 {
-	GENO_SINGLETON( StatusBar )
+	GENO_SINGLETON( StatusBar );
+
+//////////////////////////////////////////////////////////////////////////
+
 public:
 
 	struct Message
 	{
-		std::string Msg = "";
-		int64_t Timestamp = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
-		int ExpiryTime = 5; // Time in seconds
+		std::string Msg        = "";
+		int64_t     Timestamp  = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
+		int         ExpiryTime = 5; // Time in seconds
 
-	}; // StatusBarMessage
+	}; // Message
 
 	enum class Color
 	{
@@ -45,49 +48,38 @@ public:
 		BLACK,
 		BLUE,
 		ORANGE,
-		RED
-	}; // StatusBarColor
+		RED,
+
+	}; // Color
+
+	static constexpr float HEIGHT = 24.f;
+
+//////////////////////////////////////////////////////////////////////////
+
+	StatusBar( void ) = default;
+
+//////////////////////////////////////////////////////////////////////////
 
 public:
-	StatusBar  ( void ) = default;
-	~StatusBar ( void );
 
-	//////////////////////////////////////////////////////////////////////////
+	void Show              ( void );
+	void SetColor          ( int R, int G, int B );
+	void SetColor          ( Color color );
+	void SetText           ( std::string Text );
+	void SetCurrentFileInfo( int Column, int Row, int Length, int Lines );
 
-public:
-	void Show();
-	void Init( void );
-
-	void SetColor( int r, int g, int b );
-	void SetColor( Color color );
-
-	void SetText( std::string txt );
-
-	void SetCurrentFileInfo( int column, int row, int length, int lines );
-	
-	void Clear() { m_Text = "Ready"; }
-
-	//////////////////////////////////////////////////////////////////////////
-
-	int&               Height()           { return m_Height; }
-	const int&         Height() const     { return m_Height; }
-
-	int&               Width()            { return m_Width;  }
-	const int&         Width() const      { return m_Width;  }
-
-	std::string&       Text()             { return m_Text;   }
-	const std::string& Text() const       { return m_Text;   }
-
+//////////////////////////////////////////////////////////////////////////
 
 private:
-	int              m_Height                   = 0;
-	int              m_Width                    = 0;
-	bool             m_Active                   = 0;
-	std::string      m_Text                     = "Ready";
-	std::string      m_TextEditInfo             = "";
-	int              m_Col_R                    = 135;
-	int              m_Col_G                    = 20;
-	int              m_Col_B                    = 20;
-	Message          m_Message                  = { };
+
+	Message     m_Message      = { };
+
+	std::string m_Text         = "Ready";
+	std::string m_TextEditInfo = "";
+
+	int         m_Col_R        = 48;
+	int         m_Col_G        = 48;
+	int         m_Col_B        = 48;
+	bool        m_Active       = 0;
 
 }; // StatusBar

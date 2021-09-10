@@ -139,8 +139,6 @@ MainWindow::MainWindow( void )
 	pTextEdit          = new TextEdit();
 	pOutputWindow      = new OutputWindow();
 
-	StatusBar::Instance().Init();
-
 } // MainWindow
 
 //////////////////////////////////////////////////////////////////////////
@@ -204,10 +202,9 @@ bool MainWindow::BeginFrame( void )
 	ImGuiViewport* pViewport = ImGui::GetMainViewport();
 	ImGui::NewFrame();
 
-	pViewport->WorkSize.y -= static_cast< float >( StatusBar::Instance().Height() );
+	pViewport->WorkSize.y -= StatusBar::HEIGHT;
 
 	ImGui::DockSpaceOverViewport( pViewport );
-
 	ImGui::PushFont( m_pFontSans );
 
 	pMenuBar->Draw();

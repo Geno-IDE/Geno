@@ -610,7 +610,6 @@ void Project::BuildNextFile( ICompiler& rCompiler )
 		}
 	};
 
-
 	CompileOptions Options;
 	Options.IncludeDirs = m_IncludeDirectories;
 	Options.Defines     = m_Defines;

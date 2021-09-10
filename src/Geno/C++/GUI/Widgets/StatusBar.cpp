@@ -21,51 +21,25 @@
 #include <thread>
 #include <chrono>
 
-#if defined( __linux__ ) || defined ( __APPLE__ )
-#define UNUSED(X) (void)(X)
-#elif defined(_WIN32)
-#define UNUSED(X) X;
-#endif // __linux__
-
 //////////////////////////////////////////////////////////////////////////
 
-StatusBar::~StatusBar( void )
+void StatusBar::SetColor( int R, int G, int B )
 {
-	m_Height  = 0;
-	m_Width   = 0;
-	m_Message = {};
-	m_Text    = "";
-	m_Active  = false;
-} // ~StatusBar
+	m_Col_R = R;
+	m_Col_G = G;
+	m_Col_B = B;
 
-//////////////////////////////////////////////////////////////////////////
-
-// TODO: I'm not sure if we need this
-
-void StatusBar::Init( void )
-{
-	m_Height = 24;
-	m_Width = PrimaryMonitor::Instance().Width();
-
-	SetText( "Ready" );
-} // Init
-
-  //////////////////////////////////////////////////////////////////////////
-
-void StatusBar::SetColor( int r, int g, int b )
-{
-	m_Col_R = r;
-	m_Col_G = g;
-	m_Col_B = b;
 } // SetColor
 
-void StatusBar::SetColor( Color color )
+//////////////////////////////////////////////////////////////////////////
+
+void StatusBar::SetColor( Color Color )
 {
 	m_Col_R = 0;
 	m_Col_G = 0;
 	m_Col_B = 0;
 
-	switch( color )
+	switch( Color )
 	{
 		case Color::DEFAULT:
 			m_Col_R = -1;
@@ -103,39 +77,38 @@ void StatusBar::SetColor( Color color )
 
 //////////////////////////////////////////////////////////////////////////
 
-void StatusBar::SetText( std::string txt )
+void StatusBar::SetText( std::string Text )
 {
-	m_Text = std::move( txt );
-
-	m_Message = {};
+	m_Text        = std::move( Text );
+	m_Message     = { };
 	m_Message.Msg = m_Text;
-} // Set Text
+
+} // SetText
 
 //////////////////////////////////////////////////////////////////////////
 
-void StatusBar::SetCurrentFileInfo( int column, int row, int length, int lines /*= 0 */ )
+void StatusBar::SetCurrentFileInfo( int Column, int Row, int Length, int Lines )
 {
+	m_TextEditInfo = "Col :  "    + std::to_string( Column ) + "    " +
+	                 "Row :  "    + std::to_string( Row )    + "    " +
+	                 "Length :  " + std::to_string( Length ) + "    " +
+	                 "Lines :  "  + std::to_string( Lines );
 
-	m_TextEditInfo = "Col :  "
-		+                    std::to_string ( column )
-		+ "    Row :  "    + std::to_string ( row    )
-		+ "    Length :  " + std::to_string ( length )
-		+ "    Lines :  "  + std::to_string ( lines  );
 } // SetCurrentFileInfo
 
 //////////////////////////////////////////////////////////////////////////
 
-void StatusBar::Show()
+void StatusBar::Show( void )
 {
 	m_Active = true;
 
-	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGuiViewport* pViewport = ImGui::GetMainViewport();
 
-	ImGui::SetNextWindowPos( ImVec2( viewport->Pos.x, viewport->Pos.y + viewport->Size.y - static_cast< float >( m_Height ) ) );
-	ImGui::SetNextWindowSize( ImVec2( viewport->Size.x, static_cast< float >( m_Height ) ) );
-	ImGui::SetNextWindowViewport( viewport->ID );
+	ImGui::SetNextWindowPos( ImVec2( pViewport->Pos.x, pViewport->Pos.y + pViewport->Size.y - HEIGHT ) );
+	ImGui::SetNextWindowSize( ImVec2( pViewport->Size.x, HEIGHT ) );
+	ImGui::SetNextWindowViewport( pViewport->ID );
 
-	const ImGuiWindowFlags window_flags = 0
+	const ImGuiWindowFlags WindowFlags = 0
 		| ImGuiWindowFlags_NoDocking
 		| ImGuiWindowFlags_NoTitleBar
 		| ImGuiWindowFlags_NoResize
@@ -155,35 +128,31 @@ void StatusBar::Show()
 
 	if( m_Message.Msg != "Ready" )
 	{
-		int64_t expiryInUnixTime = m_Message.Timestamp + m_Message.ExpiryTime;
-		int64_t currentTime = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
+		int64_t ExpiryInUnixTime = m_Message.Timestamp + m_Message.ExpiryTime;
+		int64_t CurrentTime = ( int64_t )std::chrono::duration_cast< std::chrono::seconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
 
-		if( currentTime == expiryInUnixTime )
+		if( CurrentTime == ExpiryInUnixTime )
 		{
 			m_Message = {};
 			SetText( "Ready" );
 		}
 	}
 
-	if( ImGui::Begin( "Status Bar", &m_Active, window_flags ) )
+	if( ImGui::Begin( "Status Bar", &m_Active, WindowFlags ) )
 	{
 		ImGui::Text( "%s", m_Message.Msg.c_str() );
 
-		if( m_TextEditInfo != "" )
+		if( !m_TextEditInfo.empty() )
 		{
-			const char* txt = m_TextEditInfo.c_str();
-
-			ImVec2 textSize = ImGui::CalcTextSize( txt );
-			ImGui::SameLine( ImGui::GetWindowWidth() - 30 - textSize.x - textSize.y );
-			ImGui::Text( "%s", txt );
+			const ImVec2 TextSize = ImGui::CalcTextSize( m_TextEditInfo.c_str() );
+			ImGui::SameLine( ImGui::GetWindowWidth() - 30 - TextSize.x - TextSize.y );
+			ImGui::TextUnformatted( m_TextEditInfo.c_str() );
 		}
 
 	}
 
 	ImGui::PopStyleVar( 3 );
-
 	ImGui::PopStyleColor( 1 );
-
 	ImGui::End();
 
 } // Show
