@@ -195,20 +195,15 @@ void TextEdit::Show( bool* pOpen )
 		{
 			if( file.Cursors.size() )
 			{
-				int length = -1;
-
-				length = static_cast< int >( file.Text.size() );
-
 				auto& cursor = file.Cursors.at( 0 );
 
-				int row = 0;
-				row = ( cursor.Position.y / static_cast< int >( ImGui::GetWindowWidth() ) );
+				int length = static_cast< int >( file.Text.size() );
 
-				int colunm = 0;
-				colunm =  cursor.Position.x - ( row * static_cast< int >( ImGui::GetWindowWidth() ) );
+				int row = ( cursor.Position.y / static_cast< int >( ImGui::GetWindowWidth() ) );
 
-				int lines = 0;
-				lines = static_cast< int >( file.Lines.size() );
+				int colunm =  cursor.Position.x - ( row * static_cast< int >( ImGui::GetWindowWidth() ) );
+
+				int lines = static_cast< int >( file.Lines.size() );
 
 				StatusBar::Instance().SetCurrentFileInfo( colunm, cursor.Position.y, length, lines );
 			}
@@ -442,9 +437,6 @@ bool TextEdit::RenderEditor( File& rFile )
 	{
 		ImVec2 Pos( ScreenCursor.x + Props.LineNumMaxWidth - Props.ScrollX, ScreenCursor.y + ( i - FirstLine ) * Props.CharAdvanceY );
 		Line&  rLine = rFile.Lines[ i ];
-
-		if( rFile.Cursors.size() >= 1 )
-			m_CurrentLine = rFile.Cursors.at( 0 ).Position.y + 1;
 
 		Coordinate SelectedStart[ 16 ];
 		Coordinate SelectedEnd[ 16 ];
