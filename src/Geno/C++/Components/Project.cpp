@@ -56,60 +56,12 @@ Project& Project::operator=( Project&& rrOther )
 	m_LibraryDirectories = std::move( rrOther.m_LibraryDirectories );
 	m_Defines            = std::move( rrOther.m_Defines );
 	m_Libraries          = std::move( rrOther.m_Libraries );
-	m_FilesLeftToBuild   = std::move( rrOther.m_FilesLeftToBuild );
-	m_FilesToLink        = std::move( rrOther.m_FilesToLink );
 
 	rrOther.m_Kind       = Kind::Unspecified;
 
 	return *this;
 
 } // operator=
-
-//////////////////////////////////////////////////////////////////////////
-
-void Project::Build( ICompiler& rCompiler )
-{
-	m_FilesLeftToBuild.clear();
-	m_FilesToLink     .clear();
-
-	if( m_FileFilters.empty() )
-		return;
-
-	StatusBar::Instance().SetText( "Build Started..." );
-
-	for( const FileFilter& rFileFilter : m_FileFilters )
-	{
-		for( const std::filesystem::path& rFile : rFileFilter.Files )
-		{
-			std::filesystem::path Extension = rFile.extension();
-
-			// #TODO: Compiler will be per-file so this check is only temporary
-			if( Extension == ".cpp"
-			 || Extension == ".cxx"
-			 || Extension == ".cc"
-			 || Extension == ".c" )
-			{
-				bool Found = false;
-				for( const std::filesystem::path& rrFile : m_FilesLeftToBuild )
-				{
-					if( std::filesystem::equivalent( rFile, rrFile ) )
-					{
-						Found = true;
-						break;
-					}
-				}
-
-				if( !Found )
-				{
-					m_FilesLeftToBuild.push_back( rFile );
-				}
-			}
-		}
-	}
-
-	BuildNextFile( rCompiler );
-
-} // Build
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -740,62 +692,3 @@ void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 	}
 
 } // GCLObjectCallback
-
-//////////////////////////////////////////////////////////////////////////
-
-void Project::BuildNextFile( ICompiler& rCompiler )
-{
-	if( m_FilesLeftToBuild.empty() )
-	{
-		Link( rCompiler );
-
-		return;
-	}
-
-//////////////////////////////////////////////////////////////////////////
-
-	std::filesystem::path& File = m_FilesLeftToBuild.back();
-	// Listen to every file compilation to check if we're done compiling
-	rCompiler.Events.FinishedCompiling += [ this ]( ICompiler& rCompiler, CompileOptions Options, int /*ExitCode*/ )
-	{
-		if( auto NextFile = std::find( m_FilesLeftToBuild.begin(), m_FilesLeftToBuild.end(), Options.InputFile ); NextFile != m_FilesLeftToBuild.end() )
-		{
-			m_FilesToLink.push_back( Options.OutputFile );
-			m_FilesLeftToBuild.erase( NextFile );
-			BuildNextFile( rCompiler );
-		}
-	};
-
-	CompileOptions Options;
-	Options.IncludeDirs = m_IncludeDirectories;
-	Options.Defines     = m_Defines;
-	Options.Language    = File.extension() == ".c" ? CompileOptions::Language::C : CompileOptions::Language::CPlusPlus;
-	Options.Action      = CompileOptions::Action::CompileAndAssemble;
-	Options.InputFile   = File;
-	Options.OutputFile  = m_Location / File.filename();
-	Options.OutputFile.replace_extension( ".obj" );
-
-	// Compile the file
-	rCompiler.Compile( Options );
-
-} // BuildNextFile
-
-//////////////////////////////////////////////////////////////////////////
-
-void Project::Link( ICompiler& rCompiler )
-{
-	rCompiler.Events.FinishedLinking += [ this ]( ICompiler& /*rCompiler*/, LinkOptions Options, int ExitCode )
-	{
-		Events.BuildFinished( *this, Options.OutputFile, ExitCode == 0 );
-	};
-
-	LinkOptions Options;
-	Options.ObjectFiles        = std::move( m_FilesToLink );
-	Options.LibraryDirectories = m_LibraryDirectories;
-	Options.Libraries          = m_Libraries;
-	Options.OutputFile         = m_Location / m_Name;
-	Options.OutputType         = static_cast< uint32_t >( m_Kind );
-
-	rCompiler.Link( Options );
-
-} // Link

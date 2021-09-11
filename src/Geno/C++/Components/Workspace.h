@@ -74,7 +74,6 @@ public:
 	std::filesystem::path      m_Location;
 	std::string                m_Name;
 	std::vector< Project >     m_Projects;
-	std::vector< std::string > m_ProjectsLeftToBuild;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -84,8 +83,6 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-	void BuildNextProject            ( void );
-	void OnBuildFinished             ( const std::filesystem::path& rOutput, bool Success );
 	void SerializeBuildMatrixColumn  ( GCL::Object& rObject, const BuildMatrix::Column& rColumn );
 	void DeserializeBuildMatrixColumn( BuildMatrix::Column& rColumn, const GCL::Object& rObject );
 

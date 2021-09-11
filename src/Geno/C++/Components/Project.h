@@ -65,7 +65,6 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Build      ( ICompiler& rCompiler );
 	bool Serialize  ( void );
 	bool Deserialize( void );
 
@@ -102,20 +101,11 @@ public:
 	std::vector< std::filesystem::path > m_LibraryDirectories;
 	std::vector< std::string >           m_Defines;
 	std::vector< std::string >           m_Libraries;
-	std::vector< std::filesystem::path > m_FilesLeftToBuild;
-	std::vector< std::filesystem::path > m_FilesToLink;
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
 	static void GCLObjectCallback( GCL::Object Object, void* pUser );
-
-//////////////////////////////////////////////////////////////////////////
-
-private:
-
-	void BuildNextFile( ICompiler& rCompiler );
-	void Link         ( ICompiler& rCompiler );
 
 }; // Project
