@@ -40,13 +40,11 @@ void Workspace::Build( void )
 {
 	if( !m_Projects.empty() )
 	{
-		m_ProjectsLeftToBuild.clear();
+		// TODO: Iterate all projects and create compile jobs for every file.
 
-		// Keep track of which projects need to be built.
-		for( Project& prj : m_Projects )
-			m_ProjectsLeftToBuild.push_back( prj.m_Name );
 
-		BuildNextProject();
+		// TODO: Create link jobs for each project that needs to be linked.
+		// The link job should depend on all jobs from that project.
 	}
 
 } // Build
@@ -259,77 +257,6 @@ void Workspace::GCLObjectCallback( GCL::Object pObject, void* pUser )
 	}
 
 } // GCLObjectCallback
-
-//////////////////////////////////////////////////////////////////////////
-
-void Workspace::BuildNextProject( void )
-{
-	if( m_ProjectsLeftToBuild.empty() )
-		return;
-
-	// Find the next project to build
-	auto ProjectIt = std::find_if( m_Projects.begin(), m_Projects.end(), [ this ]( ::Project& rProject ) { return ( rProject.m_Name == m_ProjectsLeftToBuild.back() ); } );
-	if( ProjectIt == m_Projects.end() )
-	{
-		// If next project was not found, remove it from the queue and try again
-		m_ProjectsLeftToBuild.pop_back();
-		BuildNextProject();
-	}
-	else
-	{
-		Configuration Configuration = m_BuildMatrix.CurrentConfiguration();
-
-		if( Configuration.m_Compiler )
-		{
-			std::cout << "=== Started building " << ProjectIt->m_Name << " ===\n";
-
-			ProjectIt->Events.BuildFinished += [ this ]( Project& rProject, std::filesystem::path OutputFile, bool Success )
-			{
-				if( Success )
-				{
-					std::cout << "=== " << rProject.m_Name << " finished successfully ===\n";
-					StatusBar::Instance().SetText( "Build finished successfully" );
-				}
-				else
-				{
-					std::cerr << "=== " << rProject.m_Name << " finished with errors ===\n";
-					StatusBar::Instance().SetText( "Build failed" );
-				}
-
-				auto NextProject = std::find( m_ProjectsLeftToBuild.begin(), m_ProjectsLeftToBuild.end(), rProject.m_Name );
-				if( NextProject != m_ProjectsLeftToBuild.end() )
-				{
-					m_ProjectsLeftToBuild.erase( NextProject );
-
-					if( m_ProjectsLeftToBuild.empty() ) OnBuildFinished( OutputFile, Success );
-					else                                BuildNextProject();
-				}
-				else
-				{
-					std::cerr << "Project was preemptively popped from list\n";
-				}
-			};
-
-			ProjectIt->Build( *Configuration.m_Compiler );
-		}
-		else
-		{
-			std::cerr << "No compiler set when building project '" << ProjectIt->m_Name << "'.\n";
-			StatusBar::Instance().SetText( "No compiler set when building project" );
-			m_ProjectsLeftToBuild.pop_back();
-			BuildNextProject();
-		}
-	}
-
-} // BuildNextProject
-
-//////////////////////////////////////////////////////////////////////////
-
-void Workspace::OnBuildFinished( const std::filesystem::path& rOutput, bool Success )
-{
-	Events.BuildFinished( *this, rOutput, Success );
-
-} // OnBuildFinished
 
 //////////////////////////////////////////////////////////////////////////
 
