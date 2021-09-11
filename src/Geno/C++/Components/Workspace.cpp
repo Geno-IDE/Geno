@@ -20,9 +20,12 @@
 #include "Compilers/CompilerGCC.h"
 #include "Compilers/CompilerMSVC.h"
 #include "GUI/Widgets/StatusBar.h"
+#include "Jobs/CompileJob.h"
+#include "Jobs/LinkJob.h"
 
 #include <iostream>
 
+#include <Common/Async/JobSystem.h>
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
 
@@ -42,6 +45,23 @@ void Workspace::Build( void )
 	{
 		// TODO: Iterate all projects and create compile jobs for every file.
 
+		for( const Project& rProject : m_Projects )
+		{
+			std::vector< JobSystem::JobPtr > CompileJobs;
+
+			for( const FileFilter& rFileFilter : rProject.m_FileFilters )
+			{
+				for( const std::filesystem::path& rFile : rFileFilter.Files )
+				{
+					CompileJobs.push_back( JobSystem::Instance().NewJob< CompileJob >( rFile ) );
+				}
+			}
+
+			auto LinkJob = JobSystem::Instance().NewJob< ::LinkJob >( rProject.m_Name );
+
+			for( auto& rCompileJob : CompileJobs )
+				LinkJob->AddDependency( rCompileJob );
+		}
 
 		// TODO: Create link jobs for each project that needs to be linked.
 		// The link job should depend on all jobs from that project.
