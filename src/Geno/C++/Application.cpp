@@ -17,12 +17,13 @@
 
 #include "Application.h"
 
+#include "Discord/DiscordRPC.h"
 #include "GUI/Modals/IModal.h"
 #include "GUI/MainWindow.h"
 
-#include <iostream>
+#include <Common/Async/JobSystem.h>
 
-#include "Discord/DiscordRPC.h"
+#include <iostream>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -39,8 +40,8 @@ int Application::Run( int NumArgs, char** ppArgs )
 {
 	HandleCommandLineArgs( NumArgs, ppArgs );
 
+	JobSystem::Instance().StartThreads( std::thread::hardware_concurrency() );
 	DiscordRPC::Instance().InitDiscord();
-
 	MainWindow::Instance();
 
 	while( MainWindow::Instance().Update() )
