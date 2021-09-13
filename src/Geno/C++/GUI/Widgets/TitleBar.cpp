@@ -207,6 +207,93 @@ void TitleBar::Draw( void )
 				ButtonRect.Min.x -= ButtonSize;
 				ButtonRect.Max.x -= ButtonSize;
 			}
+
+		#if defined (_WIN32)
+		#define _VS_MSVC_TEST
+		#endif
+
+		#if defined ( __linux__ ) || defined ( _VS_MSVC_TEST )
+			// X11 Window Move
+			{
+				GLFWwindow* pWindow          = MainWindow::Instance().GetWindow();
+				Display*    pX11Display      = glfwGetX11Display();
+				Window      X11Window        = glfwGetX11Window( pWindow );
+				int         X11Screen        = XDefaultScreen( pX11Display );
+
+				ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
+				ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
+				ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0, 0, 0, 0 ) );
+			
+				// TODO: Make it so that the button does not go to the System Buttons (Exit, Minimize and Maximize)
+				ImGui::Button( "##x11_win_move", ImVec2( ImGui::GetWindowWidth(), m_Height ) );
+
+				if( ImGui::IsItemHovered() && ImGui::IsMouseDown( ImGuiMouseButton_Left ) )
+				{
+					glfwDragWindow( pWindow );
+				}
+
+				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+				{
+					glfwMaximizeWindow( pWindow );
+				}
+
+
+				int WindowSize[ 2 ] = { 0, 0 };
+				ImVec2 CursorPos = ImGui::GetMousePos();
+				int Border = 5;
+
+				// GET WINDOWS ATTR
+
+				int dw = DisplayWidth( pX11Display, X11Screen ), dh = DisplayHeight( pX11Display, X11Screen );
+				int rx, ry, xright, ybelow;
+
+				XWindowAttributes win_attributes;
+
+				Window junkwin;
+
+				XGetWindowAttributes( pX11Display, X11Window, &win_attributes );
+
+				XTranslateCoordinates( pX11Display, X11Window, win_attributes.root, -win_attributes.border_width, -win_attributes.border_width, &rx, &ry, &junkwin );
+
+				xright = ( dw - rx - win_attributes.border_width * 2 - win_attributes.width );
+				ybelow = ( dh - ry - win_attributes.border_width * 2 - win_attributes.height );
+
+				glfwGetWindowSize( pWindow, ( int* )( &WindowSize[ 0 ] ), ( int* )( &WindowSize[ 1 ] ) );
+
+				printf( "  Corners:  +%d+%d  -%d+%d  -%d-%d  +%d-%d\n",
+				   rx, ry, xright, ry, xright, ybelow, rx, ybelow );
+
+				// NEW CORNERS 
+				if( ImGui::IsAnyItemFocused() || ImGui::IsAnyItemHovered() || ImGui::IsMousePosValid( &CursorPos ) )
+				{
+					if( CursorPos.x == rx + Border || CursorPos.x < rx + Border )
+					{
+						if( CursorPos.y == ry + Border || CursorPos.y < ry + Border )
+						{
+							ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE );
+							glfwX11ResizeWindow( pWindow, 5 );
+						}
+					}
+					else if( CursorPos.x == xright + Border || CursorPos.x > xright + Border )
+					{
+						if( CursorPos.y == ry + Border || CursorPos.y < ry + Border )
+						{
+							ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW );
+							glfwX11ResizeWindow( pWindow, 6 );
+						}
+					}
+
+					if( CursorPos.y >= ( WindowSize[ 1 ] - Border ) )
+					{
+						if( CursorPos.x < ( WindowSize[ 0 ] + Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); glfwX11ResizeWindow( pWindow, 7 ); }
+						else if( CursorPos.x >= ( WindowSize[ 0 ] - Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); glfwX11ResizeWindow( pWindow, 8 ); }
+					}
+				}
+
+				ImGui::PopStyleColor( 3 );
+			}
+		#endif
+
 		}
 
 		ImGui::EndMainMenuBar();
