@@ -41,6 +41,10 @@
 #include <numeric>
 #include <string>
 
+#if defined(__linux__)
+#include "GUI/Platform/Liunx/X11/glfwX11.h"
+#endif // __linux__
+
 //////////////////////////////////////////////////////////////////////////
 
 TitleBar::TitleBar( void )
