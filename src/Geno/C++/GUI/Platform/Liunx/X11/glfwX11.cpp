@@ -17,10 +17,11 @@
 
 #if defined ( __linux__ )
 
+#include "glfwX11.h"
+
 #include <cassert>
 #include <cstring>
 
-#include "glfwX11.h"
 
 #define _NET_WM_MOVERESIZE_SIZE_TOPLEFT      0
 #define _NET_WM_MOVERESIZE_SIZE_TOP          1
@@ -36,6 +37,14 @@
 #define _NET_WM_MOVERESIZE_CANCEL           11   /* cancel operation */
 
 GLFWAPI void glfwDragWindow( GLFWwindow* handle )
+{
+	_GLFWwindow* window = ( _GLFWwindow* )handle;
+	assert( window != NULL );
+
+	_glfwPlatformDragWindow( window );
+}
+
+GLFWAPI void _glfwDragWindow( _GLFWwindow* window )
 {
 	XClientMessageEvent xclient;
 	memset( &xclient, 0, sizeof( XClientMessageEvent ) );
@@ -55,14 +64,22 @@ GLFWAPI void glfwDragWindow( GLFWwindow* handle )
 
 GLFWAPI void glfwX11ResizeWindow( GLFWwindow* handle, int border )
 {
+	_GLFWwindow* window = ( _GLFWwindow* )handle;
+	assert( window != NULL );
+
+	_glfwX11ResizeWindow( window, border );
+}
+
+GLFWAPI void _glfwX11ResizeWindow( _GLFWwindow* window, int border )
+{
 	int winXpos, winYpos;
 	double curXpos, curYpos;
 	XClientMessageEvent xclient;
 	memset( &xclient, 0, sizeof( XClientMessageEvent ) );
 	XUngrabPointer( _glfw.x11.display, 0 );
 	XFlush( _glfw.x11.display );
-	glfwPlatformGetCursorPos( window, &curXpos, &curYpos );
-	glfwPlatformGetWindowPos( window, &winXpos, &winYpos );
+	_glfwPlatformGetCursorPos( window, &curXpos, &curYpos );
+	_glfwPlatformGetWindowPos( window, &winXpos, &winYpos );
 	xclient.type = ClientMessage;
 	xclient.window = window->x11.handle;
 	xclient.message_type = XInternAtom( _glfw.x11.display, "_NET_WM_MOVERESIZE", False );

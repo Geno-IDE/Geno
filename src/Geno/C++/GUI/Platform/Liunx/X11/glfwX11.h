@@ -30,6 +30,10 @@
 #include <../src/internal.h>
 
 GLFWAPI void glfwDragWindow( GLFWwindow* handle );
+GLFWAPI void _glfwDragWindow( _GLFWwindow* window );
+
+
 GLFWAPI void glfwX11ResizeWindow( GLFWwindow* handle, int border );
+GLFWAPI void _glfwX11ResizeWindow( _GLFWwindow* window, int border );
 
 #endif // __liunx__
