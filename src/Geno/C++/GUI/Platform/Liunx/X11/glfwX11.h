@@ -30,7 +30,7 @@
 #include <../src/internal.h>
 
 GLFWAPI void glfwDragWindow( GLFWwindow* handle );
-GLFWAPI void _glfwDragWindow( _GLFWwindow* window );
+GLFWAPI void _glfwPlatformDragWindow( _GLFWwindow* window );
 
 
 GLFWAPI void glfwX11ResizeWindow( GLFWwindow* handle, int border );

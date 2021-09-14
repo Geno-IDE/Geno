@@ -44,7 +44,7 @@ GLFWAPI void glfwDragWindow( GLFWwindow* handle )
 	_glfwPlatformDragWindow( window );
 }
 
-GLFWAPI void _glfwDragWindow( _GLFWwindow* window )
+GLFWAPI void _glfwPlatformDragWindow( _GLFWwindow* window )
 {
 	XClientMessageEvent xclient;
 	memset( &xclient, 0, sizeof( XClientMessageEvent ) );
