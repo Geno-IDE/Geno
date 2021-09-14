@@ -17,9 +17,10 @@
 
 #pragma once
 
-#if defined (__liunx__)
+#if defined ( __linux__ )
 
 #include <X11/Xlib.h>
+#include <X11/extensions/Xrandr.h>
 
 #define _GLFW_X11
 #define GLFW_EXPOSE_NATIVE_X11
