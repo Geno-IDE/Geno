@@ -19,9 +19,11 @@
 
 #include "glfwX11.h"
 
+ // How nice of glfw to hide this
+#include <../src/internal.h>
+
 #include <cassert>
 #include <cstring>
-
 
 #define _NET_WM_MOVERESIZE_SIZE_TOPLEFT      0
 #define _NET_WM_MOVERESIZE_SIZE_TOP          1
@@ -72,14 +74,16 @@ GLFWAPI void glfwX11ResizeWindow( GLFWwindow* handle, int border )
 
 GLFWAPI void _glfwX11ResizeWindow( _GLFWwindow* window, int border )
 {
+	GLFWwindow* pHandle = ( GLFWwindow* )window;
+
 	int winXpos, winYpos;
 	double curXpos, curYpos;
 	XClientMessageEvent xclient;
 	memset( &xclient, 0, sizeof( XClientMessageEvent ) );
 	XUngrabPointer( _glfw.x11.display, 0 );
 	XFlush( _glfw.x11.display );
-	_glfwPlatformGetCursorPos( window, &curXpos, &curYpos );
-	_glfwPlatformGetWindowPos( window, &winXpos, &winYpos );
+	glfwGetCursorPos( pHandle, &curXpos, &curYpos );
+	glfwPGetWindowPos( pHandle, &winXpos, &winYpos );
 	xclient.type = ClientMessage;
 	xclient.window = window->x11.handle;
 	xclient.message_type = XInternAtom( _glfw.x11.display, "_NET_WM_MOVERESIZE", False );
@@ -118,4 +122,3 @@ GLFWAPI void _glfwX11ResizeWindow( _GLFWwindow* window, int border )
 }
 
 #endif
-

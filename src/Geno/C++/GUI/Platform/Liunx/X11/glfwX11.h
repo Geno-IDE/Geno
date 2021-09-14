@@ -26,8 +26,6 @@
 #define GLFW_EXPOSE_NATIVE_X11
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
-// How nice of glfw to hide this
-#include <../src/internal.h>
 
 GLFWAPI void glfwDragWindow( GLFWwindow* handle );
 GLFWAPI void _glfwPlatformDragWindow( _GLFWwindow* window );
