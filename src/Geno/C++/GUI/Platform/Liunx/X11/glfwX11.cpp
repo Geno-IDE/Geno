@@ -20,7 +20,6 @@
 #include <cassert>
 #include <cstring>
 
-#include <X11/Xlib.h>
 #include "glfwX11.h"
 
 #define _NET_WM_MOVERESIZE_SIZE_TOPLEFT      0

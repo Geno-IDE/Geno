@@ -19,6 +19,8 @@
 
 #if defined (__liunx__)
 
+#include <X11/Xlib.h>
+
 #define _GLFW_X11
 #define GLFW_EXPOSE_NATIVE_X11
 #include <GLFW/glfw3.h>
