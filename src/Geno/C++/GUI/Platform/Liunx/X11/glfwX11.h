@@ -27,6 +27,8 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
+struct _GLFWwindow;
+
 GLFWAPI void glfwDragWindow( GLFWwindow* handle );
 GLFWAPI void _glfwPlatformDragWindow( _GLFWwindow* window );
 
