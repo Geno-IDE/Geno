@@ -83,7 +83,7 @@ GLFWAPI void _glfwX11ResizeWindow( _GLFWwindow* window, int border )
 	XUngrabPointer( _glfw.x11.display, 0 );
 	XFlush( _glfw.x11.display );
 	glfwGetCursorPos( pHandle, &curXpos, &curYpos );
-	glfwPGetWindowPos( pHandle, &winXpos, &winYpos );
+	glfwGetWindowPos( pHandle, &winXpos, &winYpos );
 	xclient.type = ClientMessage;
 	xclient.window = window->x11.handle;
 	xclient.message_type = XInternAtom( _glfw.x11.display, "_NET_WM_MOVERESIZE", False );
