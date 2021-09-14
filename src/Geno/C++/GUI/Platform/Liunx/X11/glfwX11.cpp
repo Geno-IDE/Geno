@@ -71,28 +71,28 @@ GLFWAPI void glfwX11ResizeWindow( GLFWwindow* handle, int border )
 	xclient.data.l[ 1 ] = winYpos + curYpos;
 	switch( border )
 	{
-		case GLFW_WINDOW_LEFT:
+		case 1:
 			xclient.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_LEFT;
 			break;
-		case GLFW_WINDOW_TOP:
+		case 2:
 			xclient.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_TOP;
 			break;
-		case GLFW_WINDOW_RIGHT:
+		case 3:
 			xclient.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_RIGHT;
 			break;
-		case GLFW_WINDOW_BOTTOM:
+		case 4:
 			xclient.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_BOTTOM;
 			break;
-		case GLFW_WINDOW_TOPLEFT:
+		case 5:
 			xclient.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_TOPLEFT;
 			break;
-		case GLFW_WINDOW_TOPRIGHT:
+		case 6:
 			xclient.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_TOPRIGHT;
 			break;
-		case GLFW_WINDOW_BOTTOMLEFT:
+		case 7:
 			xclient.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_BOTTOMLEFT;
 			break;
-		case GLFW_WINDOW_BOTTOMRIGHT:
+		case 8:
 			xclient.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_BOTTOMRIGHT;
 	}
 	xclient.data.l[ 3 ] = 0;
