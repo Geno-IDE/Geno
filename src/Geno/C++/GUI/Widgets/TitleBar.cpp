@@ -261,7 +261,7 @@ void TitleBar::Draw( void )
 				glfwGetWindowSize( pWindow, ( int* )( &WindowSize[ 0 ] ), ( int* )( &WindowSize[ 1 ] ) );
 
 				// NEW CORNERS 
-				if( ImGui::IsAnyItemFocused() || ImGui::IsAnyItemHovered() || ImGui::IsMousePosValid( &CursorPos ) )
+				if( ImGui::IsMousePosValid( &CursorPos ) )
 				{
 					if( CursorPos.x == rx + Border || CursorPos.x < rx + Border )
 					{
@@ -280,12 +280,14 @@ void TitleBar::Draw( void )
 						}
 					}
 
-					if( CursorPos.x == rx + Border || CursorPos.x < rx + Border )
+					if( CursorPos.x == rx - Border || CursorPos.x < rx - Border )
 					{
+						printf( "CursorPos.x < rx - Border" );
+
 						if( CursorPos.y == ybelow + Border || CursorPos.y < ybelow + Border )
 						{
 							ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE );
-							glfwX11ResizeWindow( pWindow, 5 );
+							glfwX11ResizeWindow( pWindow, 7 );
 						}
 					}
 					else if( CursorPos.x == xright + Border || CursorPos.x > xright + Border )
