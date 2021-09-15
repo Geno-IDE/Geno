@@ -25,6 +25,7 @@
 #include "GUI/Widgets/OutputWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
+#include "GUI/Widgets/StatusBar.h"
 #include "GUI/Styles.h"
 
 #include <iostream>
@@ -198,8 +199,12 @@ bool MainWindow::BeginFrame( void )
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 
+	ImGuiViewport* pViewport = ImGui::GetMainViewport();
 	ImGui::NewFrame();
-	ImGui::DockSpaceOverViewport( nullptr, ImGuiDockNodeFlags_NoWindowMenuButton );
+
+	pViewport->WorkSize.y -= StatusBar::HEIGHT;
+
+	ImGui::DockSpaceOverViewport( pViewport );
 	ImGui::PushFont( m_pFontSans );
 
 	pMenuBar->Draw();
@@ -209,6 +214,8 @@ bool MainWindow::BeginFrame( void )
 	if( pMenuBar->ShowWorkspaceOutliner ) pWorkspaceOutliner->Show( &pMenuBar->ShowWorkspaceOutliner );
 	if( pMenuBar->ShowTextEdit          ) pTextEdit         ->Show( &pMenuBar->ShowTextEdit );
 	if( pMenuBar->ShowOutputWindow      ) pOutputWindow     ->Show( &pMenuBar->ShowOutputWindow );
+
+	StatusBar::Instance().Show();
 
 	return true;
 

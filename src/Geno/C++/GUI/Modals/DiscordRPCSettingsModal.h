@@ -16,50 +16,33 @@
  */
 
 #pragma once
-#include "Components/BuildMatrix.h"
-
-#include <string_view>
-#include <vector>
+#include "GUI/Modals/IModal.h"
 
 #include <Common/Macros.h>
 
-class  Drop;
-struct CompilationDone;
-struct WorkspaceOpened;
+#include <filesystem>
+#include <string>
 
-class MainMenuBar
+class DiscordRPCSettingsModal : public IModal
 {
+	GENO_SINGLETON( DiscordRPCSettingsModal );
+
+//////////////////////////////////////////////////////////////////////////
+
 public:
 
-	void Draw( void );
+	DiscordRPCSettingsModal( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 
-	float Height( void ) const { return m_Height; }
+public:
+
+	void Show( void );
 
 //////////////////////////////////////////////////////////////////////////
 
-	bool ShowTextEdit            = false;
-	bool ShowDemoWindow          = false;
-	bool ShowAboutWindow         = false;
-	bool ShowOutputWindow        = false;
-	bool ShowWorkspaceOutliner   = false;
-	bool ShowGenoDiscordSettings = false;
+	virtual std::string PopupID       ( void ) override;
+	virtual std::string Title         ( void ) override;
+	virtual void        UpdateDerived ( void ) override;
 
-//////////////////////////////////////////////////////////////////////////
-
-private:
-
-	void ActionFileNewWorkspace    ( void );
-	void ActionExtShowGenoDiscord  ( void );
-	void ActionFileOpenWorkspace   ( void );
-	void ActionFileCloseWorkspace  ( void );
-	void ActionBuildBuildAndRun    ( void );
-	void ActionBuildBuild          ( void );
-	void AddBuildMatrixColumn      ( BuildMatrix::Column& rColumn );
-
-//////////////////////////////////////////////////////////////////////////
-
-	float m_Height = 0.0f;
-
-}; // MainMenuBar
+}; // DiscordRPCSettingsModal

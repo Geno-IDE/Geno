@@ -21,6 +21,7 @@
 
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
+#include "GUI/Widgets/StatusBar.h"
 
 #include <fstream>
 #include <iostream>
@@ -73,6 +74,8 @@ void Project::Build( ICompiler& rCompiler )
 
 	if( m_FileFilters.empty() )
 		return;
+
+	StatusBar::Instance().SetText( "Build Started..." );
 
 	for( const FileFilter& rFileFilter : m_FileFilters )
 	{

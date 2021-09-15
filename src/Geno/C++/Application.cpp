@@ -22,6 +22,8 @@
 
 #include <iostream>
 
+#include "Discord/DiscordRPC.h"
+
 //////////////////////////////////////////////////////////////////////////
 
 Application::~Application( void )
@@ -37,6 +39,8 @@ int Application::Run( int NumArgs, char** ppArgs )
 {
 	HandleCommandLineArgs( NumArgs, ppArgs );
 
+	DiscordRPC::Instance().InitDiscord();
+
 	MainWindow::Instance();
 
 	while( MainWindow::Instance().BeginFrame() )
@@ -45,8 +49,12 @@ int Application::Run( int NumArgs, char** ppArgs )
 		if( !m_ModalStack.empty() )
 			m_ModalStack.front()->Update();
 
+		DiscordRPC::Instance().UpdateDiscord();
+		
 		MainWindow::Instance().EndFrame();
 	}
+
+	DiscordRPC::Instance().Shutdown();
 
 	return 0;
 

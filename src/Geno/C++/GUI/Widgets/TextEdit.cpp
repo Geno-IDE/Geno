@@ -22,6 +22,9 @@
 #include "Common/LocalAppData.h"
 #include "GUI/MainWindow.h"
 #include "GUI/Widgets/MainMenuBar.h"
+#include "GUI/Widgets/StatusBar.h"
+#include "Discord/DiscordRPC.h"
+#include "GUI/Widgets/StatusBar.h"
 
 #include <fstream>
 #include <iostream>
@@ -156,6 +159,9 @@ void TextEdit::Show( bool* pOpen )
 				{
 					m_ActiveFilePath = rFile.Path;
 
+					DiscordRPC::Instance().m_CurrentFile    = FileString;
+					DiscordRPC::Instance().m_CurrentFileExt = rFile.Path.extension().string();
+
 					ImGui::PushFont( MainWindow::Instance().GetFontMono() );
 
 					if( RenderEditor( rFile ) )
@@ -182,6 +188,28 @@ void TextEdit::Show( bool* pOpen )
 			ImGui::EndTabBar();
 		}
 	}
+
+	for ( auto& file : m_Files )
+	{
+		if( file.Path.string() == m_ActiveFilePath )
+		{
+			if( file.Cursors.size() )
+			{
+				auto& cursor = file.Cursors.at( 0 );
+
+				int length = static_cast< int >( file.Text.size() );
+
+				int row = ( cursor.Position.y / static_cast< int >( ImGui::GetWindowWidth() ) );
+
+				int colunm =  cursor.Position.x - ( row * static_cast< int >( ImGui::GetWindowWidth() ) );
+
+				int lines = static_cast< int >( file.Lines.size() );
+
+				StatusBar::Instance().SetCurrentFileInfo( colunm, cursor.Position.y, length, lines );
+			}
+		}
+	}
+
 	ImGui::End();
 	ImGui::PopStyleColor();
 
@@ -287,6 +315,8 @@ void TextEdit::SaveFile( File& rFile )
 	ofs << rFile.Text;
 
 	rFile.Changed = false;
+
+	StatusBar::Instance().SetText( "Item saved : " + rFile.Path.string() );
 
 } // SaveFile
 
@@ -413,6 +443,7 @@ bool TextEdit::RenderEditor( File& rFile )
 
 		if( int Count = IsLineSelected( rFile, i, SelectedStart, SelectedEnd ) )
 		{
+
 			for( int j = 0; j < Count; j++ )
 			{
 				float StartX = 0.0f;
@@ -444,7 +475,7 @@ bool TextEdit::RenderEditor( File& rFile )
 				if( !HasSelection( rFile, j ) && ( rFile.CursorMultiMode == MultiCursorMode::Normal || rFile.Cursors.size() == 1 ) )
 				{
 					ImVec2 Start( ScreenCursor.x + Props.LineNumMaxWidth - 2, Pos.y );
-					ImVec2 End( ScreenCursor.x + Size.x, Pos.y + Props.CharAdvanceY );
+					ImVec2 End( ScreenCursor.x + Size.x - ImGui::GetStyle().ScrollbarSize, Pos.y + Props.CharAdvanceY );
 
 					pDrawList->AddRectFilled( Start, End, Focus ? m_Palette.CurrentLine : m_Palette.CurrentLineInactive );
 					pDrawList->AddRect( Start, End, m_Palette.CurrentLineEdge );
