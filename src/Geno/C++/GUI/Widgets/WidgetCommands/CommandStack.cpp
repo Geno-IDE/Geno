@@ -19,7 +19,7 @@
 
 CommandStack::~CommandStack( void )
 {
-	for( auto i = 0; i < m_pCommands.size(); ++i )
+	for( size_t i = 0; i < m_pCommands.size(); ++i )
 	{
 		auto& rCommand = m_pCommands.top();
 		if( rCommand )
