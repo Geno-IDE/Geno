@@ -25,10 +25,10 @@
 
 WOC::RenameItemCommand::RenameItemCommand( ItemType RenameItemType, const std::filesystem::path& rPreviousName, const std::filesystem::path& rNewName, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
 	: m_RenameItemType( RenameItemType )
-	, m_PreviousName( rPreviousName )
-	, m_NewName( rNewName )
+	, m_PreviousName  ( rPreviousName )
+	, m_NewName       ( rNewName )
 	, m_FileFilterName( rFileFilterName )
-	, m_ProjectName( rProjectName )
+	, m_ProjectName   ( rProjectName )
 {
 } // RenameItemCommand
 
@@ -91,11 +91,11 @@ ICommand* WOC::RenameItemCommand::Redo( void )
 //////////////////////////////////////////////////////////////////////////
 
 WOC::NewItemCommand::NewItemCommand( ItemType NewItemType, const std::filesystem::path& rLocation, const std::string& rName, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
-	: m_NewItemType( NewItemType )
-	, m_Location( rLocation )
-	, m_Name( rName )
-	, m_ProjectName( rProjectName )
+	: m_NewItemType   ( NewItemType )
+	, m_Location      ( rLocation )
+	, m_Name          ( rName )
 	, m_FileFilterName( rFileFilterName )
+	, m_ProjectName   ( rProjectName )
 {
 } // NewItemCommand
 
@@ -165,10 +165,10 @@ ICommand* WOC::NewItemCommand::Redo( void )
 //////////////////////////////////////////////////////////////////////////
 
 WOC::AddItemCommand::AddItemCommand( ItemType AddItemType, const std::filesystem::path& rPath, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
-	: m_AddItemType( AddItemType )
-	, m_Path( rPath )
-	, m_ProjectName( rProjectName )
+	: m_AddItemType   ( AddItemType )
+	, m_Path          ( rPath )
 	, m_FileFilterName( rFileFilterName )
+	, m_ProjectName   ( rProjectName )
 {
 } // AddItemCommand
 
@@ -229,9 +229,9 @@ ICommand* WOC::AddItemCommand::Redo( void )
 
 WOC::RemoveItemCommand::RemoveItemCommand( ItemType RemoveItemType, const std::filesystem::path& rName, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
 	: m_RemoveItemType( RemoveItemType )
-	, m_Name( rName )
-	, m_ProjectName( rProjectName )
+	, m_Name          ( rName )
 	, m_FileFilterName( rFileFilterName )
+	, m_ProjectName   ( rProjectName )
 {
 } // RemoveItemCommand
 

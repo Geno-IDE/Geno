@@ -182,7 +182,7 @@ bool Workspace::AddProject( const std::filesystem::path& rPath )
 
 void Workspace::RemoveProject( const std::string& rName )
 {
-	if( Project* pProject = ProjectByName( rName ) )
+	if( ProjectByName( rName ) )
 	{
 		for( auto It = m_Projects.begin(); It != m_Projects.end(); ++It )
 		{
