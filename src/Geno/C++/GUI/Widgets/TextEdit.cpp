@@ -3531,13 +3531,13 @@ void TextEdit::ClearSearch( File& rFile )
 
 void TextEdit::PrepareSearchString( std::string& rSearchString )
 {
-	for( int i = 0; i < rSearchString.length(); i++ )
+	for( int i = 0; i < ( int )rSearchString.length(); i++ )
 	{
 		char C = rSearchString[ i ];
 
 		if( C == '\\' )
 		{
-			if( i == rSearchString.length() - 1 ) break;
+			if( i == ( int )rSearchString.length() - 1 ) break;
 
 			char C2 = rSearchString[ i + 1 ];
 
@@ -3579,19 +3579,19 @@ TextEdit::Coordinate TextEdit::SearchInLine( File& rFile, bool CaseSensitive, co
 
 	int OgX = Start.x;
 
-	if( OgX > rLine.size() ) return Start;
+	if( OgX > ( int )rLine.size() ) return Start;
 
-	for( int i = SearchStringOffset; i < rSearchString.length(); i++ )
+	for( int i = SearchStringOffset; i < ( int )rSearchString.length(); i++ )
 	{
 		char C     = rSearchString[ i ];
 		int  Index = OgX + ( i - SearchStringOffset );
-		bool EOL   = Index == rLine.size();
+		bool EOL   = Index == ( int )rLine.size();
 
 		if( EOL )
 		{
 			if( C == '\n' )
 			{
-				if( i + 1 == rSearchString.length() )
+				if( i + 1 == ( int )rSearchString.length() )
 				{
 					Start.x++;
 					return Start;
@@ -3649,7 +3649,7 @@ void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, const std::string*
 		{
 			const Line& rLine = pFile->Lines[ Start.y ];
 
-			if( Start.x >= rLine.size() )
+			if( Start.x >= ( int )rLine.size() )
 			{
 				if( Start.y >= EndLine )
 				{
@@ -3720,7 +3720,7 @@ void TextEdit::SearchManager( File* pFile, bool CaseSensitive, const std::string
 	auto& LastThread = ThreadPool[ NumThreads - 1 ];
 	LastThread.first = std::thread( &TextEdit::SearchWorker, this, pFile, CaseSensitive, pSearchString, Prev, ( int )pFile->Lines.size() - 1, &LastThread.second, pState );
 
-	for( int i = 0; i < ThreadPool.size(); i++ )
+	for( int i = 0; i < ( int )ThreadPool.size(); i++ )
 	{
 		auto& Thread = ThreadPool[ i ];
 
@@ -3728,7 +3728,7 @@ void TextEdit::SearchManager( File* pFile, bool CaseSensitive, const std::string
 
 		pFile->SearchDiag.SearchResult.Lock();
 
-		for( int j = 0; j < Thread.second.size() && *pState; j++ )
+		for( int j = 0; j < ( int )Thread.second.size() && *pState; j++ )
 		{
 			pFile->SearchDiag.SearchResult.AddResult( Thread.second[ j ] );
 		}
@@ -3786,7 +3786,7 @@ void JoinThreads( std::vector< TextEdit::SearchDialog::SearchInstance* >& Instan
 	}
 	else
 	{
-		for( int i = 0; i < Instances.size(); i++ )
+		for( int i = 0; i < ( int )Instances.size(); i++ )
 		{
 			TextEdit::SearchDialog::SearchInstance* Instance = Instances[ i ];
 
@@ -3854,7 +3854,7 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 
 		rDiag.ActiveItem++;
 
-		if( rDiag.ActiveItem == rDiag.SearchResult.Size() )
+		if( rDiag.ActiveItem == ( int )rDiag.SearchResult.Size() )
 		{
 			rDiag.ActiveItem = -1;
 		}
@@ -3972,7 +3972,7 @@ TextEdit::SearchDialog::SearchResultGroups::SearchResultGroups()
 std::vector< TextEdit::LineSelectionItem >& TextEdit::SearchDialog::SearchResultGroups::GetGroup( int LineIndex )
 {
 	int Group = LineIndex / 1000;
-	GENO_ASSERT( Group < Groups.size() );
+	GENO_ASSERT( Group < ( int )Groups.size() );
 	return Groups[ Group ];
 }
 
@@ -3980,7 +3980,7 @@ bool TextEdit::SearchDialog::SearchResultGroups::GroupExist( int LineIndex )
 {
 	int Group = LineIndex / 1000;
 
-	return Group < Groups.size();
+	return Group < ( int )Groups.size();
 }
 
 void TextEdit::SearchDialog::SearchResultGroups::AddResult( const LineSelectionItem& Item )
