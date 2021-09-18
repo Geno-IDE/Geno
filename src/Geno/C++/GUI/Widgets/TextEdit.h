@@ -22,6 +22,8 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include <thread>
+#include <mutex>
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -148,15 +150,6 @@ public:
 		None
 	};
 
-	struct SearchDialog
-	{
-		bool Searching     = false;
-		bool CaseSensitive = false;
-		int  ActiveItem    = -1;
-
-		std::string SearchTerm;
-	};
-
 	struct LineSelectionItem
 	{
 		enum
@@ -178,6 +171,68 @@ public:
 		}
 	};
 
+	struct Mutex
+	{
+		std::mutex* m;
+
+		Mutex()
+		{
+			m = new std::mutex;
+		}
+
+		~Mutex()
+		{
+			delete m;
+		}
+
+		Mutex( Mutex&& other )
+		{
+			m       = other.m;
+			other.m = nullptr;
+		}
+
+		Mutex& operator=( const Mutex& other )
+		{
+			( void )other;
+			return *this;
+		}
+
+		void Lock()
+		{
+			m->lock();
+		}
+
+		void Unlock()
+		{
+			m->unlock();
+		}
+
+		bool TryLock()
+		{
+			return m->try_lock();
+		}
+	};
+
+	struct SearchDialog
+	{
+		bool Searching     = false;
+		bool CaseSensitive = false;
+		int  ActiveItem    = -1;
+
+		std::string SearchTerm;
+
+		struct SearchInstance
+		{
+			std::thread Thread;
+			std::string SearchTerm;
+			int         State;
+		};
+
+		std::vector< SearchInstance* >   SearchInstances;
+		std::vector< LineSelectionItem > SearchResult;
+		Mutex                            SearchResultMutex;
+	};
+
 	struct File
 	{
 		std::filesystem::path Path;
@@ -192,8 +247,6 @@ public:
 
 		float              LongestLineLength;
 		std::vector< int > LongestLines;
-
-		std::vector< LineSelectionItem > SearchResult;
 
 		SearchDialog SearchDiag;
 
@@ -297,9 +350,10 @@ private:
 	void                             PrepareSearchString( std::string& rSearchString );
 	void                             ClearSearch( File& rFile );
 	Coordinate                       SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate LineStart, int SearchStringOffset, std::vector< Glyph* >& rMatches );
+	void                             SearchWorker( File* pFile, bool CaseSensitive, const std::string* pSearchString, int StartLine, int EndLine, std::vector< LineSelectionItem >* pResult, int* pState );
+	void                             SearchManager( File* pFile, bool CaseSensitive, const std::string* pSearchString, int* pState );
 	void                             Search( File& rFile, bool CaseSensitve, std::string SearchString );
-
-	void ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWindow );
+	void                             ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWindow );
 
 	Palette m_Palette;
 
