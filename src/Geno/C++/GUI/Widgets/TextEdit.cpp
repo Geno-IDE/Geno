@@ -3911,3 +3911,45 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 	ImGui::PopStyleVar();
 	ImGui::PopStyleColor();
 }
+
+//////////////////////////////////////////////////////////////////////////
+
+// Struct Implementations
+
+TextEdit::Mutex::Mutex()
+{
+	m = new std::mutex;
+}
+
+TextEdit::Mutex::~Mutex()
+{
+	delete m;
+}
+
+TextEdit::Mutex::Mutex( Mutex&& other )
+{
+	m       = other.m;
+	other.m = nullptr;
+}
+
+TextEdit::Mutex& TextEdit::Mutex::operator=( const Mutex& other )
+{
+	( void )other;
+	return *this;
+}
+
+void TextEdit::Mutex::Lock()
+{
+	m->lock();
+}
+
+void TextEdit::Mutex::Unlock()
+{
+	m->unlock();
+}
+
+bool TextEdit::Mutex::TryLock()
+{
+	return m->try_lock();
+}
+
