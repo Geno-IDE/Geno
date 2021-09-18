@@ -201,9 +201,32 @@ public:
 			int         State;
 		};
 
-		std::vector< SearchInstance* >   SearchInstances;
-		std::vector< LineSelectionItem > SearchResult;
-		Mutex                            SearchResultMutex;
+		struct SearchResultGroups
+		{
+			// Results will be grouped in it's own vector for every 1000 lines
+			std::vector< std::vector< LineSelectionItem > > Groups;
+			// A vector of all the results in order
+			std::vector< LineSelectionItem > Result;
+
+			Mutex ResultMutex;
+
+			SearchResultGroups();
+
+			std::vector< LineSelectionItem >& GetGroup( int LineIndex );
+			bool                              GroupExist( int LineIndex );
+			void                              AddResult( const LineSelectionItem& Item );
+			void                              Clear();
+			size_t                            Size();
+
+			LineSelectionItem& operator[]( int Index );
+
+			void Lock();
+			void Unlock();
+			bool TryLock();
+		};
+
+		std::vector< SearchInstance* > SearchInstances;
+		SearchResultGroups             SearchResult;
 	};
 
 	struct File

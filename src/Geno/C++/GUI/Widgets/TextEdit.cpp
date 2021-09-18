@@ -1195,20 +1195,25 @@ std::vector< TextEdit::LineSelectionItem > TextEdit::IsLineSelected( File& rFile
 		Selections.push_back( Item );
 	}
 
-	rFile.SearchDiag.SearchResultMutex.Lock();
+	SearchDialog& rDiag = rFile.SearchDiag;
 
-	for( LineSelectionItem& Search : rFile.SearchDiag.SearchResult )
+	rDiag.SearchResult.Lock();
+
+	if( rDiag.SearchResult.GroupExist( LineIndex ) )
 	{
-		LineSelectionItem Item = IsSelectionOnLine( rFile, LineIndex, Search.Start, Search.End );
+		for( LineSelectionItem& Search : rDiag.SearchResult.GetGroup( LineIndex ) )
+		{
+			LineSelectionItem Item = IsSelectionOnLine( rFile, LineIndex, Search.Start, Search.End );
 
-		if( Item.Type == -1 ) continue;
+			if( Item.Type == -1 ) continue;
 
-		Item.Type = Search.Type;
+			Item.Type = Search.Type;
 
-		Selections.push_back( Item );
+			Selections.push_back( Item );
+		}
 	}
 
-	rFile.SearchDiag.SearchResultMutex.Unlock();
+	rDiag.SearchResult.Unlock();
 
 	return Selections;
 
@@ -3517,9 +3522,9 @@ std::vector< int > TextEdit::CursorsNotInText( File& rFile )
 
 void TextEdit::ClearSearch( File& rFile )
 {
-	rFile.SearchDiag.SearchResultMutex.Lock();
-	rFile.SearchDiag.SearchResult.clear();
-	rFile.SearchDiag.SearchResultMutex.Unlock();
+	rFile.SearchDiag.SearchResult.Lock();
+	rFile.SearchDiag.SearchResult.Clear();
+	rFile.SearchDiag.SearchResult.Unlock();
 } // ClearSearch
 
 //////////////////////////////////////////////////////////////////////////
@@ -3668,15 +3673,7 @@ void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, const std::string*
 
 			Start = Next;
 
-#if !defined( TEXTEDIT_MT_SEARCH )
-			pFile->SearchDiag.SearchResultMutex.Lock();
-#endif
-
 			pResult->push_back( Res );
-
-#if !defined( TEXTEDIT_MT_SEARCH )
-			pFile->SearchDiag.SearchResultMutex.Unlock();
-#endif
 		}
 
 		Matches.clear();
@@ -3687,9 +3684,19 @@ void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, const std::string*
 
 void TextEdit::SearchManager( File* pFile, bool CaseSensitive, const std::string* pSearchString, int* pState )
 {
-
 #if 0
-	SearchWorker( pFile, CaseSensitive, pSearchString, 0, ( int )pFile->Lines.size() - 1, &pFile->SearchDiag.SearchResult, pState );
+	std::vector< LineSelectionItem > Results;
+	SearchWorker( pFile, CaseSensitive, pSearchString, 0, ( int )pFile->Lines.size() - 1, &Results, pState );
+
+	pFile->SearchDiag.SearchResult.Lock();
+
+	for (LineSelectionItem& Item : Results) {
+		if (*pState == 0) break;
+
+		pFile->SearchDiag.SearchResult.AddResult(Item);
+	}
+
+	pFile->SearchDiag.SearchResult.Unlock();
 
 #else
 
@@ -3719,14 +3726,14 @@ void TextEdit::SearchManager( File* pFile, bool CaseSensitive, const std::string
 
 		Thread.first.join();
 
-		pFile->SearchDiag.SearchResultMutex.Lock();
+		pFile->SearchDiag.SearchResult.Lock();
 
-		for( int j = 0; j < Thread.second.size() && pState; j++ )
+		for( int j = 0; j < Thread.second.size() && *pState; j++ )
 		{
-			pFile->SearchDiag.SearchResult.push_back( Thread.second[ j ] );
+			pFile->SearchDiag.SearchResult.AddResult( Thread.second[ j ] );
 		}
 
-		pFile->SearchDiag.SearchResultMutex.Unlock();
+		pFile->SearchDiag.SearchResult.Unlock();
 	}
 
 #endif
@@ -3791,7 +3798,9 @@ void JoinThreads( std::vector< TextEdit::SearchDialog::SearchInstance* >& Instan
 			}
 		}
 	}
-}
+} // JoinThreads
+
+//////////////////////////////////////////////////////////////////////////
 
 void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWindow )
 {
@@ -3845,7 +3854,7 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 
 		rDiag.ActiveItem++;
 
-		if( rDiag.ActiveItem == rDiag.SearchResult.size() )
+		if( rDiag.ActiveItem == rDiag.SearchResult.Size() )
 		{
 			rDiag.ActiveItem = -1;
 		}
@@ -3871,7 +3880,7 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 
 		if( rDiag.ActiveItem == -1 )
 		{
-			rDiag.ActiveItem = ( int )rDiag.SearchResult.size() - 1;
+			rDiag.ActiveItem = ( int )rDiag.SearchResult.Size() - 1;
 		}
 		else
 		{
@@ -3953,3 +3962,79 @@ bool TextEdit::Mutex::TryLock()
 	return m->try_lock();
 }
 
+//////////////////////////////////////////////////////////////////////////
+
+TextEdit::SearchDialog::SearchResultGroups::SearchResultGroups()
+{
+	Groups.emplace_back();
+}
+
+std::vector< TextEdit::LineSelectionItem >& TextEdit::SearchDialog::SearchResultGroups::GetGroup( int LineIndex )
+{
+	int Group = LineIndex / 1000;
+	GENO_ASSERT( Group < Groups.size() );
+	return Groups[ Group ];
+}
+
+bool TextEdit::SearchDialog::SearchResultGroups::GroupExist( int LineIndex )
+{
+	int Group = LineIndex / 1000;
+
+	return Group < Groups.size();
+}
+
+void TextEdit::SearchDialog::SearchResultGroups::AddResult( const LineSelectionItem& Item )
+{
+	const Coordinate& Start = Item.Start;
+	const Coordinate& End   = Item.End;
+
+	int StartGroup = Start.y / 1000;
+	int EndGroup   = End.y / 1000;
+
+	for( int i = ( int )Groups.size(); i <= EndGroup; i++ )
+	{
+		Groups.emplace_back();
+	}
+
+	for( int i = StartGroup; i <= EndGroup; i++ )
+	{
+		Groups[ i ].push_back( Item );
+	}
+
+	Result.push_back( Item );
+}
+
+void TextEdit::SearchDialog::SearchResultGroups::Clear()
+{
+	Groups.clear();
+	Result.clear();
+
+	Groups.emplace_back();
+}
+
+size_t TextEdit::SearchDialog::SearchResultGroups::Size()
+{
+	return Result.size();
+}
+
+TextEdit::LineSelectionItem& TextEdit::SearchDialog::SearchResultGroups::operator[]( int Index )
+{
+	return Result[ Index ];
+}
+
+void TextEdit::SearchDialog::SearchResultGroups::Lock()
+{
+	ResultMutex.Lock();
+}
+
+void TextEdit::SearchDialog::SearchResultGroups::Unlock()
+{
+	ResultMutex.Unlock();
+}
+
+bool TextEdit::SearchDialog::SearchResultGroups::TryLock()
+{
+	return ResultMutex.TryLock();
+}
+
+//////////////////////////////////////////////////////////////////////////
