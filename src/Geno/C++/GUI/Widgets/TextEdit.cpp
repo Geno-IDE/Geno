@@ -3790,6 +3790,7 @@ void JoinThreads( std::vector< TextEdit::SearchDialog::SearchInstance* >& Instan
 		for( TextEdit::SearchDialog::SearchInstance* Instance : Instances )
 		{
 			Instance->Thread.join();
+			delete Instance;
 		}
 
 		Instances.clear();
@@ -3803,6 +3804,7 @@ void JoinThreads( std::vector< TextEdit::SearchDialog::SearchInstance* >& Instan
 			if( Instance->State == -1 )
 			{
 				Instance->Thread.join();
+				delete Instance;
 				Instances.erase( Instances.begin() + i );
 			}
 		}
