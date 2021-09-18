@@ -189,23 +189,17 @@ void TextEdit::Show( bool* pOpen )
 		}
 	}
 
-	for ( auto& file : m_Files )
+	for( auto& rFile : m_Files )
 	{
-		if( file.Path.string() == m_ActiveFilePath )
+		if( rFile.Path.string() == m_ActiveFilePath )
 		{
-			if( file.Cursors.size() )
+			if( rFile.Cursors.size() )
 			{
-				auto& cursor = file.Cursors.at( 0 );
+				auto& rCursor = rFile.Cursors.at( 0 );
+				int   Length = static_cast< int >( rFile.Text.size() );
+				int   Lines  = static_cast< int >( rFile.Lines.size() );
 
-				int length = static_cast< int >( file.Text.size() );
-
-				int row = ( cursor.Position.y / static_cast< int >( ImGui::GetWindowWidth() ) );
-
-				int colunm =  cursor.Position.x - ( row * static_cast< int >( ImGui::GetWindowWidth() ) );
-
-				int lines = static_cast< int >( file.Lines.size() );
-
-				StatusBar::Instance().SetCurrentFileInfo( colunm, cursor.Position.y, length, lines );
+				StatusBar::Instance().SetCurrentFileInfo( rCursor.Position.x + 1, rCursor.Position.y + 1, Length, Lines );
 			}
 		}
 	}
@@ -443,7 +437,6 @@ bool TextEdit::RenderEditor( File& rFile )
 
 		if( int Count = IsLineSelected( rFile, i, SelectedStart, SelectedEnd ) )
 		{
-
 			for( int j = 0; j < Count; j++ )
 			{
 				float StartX = 0.0f;
