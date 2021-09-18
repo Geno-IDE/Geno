@@ -3631,8 +3631,6 @@ TextEdit::Coordinate TextEdit::SearchInLine( File& rFile, bool CaseSensitive, co
 
 //////////////////////////////////////////////////////////////////////////
 
-#define TEXTEDIT_MT_SEARCH
-
 void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, const std::string* pSearchString, int StartLine, int EndLine, std::vector< LineSelectionItem >* pResult, int* pState )
 {
 	Coordinate            Start( 0, StartLine );
@@ -3690,7 +3688,7 @@ void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, const std::string*
 void TextEdit::SearchManager( File* pFile, bool CaseSensitive, const std::string* pSearchString, int* pState )
 {
 
-#if !defined( TEXTEDIT_MT_SEARCH )
+#if 0
 	SearchWorker( pFile, CaseSensitive, pSearchString, 0, ( int )pFile->Lines.size() - 1, &pFile->SearchDiag.SearchResult, pState );
 
 #else
