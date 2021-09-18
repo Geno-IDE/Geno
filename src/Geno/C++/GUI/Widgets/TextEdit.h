@@ -171,21 +171,6 @@ public:
 		}
 	};
 
-	struct Mutex
-	{
-		std::mutex* m;
-
-		Mutex();
-		~Mutex();
-		Mutex( Mutex&& other );
-
-		Mutex& operator=( const Mutex& other );
-
-		void Lock();
-		void Unlock();
-		bool TryLock();
-	};
-
 	struct SearchDialog
 	{
 		bool Searching     = false;
@@ -194,39 +179,43 @@ public:
 
 		std::string SearchTerm;
 
-		struct SearchInstance
-		{
-			std::thread Thread;
-			std::string SearchTerm;
-			int         State;
-		};
-
 		struct SearchResultGroups
 		{
 			// Results will be grouped in it's own vector for every 1000 lines
-			std::vector< std::vector< LineSelectionItem > > Groups;
+			std::vector< std::vector< LineSelectionItem* > > Groups;
 			// A vector of all the results in order
 			std::vector< LineSelectionItem > Result;
 
-			Mutex ResultMutex;
-
 			SearchResultGroups();
 
-			std::vector< LineSelectionItem >& GetGroup( int LineIndex );
-			bool                              GroupExist( int LineIndex );
-			void                              AddResult( const LineSelectionItem& Item );
-			void                              Clear();
-			size_t                            Size();
+			std::vector< LineSelectionItem* >& GetGroup( int LineIndex );
+			bool                               GroupExist( int LineIndex );
+			void                               AddResult( const LineSelectionItem& Item );
+			void                               UpdateGroups();
+			void                               Clear();
+			size_t                             Size();
 
 			LineSelectionItem& operator[]( int Index );
+		};
 
-			void Lock();
-			void Unlock();
-			bool TryLock();
+		struct SearchInstance
+		{
+			enum
+			{
+				Running,
+				Stopping,
+				Stopped,
+				HasResult
+			};
+
+			std::thread         Thread;
+			std::string         SearchTerm;
+			SearchResultGroups* Result;
+			int                 State;
 		};
 
 		std::vector< SearchInstance* > SearchInstances;
-		SearchResultGroups             SearchResult;
+		SearchResultGroups*            SearchResult = nullptr;
 	};
 
 	struct File
@@ -347,8 +336,9 @@ private:
 	void                             ClearSearch( File& rFile );
 	Coordinate                       SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate LineStart, int SearchStringOffset, std::vector< Glyph* >& rMatches );
 	void                             SearchWorker( File* pFile, bool CaseSensitive, const std::string* pSearchString, int StartLine, int EndLine, std::vector< LineSelectionItem >* pResult, int* pState );
-	void                             SearchManager( File* pFile, bool CaseSensitive, const std::string* pSearchString, int* pState );
+	void                             SearchManager( File* pFile, bool CaseSensitive, SearchDialog::SearchInstance* Instance );
 	void                             Search( File& rFile, bool CaseSensitve, std::string SearchString );
+	void                             JoinThreads( File& rFile, bool WaitForUnfinished );
 	void                             ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWindow );
 
 	Palette m_Palette;
