@@ -175,42 +175,15 @@ public:
 	{
 		std::mutex* m;
 
-		Mutex()
-		{
-			m = new std::mutex;
-		}
+		Mutex();
+		~Mutex();
+		Mutex( Mutex&& other );
 
-		~Mutex()
-		{
-			delete m;
-		}
+		Mutex& operator=( const Mutex& other );
 
-		Mutex( Mutex&& other )
-		{
-			m       = other.m;
-			other.m = nullptr;
-		}
-
-		Mutex& operator=( const Mutex& other )
-		{
-			( void )other;
-			return *this;
-		}
-
-		void Lock()
-		{
-			m->lock();
-		}
-
-		void Unlock()
-		{
-			m->unlock();
-		}
-
-		bool TryLock()
-		{
-			return m->try_lock();
-		}
+		void Lock();
+		void Unlock();
+		bool TryLock();
 	};
 
 	struct SearchDialog
