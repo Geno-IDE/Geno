@@ -3687,13 +3687,8 @@ void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, const std::string*
 
 //////////////////////////////////////////////////////////////////////////
 
-#define TEXTEDIT_TIME_SEARCH 1
-
 void TextEdit::SearchManager( File* pFile, bool CaseSensitive, const std::string* pSearchString, int* pState )
 {
-#if TEXTEDIT_TIME_SEARCH
-	auto start = std::chrono::high_resolution_clock::now();
-#endif
 
 #if !defined( TEXTEDIT_MT_SEARCH )
 	SearchWorker( pFile, CaseSensitive, pSearchString, 0, ( int )pFile->Lines.size() - 1, &pFile->SearchDiag.SearchResult, pState );
@@ -3736,17 +3731,6 @@ void TextEdit::SearchManager( File* pFile, bool CaseSensitive, const std::string
 		pFile->SearchDiag.SearchResultMutex.Unlock();
 	}
 
-#endif
-
-#if TEXTEDIT_TIME_SEARCH
-	long long elapsed = std::chrono::duration_cast< std::chrono::microseconds >( std::chrono::high_resolution_clock::now() - start ).count();
-
-	if( elapsed > 1000 )
-		std::cout << "Serached File: " << pFile->Path.string() + " in " << float( ( float )elapsed / 1000 ) << "ms "
-				  << "Matches: " << pFile->SearchDiag.SearchResult.size() << "\n";
-	else
-		std::cout << "Serached File: " << pFile->Path.string() + " in " << elapsed << "us "
-				  << "Matches: " << pFile->SearchDiag.SearchResult.size() << "\n";
 #endif
 
 	*pState = -1;
