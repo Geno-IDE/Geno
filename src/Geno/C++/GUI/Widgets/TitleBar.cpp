@@ -216,32 +216,23 @@ void TitleBar::Draw( void )
 			// X11 Window Move
 			{
 				GLFWwindow* pWindow          = MainWindow::Instance().GetWindow();
-				Display* pX11Display         = glfwGetX11Display();
+				Display*    pX11Display      = glfwGetX11Display();
 				Window      X11Window        = glfwGetX11Window( pWindow );
 				int         X11Screen        = XDefaultScreen( pX11Display );
+				ImVec2      CursorPos        = ImGui::GetMousePos();
+				int         Border           = 8;
 
 				ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
 				ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
 				ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0, 0, 0, 0 ) );
 
-				// TODO: Make it so that the button does not go to the System Buttons (Exit, Minimize and Maximize)
-				ImGui::Button( "##x11_win_move", ImVec2( ImGui::GetWindowWidth(), m_Height ) );
-
-				if( ImGui::IsItemHovered() && ImGui::IsMouseDown( ImGuiMouseButton_Left ) )
+				if( !ImGui::IsItemHovered() && ( CursorPos.y > ( ImGui::GetItemRectSize().x - m_Height ) ) && ImGui::IsMouseDown( ImGuiMouseButton_Left ) )
 				{
 					glfwDragWindow( pWindow );
+
+					if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+						glfwDragWindow( pWindow );
 				}
-
-				if( ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
-				{
-					glfwMaximizeWindow( pWindow );
-				}
-
-				int WindowSize[ 2 ] ={ 0, 0 };
-				ImVec2 CursorPos = ImGui::GetMousePos();
-				int Border = 8;
-
-				// GET WINDOWS ATTR
 
 				int dw = DisplayWidth( pX11Display, X11Screen ), dh = DisplayHeight( pX11Display, X11Screen );
 				int rx, ry, xright, ybelow;
@@ -256,17 +247,8 @@ void TitleBar::Draw( void )
 
 				xright = ( dw - rx - win_attributes.border_width * 2 - win_attributes.width );
 				ybelow = ( dh - ry - win_attributes.border_width * 2 - win_attributes.height );
+				ybelow++; // temp
 
-				glfwGetWindowSize( pWindow, ( int* )( &WindowSize[ 0 ] ), ( int* )( &WindowSize[ 1 ] ) );
-
-				printf( "  Corners:  +%d+%d  -%d+%d  -%d-%d  +%d-%d\n",
-					rx, ry, xright, ry, xright, ybelow, rx, ybelow );
-
-
-				printf( "  Mouse Pos X, Y: %f %f\n",
-					ImGui::GetMousePos().x, ImGui::GetMousePos().y );
-
-				// NEW CORNERS 
 				if( ImGui::IsMousePosValid( &CursorPos ) )
 				{
 					if( CursorPos.x == rx + Border || CursorPos.x < rx + Border )
@@ -300,8 +282,6 @@ void TitleBar::Draw( void )
 				ImGui::PopStyleColor( 3 );
 			}
 		#endif
-
-
 		}
 
 		ImGui::EndMainMenuBar();
