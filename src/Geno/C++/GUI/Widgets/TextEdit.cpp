@@ -1347,7 +1347,7 @@ std::string TextEdit::GetWordAt( File& rFile, Coordinate Position, Coordinate* p
 
 	auto cmpCharsNum = []( char c ) -> bool
 	{
-		return ( c >= 'A' && c <= 'Z' ) || ( c >= 'a' && c <= 'z' ) || ( c >= '0' && c <= '9' );
+		return c == '_' || ( c >= 'A' && c <= 'Z' ) || ( c >= 'a' && c <= 'z' ) || ( c >= '0' && c <= '9' );
 	};
 
 	auto cmpWhitespace = []( char c ) -> bool
