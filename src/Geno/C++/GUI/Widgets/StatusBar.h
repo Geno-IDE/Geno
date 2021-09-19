@@ -62,11 +62,12 @@ public:
 
 public:
 
-	void Show              ( void );
-	void SetColor          ( int R, int G, int B );
-	void SetColor          ( Color color );
-	void SetText           ( std::string Text );
-	void SetCurrentFileInfo( int Column, int Row, int Length, int Lines );
+	void Show               ( void );
+	void SetColor           ( int R, int G, int B );
+	void SetColor           ( Color color );
+	void SetText            ( std::string Text );
+	void SetCurrentFileInfo ( int Column, int Row, int Length, int Lines );
+	void SetSearchResultInfo( std::string SearchTerm, int Results );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -74,8 +75,9 @@ private:
 
 	Message     m_Message      = { };
 
-	std::string m_Text         = "Ready";
-	std::string m_TextEditInfo = "";
+	std::string m_Text               = "Ready";
+	std::string m_TextEditInfo       = "";
+	std::string m_TextEditSearchInfo = "";
 
 	int         m_Col_R        = 48;
 	int         m_Col_G        = 48;
