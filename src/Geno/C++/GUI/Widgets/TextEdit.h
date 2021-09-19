@@ -194,6 +194,7 @@ public:
 			void                               UpdateGroups();
 			void                               Clear();
 			size_t                             Size();
+			bool                               Empty();
 
 			LineSelectionItem& operator[]( int Index );
 		};
@@ -268,13 +269,15 @@ private:
 
 	struct Properties
 	{
-		float CharAdvanceY;
-		float LineNumMaxWidth;
-		float SpaceSize;
-		float ScrollX;
-		float ScrollY;
-		bool  Changes;
-		int   CursorBlink;
+		float  CharAdvanceY;
+		float  LineNumMaxWidth;
+		float  SpaceSize;
+		float  ScrollX;
+		float  ScrollY;
+		ImVec2 WindowSize;
+		ImVec2 WindowOrigin;
+		bool   Changes;
+		int    CursorBlink;
 	} Props;
 
 	bool                             RenderEditor( File& rFile );
@@ -284,6 +287,7 @@ private:
 	void                             SetBoxSelection( File& rFile, int LineIndex, float XPosition );
 	void                             ScrollToCursor( File& rFile );
 	void                             ScrollTo( File& rFile, Coordinate Position );
+	void                             ScrollTo( File& rFile, Coordinate Position, ImGuiWindow* pWindow );
 	void                             CheckLineLengths( File& rFile, int FirstLine, int LastLine );
 	float                            GetMaxCursorDistance( File& rFile );
 	void                             CalculeteLineNumMaxWidth( File& rFile );

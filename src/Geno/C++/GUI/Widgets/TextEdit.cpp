@@ -422,11 +422,13 @@ bool TextEdit::RenderEditor( File& rFile )
 	ImGuiID      FocusId = ImGui::GetFocusID();
 	ImGuiWindow* pWindow = ImGui::GetCurrentWindow();
 
+	Props.WindowSize   = ImGui::GetContentRegionAvail();
+	Props.WindowOrigin = ImGui::GetCursorScreenPos();
+	Props.ScrollX      = ImGui::GetScrollX();
+	Props.ScrollY      = ImGui::GetScrollY();
+
 	HandleKeyboardInputs( rFile );
 	HandleMouseInputs( rFile );
-
-	Props.ScrollX = ImGui::GetScrollX();
-	Props.ScrollY = ImGui::GetScrollY();
 
 	int FirstLine = ( int )( Props.ScrollY / Props.CharAdvanceY );
 	int LastLine  = std::min( FirstLine + ( int )( Size.y / Props.CharAdvanceY + 2 ), ( int )rFile.Lines.size() - 1 );
@@ -854,7 +856,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 
 ImVec2 TextEdit::GetMousePosition()
 {
-	ImVec2 Origin   = ImGui::GetCursorScreenPos();
+	ImVec2 Origin   = Props.WindowOrigin;
 	ImVec2 MousePos = ImGui::GetMousePos();
 
 	MousePos.x -= Origin.x;
@@ -978,14 +980,18 @@ void TextEdit::ScrollToCursor( File& rFile )
 
 void TextEdit::ScrollTo( File& rFile, Coordinate Position )
 {
-	float yScroll = ImGui::GetScrollY();
-	float xScroll = ImGui::GetScrollX();
+	ScrollTo( rFile, Position, ImGui::GetCurrentWindow() );
+} // ScrollTo
 
-	ImVec2 Size = ImGui::GetContentRegionAvail();
+//////////////////////////////////////////////////////////////////////////
 
-	float Top    = yScroll;
+void TextEdit::ScrollTo( File& rFile, Coordinate Position, ImGuiWindow* pWindow )
+{
+	ImVec2 Size = Props.WindowSize;
+
+	float Top    = Props.ScrollY;
 	float Bottom = Top + Size.y - ( Props.CharAdvanceY * 2 );
-	float Left   = xScroll;
+	float Left   = Props.ScrollX;
 	float Right  = Left + Size.x - 10.0f;
 
 	float CX = GetDistance( rFile, Position );
@@ -993,20 +999,20 @@ void TextEdit::ScrollTo( File& rFile, Coordinate Position )
 
 	if( CY < Top )
 	{
-		ImGui::SetScrollY( Position.y * Props.CharAdvanceY );
+		ImGui::SetScrollY( pWindow, Position.y * Props.CharAdvanceY );
 	}
 	else if( CY > Bottom )
 	{
-		ImGui::SetScrollY( Position.y * Props.CharAdvanceY - Size.y + ( Props.CharAdvanceY * 2 ) );
+		ImGui::SetScrollY( pWindow, Position.y * Props.CharAdvanceY - Size.y + ( Props.CharAdvanceY * 2 ) );
 	}
 
 	if( CX < Left )
 	{
-		ImGui::SetScrollX( CX );
+		ImGui::SetScrollX( pWindow, CX );
 	}
 	else if( CX > Right )
 	{
-		ImGui::SetScrollX( CX - Size.x + 10.0f );
+		ImGui::SetScrollX( pWindow, CX - Size.x + 10.0f );
 	}
 
 } // ScrollTo
@@ -3861,7 +3867,13 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 	bool Shift = ImGui::GetIO().KeyShift;
 
 	if( rDiag.SearchResult == nullptr )
+	{
 		ImGui::PushDisabled();
+	}
+	else if( rDiag.SearchResult->Empty() )
+	{
+		ImGui::PushDisabled();
+	}
 
 	if( ImGui::Button( "Next" ) || ( ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Enter ) ) && ImGui::IsWindowFocused() && !Shift ) )
 	{
@@ -3884,6 +3896,8 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 		{
 			LineSelectionItem& Curr = ( *rDiag.SearchResult )[ rDiag.ActiveItem ];
 			Curr.Type               = LineSelectionItem::SearchActive;
+
+			ScrollTo( rFile, Curr.Start, pWindow );
 		}
 	}
 
@@ -3912,11 +3926,19 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 		{
 			LineSelectionItem& Curr = ( *rDiag.SearchResult )[ rDiag.ActiveItem ];
 			Curr.Type               = LineSelectionItem::SearchActive;
+
+			ScrollTo( rFile, Curr.Start, pWindow );
 		}
 	}
 
 	if( rDiag.SearchResult == nullptr )
+	{
 		ImGui::PopDisabled();
+	}
+	else if( rDiag.SearchResult->Empty() )
+	{
+		ImGui::PopDisabled();
+	}
 
 	ImGui::SameLine();
 
@@ -4003,6 +4025,10 @@ void TextEdit::SearchDialog::SearchResultGroups::Clear()
 size_t TextEdit::SearchDialog::SearchResultGroups::Size()
 {
 	return Result.size();
+}
+
+bool TextEdit::SearchDialog::SearchResultGroups::Empty() {
+	return Size() == 0;
 }
 
 TextEdit::LineSelectionItem& TextEdit::SearchDialog::SearchResultGroups::operator[]( int Index )
