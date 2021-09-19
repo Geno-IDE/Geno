@@ -175,6 +175,7 @@ public:
 	{
 		bool Searching     = false;
 		bool CaseSensitive = false;
+		bool WholeWord     = false;
 		int  ActiveItem    = -1;
 
 		std::string SearchTerm;
@@ -339,9 +340,9 @@ private:
 	void                             PrepareSearchString( std::string& rSearchString );
 	void                             ClearSearch( File& rFile );
 	Coordinate                       SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate LineStart, int SearchStringOffset, std::vector< Glyph* >& rMatches );
-	void                             SearchWorker( File* pFile, bool CaseSensitive, const std::string* pSearchString, int StartLine, int EndLine, std::vector< LineSelectionItem >* pResult, int* pState );
-	void                             SearchManager( File* pFile, bool CaseSensitive, SearchDialog::SearchInstance* Instance );
-	void                             Search( File& rFile, bool CaseSensitve, std::string SearchString );
+	void                             SearchWorker( File* pFile, bool CaseSensitive, bool WholeWord, const std::string* pSearchString, int StartLine, int EndLine, std::vector< LineSelectionItem >* pResult, int* pState );
+	void                             SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, SearchDialog::SearchInstance* Instance );
+	void                             Search( File& rFile, bool CaseSensitve, bool WholeWord, std::string SearchString );
 	void                             JoinThreads( File& rFile, bool WaitForUnfinished );
 	void                             ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWindow );
 
