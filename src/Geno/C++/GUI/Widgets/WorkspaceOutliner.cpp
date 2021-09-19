@@ -74,14 +74,14 @@ void WorkspaceOutliner::Show( bool* pOpen )
 			ImGui::SetNextItemOpen( true, m_ExpandWorkspaceNode ? ImGuiCond_Always : ImGuiCond_Appearing );
 			m_ExpandWorkspaceNode = false;
 
-			if( ImGui::IsKeyPressed( GLFW_KEY_LEFT_CONTROL ) && ImGui::IsKeyPressed( GLFW_KEY_Z ) )
+			if( ImGui::IsKeyDown( GLFW_KEY_LEFT_CONTROL ) && ImGui::IsKeyPressed( GLFW_KEY_Z ) )
 			{
 				m_UndoCommandStack.UndoCommand( m_RedoCommandStack );
 			}
 
-			if( ImGui::IsKeyPressed( GLFW_KEY_LEFT_CONTROL ) )
+			if( ImGui::IsKeyDown( GLFW_KEY_LEFT_CONTROL ) )
 			{
-				if( ( ImGui::IsKeyPressed( GLFW_KEY_LEFT_SHIFT ) && ImGui::IsKeyPressed( GLFW_KEY_Z ) ) || ImGui::IsKeyPressed( GLFW_KEY_Y ) )
+				if( ( ImGui::IsKeyDown( GLFW_KEY_LEFT_SHIFT ) && ImGui::IsKeyPressed( GLFW_KEY_Z ) ) || ImGui::IsKeyPressed( GLFW_KEY_Y ) )
 				{
 					m_RedoCommandStack.RedoCommand( m_UndoCommandStack );
 				}
