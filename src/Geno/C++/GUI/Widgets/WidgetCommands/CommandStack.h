@@ -20,6 +20,7 @@
 #include "ICommand.h"
 
 #include <stack>
+#include <memory>
 
 class CommandStack
 {
@@ -38,6 +39,6 @@ public:
 
 private:
 
-	std::stack< ICommand* > m_pCommands;
+	std::stack< std::unique_ptr< ICommand > > m_pCommands;
 
 }; // CommandStack

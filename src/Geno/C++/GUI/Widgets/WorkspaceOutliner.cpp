@@ -30,7 +30,7 @@
 #include "GUI/Modals/ProjectSettingsModal.h"
 #include "GUI/Widgets/MainMenuBar.h"
 #include "GUI/Widgets/TextEdit.h"
-#include "WidgetCommands/WOC.h"
+#include "WidgetCommands/OutlinerCommands.h"
 #include "Discord/DiscordRPC.h"
 
 #include <fstream>
@@ -99,7 +99,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					{
 						if( m_RenameText != pWorkspace->m_Name )
 						{
-							m_UndoCommandStack.DoCommand( new WOC::RenameItemCommand( WOC::ItemType_Workspace, pWorkspace->m_Name, m_RenameText ) );
+							m_UndoCommandStack.DoCommand( new OutlinerCommands::RenameItemCommand( OutlinerCommands::ItemType::Workspace, pWorkspace->m_Name, m_RenameText ) );
 						}
 
 						return true;
@@ -125,7 +125,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							return false;
 						}
 
-						m_UndoCommandStack.DoCommand( new WOC::RenameItemCommand( WOC::ItemType_Project, m_SelectedProjectName, m_RenameText ) );
+						m_UndoCommandStack.DoCommand( new OutlinerCommands::RenameItemCommand( OutlinerCommands::ItemType::Project, m_SelectedProjectName, m_RenameText ) );
 
 						return true;
 					} );
@@ -152,7 +152,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							return false;
 						}
 
-						m_UndoCommandStack.DoCommand( new WOC::RenameItemCommand( WOC::ItemType_FileFilter, m_SelectedFileFilterName, m_RenameText, m_SelectedProjectName ) );
+						m_UndoCommandStack.DoCommand( new OutlinerCommands::RenameItemCommand( OutlinerCommands::ItemType::FileFilter, m_SelectedFileFilterName, m_RenameText, m_SelectedProjectName ) );
 						return true;
 					} );
 			};
@@ -230,7 +230,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 									return false;
 								}
 
-								m_UndoCommandStack.DoCommand( new WOC::RenameItemCommand( WOC::ItemType_File, m_SelectedFile, pProject->m_Location / pFileFilter->Path / m_RenameText, m_SelectedProjectName, m_SelectedFileFilterName ) );
+								m_UndoCommandStack.DoCommand( new OutlinerCommands::RenameItemCommand( OutlinerCommands::ItemType::File, m_SelectedFile, pProject->m_Location / pFileFilter->Path / m_RenameText, m_SelectedProjectName, m_SelectedFileFilterName ) );
 								return true;
 							} );
 					}
@@ -415,7 +415,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				if( ImGui::MenuItem( "Add Project" ) )
 				{
 					OpenFileModal::Instance().Show( "Add Project", "*.gprj", [ this ]( const std::filesystem::path& rPath )
-						{ m_UndoCommandStack.DoCommand( new WOC::AddItemCommand( WOC::ItemType_Project, rPath ) ); } );
+						{ m_UndoCommandStack.DoCommand( new OutlinerCommands::AddItemCommand( OutlinerCommands::ItemType::Project, rPath ) ); } );
 				}
 				if( ImGui::MenuItem( "New Project" ) )
 				{
@@ -423,7 +423,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 						{
 							// Automatically expand tree if adding an item for the first time
 							m_ExpandWorkspaceNode = true;
-							m_UndoCommandStack.DoCommand( new WOC::NewItemCommand( WOC::ItemType_Project, rLocation, rName ) );
+							m_UndoCommandStack.DoCommand( new OutlinerCommands::NewItemCommand( OutlinerCommands::ItemType::Project, rLocation, rName ) );
 						} );
 
 					ShowWorkspaceContextMenu = false;
@@ -465,7 +465,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					}
 
 					std::string FilterName = "File Filter" + std::to_string( Count );
-					m_UndoCommandStack.DoCommand( new WOC::NewItemCommand( WOC::ItemType_FileFilter, {}, FilterName, m_SelectedProjectName ) );
+					m_UndoCommandStack.DoCommand( new OutlinerCommands::NewItemCommand( OutlinerCommands::ItemType::FileFilter, {}, FilterName, m_SelectedProjectName ) );
 					RenameFileFilter         = true;
 					ForceFocusRename         = true;
 					m_RenameText             = FilterName;
@@ -480,7 +480,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 					NewItemModal::Instance().Show( "New File", nullptr, pProject->m_Location, [ this ]( const std::string& rName, const std::filesystem::path& rLocation )
 						{
-							m_UndoCommandStack.DoCommand( new WOC::NewItemCommand( WOC::ItemType_File, rLocation, rName, m_SelectedProjectName, "" ) );
+							m_UndoCommandStack.DoCommand( new OutlinerCommands::NewItemCommand( OutlinerCommands::ItemType::File, rLocation, rName, m_SelectedProjectName, "" ) );
 							m_ProjectNodeToBeExpanded = m_SelectedProjectName;
 						} );
 
@@ -491,7 +491,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					OpenFileModal::Instance().Show( "Add File", nullptr, [ this ]( const std::filesystem::path& rFile )
 						{
-							m_UndoCommandStack.DoCommand( new WOC::AddItemCommand( WOC::ItemType_File, rFile, m_SelectedProjectName, "" ) );
+							m_UndoCommandStack.DoCommand( new OutlinerCommands::AddItemCommand( OutlinerCommands::ItemType::File, rFile, m_SelectedProjectName, "" ) );
 							m_ProjectNodeToBeExpanded = m_SelectedProjectName;
 						} );
 					ShowProjectContextMenu = false;
@@ -501,7 +501,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					Project*                    pProject = pWorkspace->ProjectByName( m_SelectedProjectName );
 					const std::filesystem::path Path     = ( pProject->m_Location / pProject->m_Name ).replace_extension( Project::EXTENSION );
-					m_UndoCommandStack.DoCommand( new WOC::RemoveItemCommand( WOC::ItemType_Project, Path ) );
+					m_UndoCommandStack.DoCommand( new OutlinerCommands::RemoveItemCommand( OutlinerCommands::ItemType::Project, Path ) );
 				}
 
 				ImGui::Separator();
@@ -532,7 +532,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					if( Project* pSelectedProject = pWorkspace->ProjectByName( m_SelectedProjectName ) )
 					{
-						m_UndoCommandStack.DoCommand( new WOC::RemoveItemCommand( WOC::ItemType_FileFilter, m_SelectedFileFilterName, m_SelectedProjectName ) );
+						m_UndoCommandStack.DoCommand( new OutlinerCommands::RemoveItemCommand( OutlinerCommands::ItemType::FileFilter, m_SelectedFileFilterName, m_SelectedProjectName ) );
 						pSelectedProject->RemoveFileFilter( m_SelectedFileFilterName );
 					}
 
@@ -555,7 +555,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					}
 
 					std::string FileFilterName = pFileFilter->Name.string() + "/File Filter" + std::to_string( Count );
-					m_UndoCommandStack.DoCommand( new WOC::NewItemCommand( WOC::ItemType_FileFilter, {}, FileFilterName, m_SelectedProjectName ) );
+					m_UndoCommandStack.DoCommand( new OutlinerCommands::NewItemCommand( OutlinerCommands::ItemType::FileFilter, {}, FileFilterName, m_SelectedProjectName ) );
 					RenameFileFilter         = true;
 					ForceFocusRename         = true;
 					m_RenameText             = FileFilterName;
@@ -571,7 +571,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 					NewItemModal::Instance().Show( "New File", nullptr, std::filesystem::canonical( pProject->m_Location / pFileFilter->Path ), [ this ]( const std::string& rName, const std::filesystem::path& rLocation )
 						{
-							m_UndoCommandStack.DoCommand( new WOC::NewItemCommand( WOC::ItemType_File, rLocation, rName, m_SelectedProjectName, m_SelectedFileFilterName ) );
+							m_UndoCommandStack.DoCommand( new OutlinerCommands::NewItemCommand( OutlinerCommands::ItemType::File, rLocation, rName, m_SelectedProjectName, m_SelectedFileFilterName ) );
 							m_ProjectNodeToBeExpanded = m_SelectedProjectName;
 						} );
 					ShowFileFilterContextMenu = false;
@@ -581,7 +581,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					OpenFileModal::Instance().Show( "Add File", nullptr, [ this ]( const std::filesystem::path& rPath )
 						{
-							m_UndoCommandStack.DoCommand( new WOC::AddItemCommand( WOC::ItemType_File, rPath, m_SelectedProjectName, m_SelectedFileFilterName ) );
+							m_UndoCommandStack.DoCommand( new OutlinerCommands::AddItemCommand( OutlinerCommands::ItemType::File, rPath, m_SelectedProjectName, m_SelectedFileFilterName ) );
 							m_ProjectNodeToBeExpanded = m_SelectedProjectName;
 						} );
 					ShowFileFilterContextMenu = false;
@@ -616,7 +616,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					std::string Message = "Are you sure you want to remove '" + m_SelectedFile.filename().string() + "'";
 
 					MessageModal::Instance().ShowMessage( Message, "Remove", [ & ]()
-						{ m_UndoCommandStack.DoCommand( new WOC::RemoveItemCommand( WOC::ItemType_File, m_SelectedFile, m_SelectedProjectName, m_SelectedFileFilterName ) ); } );
+						{ m_UndoCommandStack.DoCommand( new OutlinerCommands::RemoveItemCommand( OutlinerCommands::ItemType::File, m_SelectedFile, m_SelectedProjectName, m_SelectedFileFilterName ) ); } );
 
 					ShowFileContextMenu = false;
 				}

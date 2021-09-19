@@ -15,7 +15,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "WOC.h"
+#include "OutlinerCommands.h"
 
 #include "Application.h"
 #include "GUI/MainWindow.h"
@@ -23,7 +23,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-WOC::RenameItemCommand::RenameItemCommand( ItemType RenameItemType, const std::filesystem::path& rPreviousName, const std::filesystem::path& rNewName, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
+OutlinerCommands::RenameItemCommand::RenameItemCommand( ItemType RenameItemType, const std::filesystem::path& rPreviousName, const std::filesystem::path& rNewName, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
 	: m_RenameItemType( RenameItemType )
 	, m_PreviousName  ( rPreviousName )
 	, m_NewName       ( rNewName )
@@ -34,24 +34,24 @@ WOC::RenameItemCommand::RenameItemCommand( ItemType RenameItemType, const std::f
 
 //////////////////////////////////////////////////////////////////////////
 
-void WOC::RenameItemCommand::Execute( void )
+void OutlinerCommands::RenameItemCommand::Execute( void )
 {
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 	switch( m_RenameItemType )
 	{
-		case ItemType_Workspace:
+		case ItemType::Workspace:
 			pWorkspace->Rename( m_NewName.string() );
 			break;
-		case ItemType_Project:
+		case ItemType::Project:
 			pWorkspace->RenameProject( m_PreviousName.string(), m_NewName.string() );
 			break;
-		case ItemType_FileFilter:
+		case ItemType::FileFilter:
 			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
 			{
 				pProject->RenameFileFilter( m_PreviousName, m_NewName.string() );
 			}
 			break;
-		case ItemType_File:
+		case ItemType::File:
 			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
 			{
 				pProject->RenameFile( m_PreviousName, m_FileFilterName, m_NewName.filename().string() );
@@ -64,7 +64,7 @@ void WOC::RenameItemCommand::Execute( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-ICommand* WOC::RenameItemCommand::Undo( void )
+ICommand* OutlinerCommands::RenameItemCommand::Undo( void )
 {
 	// m_PreviousName -> Used For Locating Project/FileFilter/File
 	// m_NewName      -> Used As Rename String
@@ -81,7 +81,7 @@ ICommand* WOC::RenameItemCommand::Undo( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-ICommand* WOC::RenameItemCommand::Redo( void )
+ICommand* OutlinerCommands::RenameItemCommand::Redo( void )
 {
 	Execute();
 	return new RenameItemCommand( m_RenameItemType, m_PreviousName, m_NewName, m_ProjectName, m_FileFilterName );
@@ -90,7 +90,7 @@ ICommand* WOC::RenameItemCommand::Redo( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-WOC::NewItemCommand::NewItemCommand( ItemType NewItemType, const std::filesystem::path& rLocation, const std::string& rName, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
+OutlinerCommands::NewItemCommand::NewItemCommand( ItemType NewItemType, const std::filesystem::path& rLocation, const std::string& rName, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
 	: m_NewItemType   ( NewItemType )
 	, m_Location      ( rLocation )
 	, m_Name          ( rName )
@@ -101,21 +101,21 @@ WOC::NewItemCommand::NewItemCommand( ItemType NewItemType, const std::filesystem
 
 //////////////////////////////////////////////////////////////////////////
 
-void WOC::NewItemCommand::Execute( void )
+void OutlinerCommands::NewItemCommand::Execute( void )
 {
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 	switch( m_NewItemType )
 	{
-		case ItemType_Project:
+		case ItemType::Project:
 			pWorkspace->NewProject( m_Location, m_Name );
 			break;
-		case ItemType_FileFilter:
+		case ItemType::FileFilter:
 			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
 			{
 				pProject->NewFileFilter( m_Name );
 			}
 			break;
-		case ItemType_File:
+		case ItemType::File:
 			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
 			{
 				pProject->NewFile( m_Location / m_Name, m_FileFilterName );
@@ -127,21 +127,21 @@ void WOC::NewItemCommand::Execute( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-ICommand* WOC::NewItemCommand::Undo( void )
+ICommand* OutlinerCommands::NewItemCommand::Undo( void )
 {
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 	switch( m_NewItemType )
 	{
-		case ItemType_Project:
+		case ItemType::Project:
 			pWorkspace->RemoveProject( m_Name );
 			break;
-		case ItemType_FileFilter:
+		case ItemType::FileFilter:
 			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
 			{
 				pProject->RemoveFileFilter( m_Name );
 			}
 			break;
-		case ItemType_File:
+		case ItemType::File:
 			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
 			{
 				pProject->RemoveFile( m_Location / m_Name, m_FileFilterName );
@@ -155,7 +155,7 @@ ICommand* WOC::NewItemCommand::Undo( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-ICommand* WOC::NewItemCommand::Redo( void )
+ICommand* OutlinerCommands::NewItemCommand::Redo( void )
 {
 	Execute();
 	return new NewItemCommand( m_NewItemType, m_Location, m_Name, m_ProjectName, m_FileFilterName );
@@ -164,7 +164,7 @@ ICommand* WOC::NewItemCommand::Redo( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-WOC::AddItemCommand::AddItemCommand( ItemType AddItemType, const std::filesystem::path& rPath, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
+OutlinerCommands::AddItemCommand::AddItemCommand( ItemType AddItemType, const std::filesystem::path& rPath, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
 	: m_AddItemType   ( AddItemType )
 	, m_Path          ( rPath )
 	, m_FileFilterName( rFileFilterName )
@@ -174,16 +174,16 @@ WOC::AddItemCommand::AddItemCommand( ItemType AddItemType, const std::filesystem
 
 //////////////////////////////////////////////////////////////////////////
 
-void WOC::AddItemCommand::Execute( void )
+void OutlinerCommands::AddItemCommand::Execute( void )
 {
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 
 	switch( m_AddItemType )
 	{
-		case ItemType_Project:
+		case ItemType::Project:
 			pWorkspace->AddProject( m_Path );
 			break;
-		case ItemType_File:
+		case ItemType::File:
 			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
 			{
 				pProject->AddFile( m_Path, m_FileFilterName );
@@ -195,16 +195,16 @@ void WOC::AddItemCommand::Execute( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-ICommand* WOC::AddItemCommand::Undo( void )
+ICommand* OutlinerCommands::AddItemCommand::Undo( void )
 {
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 
 	switch( m_AddItemType )
 	{
-		case ItemType_Project:
+		case ItemType::Project:
 			pWorkspace->RemoveProject( m_Path.stem().string() );
 			break;
-		case ItemType_File:
+		case ItemType::File:
 			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
 			{
 				pProject->RemoveFile( m_Path, m_FileFilterName );
@@ -218,7 +218,7 @@ ICommand* WOC::AddItemCommand::Undo( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-ICommand* WOC::AddItemCommand::Redo( void )
+ICommand* OutlinerCommands::AddItemCommand::Redo( void )
 {
 	Execute();
 	return new AddItemCommand( m_AddItemType, m_Path, m_ProjectName, m_FileFilterName );
@@ -227,7 +227,7 @@ ICommand* WOC::AddItemCommand::Redo( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-WOC::RemoveItemCommand::RemoveItemCommand( ItemType RemoveItemType, const std::filesystem::path& rName, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
+OutlinerCommands::RemoveItemCommand::RemoveItemCommand( ItemType RemoveItemType, const std::filesystem::path& rName, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
 	: m_RemoveItemType( RemoveItemType )
 	, m_Name          ( rName )
 	, m_FileFilterName( rFileFilterName )
@@ -237,23 +237,23 @@ WOC::RemoveItemCommand::RemoveItemCommand( ItemType RemoveItemType, const std::f
 
 //////////////////////////////////////////////////////////////////////////
 
-void WOC::RemoveItemCommand::Execute( void )
+void OutlinerCommands::RemoveItemCommand::Execute( void )
 {
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 
 	switch( m_RemoveItemType )
 	{
-		case ItemType_Project:
+		case ItemType::Project:
 			pWorkspace->RemoveProject( m_Name.stem().string() );
 			break;
-		case ItemType_FileFilter:
+		case ItemType::FileFilter:
 			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
 			{
 				m_FileFilter = *pProject->FileFilterByName( m_Name );
 				pProject->RemoveFileFilter( m_Name );
 			}
 			break;
-		case ItemType_File:
+		case ItemType::File:
 			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
 			{
 				pProject->RemoveFile( m_Name, m_FileFilterName );
@@ -265,22 +265,22 @@ void WOC::RemoveItemCommand::Execute( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-ICommand* WOC::RemoveItemCommand::Undo( void )
+ICommand* OutlinerCommands::RemoveItemCommand::Undo( void )
 {
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 
 	switch( m_RemoveItemType )
 	{
-		case ItemType_Project:
+		case ItemType::Project:
 			pWorkspace->AddProject( m_Name );
 			break;
-		case ItemType_FileFilter:
+		case ItemType::FileFilter:
 			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
 			{
 				pProject->m_FileFilters.emplace_back( std::move( m_FileFilter ) );
 			}
 			break;
-		case ItemType_File:
+		case ItemType::File:
 			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
 			{
 				pProject->AddFile( m_Name, m_FileFilterName );
@@ -294,7 +294,7 @@ ICommand* WOC::RemoveItemCommand::Undo( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-ICommand* WOC::RemoveItemCommand::Redo( void )
+ICommand* OutlinerCommands::RemoveItemCommand::Redo( void )
 {
 	Execute();
 	return new RemoveItemCommand( m_RemoveItemType, m_Name, m_ProjectName, m_FileFilterName );

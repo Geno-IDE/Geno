@@ -121,17 +121,17 @@ bool Workspace::Deserialize( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void Workspace::Rename( const std::string& rName )
+void Workspace::Rename( std::string Name )
 {
 	const std::filesystem::path OldPath = ( m_Location / m_Name ).replace_extension( EXTENSION );
 
 	if( std::filesystem::exists( OldPath ) )
 	{
-		const std::filesystem::path NewPath = ( m_Location / rName ).replace_extension( EXTENSION );
+		const std::filesystem::path NewPath = ( m_Location / Name ).replace_extension( EXTENSION );
 		std::filesystem::rename( OldPath, NewPath );
 	}
 
-	m_Name = std::move( rName );
+	m_Name = std::move( Name );
 	Serialize();
 
 } // Rename
@@ -171,11 +171,12 @@ bool Workspace::AddProject( const std::filesystem::path& rPath )
 		std::filesystem::path ProjectPath = rPath;
 		ProjectPath                       = ProjectPath.lexically_normal();
 
-		Project& rProject = NewProject( ProjectPath.parent_path(), ProjectPath.filename().string() );
+		Project& rProject = NewProject( ProjectPath.parent_path(), ProjectPath.stem().string() );
 		if( rProject.Deserialize() )
 			return true;
 	}
 	return false;
+
 } // AddProject
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,7 +200,7 @@ void Workspace::RemoveProject( const std::string& rName )
 
 //////////////////////////////////////////////////////////////////////////
 
-void Workspace::RenameProject( const std::string& rProjectName, const std::string& rName )
+void Workspace::RenameProject( const std::string& rProjectName, std::string Name )
 {
 	if( Project* pProject = ProjectByName( rProjectName ) )
 	{
@@ -207,11 +208,11 @@ void Workspace::RenameProject( const std::string& rProjectName, const std::strin
 
 		if( std::filesystem::exists( OldPath ) )
 		{
-			const std::filesystem::path NewPath = ( pProject->m_Location / rName ).replace_extension( Project::EXTENSION );
+			const std::filesystem::path NewPath = ( pProject->m_Location / Name ).replace_extension( Project::EXTENSION );
 			std::filesystem::rename( OldPath, NewPath );
 		}
 
-		pProject->m_Name = std::move( rName );
+		pProject->m_Name = std::move( Name );
 		pProject->Serialize();
 		Serialize();
 	}

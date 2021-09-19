@@ -19,15 +19,15 @@
 
 CommandStack::~CommandStack( void )
 {
-	for( size_t i = 0; i < m_pCommands.size(); ++i )
-	{
-		auto& rCommand = m_pCommands.top();
-		if( rCommand )
-		{
-			delete rCommand;
-			rCommand = nullptr;
-		}
-	}
+	//for( size_t i = 0; i < m_pCommands.size(); ++i )
+	//{
+	//	auto& rCommand = m_pCommands.top();
+	//	if( rCommand )
+	//	{
+	//		delete rCommand;
+	//		rCommand = nullptr;
+	//	}
+	//}
 
 } // ~CommandStack
 
@@ -36,7 +36,7 @@ CommandStack::~CommandStack( void )
 void CommandStack::DoCommand( ICommand* pCommand )
 {
 	pCommand->Execute();
-	m_pCommands.push( pCommand );
+	m_pCommands.emplace( pCommand );
 } // DoCommand
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,12 +45,12 @@ void CommandStack::UndoCommand( CommandStack& rRedoCommandStack )
 {
 	if( !m_pCommands.empty() )
 	{
-		ICommand*& rpCommand = m_pCommands.top();
+		std::unique_ptr<ICommand>& rCommand = m_pCommands.top();
 
-		rRedoCommandStack.m_pCommands.push( rpCommand->Undo() );
+		rRedoCommandStack.m_pCommands.emplace( rCommand->Undo() );
 
-		delete rpCommand;
-		rpCommand = nullptr;
+		rCommand.reset();
+		rCommand = nullptr;
 
 		m_pCommands.pop();
 	}
@@ -63,12 +63,12 @@ void CommandStack::RedoCommand( CommandStack& rUndoCommandStack )
 {
 	if( !m_pCommands.empty() )
 	{
-		ICommand*& rpCommand = m_pCommands.top();
+		std::unique_ptr< ICommand >& rCommand = m_pCommands.top();
 
-		rUndoCommandStack.m_pCommands.push( rpCommand->Redo() );
+		rUndoCommandStack.m_pCommands.emplace( rCommand->Redo() );
 
-		delete rpCommand;
-		rpCommand = nullptr;
+		rCommand.reset();
+		rCommand = nullptr;
 
 		m_pCommands.pop();
 	}

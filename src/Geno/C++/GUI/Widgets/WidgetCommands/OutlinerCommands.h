@@ -23,19 +23,17 @@
 #include <filesystem>
 #include <string>
 
-namespace WOC /*WOC = WorkspaceOutlinerCommands*/
+namespace OutlinerCommands
 {
 
-enum ItemType_
+enum class ItemType
 {
-	ItemType_File       = 0,
-	ItemType_FileFilter = 1,
-	ItemType_Project    = 2,
-	ItemType_Workspace  = 3
+	File       = 0,
+	FileFilter = 1,
+	Project    = 2,
+	Workspace  = 3
 
 }; // ItemType_
-
-using ItemType = int;
 
 //////////////////////////////////////////////////////////////////////////
 
