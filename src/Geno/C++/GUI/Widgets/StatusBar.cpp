@@ -98,6 +98,19 @@ void StatusBar::SetCurrentFileInfo( int Column, int Row, int Length, int Lines )
 
 //////////////////////////////////////////////////////////////////////////
 
+void StatusBar::SetSearchResultInfo( std::string SearchTerm, int Results )
+{
+	if( SearchTerm.empty() )
+	{
+		m_TextEditSearchInfo = "";
+		return;
+	}
+
+	m_TextEditSearchInfo = "Search: \"" + SearchTerm + "\"  |  Matches: " + std::to_string( Results );
+} // SetSearchResultInfo
+
+//////////////////////////////////////////////////////////////////////////
+
 void StatusBar::Show( void )
 {
 	m_Active = true;
@@ -142,13 +155,25 @@ void StatusBar::Show( void )
 	{
 		ImGui::Text( "%s", m_Message.Msg.c_str() );
 
+		float Offset = 0.0f;
+
 		if( !m_TextEditInfo.empty() )
 		{
 			const ImVec2 TextSize = ImGui::CalcTextSize( m_TextEditInfo.c_str() );
-			ImGui::SameLine( ImGui::GetWindowWidth() - 30 - TextSize.x - TextSize.y );
+			Offset                = ImGui::GetWindowWidth() - 30 - TextSize.x - TextSize.y;
+
+			ImGui::SameLine( Offset );
 			ImGui::TextUnformatted( m_TextEditInfo.c_str() );
 		}
 
+		if( !m_TextEditSearchInfo.empty() )
+		{
+			const ImVec2 TextSize = ImGui::CalcTextSize( m_TextEditSearchInfo.c_str() );
+			Offset -= TextSize.x + 30;
+
+			ImGui::SameLine( Offset );
+			ImGui::TextUnformatted( m_TextEditSearchInfo.c_str() );
+		}
 	}
 
 	ImGui::PopStyleVar( 3 );
