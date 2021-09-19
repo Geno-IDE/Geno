@@ -28,12 +28,12 @@ namespace OutlinerCommands
 
 enum class ItemType
 {
-	File       = 0,
-	FileFilter = 1,
-	Project    = 2,
-	Workspace  = 3
+	File,
+	FileFilter,
+	Project,
+	Workspace
 
-}; // ItemType_
+}; // ItemType
 
 //////////////////////////////////////////////////////////////////////////
 

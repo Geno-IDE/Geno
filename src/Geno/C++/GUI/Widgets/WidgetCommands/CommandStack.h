@@ -39,6 +39,6 @@ public:
 
 private:
 
-	std::stack< std::unique_ptr< ICommand > > m_pCommands;
+	std::stack< std::unique_ptr< ICommand > > m_Commands;
 
 }; // CommandStack

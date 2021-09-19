@@ -20,7 +20,7 @@
 void CommandStack::DoCommand( ICommand* pCommand )
 {
 	pCommand->Execute();
-	m_pCommands.emplace( pCommand );
+	m_Commands.emplace( pCommand );
 
 } // DoCommand
 
@@ -28,16 +28,10 @@ void CommandStack::DoCommand( ICommand* pCommand )
 
 void CommandStack::UndoCommand( CommandStack& rRedoCommandStack )
 {
-	if( !m_pCommands.empty() )
+	if( !m_Commands.empty() )
 	{
-		std::unique_ptr<ICommand>& rCommand = m_pCommands.top();
-
-		rRedoCommandStack.m_pCommands.emplace( rCommand->Undo() );
-
-		rCommand.reset();
-		rCommand = nullptr;
-
-		m_pCommands.pop();
+		rRedoCommandStack.m_Commands.emplace( m_Commands.top()->Undo() );
+		m_Commands.pop();
 	}
 
 } // UndoCommand
@@ -46,16 +40,10 @@ void CommandStack::UndoCommand( CommandStack& rRedoCommandStack )
 
 void CommandStack::RedoCommand( CommandStack& rUndoCommandStack )
 {
-	if( !m_pCommands.empty() )
+	if( !m_Commands.empty() )
 	{
-		std::unique_ptr< ICommand >& rCommand = m_pCommands.top();
-
-		rUndoCommandStack.m_pCommands.emplace( rCommand->Redo() );
-
-		rCommand.reset();
-		rCommand = nullptr;
-
-		m_pCommands.pop();
+		rUndoCommandStack.m_Commands.emplace( m_Commands.top()->Redo() );
+		m_Commands.pop();
 	}
 
 } // RedoCommand
