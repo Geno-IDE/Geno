@@ -3641,7 +3641,7 @@ TextEdit::Coordinate TextEdit::SearchInLine( File& rFile, bool CaseSensitive, co
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, const std::string* pSearchString, int StartLine, int EndLine, std::vector< LineSelectionItem >* pResult, int* pState )
+void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, bool WholeWord, const std::string* pSearchString, int StartLine, int EndLine, std::vector< LineSelectionItem >* pResult, int* pState )
 {
 	Coordinate            Start( 0, StartLine );
 	std::vector< Glyph* > Matches;
@@ -3676,9 +3676,45 @@ void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, const std::string*
 			Res.Start = Start;
 			Res.End   = Next;
 
-			Start = Next;
+			if( WholeWord )
+			{
+				auto Cmp = []( char C ) -> bool
+				{
+					return C == '_' || ( C >= 'a' && C <= 'z' ) || ( C >= 'A' && C <= 'Z' ) || ( C >= '0' && C <= '9' );
+				};
 
-			pResult->push_back( Res );
+				const Glyph& rFirstGlyph = pFile->Lines[ Start.y ][ Start.x ];
+				const Glyph& rLastGlyph  = pFile->Lines[ Next.y ][ Next.x - 1 ];
+
+				bool Match = true;
+
+				if( Cmp( rFirstGlyph.C ) )
+				{
+					Coordinate WordStart;
+					GetWordAt( *pFile, Start, &WordStart, nullptr );
+
+					Match = WordStart == Start;
+				}
+
+				if( Cmp( rLastGlyph.C ) && Match )
+				{
+					Coordinate WordEnd;
+					GetWordAt( *pFile, Coordinate( Next.x - 1, Next.y ), nullptr, &WordEnd );
+
+					Match = WordEnd == Next;
+				}
+
+				if( Match )
+				{
+					pResult->push_back( Res );
+				}
+			}
+			else
+			{
+				pResult->push_back( Res );
+			}
+
+			Start = Next;
 		}
 
 		Matches.clear();
@@ -3687,11 +3723,11 @@ void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, const std::string*
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEdit::SearchManager( File* pFile, bool CaseSensitive, SearchDialog::SearchInstance* Instance )
+void TextEdit::SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, SearchDialog::SearchInstance* Instance )
 {
-#if 0
+#if 1
 	std::vector< LineSelectionItem > Results;
-	SearchWorker( pFile, CaseSensitive, &Instance->SearchTerm, 0, ( int )pFile->Lines.size() - 1, &Results, &Instance->State );
+	SearchWorker( pFile, CaseSensitive, WholeWord, &Instance->SearchTerm, 0, ( int )pFile->Lines.size() - 1, &Results, &Instance->State );
 
 	for( LineSelectionItem& Item : Results )
 	{
@@ -3716,13 +3752,13 @@ void TextEdit::SearchManager( File* pFile, bool CaseSensitive, SearchDialog::Sea
 	{
 		auto& Thread = ThreadPool[ i ];
 
-		Thread.first = std::thread( &TextEdit::SearchWorker, this, pFile, CaseSensitive, &Instance->SearchTerm, Prev, Prev + Size, &Thread.second, &Instance->State );
+		Thread.first = std::thread( &TextEdit::SearchWorker, this, pFile, CaseSensitive, WholeWord, &Instance->SearchTerm, Prev, Prev + Size, &Thread.second, &Instance->State );
 
 		Prev += Size + 1;
 	}
 
 	auto& LastThread = ThreadPool[ NumThreads - 1 ];
-	LastThread.first = std::thread( &TextEdit::SearchWorker, this, pFile, CaseSensitive, &Instance->SearchTerm, Prev, ( int )pFile->Lines.size() - 1, &LastThread.second, &Instance->State );
+	LastThread.first = std::thread( &TextEdit::SearchWorker, this, pFile, CaseSensitive, WholeWord, &Instance->SearchTerm, Prev, ( int )pFile->Lines.size() - 1, &LastThread.second, &Instance->State );
 
 	for( int i = 0; i < ( int )ThreadPool.size(); i++ )
 	{
@@ -3750,7 +3786,7 @@ void TextEdit::SearchManager( File* pFile, bool CaseSensitive, SearchDialog::Sea
 	}
 }
 
-void TextEdit::Search( File& rFile, bool CaseSensitive, std::string SearchString )
+void TextEdit::Search( File& rFile, bool CaseSensitive, bool WholeWord, std::string SearchString )
 {
 	rFile.SearchDiag.ActiveItem = -1;
 
@@ -3771,7 +3807,7 @@ void TextEdit::Search( File& rFile, bool CaseSensitive, std::string SearchString
 	Instance->SearchTerm = SearchString;
 	Instance->State      = SearchDialog::SearchInstance::Running;
 	Instance->Result     = new SearchDialog::SearchResultGroups;
-	Instance->Thread     = std::thread( &TextEdit::SearchManager, this, &rFile, CaseSensitive, Instance );
+	Instance->Thread     = std::thread( &TextEdit::SearchManager, this, &rFile, CaseSensitive, WholeWord, Instance );
 
 	rFile.SearchDiag.SearchInstances.push_back( Instance );
 } // Search
@@ -3854,7 +3890,7 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 
 	if( ImGui::InputText( "", &rDiag.SearchTerm ) || Props.Changes )
 	{
-		Search( rFile, rDiag.CaseSensitive, rDiag.SearchTerm );
+		Search( rFile, rDiag.CaseSensitive, rDiag.WholeWord, rDiag.SearchTerm );
 
 		if( rDiag.SearchTerm.size() == 0 )
 		{
@@ -3967,7 +4003,21 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 	{
 		if( !rDiag.SearchTerm.empty() )
 		{
-			Search( rFile, rDiag.CaseSensitive, rDiag.SearchTerm );
+			Search( rFile, rDiag.CaseSensitive, rDiag.WholeWord, rDiag.SearchTerm );
+		}
+	}
+
+	ImGui::SameLine();
+
+	ImGui::TextUnformatted( "Whole Word:" );
+
+	ImGui::SameLine();
+
+	if( ImGui::Checkbox( "##WholeWord", &rDiag.WholeWord ) )
+	{
+		if( !rDiag.SearchTerm.empty() )
+		{
+			Search( rFile, rDiag.CaseSensitive, rDiag.WholeWord, rDiag.SearchTerm );
 		}
 	}
 
