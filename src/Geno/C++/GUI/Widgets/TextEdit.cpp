@@ -3751,6 +3751,8 @@ void TextEdit::SearchManager( File* pFile, bool CaseSensitive, SearchDialog::Sea
 
 void TextEdit::Search( File& rFile, bool CaseSensitive, std::string SearchString )
 {
+	rFile.SearchDiag.ActiveItem = -1;
+
 	for( SearchDialog::SearchInstance* Instance : rFile.SearchDiag.SearchInstances )
 	{
 		if( Instance->State == SearchDialog::SearchInstance::Running )
@@ -3851,7 +3853,7 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 
 	if( ImGui::InputText( "", &rDiag.SearchTerm ) || Props.Changes )
 	{
-		Search( rFile, false, rDiag.SearchTerm );
+		Search( rFile, rDiag.CaseSensitive, rDiag.SearchTerm );
 
 		if( rDiag.SearchTerm.size() == 0 )
 		{
@@ -3954,6 +3956,20 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 		ImGui::SetFocusID( FocusId, pWindow );
 	}
 
+	ImGui::SetCursorPosX( Padding );
+
+	ImGui::TextUnformatted( "Case Sensitive:" );
+
+	ImGui::SameLine();
+
+	if( ImGui::Checkbox( "##CaseSensitivity", &rDiag.CaseSensitive ) )
+	{
+		if( !rDiag.SearchTerm.empty() )
+		{
+			Search( rFile, rDiag.CaseSensitive, rDiag.SearchTerm );
+		}
+	}
+
 	ImGui::PopStyleVar();
 	ImGui::PopStyleVar();
 
@@ -4027,7 +4043,8 @@ size_t TextEdit::SearchDialog::SearchResultGroups::Size()
 	return Result.size();
 }
 
-bool TextEdit::SearchDialog::SearchResultGroups::Empty() {
+bool TextEdit::SearchDialog::SearchResultGroups::Empty()
+{
 	return Size() == 0;
 }
 
