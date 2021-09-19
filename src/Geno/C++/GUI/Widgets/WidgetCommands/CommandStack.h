@@ -26,8 +26,8 @@ class CommandStack
 {
 public:
 
-	CommandStack( void ) = default;
-	~CommandStack( void );
+	 CommandStack( void ) = default;
+	~CommandStack( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 

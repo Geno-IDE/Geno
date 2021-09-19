@@ -106,6 +106,8 @@ void OutlinerCommands::NewItemCommand::Execute( void )
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 	switch( m_NewItemType )
 	{
+		case ItemType::Workspace:
+			break;
 		case ItemType::Project:
 			pWorkspace->NewProject( m_Location, m_Name );
 			break;
@@ -132,6 +134,8 @@ ICommand* OutlinerCommands::NewItemCommand::Undo( void )
 	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 	switch( m_NewItemType )
 	{
+		case ItemType::Workspace:
+			break;
 		case ItemType::Project:
 			pWorkspace->RemoveProject( m_Name );
 			break;
@@ -180,6 +184,8 @@ void OutlinerCommands::AddItemCommand::Execute( void )
 
 	switch( m_AddItemType )
 	{
+		case ItemType::Workspace:
+			break;
 		case ItemType::Project:
 			pWorkspace->AddProject( m_Path );
 			break;
@@ -188,6 +194,8 @@ void OutlinerCommands::AddItemCommand::Execute( void )
 			{
 				pProject->AddFile( m_Path, m_FileFilterName );
 			}
+			break;
+		case ItemType::FileFilter:
 			break;
 	}
 
@@ -201,6 +209,8 @@ ICommand* OutlinerCommands::AddItemCommand::Undo( void )
 
 	switch( m_AddItemType )
 	{
+		case ItemType::Workspace:
+			break;
 		case ItemType::Project:
 			pWorkspace->RemoveProject( m_Path.stem().string() );
 			break;
@@ -209,6 +219,8 @@ ICommand* OutlinerCommands::AddItemCommand::Undo( void )
 			{
 				pProject->RemoveFile( m_Path, m_FileFilterName );
 			}
+			break;
+		case ItemType::FileFilter:
 			break;
 	}
 
@@ -243,6 +255,8 @@ void OutlinerCommands::RemoveItemCommand::Execute( void )
 
 	switch( m_RemoveItemType )
 	{
+		case ItemType::Workspace:
+			break;
 		case ItemType::Project:
 			pWorkspace->RemoveProject( m_Name.stem().string() );
 			break;
@@ -271,6 +285,8 @@ ICommand* OutlinerCommands::RemoveItemCommand::Undo( void )
 
 	switch( m_RemoveItemType )
 	{
+		case ItemType::Workspace:
+			break;
 		case ItemType::Project:
 			pWorkspace->AddProject( m_Name );
 			break;

@@ -17,26 +17,11 @@
 
 #include "CommandStack.h"
 
-CommandStack::~CommandStack( void )
-{
-	//for( size_t i = 0; i < m_pCommands.size(); ++i )
-	//{
-	//	auto& rCommand = m_pCommands.top();
-	//	if( rCommand )
-	//	{
-	//		delete rCommand;
-	//		rCommand = nullptr;
-	//	}
-	//}
-
-} // ~CommandStack
-
-//////////////////////////////////////////////////////////////////////////
-
 void CommandStack::DoCommand( ICommand* pCommand )
 {
 	pCommand->Execute();
 	m_pCommands.emplace( pCommand );
+
 } // DoCommand
 
 //////////////////////////////////////////////////////////////////////////
