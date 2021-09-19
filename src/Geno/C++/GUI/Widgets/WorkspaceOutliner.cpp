@@ -30,10 +30,12 @@
 #include "GUI/Modals/ProjectSettingsModal.h"
 #include "GUI/Widgets/MainMenuBar.h"
 #include "GUI/Widgets/TextEdit.h"
+#include "WidgetCommands/OutlinerCommands.h"
 #include "Discord/DiscordRPC.h"
 
 #include <fstream>
 
+#include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
 #include <stb_image.h>
@@ -72,6 +74,19 @@ void WorkspaceOutliner::Show( bool* pOpen )
 			ImGui::SetNextItemOpen( true, m_ExpandWorkspaceNode ? ImGuiCond_Always : ImGuiCond_Appearing );
 			m_ExpandWorkspaceNode = false;
 
+			if( ImGui::IsKeyDown( GLFW_KEY_LEFT_CONTROL ) && ImGui::IsKeyPressed( GLFW_KEY_Z ) )
+			{
+				m_UndoCommandStack.UndoCommand( m_RedoCommandStack );
+			}
+
+			if( ImGui::IsKeyDown( GLFW_KEY_LEFT_CONTROL ) )
+			{
+				if( ( ImGui::IsKeyDown( GLFW_KEY_LEFT_SHIFT ) && ImGui::IsKeyPressed( GLFW_KEY_Z ) ) || ImGui::IsKeyPressed( GLFW_KEY_Y ) )
+				{
+					m_RedoCommandStack.RedoCommand( m_UndoCommandStack );
+				}
+			}
+
 			auto RenameWorkspaceFunc = [ & ]()
 			{
 				if( ForceFocusRename )
@@ -84,16 +99,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					{
 						if( m_RenameText != pWorkspace->m_Name )
 						{
-							const std::filesystem::path OldPath = ( pWorkspace->m_Location / pWorkspace->m_Name ).replace_extension( Workspace::EXTENSION );
-
-							if( std::filesystem::exists( OldPath ) )
-							{
-								const std::filesystem::path NewPath = ( pWorkspace->m_Location / m_RenameText ).replace_extension( Workspace::EXTENSION );
-								std::filesystem::rename( OldPath, NewPath );
-							}
-
-							pWorkspace->m_Name = std::move( m_RenameText );
-							pWorkspace->Serialize();
+							m_UndoCommandStack.DoCommand( new OutlinerCommands::RenameItemCommand( OutlinerCommands::ItemType::Workspace, pWorkspace->m_Name, m_RenameText ) );
 						}
 
 						return true;
@@ -119,24 +125,9 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							return false;
 						}
 
-						if( Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName ) )
-						{
-							const std::filesystem::path OldPath = ( pProject->m_Location / pProject->m_Name ).replace_extension( Project::EXTENSION );
+						m_UndoCommandStack.DoCommand( new OutlinerCommands::RenameItemCommand( OutlinerCommands::ItemType::Project, m_SelectedProjectName, m_RenameText ) );
 
-							if( std::filesystem::exists( OldPath ) )
-							{
-								const std::filesystem::path NewPath = ( pProject->m_Location / m_RenameText ).replace_extension( Project::EXTENSION );
-								std::filesystem::rename( OldPath, NewPath );
-							}
-
-							pProject->m_Name = std::move( m_RenameText );
-							pProject->Serialize();
-							pWorkspace->Serialize();
-
-							return true;
-						}
-
-						return false;
+						return true;
 					} );
 			};
 
@@ -161,20 +152,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							return false;
 						}
 
-						if( FileFilter* pFileFilter = pProject->FileFilterByName( m_SelectedFileFilterName ) )
-						{
-							pFileFilter->Name = std::move( m_RenameText );
-							pProject->SortFileFilters();
-							pProject->Serialize();
-
-							m_SelectedFileFilterName.clear();
-							m_SelectedProjectName.clear();
-							m_RenameText.clear();
-
-							return true;
-						}
-
-						return false;
+						m_UndoCommandStack.DoCommand( new OutlinerCommands::RenameItemCommand( OutlinerCommands::ItemType::FileFilter, m_SelectedFileFilterName, m_RenameText, m_SelectedProjectName ) );
+						return true;
 					} );
 			};
 
@@ -251,20 +230,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 									return false;
 								}
 
-								const std::filesystem::path OldPath = m_SelectedFile;
-
-								if( std::filesystem::exists( OldPath ) )
-								{
-									const std::filesystem::path NewPath = pProject->m_Location / pFileFilter->Path / m_RenameText;
-									std::filesystem::rename( OldPath, NewPath );
-								}
-
-								rFile = pProject->m_Location / pFileFilter->Path / m_RenameText;
-								pProject->SortFileFilters();
-								pProject->Serialize();
-
-								MainWindow::Instance().pTextEdit->ReplaceFile( m_SelectedFile, rFile );
-
+								m_UndoCommandStack.DoCommand( new OutlinerCommands::RenameItemCommand( OutlinerCommands::ItemType::File, m_SelectedFile, pProject->m_Location / pFileFilter->Path / m_RenameText, m_SelectedProjectName, m_SelectedFileFilterName ) );
 								return true;
 							} );
 					}
@@ -446,18 +412,18 @@ void WorkspaceOutliner::Show( bool* pOpen )
 						ForceFocusRename = true;
 					}
 				}
+				if( ImGui::MenuItem( "Add Project" ) )
+				{
+					OpenFileModal::Instance().Show( "Add Project", "*.gprj", [ this ]( const std::filesystem::path& rPath )
+						{ m_UndoCommandStack.DoCommand( new OutlinerCommands::AddItemCommand( OutlinerCommands::ItemType::Project, rPath ) ); } );
+				}
 				if( ImGui::MenuItem( "New Project" ) )
 				{
 					NewItemModal::Instance().Show( "New Project", ".gprj", pWorkspace->m_Location, [ this ]( const std::string& rName, const std::filesystem::path& rLocation )
 						{
-							if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
-							{
-								// Automatically expand tree if adding an item for the first time
-								m_ExpandWorkspaceNode = true;
-
-								pWorkspace->NewProject( std::move( rLocation ), std::move( rName ) );
-								pWorkspace->Serialize();
-							}
+							// Automatically expand tree if adding an item for the first time
+							m_ExpandWorkspaceNode = true;
+							m_UndoCommandStack.DoCommand( new OutlinerCommands::NewItemCommand( OutlinerCommands::ItemType::Project, rLocation, rName ) );
 						} );
 
 					ShowWorkspaceContextMenu = false;
@@ -499,7 +465,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					}
 
 					std::string FilterName = "File Filter" + std::to_string( Count );
-					pProject->NewFileFilter( FilterName );
+					m_UndoCommandStack.DoCommand( new OutlinerCommands::NewItemCommand( OutlinerCommands::ItemType::FileFilter, {}, FilterName, m_SelectedProjectName ) );
 					RenameFileFilter         = true;
 					ForceFocusRename         = true;
 					m_RenameText             = FilterName;
@@ -514,26 +480,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 					NewItemModal::Instance().Show( "New File", nullptr, pProject->m_Location, [ this ]( const std::string& rName, const std::filesystem::path& rLocation )
 						{
-							if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
-							{
-								if( Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName ) )
-								{
-									std::filesystem::path FilePath = rLocation / rName;
-									std::ofstream         OutputFileStream( FilePath, std::ios::binary | std::ios::trunc );
-
-									if( OutputFileStream.is_open() )
-									{
-										FileFilter* pFileFilter = pProject->FileFilterByName( "" );
-										if( !pFileFilter )
-										{
-											pFileFilter = pProject->NewFileFilter( "" );
-										}
-										pFileFilter->Files.push_back( FilePath );
-										pProject->Serialize();
-									}
-								}
-							}
-
+							m_UndoCommandStack.DoCommand( new OutlinerCommands::NewItemCommand( OutlinerCommands::ItemType::File, rLocation, rName, m_SelectedProjectName, "" ) );
 							m_ProjectNodeToBeExpanded = m_SelectedProjectName;
 						} );
 
@@ -544,22 +491,17 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					OpenFileModal::Instance().Show( "Add File", nullptr, [ this ]( const std::filesystem::path& rFile )
 						{
-							if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
-							{
-								Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName );
-
-								FileFilter* pFileFilter = pProject->FileFilterByName( "" );
-								if( !pFileFilter )
-								{
-									pFileFilter = pProject->NewFileFilter( "" );
-								}
-								pFileFilter->Files.push_back( rFile );
-								pProject->Serialize();
-							}
-
+							m_UndoCommandStack.DoCommand( new OutlinerCommands::AddItemCommand( OutlinerCommands::ItemType::File, rFile, m_SelectedProjectName, "" ) );
 							m_ProjectNodeToBeExpanded = m_SelectedProjectName;
 						} );
 					ShowProjectContextMenu = false;
+				}
+
+				if( ImGui::MenuItem( "Remove" ) )
+				{
+					Project*                    pProject = pWorkspace->ProjectByName( m_SelectedProjectName );
+					const std::filesystem::path Path     = ( pProject->m_Location / pProject->m_Name ).replace_extension( Project::EXTENSION );
+					m_UndoCommandStack.DoCommand( new OutlinerCommands::RemoveItemCommand( OutlinerCommands::ItemType::Project, Path ) );
 				}
 
 				ImGui::Separator();
@@ -590,6 +532,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					if( Project* pSelectedProject = pWorkspace->ProjectByName( m_SelectedProjectName ) )
 					{
+						m_UndoCommandStack.DoCommand( new OutlinerCommands::RemoveItemCommand( OutlinerCommands::ItemType::FileFilter, m_SelectedFileFilterName, m_SelectedProjectName ) );
 						pSelectedProject->RemoveFileFilter( m_SelectedFileFilterName );
 					}
 
@@ -612,7 +555,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					}
 
 					std::string FileFilterName = pFileFilter->Name.string() + "/File Filter" + std::to_string( Count );
-					pProject->NewFileFilter( FileFilterName );
+					m_UndoCommandStack.DoCommand( new OutlinerCommands::NewItemCommand( OutlinerCommands::ItemType::FileFilter, {}, FileFilterName, m_SelectedProjectName ) );
 					RenameFileFilter         = true;
 					ForceFocusRename         = true;
 					m_RenameText             = FileFilterName;
@@ -628,25 +571,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 					NewItemModal::Instance().Show( "New File", nullptr, std::filesystem::canonical( pProject->m_Location / pFileFilter->Path ), [ this ]( const std::string& rName, const std::filesystem::path& rLocation )
 						{
-							if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
-							{
-								if( Project* pProject = pWorkspace->ProjectByName( m_SelectedProjectName ) )
-								{
-									if( FileFilter* pFileFilter = pProject->FileFilterByName( m_SelectedFileFilterName ) )
-									{
-										std::filesystem::path FilePath = rLocation / rName;
-										std::ofstream         OutputFileStream( FilePath, std::ios::binary | std::ios::trunc );
-
-										if( OutputFileStream.is_open() )
-										{
-											pFileFilter->Files.emplace_back( FilePath );
-											pProject->SortFileFilters();
-											pProject->Serialize();
-										}
-									}
-								}
-							}
-
+							m_UndoCommandStack.DoCommand( new OutlinerCommands::NewItemCommand( OutlinerCommands::ItemType::File, rLocation, rName, m_SelectedProjectName, m_SelectedFileFilterName ) );
 							m_ProjectNodeToBeExpanded = m_SelectedProjectName;
 						} );
 					ShowFileFilterContextMenu = false;
@@ -656,16 +581,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					OpenFileModal::Instance().Show( "Add File", nullptr, [ this ]( const std::filesystem::path& rPath )
 						{
-							if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
-							{
-								Project*    pProject    = pWorkspace->ProjectByName( m_SelectedProjectName );
-								FileFilter* pFileFilter = pProject->FileFilterByName( m_SelectedFileFilterName );
-
-								pFileFilter->Files.push_back( rPath );
-								pProject->SortFileFilters();
-								pProject->Serialize();
-							}
-
+							m_UndoCommandStack.DoCommand( new OutlinerCommands::AddItemCommand( OutlinerCommands::ItemType::File, rPath, m_SelectedProjectName, m_SelectedFileFilterName ) );
 							m_ProjectNodeToBeExpanded = m_SelectedProjectName;
 						} );
 					ShowFileFilterContextMenu = false;
@@ -700,21 +616,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					std::string Message = "Are you sure you want to remove '" + m_SelectedFile.filename().string() + "'";
 
 					MessageModal::Instance().ShowMessage( Message, "Remove", [ & ]()
-						{
-							Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
-							if( Project* pSelectedProject = pWorkspace->ProjectByName( m_SelectedProjectName ) )
-							{
-								if( FileFilter* pSelectedFileFilter = pSelectedProject->FileFilterByName( m_SelectedFileFilterName ) )
-								{
-									auto SelectedFileIt = std::find_if( pSelectedFileFilter->Files.begin(), pSelectedFileFilter->Files.end(), [ this ]( const std::filesystem::path& rPath )
-										{ return rPath == m_SelectedFile; } );
-									if( SelectedFileIt != pSelectedFileFilter->Files.end() )
-									{
-										pSelectedFileFilter->Files.erase( SelectedFileIt );
-									}
-								}
-							}
-						} );
+						{ m_UndoCommandStack.DoCommand( new OutlinerCommands::RemoveItemCommand( OutlinerCommands::ItemType::File, m_SelectedFile, m_SelectedProjectName, m_SelectedFileFilterName ) ); } );
 
 					ShowFileContextMenu = false;
 				}

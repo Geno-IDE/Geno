@@ -15,43 +15,35 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include "Common/Macros.h"
-#include "Common/Texture2D.h"
+#include "CommandStack.h"
 
-#include "WidgetCommands/CommandStack.h"
-
-#include <filesystem>
-#include <string>
-
-class WorkspaceOutliner
+void CommandStack::DoCommand( ICommand* pCommand )
 {
-public:
+	pCommand->Execute();
+	m_Commands.emplace( pCommand );
 
-	WorkspaceOutliner( void );
-
-//////////////////////////////////////////////////////////////////////////
-
-	void Show( bool* pOpen );
+} // DoCommand
 
 //////////////////////////////////////////////////////////////////////////
 
-private:
+void CommandStack::UndoCommand( CommandStack& rRedoCommandStack )
+{
+	if( !m_Commands.empty() )
+	{
+		rRedoCommandStack.m_Commands.emplace( m_Commands.top()->Undo() );
+		m_Commands.pop();
+	}
 
-	Texture2D             m_IconTextureWorkspace    = { };
-	Texture2D             m_IconTextureProject      = { };
-	Texture2D             m_IconTextureFileFilter   = { };
-	Texture2D             m_IconTextureSourceFile   = { };
+} // UndoCommand
 
-	std::filesystem::path m_SelectedFile            = { };
-	std::filesystem::path m_SelectedFileFilterName  = { };
-	std::string           m_RenameText              = { };
-	std::string           m_SelectedProjectName     = { };
-	std::string           m_ProjectNodeToBeExpanded = { };
+//////////////////////////////////////////////////////////////////////////
 
-	bool                  m_ExpandWorkspaceNode     = false;
+void CommandStack::RedoCommand( CommandStack& rUndoCommandStack )
+{
+	if( !m_Commands.empty() )
+	{
+		rUndoCommandStack.m_Commands.emplace( m_Commands.top()->Redo() );
+		m_Commands.pop();
+	}
 
-	CommandStack m_UndoCommandStack = {};
-	CommandStack m_RedoCommandStack = {};
-
-}; // WorkspaceWidget
+} // RedoCommand

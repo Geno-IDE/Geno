@@ -32,7 +32,6 @@ Workspace::Workspace( std::filesystem::path Location )
 	: m_Location( std::move( Location ) )
 	, m_Name    ( "MyWorkspace" )
 {
-
 } // Workspace
 
 //////////////////////////////////////////////////////////////////////////
@@ -122,10 +121,27 @@ bool Workspace::Deserialize( void )
 
 //////////////////////////////////////////////////////////////////////////
 
+void Workspace::Rename( std::string Name )
+{
+	const std::filesystem::path OldPath = ( m_Location / m_Name ).replace_extension( EXTENSION );
+
+	if( std::filesystem::exists( OldPath ) )
+	{
+		const std::filesystem::path NewPath = ( m_Location / Name ).replace_extension( EXTENSION );
+		std::filesystem::rename( OldPath, NewPath );
+	}
+
+	m_Name = std::move( Name );
+	Serialize();
+
+} // Rename
+
+//////////////////////////////////////////////////////////////////////////
+
 Project& Workspace::NewProject( std::filesystem::path Location, std::string Name )
 {
 	Project& project = m_Projects.emplace_back( std::move( Location ) );
-	project.m_Name    = std::move( Name );
+	project.m_Name   = std::move( Name );
 
 	return project;
 
@@ -144,6 +160,64 @@ Project* Workspace::ProjectByName( std::string_view Name )
 	return nullptr;
 
 } // ProjectByName
+
+//////////////////////////////////////////////////////////////////////////
+
+bool Workspace::AddProject( const std::filesystem::path& rPath )
+{
+	Project* pProject = ProjectByName( rPath.stem().string() );
+	if( !pProject )
+	{
+		std::filesystem::path ProjectPath = rPath;
+		ProjectPath                       = ProjectPath.lexically_normal();
+
+		Project& rProject = NewProject( ProjectPath.parent_path(), ProjectPath.stem().string() );
+		if( rProject.Deserialize() )
+			return true;
+	}
+	return false;
+
+} // AddProject
+
+//////////////////////////////////////////////////////////////////////////
+
+void Workspace::RemoveProject( const std::string& rName )
+{
+	if( ProjectByName( rName ) )
+	{
+		for( auto It = m_Projects.begin(); It != m_Projects.end(); ++It )
+		{
+			if( It->m_Name == rName )
+			{
+				m_Projects.erase( It );
+				Serialize();
+				break;
+			}
+		}
+	}
+
+} // RemoveProject
+
+//////////////////////////////////////////////////////////////////////////
+
+void Workspace::RenameProject( const std::string& rProjectName, std::string Name )
+{
+	if( Project* pProject = ProjectByName( rProjectName ) )
+	{
+		const std::filesystem::path OldPath = ( pProject->m_Location / pProject->m_Name ).replace_extension( Project::EXTENSION );
+
+		if( std::filesystem::exists( OldPath ) )
+		{
+			const std::filesystem::path NewPath = ( pProject->m_Location / Name ).replace_extension( Project::EXTENSION );
+			std::filesystem::rename( OldPath, NewPath );
+		}
+
+		pProject->m_Name = std::move( Name );
+		pProject->Serialize();
+		Serialize();
+	}
+
+} // RenameProject
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -263,7 +337,7 @@ void Workspace::SerializeBuildMatrixColumn( GCL::Object& rObject, const BuildMat
 {
 	GCL::Object ColumnObj( rColumn.Name, std::in_place_type< GCL::Object::TableType > );
 
-	for( const auto&[ rName, rConfiguration ] : rColumn.Configurations )
+	for( const auto& [ rName, rConfiguration ] : rColumn.Configurations )
 	{
 		GCL::Object ConfigurationObj( rName );
 
@@ -306,8 +380,8 @@ void Workspace::DeserializeBuildMatrixColumn( BuildMatrix::Column& rColumn, cons
 #if defined( _WIN32 )
 				else if( rCompilerValue == "MSVC" ) { Configuration.m_Compiler = std::make_shared< CompilerMSVC >(); }
 #endif // _WIN32
-				else if( rCompilerValue == "GCC"  ) { Configuration.m_Compiler = std::make_shared< CompilerGCC  >(); }
-				else                                { std::cerr << "Unrecognized compiler '" << rCompilerValue << "' for this workspace.\n"; }
+				else if( rCompilerValue == "GCC" ) { Configuration.m_Compiler = std::make_shared< CompilerGCC >(); }
+				else                               { std::cerr << "Unrecognized compiler '" << rCompilerValue << "' for this workspace.\n"; }
 			}
 		}
 
