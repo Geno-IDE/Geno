@@ -37,6 +37,7 @@ constexpr float EmptyLineSelectionWidth = 4.0f;
 constexpr int   CursorBlink             = 400;
 constexpr float DummyExtraX             = 10.0f;
 constexpr float DummyExtraY             = 10.0f;
+constexpr int   SearchResultGroupSize   = 1000;
 
 float TextEdit::FontSize = 15.0f;
 
@@ -3989,14 +3990,14 @@ TextEdit::SearchDialog::SearchResultGroups::SearchResultGroups()
 
 std::vector< TextEdit::LineSelectionItem* >& TextEdit::SearchDialog::SearchResultGroups::GetGroup( int LineIndex )
 {
-	int Group = LineIndex / 1000;
+	int Group = LineIndex / SearchResultGroupSize;
 	GENO_ASSERT( Group < ( int )Groups.size() );
 	return Groups[ Group ];
 }
 
 bool TextEdit::SearchDialog::SearchResultGroups::GroupExist( int LineIndex )
 {
-	int Group = LineIndex / 1000;
+	int Group = LineIndex / SearchResultGroupSize;
 
 	return Group < ( int )Groups.size();
 }
@@ -4016,8 +4017,8 @@ void TextEdit::SearchDialog::SearchResultGroups::UpdateGroups()
 		const Coordinate& Start = Item.Start;
 		const Coordinate& End   = Item.End;
 
-		int StartGroup = Start.y / 1000;
-		int EndGroup   = End.y / 1000;
+		int StartGroup = Start.y / SearchResultGroupSize;
+		int EndGroup   = End.y / SearchResultGroupSize;
 
 		for( int i = ( int )Groups.size(); i <= EndGroup; i++ )
 		{
