@@ -277,7 +277,7 @@ void TitleBar::Draw( void )
 							glfwX11ResizeWindow( pWindow, 7 );
 						}
 					}
-					*/Bottom Right
+					*/
 				}
 
 				ImGui::PopStyleColor( 3 );

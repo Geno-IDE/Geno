@@ -41,7 +41,7 @@ public:
 
 		Point() : x( 0.0F ), y( 0.0F ) { }
 		Point( float _x, float _y ) : x( _x ), y( _y ) { }
-	}
+	};
 
 	/*
 	*				 <-- L -->
@@ -68,11 +68,11 @@ public:
 
 		Rect()
 		{
-			top  = bottom = 0;
-			left = right = -1;
+			x1  = y1 = 0;
+			x2 = y2 = -1;
 		}
 
-		Rect( float _x1, float _y1, float _x1, float _y2 )
+		Rect( float _x1, float _y1, float _x2, float _y2 )
 		{
 			x1  = _x1;
 			y1  = _y1;
@@ -93,7 +93,7 @@ public:
 		Point& TopLeft     ()   { return Point( x1, y1 ); }
 		Point& TopRight    ()   { return Point( x2, y1 ); }
 
-	}
+	};
 #endif
 //////////////////////////////////////////////////////////////////////////
 
