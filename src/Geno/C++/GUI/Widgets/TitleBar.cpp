@@ -235,7 +235,7 @@ void TitleBar::Draw( void )
 				}
 
 				int dw = DisplayWidth( pX11Display, X11Screen ), dh = DisplayHeight( pX11Display, X11Screen );
-				int rx, ry, xright, ybelow;
+				int rx, ry;
 
 				XWindowAttributes win_attributes;
 
@@ -246,38 +246,40 @@ void TitleBar::Draw( void )
 				// Get Top left
 				XTranslateCoordinates( pX11Display, X11Window, win_attributes.root, -win_attributes.border_width, -win_attributes.border_width, &rx, &ry, &junkwin );
 
-				Rect windowRect( { rx, ry }, ImGui::GetWindowWidth(), ImGui::GetWindowHeight() );
+				Rect windowRect;
+				windowRect.x1 = static_cast< float >( rx );
+				windowRect.y2 = static_cast< float >( ry );
+				windowRect.x2 = ImGui::GetWindowWidth();
+				windowRect.y2 = ImGui::GetWindowHeight();
 
 				if( ImGui::IsMousePosValid( &CursorPos ) )
 				{
-					printf( "Rect Bottom Left X, Y %f, %f", windowRect.BottomLeft().x, windowRect.BottomLeft().y );
-					/*
-					if( CursorPos.x == rx + Border || CursorPos.x < rx + Border )
+					printf( "Rect Bottom Left X, Y %f, %f\n", windowRect.BottomLeft().x, windowRect.BottomLeft().y );
+					printf( "Rect Bottom Right X, Y %f, %f\n", windowRect.BottomRight().x, windowRect.BottomRight().y );
+					printf( "Rect Top Left X, Y %f, %f\n", windowRect.TopLeft().x, windowRect.TopLeft().y );
+					printf( "Rect Top Right X, Y %f, %f\n", windowRect.TopRight().x, windowRect.TopRight().y );
+
+					if( CursorPos.x == windowRect.BottomLeft().x && CursorPos.y == windowRect.BottomLeft().y )
 					{
-						if( CursorPos.y == ry + Border || CursorPos.y < ry + Border )
-						{
-							ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE );
-							glfwX11ResizeWindow( pWindow, 5 );
-						}
+						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE );
+						glfwX11ResizeWindow( pWindow, 7 );
 					}
-					else if( CursorPos.x == xright + Border || CursorPos.x > xright + Border )
+					else if( CursorPos.x == windowRect.BottomRight().x && CursorPos.y == windowRect.BottomRight().y )
 					{
-						if( CursorPos.y == ry + Border || CursorPos.y < ry + Border )
-						{
-							ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW );
-							glfwX11ResizeWindow( pWindow, 6 );
-						}
+						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW );
+						glfwX11ResizeWindow( pWindow, 8 );
 					}
 
-					if( CursorPos.x == rx + Border || CursorPos.x < rx + Border )
+					if( CursorPos.x == windowRect.TopLeft().x && CursorPos.y == windowRect.TopLeft().y )
 					{
-						if( CursorPos.y == ry + Border || CursorPos.y > ry + Border )
-						{
-							ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW );
-							glfwX11ResizeWindow( pWindow, 7 );
-						}
+						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW );
+						glfwX11ResizeWindow( pWindow, 5 );
 					}
-					*/
+					else if( CursorPos.x == windowRect.TopRight().x && CursorPos.y == windowRect.TopRight().y )
+					{
+						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW );
+						glfwX11ResizeWindow( pWindow, 6 );
+					}
 				}
 
 				ImGui::PopStyleColor( 3 );

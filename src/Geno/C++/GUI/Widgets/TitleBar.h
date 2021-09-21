@@ -88,10 +88,10 @@ public:
 			y2  = top_left.y + height -1;
 		}
 
-		Point& BottomLeft  ()   { return Point( x1, y2 ); }
-		Point& BottomRight ()   { return Point( x2, y2 ); }
-		Point& TopLeft     ()   { return Point( x1, y1 ); }
-		Point& TopRight    ()   { return Point( x2, y1 ); }
+		Point BottomLeft  ()   { return Point( x1, y2 ); }
+		Point BottomRight ()   { return Point( x2, y2 ); }
+		Point TopLeft     ()   { return Point( x1, y1 ); }
+		Point TopRight    ()   { return Point( x2, y1 ); }
 
 	};
 #endif
