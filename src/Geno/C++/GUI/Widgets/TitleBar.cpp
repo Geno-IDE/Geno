@@ -243,14 +243,15 @@ void TitleBar::Draw( void )
 
 				XGetWindowAttributes( pX11Display, X11Window, &win_attributes );
 
+				// Get Top left
 				XTranslateCoordinates( pX11Display, X11Window, win_attributes.root, -win_attributes.border_width, -win_attributes.border_width, &rx, &ry, &junkwin );
 
-				xright = ( dw - rx - win_attributes.border_width * 2 - win_attributes.width );
-				ybelow = ( dh - ry - win_attributes.border_width * 2 - win_attributes.height );
-				ybelow++; // temp
+				Rect windowRect( { rx, ry }, ImGui::GetWindowWidth(), ImGui::GetWindowHeight() );
 
 				if( ImGui::IsMousePosValid( &CursorPos ) )
 				{
+					printf( "Rect Bottom Left X, Y %f, %f", windowRect.BottomLeft().x, windowRect.BottomLeft().y );
+					/*
 					if( CursorPos.x == rx + Border || CursorPos.x < rx + Border )
 					{
 						if( CursorPos.y == ry + Border || CursorPos.y < ry + Border )
@@ -276,7 +277,7 @@ void TitleBar::Draw( void )
 							glfwX11ResizeWindow( pWindow, 7 );
 						}
 					}
-					// Bottom Right
+					*/Bottom Right
 				}
 
 				ImGui::PopStyleColor( 3 );

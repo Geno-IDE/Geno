@@ -32,6 +32,71 @@ class TitleBar
 {
 public:
 
+#if defined ( __linux__ )
+
+	struct Point
+	{
+	public:
+		float x, y;
+
+		Point() : x( 0.0F ), y( 0.0F ) { }
+		Point( float _x, float _y ) : x( _x ), y( _y ) { }
+	}
+
+	/*
+	*				 <-- L -->
+	*
+	*
+	* 
+	*
+	* A					P					D
+	* |||||||||||||||||||||||||||||||||||||||
+	* |										|
+	* |										|
+	* |||||||||||||||||||||||||||||||||||||||
+	* B					Q					C
+	*
+	*/
+
+	struct Rect
+	{
+	public:
+		float x1;
+		float y1;
+		float x2;
+		float y2;
+
+		Rect()
+		{
+			top  = bottom = 0;
+			left = right = -1;
+		}
+
+		Rect( float _x1, float _y1, float _x1, float _y2 )
+		{
+			x1  = _x1;
+			y1  = _y1;
+			x2  = _x2;
+			y2  = _y2;
+		}
+
+		Rect( Point& top_left, float width, float height )
+		{
+			x1  = top_left.x;
+			y1  = top_left.y;
+			x2  = top_left.x + width -1;
+			y2  = top_left.y + height -1;
+		}
+
+		Point& BottomLeft  ()   { return Point( x1, y2 ); }
+		Point& BottomRight ()   { return Point( x2, y2 ); }
+		Point& TopLeft     ()   { return Point( x1, y1 ); }
+		Point& TopRight    ()   { return Point( x2, y1 ); }
+
+	}
+#endif
+//////////////////////////////////////////////////////////////////////////
+
 	TitleBar( void );
 
 //////////////////////////////////////////////////////////////////////////
