@@ -218,14 +218,13 @@ void TitleBar::Draw( void )
 				GLFWwindow* pWindow          = MainWindow::Instance().GetWindow();
 				Display*    pX11Display      = glfwGetX11Display();
 				Window      X11Window        = glfwGetX11Window( pWindow );
-				int         X11Screen        = XDefaultScreen( pX11Display );
 				ImVec2      CursorPos        = ImGui::GetMousePos();
-				int         Border           = 8;
+				ImVec2      WindowSize       = glfwGetWindowSize( pWindow, &WindowSize.x, &WindowSize.y );
 
 				ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
 				ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
 				ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0, 0, 0, 0 ) );
-
+				/*
 				if( !ImGui::IsItemHovered() && ( CursorPos.y > ( ImGui::GetItemRectSize().x - m_Height ) ) && ImGui::IsMouseDown( ImGuiMouseButton_Left ) )
 				{
 					glfwDragWindow( pWindow );
@@ -233,8 +232,8 @@ void TitleBar::Draw( void )
 					if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
 						glfwDragWindow( pWindow );
 				}
+				*/
 
-				int dw = DisplayWidth( pX11Display, X11Screen ), dh = DisplayHeight( pX11Display, X11Screen );
 				int rx, ry;
 
 				XWindowAttributes win_attributes;
@@ -249,8 +248,8 @@ void TitleBar::Draw( void )
 				Rect windowRect;
 				windowRect.x1 = static_cast< float >( rx );
 				windowRect.y2 = static_cast< float >( ry );
-				windowRect.x2 = ImGui::GetWindowWidth();
-				windowRect.y2 = ImGui::GetWindowHeight();
+				windowRect.x2 = WindowSize.x;
+				windowRect.y2 = WindowSize.y;
 
 				if( ImGui::IsMousePosValid( &CursorPos ) )
 				{
