@@ -219,7 +219,7 @@ void TitleBar::Draw( void )
 				Display*    pX11Display      = glfwGetX11Display();
 				Window      X11Window        = glfwGetX11Window( pWindow );
 				ImVec2      CursorPos        = ImGui::GetMousePos();
-				ImVec2      WindowSize       = glfwGetWindowSize( pWindow, &WindowSize.x, &WindowSize.y );
+				int         WindowSize[ 2 ]  = glfwGetWindowSize( pWindow, &WindowSize[ 0 ], &WindowSize[ 1 ] );
 
 				ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
 				ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
@@ -248,8 +248,8 @@ void TitleBar::Draw( void )
 				Rect windowRect;
 				windowRect.x1 = static_cast< float >( rx );
 				windowRect.y2 = static_cast< float >( ry );
-				windowRect.x2 = WindowSize.x;
-				windowRect.y2 = WindowSize.y;
+				windowRect.x2 = WindowSize[ 0 ];
+				windowRect.y2 = WindowSize[ 1 ];
 
 				if( ImGui::IsMousePosValid( &CursorPos ) )
 				{
