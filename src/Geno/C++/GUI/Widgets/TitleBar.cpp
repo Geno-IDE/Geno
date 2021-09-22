@@ -267,7 +267,7 @@ void TitleBar::Draw( void )
 					else
 					{
 						// Drag the menu bar to move the window
-						if( !ImGui::IsAnyItemHovered() && ( CursorPos.y < ( m_Height ) ) )
+						if( !ImGui::IsAnyItemHovered() && ( CursorPos.y < ( WindowRect.Top() + m_Height ) ) && ImGui::IsMouseClicked( ImGuiMouseButton_Left ) )
 							glfwDragWindow( pWindow );
 					}
 				}

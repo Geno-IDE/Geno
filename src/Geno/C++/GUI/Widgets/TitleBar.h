@@ -98,7 +98,21 @@ public:
 		int Left   () { return x1; }
 		int Bottom () { return y2; }
 
-};
+	};
+
+	bool IsInRect( const Point p, const Rect rect )
+	{
+		if( p.x > rect.x1 && p.x < rect.x2 && p.y > rect.y1 && p.y < rect.y2 )
+			return true;
+		return false;
+	}
+
+	bool IsInRect( int x, int y, const Rect rect )
+	{
+		if( x > rect.x1 && x < rect.x2 && y > rect.y1 && y < rect.y2 )
+			return true;
+		return false;
+	}
 #endif
 //////////////////////////////////////////////////////////////////////////
 
