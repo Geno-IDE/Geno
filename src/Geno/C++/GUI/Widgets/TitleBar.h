@@ -47,7 +47,7 @@ public:
 	*				 <-- L -->
 	*
 	*
-	* 
+	*
 	*
 	* A					P					D
 	* |||||||||||||||||||||||||||||||||||||||
@@ -84,16 +84,21 @@ public:
 		{
 			x1  = top_left.x;
 			y1  = top_left.y;
-			x2  = top_left.x + width -1;
-			y2  = top_left.y + height -1;
+			x2  = top_left.x + width - 1;
+			y2  = top_left.y + height - 1;
 		}
 
-		Point BottomLeft  ()   { return Point( x1, y2 ); }
-		Point BottomRight ()   { return Point( x2, y2 ); }
-		Point TopLeft     ()   { return Point( x1, y1 ); }
-		Point TopRight    ()   { return Point( x2, y1 ); }
+		Point BottomLeft () { return Point( x1, y2 ); }
+		Point BottomRight() { return Point( x2, y2 ); }
+		Point TopLeft    () { return Point( x1, y1 ); }
+		Point TopRight   () { return Point( x2, y1 ); }
 
-	};
+		int Top    () { return y1; }
+		int Right  () { return x2; }
+		int Left   () { return x1; }
+		int Bottom () { return y2; }
+
+};
 #endif
 //////////////////////////////////////////////////////////////////////////
 

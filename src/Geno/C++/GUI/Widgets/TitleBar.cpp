@@ -216,23 +216,13 @@ void TitleBar::Draw( void )
 			// X11 Window Move
 			{
 				GLFWwindow* pWindow          = MainWindow::Instance().GetWindow();
-				Display*    pX11Display      = glfwGetX11Display();
+				Display* pX11Display      = glfwGetX11Display();
 				Window      X11Window        = glfwGetX11Window( pWindow );
 				ImVec2      CursorPos        = ImGui::GetMousePos();
-				int         WindowSize[ 2 ]  = glfwGetWindowSize( pWindow, &WindowSize[ 0 ], &WindowSize[ 1 ] );
+				int         WindowSize[ 2 ]  ={ 0, 0 };
+				int         Border           = 5;
 
-				ImGui::PushStyleColor( ImGuiCol_Button, ImVec4( 0, 0, 0, 0 ) );
-				ImGui::PushStyleColor( ImGuiCol_ButtonActive, ImVec4( 0, 0, 0, 0 ) );
-				ImGui::PushStyleColor( ImGuiCol_ButtonHovered, ImVec4( 0, 0, 0, 0 ) );
-				/*
-				if( !ImGui::IsItemHovered() && ( CursorPos.y > ( ImGui::GetItemRectSize().x - m_Height ) ) && ImGui::IsMouseDown( ImGuiMouseButton_Left ) )
-				{
-					glfwDragWindow( pWindow );
-
-					if( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
-						glfwDragWindow( pWindow );
-				}
-				*/
+				glfwGetWindowSize( pWindow, &WindowSize[ 0 ], &WindowSize[ 1 ] );
 
 				int rx, ry;
 
@@ -244,44 +234,43 @@ void TitleBar::Draw( void )
 
 				// Get Top left
 				XTranslateCoordinates( pX11Display, X11Window, win_attributes.root, -win_attributes.border_width, -win_attributes.border_width, &rx, &ry, &junkwin );
-
-				Rect windowRect;
-				windowRect.x1 = static_cast< float >( rx );
-				windowRect.y2 = static_cast< float >( ry );
-				windowRect.x2 = WindowSize[ 0 ];
-				windowRect.y2 = WindowSize[ 1 ];
+				Rect WindowRect;
+				WindowRect.x1 = rx;
+				WindowRect.y1 = ry;
+				WindowRect.x2 = WindowSize[ 0 ];
+				WindowRect.y2 = WindowSize[ 1 ];
 
 				if( ImGui::IsMousePosValid( &CursorPos ) )
 				{
-					printf( "Rect Bottom Left X, Y %f, %f\n", windowRect.BottomLeft().x, windowRect.BottomLeft().y );
-					printf( "Rect Bottom Right X, Y %f, %f\n", windowRect.BottomRight().x, windowRect.BottomRight().y );
-					printf( "Rect Top Left X, Y %f, %f\n", windowRect.TopLeft().x, windowRect.TopLeft().y );
-					printf( "Rect Top Right X, Y %f, %f\n", windowRect.TopRight().x, windowRect.TopRight().y );
-
-					if( CursorPos.x == windowRect.BottomLeft().x && CursorPos.y == windowRect.BottomLeft().y )
+					if( CursorPos.y < ( WindowRect.Top() + Border ) )
 					{
-						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE );
-						glfwX11ResizeWindow( pWindow, 7 );
+						if( CursorPos.x < ( WindowRect.Left() + Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); glfwX11ResizeWindow( pWindow, 5 ); }
+						else if( CursorPos.x >= ( WindowRect.Right() - Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); glfwX11ResizeWindow( pWindow, 6 ); }
+						else { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );     glfwX11ResizeWindow( pWindow, 2 ); }
 					}
-					else if( CursorPos.x == windowRect.BottomRight().x && CursorPos.y == windowRect.BottomRight().y )
+					else if( CursorPos.y >= ( WindowRect.Bottom() - Border ) )
 					{
-						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW );
-						glfwX11ResizeWindow( pWindow, 8 );
+						if( CursorPos.x < ( WindowRect.Left() + Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); glfwX11ResizeWindow( pWindow, 7 ); }
+						else if( CursorPos.x >= ( WindowRect.Right() - Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); glfwX11ResizeWindow( pWindow, 8 ); }
+						else { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );     glfwX11ResizeWindow( pWindow, 4 ); }
 					}
-
-					if( CursorPos.x == windowRect.TopLeft().x && CursorPos.y == windowRect.TopLeft().y )
+					else if( CursorPos.x < ( WindowRect.Left() + Border ) )
 					{
-						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW );
-						glfwX11ResizeWindow( pWindow, 5 );
+						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW );
+						glfwX11ResizeWindow( pWindow, 1 );
 					}
-					else if( CursorPos.x == windowRect.TopRight().x && CursorPos.y == windowRect.TopRight().y )
+					else if( CursorPos.x >= ( WindowRect.Right() - Border ) )
 					{
-						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW );
-						glfwX11ResizeWindow( pWindow, 6 );
+						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW );
+						glfwX11ResizeWindow( pWindow, 3 );
+					}
+					else
+					{
+						// Drag the menu bar to move the window
+						if( !ImGui::IsAnyItemHovered() && ( CursorPos.y < ( m_Height ) ) )
+							glfwDragWindow( pWindow );
 					}
 				}
-
-				ImGui::PopStyleColor( 3 );
 			}
 		#endif
 		}
