@@ -246,13 +246,11 @@ void TitleBar::Draw( void )
 					{
 						if( CursorPos.x < ( WindowRect.Left() + Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); glfwX11ResizeWindow( pWindow, 5 ); }
 						else if( CursorPos.x >= ( WindowRect.Right() - Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); glfwX11ResizeWindow( pWindow, 6 ); }
-						else { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );     glfwX11ResizeWindow( pWindow, 2 ); }
 					}
 					else if( CursorPos.y >= ( WindowRect.Bottom() - Border ) )
 					{
 						if( CursorPos.x < ( WindowRect.Left() + Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); glfwX11ResizeWindow( pWindow, 7 ); }
 						else if( CursorPos.x >= ( WindowRect.Right() - Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); glfwX11ResizeWindow( pWindow, 8 ); }
-						else { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNS );     glfwX11ResizeWindow( pWindow, 4 ); }
 					}
 					else if( CursorPos.x < ( WindowRect.Left() + Border ) )
 					{
