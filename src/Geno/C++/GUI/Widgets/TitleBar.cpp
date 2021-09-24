@@ -273,7 +273,7 @@ void TitleBar::Draw( void )
 							ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW );
 							ResizeWindow( pWindow, 7 );
 						}
-		}
+					}
 					else if( CursorPos.x < ( WindowImRect.Min.x + Border ) )
 					{
 						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW );
@@ -293,8 +293,6 @@ void TitleBar::Draw( void )
 				}
 			}
 		#endif
-		}
-
 		}
 
 		ImGui::EndMainMenuBar();
