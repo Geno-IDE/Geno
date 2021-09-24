@@ -131,7 +131,7 @@ void TitleBar::Draw( void )
 			}
 		}
 
-#if !defined( __APPLE__ )
+	#if !defined( __APPLE__ )
 		// System buttons
 		{
 			const float  ButtonSize = ImGui::GetFrameHeight();
@@ -215,8 +215,7 @@ void TitleBar::Draw( void )
 				ButtonRect.Max.x -= ButtonSize;
 			}
 		}
-	#if defined ( __linux__ )
-		// X11 Window Move
+	#elif defined ( __linux__ )
 		{
 			GLFWwindow* pWindow          = MainWindow::Instance().GetWindow();
 			Display* pX11Display         = glfwGetX11Display();
@@ -298,7 +297,6 @@ void TitleBar::Draw( void )
 			}
 		}
   #endif
-
 		ImGui::EndMainMenuBar();
 	}
 
