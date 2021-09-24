@@ -16,6 +16,8 @@ struct _GLFWwindow;
 - ( instancetype )initWithGlfwWindow:( _GLFWwindow* )initWindow;
 
 - ( void )windowDidResize:( NSNotification* )notification;
+- ( void )windowDidBecomeKey:( NSNotification* )notification;
+- ( void )windowDidResignKey:( NSNotification* )notification;
 
 @end
 
@@ -33,6 +35,7 @@ struct _GLFWwindow;
 @interface GenoWindowDelegate : GLFWWindowDelegate
 {
 	MainWindow* mainWindow;
+	NSTimer*    resizeTimer;
 }
 
 - ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow;
@@ -47,6 +50,11 @@ struct _GLFWwindow;
 	NSTimeInterval lastTitlebarClick;
 	NSPoint        lastTitlebarPos;
 	BOOL           movingWindow;
+
+	NSButton*      closeButton;
+	NSButton*      miniaturizeButton;
+	NSButton*      zoomButton;
+	BOOL           mouseInsideStandardButtons;
 };
 
 - ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow;
