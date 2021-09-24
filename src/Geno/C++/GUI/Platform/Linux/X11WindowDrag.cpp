@@ -27,18 +27,20 @@
 
 #define _NET_WM_MOVERESIZE_MOVE 8 /* movement only */
 
-void DragWindow( GLFWwindow window )
+void DragWindow( GLFWwindow* window )
 {
+	_GLFWwindow* pHandle = ( _GLFWwindow* )window;
+
 	XClientMessageEvent xclient;
 	memset( &xclient, 0, sizeof( XClientMessageEvent ) );
 	XUngrabPointer( _glfw.x11.display, 0 );
 	XFlush( _glfw.x11.display );
 	xclient.type = ClientMessage;
-	xclient.window = window->x11.handle;
+	xclient.window = pHandle->x11.handle;
 	xclient.message_type = XInternAtom( _glfw.x11.display, "_NET_WM_MOVERESIZE", False );
 	xclient.format = 32;
-	xclient.data.l[ 0 ] = window->x11.xpos + window->x11.lastCursorPosX;
-	xclient.data.l[ 1 ] = window->x11.ypos + window->x11.lastCursorPosY;
+	xclient.data.l[ 0 ] = pHandle->x11.xpos + pHandle->x11.lastCursorPosX;
+	xclient.data.l[ 1 ] = pHandle->x11.ypos + pHandle->x11.lastCursorPosY;
 	xclient.data.l[ 2 ] = _NET_WM_MOVERESIZE_MOVE;
 	xclient.data.l[ 3 ] = 0;
 	xclient.data.l[ 4 ] = 0;

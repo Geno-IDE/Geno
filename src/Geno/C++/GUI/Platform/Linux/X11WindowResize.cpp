@@ -36,9 +36,9 @@
 #define _NET_WM_MOVERESIZE_SIZE_KEYBOARD     9   /* size via keyboard */
 #define _NET_WM_MOVERESIZE_CANCEL           11   /* cancel operation */
 
-void ResizeWindow( GLFWwindow window, int border )
+void ResizeWindow( GLFWwindow* window, int border )
 {
-	GLFWwindow* pHandle = ( GLFWwindow* )window;
+	_GLFWwindow* pHandle = ( _GLFWwindow* )window;
 
 	int winXpos, winYpos;
 	double curXpos, curYpos;
@@ -46,10 +46,10 @@ void ResizeWindow( GLFWwindow window, int border )
 	memset( &xclient, 0, sizeof( XClientMessageEvent ) );
 	XUngrabPointer( _glfw.x11.display, 0 );
 	XFlush( _glfw.x11.display );
-	glfwGetCursorPos( pHandle, &curXpos, &curYpos );
-	glfwGetWindowPos( pHandle, &winXpos, &winYpos );
+	glfwGetCursorPos( window, &curXpos, &curYpos );
+	glfwGetWindowPos( window, &winXpos, &winYpos );
 	xclient.type = ClientMessage;
-	xclient.window = window->x11.handle;
+	xclient.window = pHandle->x11.handle;
 	xclient.message_type = XInternAtom( _glfw.x11.display, "_NET_WM_MOVERESIZE", False );
 	xclient.format = 32;
 	xclient.data.l[ 0 ] = winXpos + curXpos;
