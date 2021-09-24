@@ -36,7 +36,7 @@
 #define _NET_WM_MOVERESIZE_SIZE_KEYBOARD     9   /* size via keyboard */
 #define _NET_WM_MOVERESIZE_CANCEL           11   /* cancel operation */
 
-void Resize( GLFWwindow window, int border )
+void ResizeWindow( GLFWwindow window, int border )
 {
 	GLFWwindow* pHandle = ( GLFWwindow* )window;
 

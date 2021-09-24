@@ -26,6 +26,6 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
-void Resize( GLFWwindow window, int border );
+void ResizeWindow( GLFWwindow window, int border );
 
 #endif
