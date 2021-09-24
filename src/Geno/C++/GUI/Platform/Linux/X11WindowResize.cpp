@@ -17,9 +17,9 @@
 
 #if defined ( __linux__ )
 
-#include "glfwX11.h"
+#include "X11WindowResize.h"
 
- // How nice of glfw to hide this
+// How nice of glfw to hide this
 #include <../src/internal.h>
 
 #include <cassert>
@@ -33,46 +33,10 @@
 #define _NET_WM_MOVERESIZE_SIZE_BOTTOM       5
 #define _NET_WM_MOVERESIZE_SIZE_BOTTOMLEFT   6
 #define _NET_WM_MOVERESIZE_SIZE_LEFT         7
-#define _NET_WM_MOVERESIZE_MOVE              8   /* movement only */
 #define _NET_WM_MOVERESIZE_SIZE_KEYBOARD     9   /* size via keyboard */
-#define _NET_WM_MOVERESIZE_MOVE_KEYBOARD    10   /* move via keyboard */
 #define _NET_WM_MOVERESIZE_CANCEL           11   /* cancel operation */
 
-GLFWAPI void glfwDragWindow( GLFWwindow* handle )
-{
-	_GLFWwindow* window = ( _GLFWwindow* )handle;
-	assert( window != NULL );
-
-	_glfwPlatformDragWindow( window );
-}
-
-GLFWAPI void _glfwPlatformDragWindow( _GLFWwindow* window )
-{
-	XClientMessageEvent xclient;
-	memset( &xclient, 0, sizeof( XClientMessageEvent ) );
-	XUngrabPointer( _glfw.x11.display, 0 );
-	XFlush( _glfw.x11.display );
-	xclient.type = ClientMessage;
-	xclient.window = window->x11.handle;
-	xclient.message_type = XInternAtom( _glfw.x11.display, "_NET_WM_MOVERESIZE", False );
-	xclient.format = 32;
-	xclient.data.l[ 0 ] = window->x11.xpos + window->x11.lastCursorPosX;
-	xclient.data.l[ 1 ] = window->x11.ypos + window->x11.lastCursorPosY;
-	xclient.data.l[ 2 ] = _NET_WM_MOVERESIZE_MOVE;
-	xclient.data.l[ 3 ] = 0;
-	xclient.data.l[ 4 ] = 0;
-	XSendEvent( _glfw.x11.display, _glfw.x11.root, False, SubstructureRedirectMask | SubstructureNotifyMask, ( XEvent* )&xclient );
-}
-
-GLFWAPI void glfwX11ResizeWindow( GLFWwindow* handle, int border )
-{
-	_GLFWwindow* window = ( _GLFWwindow* )handle;
-	assert( window != NULL );
-
-	_glfwX11ResizeWindow( window, border );
-}
-
-GLFWAPI void _glfwX11ResizeWindow( _GLFWwindow* window, int border )
+void Resize( GLFWwindow window, int border )
 {
 	GLFWwindow* pHandle = ( GLFWwindow* )window;
 
@@ -121,4 +85,4 @@ GLFWAPI void _glfwX11ResizeWindow( _GLFWwindow* window, int border )
 	XSendEvent( _glfw.x11.display, _glfw.x11.root, False, SubstructureRedirectMask | SubstructureNotifyMask, ( XEvent* )&xclient );
 }
 
-#endif
+#endif // __linux__ 

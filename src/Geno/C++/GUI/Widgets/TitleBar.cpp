@@ -27,6 +27,8 @@
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
 #include "GUI/Modals/DiscordRPCSettingsModal.h"
+#include "GUI/Platform/Linux/X11WindowDrag.h"
+#include "GUI/Platform/Linux/X11WindowResize.h"
 #include "Discord/DiscordRPC.h"
 
 #include <Common/LocalAppData.h>
@@ -40,10 +42,6 @@
 #include <iostream>
 #include <numeric>
 #include <string>
-
-#if defined( __linux__ )
-#include "GUI/Platform/Liunx/X11/glfwX11.h"
-#endif // __linux__
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -216,10 +214,10 @@ void TitleBar::Draw( void )
 			// X11 Window Move
 			{
 				GLFWwindow* pWindow          = MainWindow::Instance().GetWindow();
-				Display* pX11Display      = glfwGetX11Display();
+				Display* pX11Display         = glfwGetX11Display();
 				Window      X11Window        = glfwGetX11Window( pWindow );
 				ImVec2      CursorPos        = ImGui::GetMousePos();
-				int         WindowSize[ 2 ]  ={ 0, 0 };
+				int         WindowSize[ 2 ]  = { 0, 0 };
 				int         Border           = 5;
 
 				glfwGetWindowSize( pWindow, &WindowSize[ 0 ], &WindowSize[ 1 ] );
@@ -244,29 +242,29 @@ void TitleBar::Draw( void )
 				{
 					if( CursorPos.y < ( WindowRect.Top() + Border ) )
 					{
-						if( CursorPos.x < ( WindowRect.Left() + Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); glfwX11ResizeWindow( pWindow, 5 ); }
-						else if( CursorPos.x >= ( WindowRect.Right() - Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); glfwX11ResizeWindow( pWindow, 6 ); }
+						if( CursorPos.x < ( WindowRect.Left() + Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); ResizeWindow( pWindow, 5 ); }
+						else if( CursorPos.x >= ( WindowRect.Right() - Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); ResizeWindow( pWindow, 6 ); }
 					}
 					else if( CursorPos.y >= ( WindowRect.Bottom() - Border ) )
 					{
-						if( CursorPos.x < ( WindowRect.Left() + Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); glfwX11ResizeWindow( pWindow, 7 ); }
-						else if( CursorPos.x >= ( WindowRect.Right() - Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); glfwX11ResizeWindow( pWindow, 8 ); }
+						if( CursorPos.x < ( WindowRect.Left() + Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); ResizeWindow( pWindow, 7 ); }
+						else if( CursorPos.x >= ( WindowRect.Right() - Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); ResizeWindow( pWindow, 8 ); }
 					}
 					else if( CursorPos.x < ( WindowRect.Left() + Border ) )
 					{
 						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW );
-						glfwX11ResizeWindow( pWindow, 1 );
+						ResizeWindow( pWindow, 1 );
 					}
 					else if( CursorPos.x >= ( WindowRect.Right() - Border ) )
 					{
 						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeEW );
-						glfwX11ResizeWindow( pWindow, 3 );
+						ResizeWindow( pWindow, 3 );
 					}
 					else
 					{
 						// Drag the menu bar to move the window
 						if( !ImGui::IsAnyItemHovered() && ( CursorPos.y < ( WindowRect.Top() + m_Height ) ) && ImGui::IsMouseClicked( ImGuiMouseButton_Left ) )
-							glfwDragWindow( pWindow );
+							DragWindow( pWindow );
 					}
 				}
 			}
