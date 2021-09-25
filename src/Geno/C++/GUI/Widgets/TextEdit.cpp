@@ -3727,7 +3727,7 @@ void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, bool WholeWord, co
 
 void TextEdit::SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, SearchDialog::SearchInstance* Instance )
 {
-#if 1
+#if 0
 	std::vector< LineSelectionItem > Results;
 	SearchWorker( pFile, CaseSensitive, WholeWord, &Instance->SearchTerm, 0, ( int )pFile->Lines.size() - 1, &Results, &Instance->State );
 
