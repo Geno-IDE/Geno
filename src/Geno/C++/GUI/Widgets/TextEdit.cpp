@@ -441,21 +441,21 @@ bool TextEdit::RenderEditor( File& rFile )
 
 		std::vector< LineSelectionItem > Selections = IsLineSelected( rFile, i );
 
-		for( LineSelectionItem& Item : Selections )
+		for( LineSelectionItem& rItem : Selections )
 		{
 			float StartX = 0.0f;
 			float EndX   = EmptyLineSelectionWidth;
 
-			if( Item.Start != Item.End )
+			if( rItem.Start != rItem.End )
 			{
-				StartX = GetDistance( rFile, Item.Start );
-				EndX   = GetDistance( rFile, Item.End );
+				StartX = GetDistance( rFile, rItem.Start );
+				EndX   = GetDistance( rFile, rItem.End );
 			}
 
 			ImVec2 Start( ScreenCursor.x + Props.LineNumMaxWidth + StartX - Props.ScrollX, Pos.y );
 			ImVec2 End( ScreenCursor.x + Props.LineNumMaxWidth + EndX - Props.ScrollX, Pos.y + Props.CharAdvanceY );
 
-			pDrawList->AddRectFilled( Start, End, Item.Type == LineSelectionItem::Search ? m_Palette.SearchHighlight : m_Palette.Selection );
+			pDrawList->AddRectFilled( Start, End, rItem.Type == LineSelectionItem::Search ? m_Palette.SearchHighlight : m_Palette.Selection );
 		}
 
 		for( int j = 0; j < ( int )rFile.Cursors.size(); j++ )
@@ -1208,13 +1208,13 @@ std::vector< TextEdit::LineSelectionItem > TextEdit::IsLineSelected( File& rFile
 	{
 		if( rDiag.SearchResult->GroupExist( LineIndex ) )
 		{
-			for( LineSelectionItem* Search : rDiag.SearchResult->GetGroup( LineIndex ) )
+			for( LineSelectionItem* pSearch : rDiag.SearchResult->GetGroup( LineIndex ) )
 			{
-				LineSelectionItem Item = IsSelectionOnLine( rFile, LineIndex, Search->Start, Search->End );
+				LineSelectionItem Item = IsSelectionOnLine( rFile, LineIndex, pSearch->Start, pSearch->End );
 
 				if( Item.Type == -1 ) continue;
 
-				Item.Type = Search->Type;
+				Item.Type = pSearch->Type;
 
 				Selections.push_back( Item );
 			}
@@ -3725,20 +3725,20 @@ void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, bool WholeWord, co
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEdit::SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, SearchDialog::SearchInstance* Instance )
+void TextEdit::SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, SearchDialog::SearchInstance* pInstance )
 {
 #if 0
 	std::vector< LineSelectionItem > Results;
-	SearchWorker( pFile, CaseSensitive, WholeWord, &Instance->SearchTerm, 0, ( int )pFile->Lines.size() - 1, &Results, &Instance->State );
+	SearchWorker( pFile, CaseSensitive, WholeWord, &pInstance->SearchTerm, 0, ( int )pFile->Lines.size() - 1, &Results, &pInstance->State );
 
 	for( LineSelectionItem& Item : Results )
 	{
-		if( Instance->State == SearchDialog::SearchInstance::Stopping ) break;
+		if( pInstance->State == SearchDialog::SearchInstance::Stopping ) break;
 
-		Instance->Result->AddResult( Item );
+		pInstance->Result->AddResult( Item );
 	}
 
-	Instance->Result->UpdateGroups();
+	pInstance->Result->UpdateGroups();
 
 #else
 
@@ -3754,13 +3754,13 @@ void TextEdit::SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, S
 	{
 		auto& Thread = ThreadPool[ i ];
 
-		Thread.first = std::thread( &TextEdit::SearchWorker, this, pFile, CaseSensitive, WholeWord, &Instance->SearchTerm, Prev, Prev + Size, &Thread.second, &Instance->State );
+		Thread.first = std::thread( &TextEdit::SearchWorker, this, pFile, CaseSensitive, WholeWord, &pInstance->SearchTerm, Prev, Prev + Size, &Thread.second, &pInstance->State );
 
 		Prev += Size + 1;
 	}
 
 	auto& LastThread = ThreadPool[ NumThreads - 1 ];
-	LastThread.first = std::thread( &TextEdit::SearchWorker, this, pFile, CaseSensitive, WholeWord, &Instance->SearchTerm, Prev, ( int )pFile->Lines.size() - 1, &LastThread.second, &Instance->State );
+	LastThread.first = std::thread( &TextEdit::SearchWorker, this, pFile, CaseSensitive, WholeWord, &pInstance->SearchTerm, Prev, ( int )pFile->Lines.size() - 1, &LastThread.second, &pInstance->State );
 
 	for( int i = 0; i < ( int )ThreadPool.size(); i++ )
 	{
@@ -3768,23 +3768,23 @@ void TextEdit::SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, S
 
 		Thread.first.join();
 
-		for( int j = 0; j < ( int )Thread.second.size() && Instance->State == SearchDialog::SearchInstance::Running; j++ )
+		for( int j = 0; j < ( int )Thread.second.size() && pInstance->State == SearchDialog::SearchInstance::Running; j++ )
 		{
-			Instance->Result->AddResult( Thread.second[ j ] );
+			pInstance->Result->AddResult( Thread.second[ j ] );
 		}
 	}
 
-	Instance->Result->UpdateGroups();
+	pInstance->Result->UpdateGroups();
 
 #endif
 
-	if( Instance->State == SearchDialog::SearchInstance::Running )
+	if( pInstance->State == SearchDialog::SearchInstance::Running )
 	{
-		Instance->State = SearchDialog::SearchInstance::HasResult;
+		pInstance->State = SearchDialog::SearchInstance::HasResult;
 	}
 	else
 	{
-		Instance->State = SearchDialog::SearchInstance::Stopped;
+		pInstance->State = SearchDialog::SearchInstance::Stopped;
 	}
 }
 
@@ -3792,11 +3792,11 @@ void TextEdit::Search( File& rFile, bool CaseSensitive, bool WholeWord, std::str
 {
 	rFile.SearchDiag.ActiveItem = -1;
 
-	for( SearchDialog::SearchInstance* Instance : rFile.SearchDiag.SearchInstances )
+	for( SearchDialog::SearchInstance* pInstance : rFile.SearchDiag.SearchInstances )
 	{
-		if( Instance->State == SearchDialog::SearchInstance::Running )
+		if( pInstance->State == SearchDialog::SearchInstance::Running )
 		{
-			Instance->State = SearchDialog::SearchInstance::Stopping;
+			pInstance->State = SearchDialog::SearchInstance::Stopping;
 		}
 	}
 
@@ -3804,59 +3804,59 @@ void TextEdit::Search( File& rFile, bool CaseSensitive, bool WholeWord, std::str
 
 	if( SearchString.empty() ) return;
 
-	SearchDialog::SearchInstance* Instance = new SearchDialog::SearchInstance;
+	SearchDialog::SearchInstance* pInstance = new SearchDialog::SearchInstance;
 
-	Instance->SearchTerm = SearchString;
-	Instance->State      = SearchDialog::SearchInstance::Running;
-	Instance->Result     = new SearchDialog::SearchResultGroups;
-	Instance->Thread     = std::thread( &TextEdit::SearchManager, this, &rFile, CaseSensitive, WholeWord, Instance );
+	pInstance->SearchTerm = SearchString;
+	pInstance->State      = SearchDialog::SearchInstance::Running;
+	pInstance->Result     = new SearchDialog::SearchResultGroups;
+	pInstance->Thread     = std::thread( &TextEdit::SearchManager, this, &rFile, CaseSensitive, WholeWord, pInstance );
 
-	rFile.SearchDiag.SearchInstances.push_back( Instance );
+	rFile.SearchDiag.SearchInstances.push_back( pInstance );
 } // Search
 
 //////////////////////////////////////////////////////////////////////////
 
 void TextEdit::JoinThreads( File& rFile, bool WaitForUnfinished )
 {
-	std::vector< SearchDialog::SearchInstance* >& Instances = rFile.SearchDiag.SearchInstances;
+	std::vector< SearchDialog::SearchInstance* >& rInstances = rFile.SearchDiag.SearchInstances;
 
 	if( WaitForUnfinished )
 	{
-		for( SearchDialog::SearchInstance* Instance : Instances )
+		for( SearchDialog::SearchInstance* pInstance : rInstances )
 		{
-			Instance->State = SearchDialog::SearchInstance::Stopping;
+			pInstance->State = SearchDialog::SearchInstance::Stopping;
 		}
 
-		for( SearchDialog::SearchInstance* Instance : Instances )
+		for( SearchDialog::SearchInstance* pInstance : rInstances )
 		{
-			Instance->Thread.join();
-			delete Instance;
+			pInstance->Thread.join();
+			delete pInstance;
 		}
 
-		Instances.clear();
+		rInstances.clear();
 		StatusBar::Instance().SetSearchResultInfo("", 0);
 	}
 	else
 	{
-		for( int i = 0; i < ( int )Instances.size(); i++ )
+		for( int i = 0; i < ( int )rInstances.size(); i++ )
 		{
-			SearchDialog::SearchInstance* Instance = Instances[ i ];
+			SearchDialog::SearchInstance* pInstance = rInstances[ i ];
 
-			if( Instance->State == SearchDialog::SearchInstance::Stopped || Instance->State == SearchDialog::SearchInstance::HasResult )
+			if( pInstance->State == SearchDialog::SearchInstance::Stopped || pInstance->State == SearchDialog::SearchInstance::HasResult )
 			{
-				Instance->Thread.join();
-				Instances.erase( Instances.begin() + i );
+				pInstance->Thread.join();
+				rInstances.erase( rInstances.begin() + i );
 
-				if( Instance->State == SearchDialog::SearchInstance::HasResult )
+				if( pInstance->State == SearchDialog::SearchInstance::HasResult )
 				{
 					delete rFile.SearchDiag.SearchResult;
 
-					rFile.SearchDiag.SearchResult = Instance->Result;
+					rFile.SearchDiag.SearchResult = pInstance->Result;
 
-					StatusBar::Instance().SetSearchResultInfo(Instance->SearchTerm, (int)Instance->Result->Size());
+					StatusBar::Instance().SetSearchResultInfo(pInstance->SearchTerm, (int)pInstance->Result->Size());
 				}
 
-				delete Instance;
+				delete pInstance;
 			}
 		}
 	}
@@ -3932,16 +3932,16 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 
 		if( PrevActive != -1 )
 		{
-			LineSelectionItem& Prev = ( *rDiag.SearchResult )[ PrevActive ];
-			Prev.Type               = LineSelectionItem::Search;
+			LineSelectionItem& rPrev = ( *rDiag.SearchResult )[ PrevActive ];
+			rPrev.Type               = LineSelectionItem::Search;
 		}
 
 		if( rDiag.ActiveItem != -1 )
 		{
-			LineSelectionItem& Curr = ( *rDiag.SearchResult )[ rDiag.ActiveItem ];
-			Curr.Type               = LineSelectionItem::SearchActive;
+			LineSelectionItem& rCurr = ( *rDiag.SearchResult )[ rDiag.ActiveItem ];
+			rCurr.Type               = LineSelectionItem::SearchActive;
 
-			ScrollTo( rFile, Curr.Start, pWindow );
+			ScrollTo( rFile, rCurr.Start, pWindow );
 		}
 	}
 
@@ -3962,16 +3962,16 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 
 		if( PrevActive != -1 )
 		{
-			LineSelectionItem& Prev = ( *rDiag.SearchResult )[ PrevActive ];
-			Prev.Type               = LineSelectionItem::Search;
+			LineSelectionItem& rPrev = ( *rDiag.SearchResult )[ PrevActive ];
+			rPrev.Type               = LineSelectionItem::Search;
 		}
 
 		if( rDiag.ActiveItem != -1 )
 		{
-			LineSelectionItem& Curr = ( *rDiag.SearchResult )[ rDiag.ActiveItem ];
-			Curr.Type               = LineSelectionItem::SearchActive;
+			LineSelectionItem& rCurr = ( *rDiag.SearchResult )[ rDiag.ActiveItem ];
+			rCurr.Type               = LineSelectionItem::SearchActive;
 
-			ScrollTo( rFile, Curr.Start, pWindow );
+			ScrollTo( rFile, rCurr.Start, pWindow );
 		}
 	}
 
@@ -4067,10 +4067,10 @@ void TextEdit::SearchDialog::SearchResultGroups::UpdateGroups()
 	Groups.clear();
 	Groups.emplace_back();
 
-	for( LineSelectionItem& Item : Result )
+	for( LineSelectionItem& rItem : Result )
 	{
-		const Coordinate& Start = Item.Start;
-		const Coordinate& End   = Item.End;
+		const Coordinate& Start = rItem.Start;
+		const Coordinate& End   = rItem.End;
 
 		int StartGroup = Start.y / SearchResultGroupSize;
 		int EndGroup   = End.y / SearchResultGroupSize;
@@ -4082,7 +4082,7 @@ void TextEdit::SearchDialog::SearchResultGroups::UpdateGroups()
 
 		for( int i = StartGroup; i <= EndGroup; i++ )
 		{
-			Groups[ i ].push_back( &Item );
+			Groups[ i ].push_back( &rItem );
 		}
 	}
 }
