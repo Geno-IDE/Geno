@@ -3536,37 +3536,6 @@ void TextEdit::ClearSearch( File& rFile )
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEdit::PrepareSearchString( std::string& rSearchString )
-{
-	for( int i = 0; i < ( int )rSearchString.length(); i++ )
-	{
-		char C = rSearchString[ i ];
-
-		if( C == '\\' )
-		{
-			if( i == ( int )rSearchString.length() - 1 ) break;
-
-			char C2 = rSearchString[ i + 1 ];
-
-			switch( C2 )
-			{
-				case 'n':
-					rSearchString[ i ] = '\n';
-					break;
-				case 't':
-					rSearchString[ i ] = '\t';
-					break;
-				default:
-					continue;
-			}
-
-			rSearchString.erase( rSearchString.begin() + i + 1 );
-		}
-	}
-} // PrepareSearchString
-
-//////////////////////////////////////////////////////////////////////////
-
 TextEdit::Coordinate TextEdit::SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate Start, int SearchStringOffset, std::vector< Glyph* >& rMatches )
 {
 	Line& rLine = rFile.Lines[ Start.y ];
@@ -3775,7 +3744,7 @@ void TextEdit::SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, S
 	}
 }
 
-void TextEdit::Search( File& rFile, bool CaseSensitive, bool WholeWord, std::string SearchString )
+void TextEdit::Search( File& rFile, bool CaseSensitive, bool WholeWord, const std::string& rSearchString )
 {
 	rFile.SearchDiag.ActiveItem = -1;
 
@@ -3787,13 +3756,11 @@ void TextEdit::Search( File& rFile, bool CaseSensitive, bool WholeWord, std::str
 		}
 	}
 
-	PrepareSearchString( SearchString );
-
-	if( SearchString.empty() ) return;
+	if( rSearchString.empty() ) return;
 
 	SearchDialog::SearchInstance* pInstance = new SearchDialog::SearchInstance;
 
-	pInstance->SearchTerm = SearchString;
+	pInstance->SearchTerm = rSearchString;
 	pInstance->State      = SearchDialog::SearchInstance::Running;
 	pInstance->Result     = new SearchDialog::SearchResultGroups;
 	pInstance->Thread     = std::thread( &TextEdit::SearchManager, this, &rFile, CaseSensitive, WholeWord, pInstance );

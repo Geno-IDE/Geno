@@ -337,12 +337,11 @@ private:
 	void                             SwapLines( File& rFile, bool Up );
 	std::vector< int >               CursorsInText( File& rFile );
 	std::vector< int >               CursorsNotInText( File& rFile );
-	void                             PrepareSearchString( std::string& rSearchString );
 	void                             ClearSearch( File& rFile );
 	Coordinate                       SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate LineStart, int SearchStringOffset, std::vector< Glyph* >& rMatches );
 	void                             SearchWorker( File* pFile, bool CaseSensitive, bool WholeWord, const std::string* pSearchString, int StartLine, int EndLine, std::vector< LineSelectionItem >* pResult, int* pState );
 	void                             SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, SearchDialog::SearchInstance* Instance );
-	void                             Search( File& rFile, bool CaseSensitve, bool WholeWord, std::string SearchString );
+	void                             Search( File& rFile, bool CaseSensitve, bool WholeWord, const std::string& rSearchString );
 	void                             JoinThreads( File& rFile, bool WaitForUnfinished );
 	void                             ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWindow );
 
