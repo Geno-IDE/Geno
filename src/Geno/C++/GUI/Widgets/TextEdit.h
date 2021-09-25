@@ -34,6 +34,9 @@
 #endif // _WIN32
 
 class Drop;
+class SearchDialog;
+class SearchResultGroups;
+struct SearchInstance;
 struct ImGuiTabBar;
 
 class TextEdit
@@ -171,55 +174,6 @@ public:
 		}
 	};
 
-	struct SearchDialog
-	{
-		bool Searching     = false;
-		bool CaseSensitive = false;
-		bool WholeWord     = false;
-		int  ActiveItem    = -1;
-
-		std::string SearchTerm;
-
-		struct SearchResultGroups
-		{
-			// Results will be grouped in it's own vector for every 1000 lines
-			std::vector< std::vector< LineSelectionItem* > > Groups;
-			// A vector of all the results in order
-			std::vector< LineSelectionItem > Result;
-
-			SearchResultGroups();
-
-			std::vector< LineSelectionItem* >& GetGroup( int LineIndex );
-			bool                               GroupExist( int LineIndex );
-			void                               AddResult( const LineSelectionItem& Item );
-			void                               UpdateGroups();
-			void                               Clear();
-			size_t                             Size();
-			bool                               Empty();
-
-			LineSelectionItem& operator[]( int Index );
-		};
-
-		struct SearchInstance
-		{
-			enum
-			{
-				Running,
-				Stopping,
-				Stopped,
-				HasResult
-			};
-
-			std::thread         Thread;
-			std::string         SearchTerm;
-			SearchResultGroups* Result;
-			int                 State;
-		};
-
-		std::vector< SearchInstance* > SearchInstances;
-		SearchResultGroups*            SearchResult = nullptr;
-	};
-
 	struct File
 	{
 		std::filesystem::path Path;
@@ -235,7 +189,7 @@ public:
 		float              LongestLineLength;
 		std::vector< int > LongestLines;
 
-		SearchDialog SearchDiag;
+		SearchDialog* SearchDiag;
 
 		BoxModeDirection BoxModeDir      = BoxModeDirection::None;
 		CursorInputMode  CursorMode      = CursorInputMode::Normal;
@@ -340,7 +294,7 @@ private:
 	void                             ClearSearch( File& rFile );
 	Coordinate                       SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate LineStart, int SearchStringOffset, std::vector< Glyph* >& rMatches );
 	void                             SearchWorker( File* pFile, bool CaseSensitive, bool WholeWord, const std::string* pSearchString, int StartLine, int EndLine, std::vector< LineSelectionItem >* pResult, int* pState );
-	void                             SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, SearchDialog::SearchInstance* Instance );
+	void                             SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, SearchInstance* Instance );
 	void                             Search( File& rFile, bool CaseSensitve, bool WholeWord, const std::string& rSearchString );
 	void                             JoinThreads( File& rFile, bool WaitForUnfinished );
 	void                             ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWindow );
@@ -358,3 +312,60 @@ private:
 	std::filesystem::path m_ActiveFilePath = {};
 
 }; // TextEdit
+
+//////////////////////////////////////////////////////////////////////////
+
+class SearchResultGroups
+{
+public:
+	// Results will be grouped in it's own vector for every 1000 lines
+	std::vector< std::vector< TextEdit::LineSelectionItem* > > Groups;
+	// A vector of all the results in order
+	std::vector< TextEdit::LineSelectionItem > Result;
+
+	SearchResultGroups();
+
+	std::vector< TextEdit::LineSelectionItem* >& GetGroup( int LineIndex );
+	bool                                         GroupExist( int LineIndex );
+	void                                         AddResult( const TextEdit::LineSelectionItem& Item );
+	void                                         UpdateGroups();
+	void                                         Clear();
+	size_t                                       Size();
+	bool                                         Empty();
+
+	TextEdit::LineSelectionItem& operator[]( int Index );
+}; // SearchResultGroups
+
+//////////////////////////////////////////////////////////////////////////
+
+struct SearchInstance
+{
+	enum
+	{
+		Running,
+		Stopping,
+		Stopped,
+		HasResult
+	};
+
+	std::thread         Thread;
+	std::string         SearchTerm;
+	SearchResultGroups* Result;
+	int                 State;
+}; // SearchInstance
+
+//////////////////////////////////////////////////////////////////////////
+
+class SearchDialog
+{
+public:
+	bool Searching     = false;
+	bool CaseSensitive = false;
+	bool WholeWord     = false;
+	int  ActiveItem    = -1;
+
+	std::string SearchTerm;
+
+	std::vector< SearchInstance* > SearchInstances;
+	SearchResultGroups*            SearchResult = nullptr;
+}; // SearchDialog
