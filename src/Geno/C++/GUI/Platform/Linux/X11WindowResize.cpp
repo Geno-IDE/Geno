@@ -38,9 +38,8 @@
 void ResizeWindow( GLFWwindow* window, int border )
 {
 	_GLFWwindow* pHandle     = ( _GLFWwindow* )window;
-	Display*     pX11Display = glfwGetX11Display();
-	Window       X11Window   = glfwGetX11Window( window );
-
+	Display* pX11Display     = glfwGetX11Display();
+	
 	int winXpos, winYpos;
 	double curXpos, curYpos;
 
@@ -89,7 +88,7 @@ void ResizeWindow( GLFWwindow* window, int border )
 
 	xclient.data.l[ 3 ] = 0;
 	xclient.data.l[ 4 ] = 0;
-	XSendEvent( pX11Display, X11Window, False, SubstructureRedirectMask | SubstructureNotifyMask, ( XEvent* )&xclient );
+	XSendEvent( pX11Display, _glfw.x11.root, False, SubstructureRedirectMask | SubstructureNotifyMask, ( XEvent* )&xclient );
 }
 
 #endif // __linux__ 

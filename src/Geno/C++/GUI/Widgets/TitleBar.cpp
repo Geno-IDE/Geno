@@ -246,13 +246,13 @@ void TitleBar::Draw( void )
 				// Top
 				if( CursorPos.y < ( WindowImRect.GetTR().y + Border ) )
 				{
-					if( CursorPos.x >= ( WindowImRect.GetTR().x - Border ) )      { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); ResizeWindow( pWindow, 6 ); }
-					else if( CursorPos.x < ( WindowImRect.GetTL().x - Border ) )  { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); ResizeWindow( pWindow, 5 ); }
+					if( CursorPos.x >= ( WindowImRect.GetTR().x - Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); ResizeWindow( pWindow, 6 ); }
+					else if( CursorPos.x < ( WindowImRect.GetTL().x - Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); ResizeWindow( pWindow, 5 ); }
 				}
 				// Bottom
 				if( CursorPos.y >= ( WindowImRect.GetBR().y + Border ) )
 				{
-					if( CursorPos.x >= ( WindowImRect.GetBR().x - Border ) )     { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); ResizeWindow( pWindow, 8 ); }
+					if( CursorPos.x >= ( WindowImRect.GetBR().x - Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); ResizeWindow( pWindow, 8 ); }
 					else if( CursorPos.x < ( WindowImRect.GetBL().x + Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); ResizeWindow( pWindow, 7 ); }
 				}
 				else if( CursorPos.x < ( WindowImRect.Min.x + Border ) )
