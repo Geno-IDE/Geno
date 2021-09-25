@@ -19,6 +19,8 @@
 
 #include "X11WindowResize.h"
 
+#include <../src/internal.h>
+
 #include <cassert>
 #include <cstring>
 

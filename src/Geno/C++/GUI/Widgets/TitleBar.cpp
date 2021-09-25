@@ -241,42 +241,19 @@ void TitleBar::Draw( void )
 			WindowImRect.Min ={ static_cast< float >( rx ), static_cast< float >( ry ) };
 			WindowImRect.Max ={ static_cast< float >( WindowSize[ 0 ] ), static_cast< float >( WindowSize[ 1 ] ) };
 
-
 			if( ImGui::IsMousePosValid( &CursorPos ) )
 			{
 				// Top
 				if( CursorPos.y < ( WindowImRect.GetTR().y + Border ) )
 				{
-					if( CursorPos.x >= ( WindowImRect.GetTR().x - Border ) )
-					{
-						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW );
-						ResizeWindow( pWindow, 6 );
-					}
-				}
-				if( CursorPos.y < ( WindowImRect.GetTL().y + Border ) )
-				{
-					if( CursorPos.x < ( WindowImRect.GetTL().x + Border ) )
-					{
-						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE );
-						ResizeWindow( pWindow, 5 );
-					}
+					if( CursorPos.x >= ( WindowImRect.GetTR().x - Border ) )      { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); ResizeWindow( pWindow, 6 ); }
+					else if( CursorPos.x < ( WindowImRect.GetTL().x - Border ) )  { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); ResizeWindow( pWindow, 5 ); }
 				}
 				// Bottom
 				if( CursorPos.y >= ( WindowImRect.GetBR().y + Border ) )
 				{
-					if( CursorPos.x >= ( WindowImRect.GetBR().x - Border ) )
-					{
-						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE );
-						ResizeWindow( pWindow, 8 );
-					}
-				}
-				if( CursorPos.y >= ( WindowImRect.GetBL().y + Border ) )
-				{
-					if( CursorPos.x < ( WindowImRect.GetBL().x + Border ) )
-					{
-						ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW );
-						ResizeWindow( pWindow, 7 );
-					}
+					if( CursorPos.x >= ( WindowImRect.GetBR().x - Border ) )     { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNWSE ); ResizeWindow( pWindow, 8 ); }
+					else if( CursorPos.x < ( WindowImRect.GetBL().x + Border ) ) { ImGui::SetMouseCursor( ImGuiMouseCursor_ResizeNESW ); ResizeWindow( pWindow, 7 ); }
 				}
 				else if( CursorPos.x < ( WindowImRect.Min.x + Border ) )
 				{

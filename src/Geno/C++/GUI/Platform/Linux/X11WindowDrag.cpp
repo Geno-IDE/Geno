@@ -19,6 +19,8 @@
 
 #include "X11WindowDrag.h"
 
+#include <../src/internal.h>
+
 #include <cassert>
 #include <cstring>
 
