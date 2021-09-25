@@ -3531,7 +3531,7 @@ void TextEdit::ClearSearch( File& rFile )
 	delete rFile.SearchDiag.SearchResult;
 	rFile.SearchDiag.SearchResult = nullptr;
 
-	StatusBar::Instance().SetSearchResultInfo("", 0);
+	StatusBar::Instance().SetSearchResultInfo( "", 0 );
 } // ClearSearch
 
 //////////////////////////////////////////////////////////////////////////
@@ -3821,7 +3821,7 @@ void TextEdit::JoinThreads( File& rFile, bool WaitForUnfinished )
 		}
 
 		rInstances.clear();
-		StatusBar::Instance().SetSearchResultInfo("", 0);
+		StatusBar::Instance().SetSearchResultInfo( "", 0 );
 	}
 	else
 	{
@@ -3840,7 +3840,7 @@ void TextEdit::JoinThreads( File& rFile, bool WaitForUnfinished )
 
 					rFile.SearchDiag.SearchResult = pInstance->Result;
 
-					StatusBar::Instance().SetSearchResultInfo(pInstance->SearchTerm, (int)pInstance->Result->Size());
+					StatusBar::Instance().SetSearchResultInfo( pInstance->SearchTerm, ( int )pInstance->Result->Size() );
 				}
 
 				delete pInstance;
