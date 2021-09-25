@@ -218,7 +218,7 @@ void TitleBar::Draw( void )
 	#elif defined ( __linux__ )
 		{
 			GLFWwindow* pWindow          = MainWindow::Instance().GetWindow();
-			Display* pX11Display         = glfwGetX11Display();
+			Display*    pX11Display      = glfwGetX11Display();
 			Window      X11Window        = glfwGetX11Window( pWindow );
 			ImVec2      CursorPos        = ImGui::GetMousePos();
 			int         WindowSize[ 2 ]  ={ 0, 0 };

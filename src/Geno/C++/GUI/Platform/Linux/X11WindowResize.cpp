@@ -19,9 +19,6 @@
 
 #include "X11WindowResize.h"
 
-// How nice of glfw to hide this
-#include <../src/internal.h>
-
 #include <cassert>
 #include <cstring>
 
@@ -38,22 +35,29 @@
 
 void ResizeWindow( GLFWwindow* window, int border )
 {
-	_GLFWwindow* pHandle = ( _GLFWwindow* )window;
+	_GLFWwindow* pHandle     = ( _GLFWwindow* )window;
+	Display*     pX11Display = glfwGetX11Display();
+	Window       X11Window   = glfwGetX11Window( window );
 
 	int winXpos, winYpos;
 	double curXpos, curYpos;
+
 	XClientMessageEvent xclient;
 	memset( &xclient, 0, sizeof( XClientMessageEvent ) );
-	XUngrabPointer( _glfw.x11.display, 0 );
-	XFlush( _glfw.x11.display );
+
+	XUngrabPointer( pX11Display, 0 );
+	XFlush( pX11Display );
+
 	glfwGetCursorPos( window, &curXpos, &curYpos );
 	glfwGetWindowPos( window, &winXpos, &winYpos );
-	xclient.type = ClientMessage;
-	xclient.window = pHandle->x11.handle;
-	xclient.message_type = XInternAtom( _glfw.x11.display, "_NET_WM_MOVERESIZE", False );
-	xclient.format = 32;
-	xclient.data.l[ 0 ] = winXpos + curXpos;
-	xclient.data.l[ 1 ] = winYpos + curYpos;
+
+	xclient.type         = ClientMessage;
+	xclient.window       = pHandle->x11.handle;
+	xclient.message_type = XInternAtom( pX11Display, "_NET_WM_MOVERESIZE", False );
+	xclient.format       = 32;
+	xclient.data.l[ 0 ]  = winXpos + curXpos;
+	xclient.data.l[ 1 ]  = winYpos + curYpos;
+
 	switch( border )
 	{
 		case 1:
@@ -80,9 +84,10 @@ void ResizeWindow( GLFWwindow* window, int border )
 		case 8:
 			xclient.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_BOTTOMRIGHT;
 	}
+
 	xclient.data.l[ 3 ] = 0;
 	xclient.data.l[ 4 ] = 0;
-	XSendEvent( _glfw.x11.display, _glfw.x11.root, False, SubstructureRedirectMask | SubstructureNotifyMask, ( XEvent* )&xclient );
+	XSendEvent( pX11Display, X11Window, False, SubstructureRedirectMask | SubstructureNotifyMask, ( XEvent* )&xclient );
 }
 
 #endif // __linux__ 
