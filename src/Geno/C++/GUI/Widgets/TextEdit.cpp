@@ -3567,19 +3567,6 @@ void TextEdit::PrepareSearchString( std::string& rSearchString )
 
 //////////////////////////////////////////////////////////////////////////
 
-char toLower( char c )
-{
-	//TODO: Possibly handle other languages as well
-	if( c >= 'A' && c <= 'Z' )
-	{
-		return c + 32;
-	}
-
-	return c;
-}
-
-//////////////////////////////////////////////////////////////////////////
-
 TextEdit::Coordinate TextEdit::SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate Start, int SearchStringOffset, std::vector< Glyph* >& rMatches )
 {
 	Line& rLine = rFile.Lines[ Start.y ];
@@ -3623,8 +3610,8 @@ TextEdit::Coordinate TextEdit::SearchInLine( File& rFile, bool CaseSensitive, co
 
 		if( !CaseSensitive )
 		{
-			GC = toLower( GC );
-			C  = toLower( C );
+			GC = ( char )std::tolower( GC );
+			C  = ( char )std::tolower( C );
 		}
 
 		if( GC != C )
