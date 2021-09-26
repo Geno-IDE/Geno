@@ -3181,7 +3181,7 @@ void TextEdit::Paste( File& rFile )
 
 	int                 NumLinesInClipboard = 0;
 	int                 NumCursors          = ( int )rFile.Cursors.size();
-	std::vector< Line > Lines               = SplitLines( ClipBoard, &NumLinesInClipboard );
+	std::vector< Line > ClipLines           = SplitLines( ClipBoard, &NumLinesInClipboard );
 
 	if( rFile.CursorMultiMode == MultiCursorMode::Box )
 	{
@@ -3194,7 +3194,7 @@ void TextEdit::Paste( File& rFile )
 			{
 				Cursor& rCursor   = rFile.Cursors[ rFile.BoxModeDir == BoxModeDirection::Down ? i : NumCursors - i ];
 				Line&   rLine     = rFile.Lines[ rCursor.Position.y ];
-				Line&   rClipLine = Lines[ i ];
+				Line&   rClipLine = ClipLines[ i ];
 
 				rLine.insert( rLine.begin() + rCursor.Position.x, rClipLine.begin(), rClipLine.end() );
 			}
@@ -3216,23 +3216,23 @@ void TextEdit::Paste( File& rFile )
 			DeleteSelection( rFile, ( int )i );
 		}
 
-		int   NumLines   = ( int )Lines.size();
+		int   NumLines   = ( int )ClipLines.size();
 		Line& rFirstLine = rFile.Lines[ rCursor.Position.y ];
 
-		rFirstLine.insert( rFirstLine.begin() + rCursor.Position.x, Lines[ 0 ].begin(), Lines[ 0 ].end() );
+		rFirstLine.insert( rFirstLine.begin() + rCursor.Position.x, ClipLines[ 0 ].begin(), ClipLines[ 0 ].end() );
 
 		if( NumLines > 1 )
 		{
-			int   XOffset    = rCursor.Position.x + ( int )Lines[ 0 ].size();
-			Line& rLastLine  = Lines.back();
-			Line  OgLastLine = rLastLine;
+			int   XOffset        = rCursor.Position.x + ( int )ClipLines[ 0 ].size();
+			Line& rLastClipLine  = ClipLines.back();
+			Line  OgLastClipLine = rLastClipLine;
 
-			rLastLine.insert( rLastLine.end(), rFirstLine.begin() + XOffset, rFirstLine.end() );
+			rLastClipLine.insert( rLastClipLine.end(), rFirstLine.begin() + XOffset, rFirstLine.end() );
 			rFirstLine.erase( rFirstLine.begin() + XOffset, rFirstLine.end() );
 
-			rFile.Lines.insert( rFile.Lines.begin() + rCursor.Position.y + 1, Lines.begin() + 1, Lines.end() );
+			rFile.Lines.insert( rFile.Lines.begin() + rCursor.Position.y + 1, ClipLines.begin() + 1, ClipLines.end() );
 
-			Lines.back() = OgLastLine;
+			ClipLines.back() = OgLastClipLine;
 
 			AdjustCursors( rFile, ( int )i, XOffset, -( NumLines - 1 ) );
 
@@ -3241,7 +3241,7 @@ void TextEdit::Paste( File& rFile )
 		}
 		else
 		{
-			int XOffset = ( int )Lines[ 0 ].size();
+			int XOffset = ( int )ClipLines[ 0 ].size();
 
 			AdjustCursors( rFile, ( int )i, -XOffset, 0 );
 
