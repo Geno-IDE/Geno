@@ -3251,6 +3251,8 @@ void TextEdit::Paste( File& rFile )
 		Props.Changes = true;
 	}
 
+	ScrollToCursor( rFile );
+
 } // Paste
 
 //////////////////////////////////////////////////////////////////////////
