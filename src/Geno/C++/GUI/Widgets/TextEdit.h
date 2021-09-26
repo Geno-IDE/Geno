@@ -221,6 +221,7 @@ private:
 	void               AdjustCursor( Cursor& Cursor, int XOffset );
 	void               SetSelectionLine( File& rFile, int Line );
 	void               SetSelection( File& rFile, Coordinate Start, Coordinate End, int Cursor );
+	void               SelectAll( File& rFile );
 	int                GetCoordinateY( File& rFile, float YPosition );
 	int                GetCoordinateX( File& rFile, int LineIndex, float XPosition, bool AllowPastLine = false );
 	Coordinate         GetCoordinate( File& rFile, ImVec2 Position, bool AllowPastLine = false );
