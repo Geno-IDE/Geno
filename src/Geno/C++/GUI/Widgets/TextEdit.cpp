@@ -645,6 +645,8 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 			Paste( rFile );
 		else if( !Alt && !Ctrl && !Shift && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Insert ) ) && rFile.CursorMultiMode == MultiCursorMode::Normal )
 			rFile.CursorMode = rFile.CursorMode == CursorInputMode::Normal ? CursorInputMode::Insert : CursorInputMode::Normal;
+		else if( !Alt && Ctrl && !Shift && ImGui::IsKeyPressed( 'A' ) )
+			SelectAll( rFile );
 
 		for( int i = 0; i < rIO.InputQueueCharacters.Size; i++ )
 		{
@@ -1422,26 +1424,39 @@ void TextEdit::SetSelectionLine( File& rFile, int LineIndex )
 
 void TextEdit::SetSelection( File& rFile, Coordinate Start, Coordinate End, int CursorIndex )
 {
-	GENO_ASSERT( Start.x < End.x && Start.y < End.y );
+	GENO_ASSERT( ( ( Start.x < End.x ) || End.x == -1 ) && ( ( Start.y < End.y ) || End.y == -1 ) );
 	GENO_ASSERT( CursorIndex < ( int )rFile.Cursors.size() );
 
-	auto& rLines = rFile.Lines;
+	std::vector< Line >& rLines = rFile.Lines;
 
 	if( Start.y >= ( int )rLines.size() ) return;
 
-	if( End.y >= ( int )rLines.size() )
+	if( End.y >= ( int )rLines.size() || End.y == -1 )
 	{
 		End.y = ( int )rLines.size() - 1;
-
 		End.x = ( int )rLines[ End.y ].size();
 	}
 
 	Cursor& rCursor = rFile.Cursors[ CursorIndex ];
 
-	rCursor.SelectionStart = Start;
-	rCursor.SelectionEnd   = End;
+	rCursor.SelectionOrigin = Start;
+	rCursor.SelectionStart  = Start;
+	rCursor.SelectionEnd    = End;
+	rCursor.Position        = End;
 
 } // SetSelectionLine
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::SelectAll( File& rFile )
+{
+	rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+
+	rFile.CursorMultiMode = MultiCursorMode::Normal;
+
+	SetSelection( rFile, Coordinate(), Coordinate( -1, -1 ), 0 );
+
+} // SelectAll
 
 //////////////////////////////////////////////////////////////////////////
 
