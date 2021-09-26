@@ -3236,7 +3236,7 @@ void TextEdit::Paste( File& rFile )
 
 			AdjustCursors( rFile, ( int )i, XOffset, -( NumLines - 1 ) );
 
-			rCursor.Position.x = XOffset;
+			rCursor.Position.x = ( int )OgLastClipLine.size();
 			rCursor.Position.y += NumLines - 1;
 		}
 		else
