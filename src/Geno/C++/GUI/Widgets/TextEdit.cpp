@@ -3553,25 +3553,7 @@ TextEdit::Coordinate TextEdit::SearchInLine( File& rFile, bool CaseSensitive, co
 
 		if( EOL )
 		{
-			if( C == '\n' )
-			{
-				if( i + 1 == ( int )rSearchString.length() )
-				{
-					Start.x++;
-					return Start;
-				}
-
-				Coordinate Next = Coordinate( 0, Start.y + 1 );
-				Coordinate Res  = SearchInLine( rFile, CaseSensitive, rSearchString, Next, i + 1, rMatches );
-
-				if( Next == Res ) return Coordinate( OgX, Start.y );
-
-				return Res;
-			}
-			else
-			{
-				return Coordinate( OgX, Start.y );
-			}
+			return Coordinate( OgX, Start.y );
 		}
 
 		Glyph* pGlyph = &rLine[ Index ];
