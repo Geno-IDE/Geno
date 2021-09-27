@@ -3667,17 +3667,10 @@ void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, bool WholeWord, co
 void TextEdit::SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, SearchInstance* pInstance )
 {
 #if 0
-	std::vector< LineSelectionItem > Results;
-	SearchWorker( pFile, CaseSensitive, WholeWord, &pInstance->SearchTerm, 0, ( int )pFile->Lines.size() - 1, &Results, &pInstance->State );
+	SearchWorker( pFile, CaseSensitive, WholeWord, &pInstance->SearchTerm, 0, ( int )pFile->Lines.size() - 1, &pInstance->Result->Result, &pInstance->State );
 
-	for( LineSelectionItem& Item : Results )
-	{
-		if( pInstance->State == SearchInstance::Stopping ) break;
-
-		pInstance->Result->AddResult( Item );
-	}
-
-	pInstance->Result->UpdateGroups();
+	if( pInstance->State == SearchInstance::Running )
+		pInstance->Result->UpdateGroups();
 
 #else
 
