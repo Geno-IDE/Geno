@@ -3706,7 +3706,8 @@ void TextEdit::SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, S
 		}
 	}
 
-	pInstance->Result->UpdateGroups();
+	if( pInstance->State == SearchInstance::Running )
+		pInstance->Result->UpdateGroups();
 
 #endif
 
