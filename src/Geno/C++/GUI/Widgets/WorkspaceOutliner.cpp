@@ -43,12 +43,31 @@
 //////////////////////////////////////////////////////////////////////////
 
 WorkspaceOutliner::WorkspaceOutliner( void )
-	: m_IconTextureWorkspace ( STBAux::LoadImageTexture( "Icons/Workspace.png" ) )
+	: IWidget                ( std::filesystem::current_path() / "WorkspaceOutliner.json" )
+	, m_IconTextureWorkspace ( STBAux::LoadImageTexture( "Icons/Workspace.png" ) )
 	, m_IconTextureProject   ( STBAux::LoadImageTexture( "Icons/Project.png" ) )
 	, m_IconTextureFileFilter( STBAux::LoadImageTexture( "Icons/FileFilterColored.png" ) )
 	, m_IconTextureSourceFile( STBAux::LoadImageTexture( "Icons/SourceFile.png" ) )
 {
+	if( std::filesystem::exists( m_JsonFile ) )
+	{
+		jsonDeserializer Deserializer( m_JsonFile );
+		Deserializer.GetMembers( [ this ]( const rapidjson::Value::ConstMemberIterator& rIt )
+			{
+				ReadSettings( rIt );
+			} );
+	}
+
 } // WorkspaceOutliner
+
+//////////////////////////////////////////////////////////////////////////
+
+WorkspaceOutliner::~WorkspaceOutliner( void )
+{
+	jsonSerializer Serializer( m_JsonFile );
+	WriteSettings( Serializer );
+
+} // ~WorkspaceOutliner
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -74,18 +93,34 @@ void WorkspaceOutliner::Show( bool* pOpen )
 			ImGui::SetNextItemOpen( true, m_ExpandWorkspaceNode ? ImGuiCond_Always : ImGuiCond_Appearing );
 			m_ExpandWorkspaceNode = false;
 
-			if( ImGui::IsKeyDown( GLFW_KEY_LEFT_CONTROL ) && ImGui::IsKeyPressed( GLFW_KEY_Z ) )
+			auto Undo = [ this ]( void )
 			{
 				m_UndoCommandStack.UndoCommand( m_RedoCommandStack );
+			};
+
+			auto Redo = [ this ]( void )
+			{
+				m_RedoCommandStack.RedoCommand( m_UndoCommandStack );
+			};
+
+			if( m_Actions.size() == 0 )
+			{
+				m_Actions = {
+					{ "Undo", Undo },
+					{ "Redo", Redo }
+				};
 			}
 
-			if( ImGui::IsKeyDown( GLFW_KEY_LEFT_CONTROL ) )
+			if( m_KeyBindings.size() == 0 )
 			{
-				if( ( ImGui::IsKeyDown( GLFW_KEY_LEFT_SHIFT ) && ImGui::IsKeyPressed( GLFW_KEY_Z ) ) || ImGui::IsKeyPressed( GLFW_KEY_Y ) )
-				{
-					m_RedoCommandStack.RedoCommand( m_UndoCommandStack );
-				}
+				m_KeyBindings = {
+					{ { GLFW_KEY_LEFT_CONTROL, GLFW_KEY_Z }, "Undo" },
+					{ { GLFW_KEY_LEFT_CONTROL, GLFW_KEY_Y }, "Redo" },
+					{ { GLFW_KEY_LEFT_CONTROL, GLFW_KEY_LEFT_SHIFT, GLFW_KEY_Z }, "Redo" }
+				};
 			}
+
+			Observe();
 
 			auto RenameWorkspaceFunc = [ & ]()
 			{
@@ -633,3 +668,27 @@ void WorkspaceOutliner::Show( bool* pOpen )
 		DiscordRPC::Instance().m_Workspace = "No Workspace";
 
 } // Show
+
+//////////////////////////////////////////////////////////////////////////
+
+void WorkspaceOutliner::WriteSettings( jsonSerializer& rSerializer )
+{
+	Workspace*            pWorkspace = Application::Instance().CurrentWorkspace();
+	std::filesystem::path Workspace  = pWorkspace->m_Location / ( pWorkspace->m_Name + ".gwks" );
+	rSerializer.Add( "Workspace", Workspace.string() );
+
+	WriteKeyBindings( rSerializer );
+
+} // WriteSettings
+
+//////////////////////////////////////////////////////////////////////////
+
+void WorkspaceOutliner::ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt )
+{
+	const std::string MemberName = rIt->name.GetString();
+	if( MemberName == "Workspace" )
+		Application::Instance().LoadWorkspace( std::string( rIt->value.GetString() ) );
+	else if( MemberName == "KeyBindings" )
+		ReadKeyBindings( rIt );
+
+} // ReadSettings
