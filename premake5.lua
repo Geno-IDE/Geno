@@ -50,6 +50,11 @@ app( 'Geno' )
 			'opengl32',
 		}
 
+		buildoptions  {
+			'/external:W0',
+			'/external:I ../../third_party/msdf-atlas-gen'
+		}
+
 	filter 'system:linux'
 		links {
 			'stdc++fs',
