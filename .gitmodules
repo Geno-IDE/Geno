@@ -16,3 +16,6 @@
 [submodule "third_party/discord-rpc"]
 	path = third_party/discord-rpc
 	url = https://github.com/discord/discord-rpc
+[submodule "third_party/msdf-atlas-gen"]
+	path = third_party/msdf-atlas-gen
+	url = https://github.com/Chlumsky/msdf-atlas-gen
