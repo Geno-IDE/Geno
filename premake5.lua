@@ -17,6 +17,7 @@ third_party_library 'glew'
 third_party_library 'glfw'
 third_party_library 'imgui'
 third_party_library 'discordrpc'
+third_party_library 'msdf-atlas-gen'
 
 library 'Common'
 	sysincludedirs {
@@ -33,7 +34,14 @@ app( 'Geno' )
 		'third_party/stb',
 		'third_party/rapidjson/include',
 		'third_party/discord-rpc/include',
+		'third_party/msdf-atlas-gen',
+		'third_party/msdf-atlas-gen/msdfgen'
 	}
+
+	-- Currently we only have windows libs for freetype
+	libdirs 'third_party/msdf-atlas-gen/msdfgen/freetype/win64'
+
+	links 'freetype'
 
 	filter 'system:windows'
 		links {
