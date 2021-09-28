@@ -16,47 +16,26 @@
  */
 
 #pragma once
-#include "Common/Macros.h"
-#include "Common/Texture2D.h"
-
-#include "IWidget.h"
 
 #include <filesystem>
-#include <string>
+#include <functional>
 
-class WorkspaceOutliner : public IWidget
+#include <rapidjson/document.h>
+
+class jsonDeserializer
 {
 public:
-
-	 WorkspaceOutliner( void );
-	~WorkspaceOutliner( void );
+	jsonDeserializer( const std::filesystem::path& rFile );
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Show( bool* pOpen );
-
-//////////////////////////////////////////////////////////////////////////
-
-private:
-
-	void WriteSettings( jsonSerializer& rSerializer ) override;
-	void ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt ) override;
+	using Callback = std::function< void( const rapidjson::Value::ConstMemberIterator& rIt ) >;
+	void GetMembers( const Callback& rCallback );
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
-	Texture2D             m_IconTextureWorkspace    = { };
-	Texture2D             m_IconTextureProject      = { };
-	Texture2D             m_IconTextureFileFilter   = { };
-	Texture2D             m_IconTextureSourceFile   = { };
+	rapidjson::Document m_Document = {};
 
-	std::filesystem::path m_SelectedFile            = { };
-	std::filesystem::path m_SelectedFileFilterName  = { };
-	std::string           m_RenameText              = { };
-	std::string           m_SelectedProjectName     = { };
-	std::string           m_ProjectNodeToBeExpanded = { };
-
-	bool                  m_ExpandWorkspaceNode     = false;
-
-}; // WorkspaceWidget
+}; // jsonDeserializer
