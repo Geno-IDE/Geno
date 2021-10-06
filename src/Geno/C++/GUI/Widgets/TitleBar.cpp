@@ -215,7 +215,8 @@ void TitleBar::Draw( void )
 				ButtonRect.Max.x -= ButtonSize;
 			}
 		}
-	#elif defined ( __linux__ )
+	#endif
+	#if defined ( __linux__ )
 		{
 			GLFWwindow* pWindow          = MainWindow::Instance().GetWindow();
 			Display*    pX11Display      = glfwGetX11Display();
