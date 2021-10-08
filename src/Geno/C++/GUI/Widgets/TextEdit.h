@@ -18,6 +18,7 @@
 #pragma once
 #include <Common/Macros.h>
 #include <Common/Texture2D.h>
+#include "GUI/SDFFont.h"
 
 #include <filesystem>
 #include <string>
@@ -29,6 +30,7 @@
 #undef ReplaceFile
 #endif // _WIN32
 
+class SDFRenderer;
 class Drop;
 struct ImGuiTabBar;
 
@@ -265,5 +267,8 @@ private:
 	std::vector< File > m_Files = {};
 
 	std::filesystem::path m_ActiveFilePath = {};
+
+	SDFFont m_Font;
+	SDFRenderer* m_pRenderer;
 
 }; // TextEdit

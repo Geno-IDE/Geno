@@ -25,6 +25,7 @@
 #include "GUI/Widgets/StatusBar.h"
 #include "Discord/DiscordRPC.h"
 #include "GUI/Widgets/StatusBar.h"
+#include "Auxiliary/Rendering/SDFRenderer.h"
 
 #include <fstream>
 #include <iostream>
@@ -44,7 +45,7 @@ float TextEdit::FontSize = 15.0f;
 
 //////////////////////////////////////////////////////////////////////////
 
-TextEdit::TextEdit( void )
+TextEdit::TextEdit( void ) : m_Font((Application::Instance().GetDataDir() / L"Fonts" / L"LVC-Mono" / L"LVCMono.otf").string()), m_pRenderer(new SDFRenderer)
 {
 	// Create tab bar
 	{
@@ -66,6 +67,8 @@ TextEdit::TextEdit( void )
 	m_Palette.CurrentLine         = 0x40000000;
 	m_Palette.CurrentLineInactive = 0x40808080;
 	m_Palette.CurrentLineEdge     = 0x40a0a0a0;
+
+	m_pRenderer->SetFont(&m_Font);
 
 } // TextEdit
 
@@ -409,11 +412,15 @@ bool TextEdit::RenderEditor( File& rFile )
 	CalculeteLineNumMaxWidth( rFile );
 
 	Props.CharAdvanceY = ImGui::GetTextLineHeightWithSpacing();
-	Props.SpaceSize    = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, " " ).x;
+	Props.SpaceSize    = ImGui::GetFont()->CalcTextSizeA( ImGui::GetFontSize(), FLT_MAX, -1.0f, "a" ).x;
 
-	ImVec2 Size         = ImGui::GetContentRegionMax();
+	ImVec2 Size         = ImGui::GetWindowSize();
 	ImVec2 ScreenCursor = ImGui::GetCursorScreenPos();
 
+	m_pRenderer->Resize((int)Size.x, (int)Size.y);
+	m_pRenderer->StartFrame((int)Props.LineNumMaxWidth, 32);
+	m_pRenderer->SubmitLine(0, rFile.Lines[0]);
+	m_pRenderer->Render();
 	ImDrawList* pDrawList = ImGui::GetWindowDrawList();
 
 	ImGui::SetCursorScreenPos( ImVec2( ScreenCursor.x + Props.LineNumMaxWidth, ScreenCursor.y ) );
@@ -427,7 +434,7 @@ bool TextEdit::RenderEditor( File& rFile )
 	int FirstLine = ( int )( Props.ScrollY / Props.CharAdvanceY );
 	int LastLine  = std::min( FirstLine + ( int )( Size.y / Props.CharAdvanceY + 2 ), ( int )rFile.Lines.size() - 1 );
 
-	for( int i = FirstLine; i <= LastLine; i++ )
+	for (int i = FirstLine; i <= LastLine; i++)
 	{
 		ImVec2 Pos( ScreenCursor.x + Props.LineNumMaxWidth - Props.ScrollX, ScreenCursor.y + ( i - FirstLine ) * Props.CharAdvanceY );
 		Line&  rLine = rFile.Lines[ i ];
@@ -561,6 +568,10 @@ bool TextEdit::RenderEditor( File& rFile )
 		}
 	}
 
+
+	ImGui::Image(m_pRenderer->GetTextureID(), Size, ImVec2(0, 1), ImVec2(1, 0));
+
+
 	CheckLineLengths( rFile, FirstLine, LastLine );
 
 	float Width = GetMaxCursorDistance( rFile );
@@ -571,7 +582,6 @@ bool TextEdit::RenderEditor( File& rFile )
 
 	ImGui::PopAllowKeyboardFocus();
 	ImGui::EndChild();
-
 	//Render Line numbers
 	ImGui::SetCursorScreenPos( ImVec2( ScreenCursor.x - 2, ScreenCursor.y ) );
 	ImGui::BeginChild( "##LineNumbers", ImVec2( Props.LineNumMaxWidth, Size.y + 2 ), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
