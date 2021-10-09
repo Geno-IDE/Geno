@@ -239,8 +239,8 @@ void TitleBar::Draw( void )
 			XTranslateCoordinates( pX11Display, X11Window, win_attributes.root, -win_attributes.border_width, -win_attributes.border_width, &rx, &ry, &junkwin );
 
 			ImRect WindowImRect;
-			WindowImRect.Min ={ static_cast< float >( rx ), static_cast< float >( ry ) };
-			WindowImRect.Max ={ static_cast< float >( WindowSize[ 0 ] ), static_cast< float >( WindowSize[ 1 ] ) };
+			WindowImRect.Min = { static_cast< float >( rx ), static_cast< float >( ry ) };
+			WindowImRect.Max = { static_cast< float >( WindowSize[ 0 ] ), static_cast< float >( WindowSize[ 1 ] ) };
 
 			if( ImGui::IsMousePosValid( &CursorPos ) )
 			{
