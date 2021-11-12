@@ -63,22 +63,9 @@ void ResizeWindow( GLFWwindow* pWindow, int Border )
 	Event.format       = 32;
 	Event.data.l[ 0 ]  = WindowX + CursorX;
 	Event.data.l[ 1 ]  = WindowY + CursorY;
-
-	switch( Border )
-	{
-		case 1: Event.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_LEFT;        break;
-		case 2: Event.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_TOP;         break;
-		case 3: Event.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_RIGHT;       break;
-		case 4: Event.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_BOTTOM;      break;
-		case 5: Event.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_TOPLEFT;     break;
-		case 6: Event.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_TOPRIGHT;    break;
-		case 7: Event.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_BOTTOMLEFT;  break;
-		case 8: Event.data.l[ 2 ] = _NET_WM_MOVERESIZE_SIZE_BOTTOMRIGHT; break;
-		default:                                                         break;
-	}
-
-	Event.data.l[ 3 ] = 0;
-	Event.data.l[ 4 ] = 0;
+	Event.data.l[ 2 ]  = Border;
+	Event.data.l[ 3 ]  = 0;
+	Event.data.l[ 4 ]  = 0;
 
 	XSendEvent( pX11Display, _glfw.x11.root, False, SubstructureRedirectMask | SubstructureNotifyMask, ( XEvent* )&Event );
 

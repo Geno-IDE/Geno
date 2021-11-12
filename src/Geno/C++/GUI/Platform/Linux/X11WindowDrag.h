@@ -18,6 +18,8 @@
 #pragma once
 #if defined( __linux__ )
 
+struct GLFWwindow;
+
 extern void DragWindow( GLFWwindow* window );
 
 #endif // __linux__
