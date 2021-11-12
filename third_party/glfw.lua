@@ -25,7 +25,8 @@ return function()
 
 	filter 'system:linux'
 	defines {
-		'_GLFW_X11'
+		'_GLFW_X11',
+		'_POSIX_C_SOURCE=199309L',
 	}
 	files {
 		'third_party/glfw/src/glx_*.c',
