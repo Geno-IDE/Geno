@@ -77,6 +77,7 @@ public:
 	ImFont*     GetFontMono   ( void ) const { return m_pFontMono; }
 	int         GetDragPosX   ( void ) const { return m_DragPosX; }
 	int         GetDragPosY   ( void ) const { return m_DragPosY; }
+	GLFWwindow* GetWindow     ( void )       { return m_pWindow; }
 
 //////////////////////////////////////////////////////////////////////////
 
