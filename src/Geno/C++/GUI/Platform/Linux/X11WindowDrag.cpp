@@ -33,9 +33,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-void DragWindow( GLFWwindow* window )
+void DragWindow( GLFWwindow* pWindow )
 {
-	_GLFWwindow*        pHandle     = ( _GLFWwindow* )window;
+	_GLFWwindow*        pHandle     = ( _GLFWwindow* )pWindow;
 	Display*            pX11Display = glfwGetX11Display();
 	XClientMessageEvent Event       = { };
 

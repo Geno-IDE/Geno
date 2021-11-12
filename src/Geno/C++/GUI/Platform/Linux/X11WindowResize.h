@@ -18,6 +18,8 @@
 #pragma once
 #if defined( __linux__ )
 
+struct GLFWwindow;
+
 extern void ResizeWindow( GLFWwindow* pWindow, int Border );
 
 #endif // __linux__
