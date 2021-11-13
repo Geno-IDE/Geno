@@ -1,199 +1,283 @@
-// TODO(MarcasRealAccount): Find fix for live resize not starting when window edge is pressed initally until mouse moves.
-//                          Find fix for window not re rendering when fullscreen/zoom popup is visible.
-#if defined( __APPLE__ )
-#include <GL/glew.h>
+/*
+ * Copyright (c) 2021 Sebastian Kylander https://gaztin.com/
+ *
+ * This software is provided 'as-is', without any express or implied warranty. In no pEvent will
+ * the authors be held liable for any damages arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose, including commercial
+ * applications, and to alter it and redistribute it freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not claim that you wrote the
+ *    original software. If you use this software in a product, an acknowledgment in the product
+ *    documentation would be appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be misrepresented as
+ *    being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ */
 
-#include "MacosGenoContentView.h"
+#if defined( __APPLE__ )
+
+#define _GLFW_COCOA
+
+#include "macOSContentView.h"
 
 #include "GUI/Widgets/TitleBar.h"
 
-@implementation GenoWindowDelegate
+#include <GL/glew.h>
+#include <../src/internal.h>
 
-- ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow
+// TODO(MarcasRealAccount): Find fix for live resize not starting when pWindow edge is pressed initally until mouse moves.
+//                          Find fix for pWindow not re rendering when fullscreen/zoom popup is visible.
+
+//////////////////////////////////////////////////////////////////////////
+
+@implementation WindowDelegate
+
+- ( instancetype )initWithMainWindow:( MainWindow* )pMainWindow :( _GLFWwindow* )pInitWindow
 {
-	self = [super initWithGlfwWindow:initWindow];
-	if( self != nil )
+	if( ( self = [ super initWithGlfwWindow:pInitWindow ] ) )
 	{
-		mainWindow  = mainGenoWindow;
-		resizeTimer = nil;
+		pMainWindow  = pMainWindow;
+		pResizeTimer = nil;
 	}
+
 	return self;
-}
+
+} // initWithMainWindow
+
+//////////////////////////////////////////////////////////////////////////
 
 - ( void )setGLFWVariables
 {
-	id oldDelegate = window->ns.delegate;
-	window->ns.delegate = self;
-	[window->ns.object setDelegate:window->ns.delegate];
-	[oldDelegate release];
-}
+	id OldDelegate      = pWindow->ns.delegate;
+	pWindow->ns.delegate = self;
 
-- ( void )windowDidResize:( NSNotification* )notification
+	[ pWindow->ns.object setDelegate:pWindow->ns.delegate ];
+	[ OldDelegate release ];
+
+} // setGLFWVariables
+
+//////////////////////////////////////////////////////////////////////////
+
+- ( void )windowDidResize:( NSNotification* )pNotification
 {
 	// Set position of buttons
-	NSButton* closeButton       = [window->ns.object standardWindowButton:NSWindowCloseButton];
-	NSButton* miniaturizeButton = [window->ns.object standardWindowButton:NSWindowMiniaturizeButton];
-	NSButton* zoomButton        = [window->ns.object standardWindowButton:NSWindowZoomButton];
-	[closeButton       setFrameOrigin:{ 7.0f,  [window->ns.view frame].size.height - 26.0f }];
-	[miniaturizeButton setFrameOrigin:{ 27.0f, [window->ns.view frame].size.height - 26.0f }];
-	[zoomButton        setFrameOrigin:{ 47.0f, [window->ns.view frame].size.height - 26.0f }];
+	NSButton* pCloseButton       = [ pWindow->ns.object standardWindowButton:NSWindowCloseButton ];
+	NSButton* pMiniaturizeButton = [ pWindow->ns.object standardWindowButton:NSWindowMiniaturizeButton ];
+	NSButton* pZoomButton        = [ pWindow->ns.object standardWindowButton:NSWindowZoomButton ];
 
-	[super windowDidResize:notification];
+	[ pCloseButton       setFrameOrigin:{  7.0f, [ pWindow->ns.view frame ].size.height - 26.0f } ];
+	[ pMiniaturizeButton setFrameOrigin:{ 27.0f, [ pWindow->ns.view frame ].size.height - 26.0f } ];
+	[ pZoomButton        setFrameOrigin:{ 47.0f, [ pWindow->ns.view frame ].size.height - 26.0f } ];
+	[ super windowDidResize:pNotification ];
 
 	MainWindow::Instance().Render();
-}
 
-- ( void )windowWillStartLiveResize:( NSNotification* )notification
-{
-	if( resizeTimer ) return;
-	double interval = 1.0 / window->videoMode.refreshRate;
-	resizeTimer = [NSTimer timerWithTimeInterval:interval repeats:YES block:^ ( NSTimer* ) {
-		MainWindow::Instance().Render();
-	}];
-	NSRunLoop* runLoop = [NSRunLoop currentRunLoop];
-	[runLoop addTimer:resizeTimer forMode:NSRunLoopCommonModes];
-}
+} // windowDidResize
 
-- ( void )windowDidEndLiveResize:( NSNotification* )notification
+//////////////////////////////////////////////////////////////////////////
+
+- ( void )windowWillStartLiveResize:( NSNotification* )pNotification
 {
-	if( resizeTimer )
+	if( ResizeTimer )
+		return;
+
+	const double interval = 1.0 / pWindow->videoMode.refreshRate;
+	pResizeTimer          = [ NSTimer timerWithTimeInterval:interval repeats:YES block:^( NSTimer* ) { MainWindow::Instance().Render(); } ];
+	NSRunLoop* pRunLoop   = [ NSRunLoop currentRunLoop ];
+
+	[ pRunLoop addTimer:ResizeTimer forMode:NSRunLoopCommonModes ];
+
+} // windowWillStartLiveResize
+
+//////////////////////////////////////////////////////////////////////////
+
+- ( void )windowDidEndLiveResize:( NSNotification* )pNotification
+{
+	if( ResizeTimer )
 	{
-		[resizeTimer invalidate];
-		resizeTimer = nil;
+		[ ResizeTimer invalidate ];
+		pResizeTimer = nil;
 	}
-}
 
-- ( void )windowDidBecomeKey:( NSNotification* )notification
+} // windowDidEndLiveResize
+
+//////////////////////////////////////////////////////////////////////////
+
+- ( void )windowDidBecomeKey:( NSNotification* )pNotification
 {
-	[super windowDidBecomeKey:notification];
-	[[window->ns.object standardWindowButton:NSWindowCloseButton]       setEnabled:YES];
-	[[window->ns.object standardWindowButton:NSWindowMiniaturizeButton] setEnabled:YES];
-	[[window->ns.object standardWindowButton:NSWindowZoomButton]        setEnabled:YES];
-}
+	[ super windowDidBecomeKey:pNotification ];
+	[ [ pWindow->ns.object standardWindowButton:NSWindowCloseButton ]       setEnabled:YES ];
+	[ [ pWindow->ns.object standardWindowButton:NSWindowMiniaturizeButton ] setEnabled:YES ];
+	[ [ pWindow->ns.object standardWindowButton:NSWindowZoomButton ]        setEnabled:YES ];
 
-- ( void )windowDidResignKey:( NSNotification* )notification
+} // windowDidBecomeKey
+
+//////////////////////////////////////////////////////////////////////////
+
+- ( void )windowDidResignKey:( NSNotification* )pNotification
 {
-	[super windowDidResignKey:notification];
-	[[window->ns.object standardWindowButton:NSWindowCloseButton]       setEnabled:NO];
-	[[window->ns.object standardWindowButton:NSWindowMiniaturizeButton] setEnabled:NO];
-	[[window->ns.object standardWindowButton:NSWindowZoomButton]        setEnabled:NO];
-}
+	[ super windowDidResignKey:pNotification ];
+	[ [ pWindow->ns.object standardWindowButton:NSWindowCloseButton ]       setEnabled:NO ];
+	[ [ pWindow->ns.object standardWindowButton:NSWindowMiniaturizeButton ] setEnabled:NO ];
+	[ [ pWindow->ns.object standardWindowButton:NSWindowZoomButton ]        setEnabled:NO ];
 
-@end
+} // windowDidResignKey
 
-@implementation GenoContentView
+@end // WindowDelegate
 
-- ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow
+//////////////////////////////////////////////////////////////////////////
+
+@implementation ContentView
+
+- ( instancetype )initWithMainWindow:( MainWindow* )pMainWindow :( _GLFWwindow* )pInitWindow
 {
-	self = [super initWithGlfwWindow:initWindow];
-	if( self != nil )
+	if( ( self = [ super initWithGlfwWindow:pInitWindow ] ) )
 	{
-		mainWindow                 = mainGenoWindow;
-		lastTitlebarClick          = 0;
-		lastTitlebarPos            = { 0.0f, 0.0f };
-		movingWindow               = NO;
-		mouseInsideStandardButtons = NO;
+		pMainWindow                = pMainWindow;
+		LastTitleBarClick          = 0;
+		LastTitleBarPos            = { 0.0f, 0.0f };
+		MovingWindow               = NO;
+		MouseInsideStandardButtons = NO;
 	}
+
 	return self;
-}
+
+} // initWithMainWindow
+
+//////////////////////////////////////////////////////////////////////////
 
 - ( void )setGLFWVariables
 {
-	id oldView = window->ns.view;
-	window->ns.view = self;
-	[window->ns.object           setContentView:self];
-	[window->ns.view             setWantsBestResolutionOpenGLSurface:window->ns.retina];
-	[window->context.nsgl.object setView:self];
-	[oldView release];
+	id OldView       = pWindow->ns.view;
+	pWindow->ns.view = self;
 
-	[window->ns.object setStyleMask:[window->ns.object styleMask] | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable];
+	[ pWindow->ns.object           setContentView:self ];
+	[ pWindow->ns.view             setWantsBestResolutionOpenGLSurface:pWindow->ns.retina ];
+	[ pWindow->context.nsgl.object setView:self ];
+	[ OldView release ];
+	[ pWindow->ns.object setStyleMask:[ pWindow->ns.object styleMask ] | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable ];
 
-	// Create standard window buttons, the close, min and zoom (max) buttons
-	closeButton       = [NSWindow standardWindowButton:NSWindowCloseButton       forStyleMask:[window->ns.object styleMask]];
-	miniaturizeButton = [NSWindow standardWindowButton:NSWindowMiniaturizeButton forStyleMask:[window->ns.object styleMask]];
-	zoomButton        = [NSWindow standardWindowButton:NSWindowZoomButton        forStyleMask:[window->ns.object styleMask]];
+	// Create standard pWindow buttons, the close, min and zoom (max) buttons
+	pCloseButton       = [ NSWindow standardWindowButton:NSWindowCloseButton       forStyleMask:[ pWindow->ns.object styleMask ]];
+	pMiniaturizeButton = [ NSWindow standardWindowButton:NSWindowMiniaturizeButton forStyleMask:[ pWindow->ns.object styleMask ]];
+	pZoomButton        = [ NSWindow standardWindowButton:NSWindowZoomButton        forStyleMask:[ pWindow->ns.object styleMask ]];
 
 	// Add them to the content view
-	[self addSubview:closeButton];
-	[self addSubview:miniaturizeButton];
-	[self addSubview:zoomButton];
+	[ self addSubview:pCloseButton ];
+	[ self addSubview:pMiniaturizeButton ];
+	[ self addSubview:pZoomButton ];
 
 	// Set position of buttons
-	[closeButton       setFrameOrigin:{ 7.0f, self.frame.size.height - 26.0f }];
-	[miniaturizeButton setFrameOrigin:{ 27.0f, self.frame.size.height - 26.0f }];
-	[zoomButton        setFrameOrigin:{ 47.0f, self.frame.size.height - 26.0f }];
-}
+	[ pCloseButton       setFrameOrigin:{  7.0f, self.frame.size.height - 26.0f } ];
+	[ pMiniaturizeButton setFrameOrigin:{ 27.0f, self.frame.size.height - 26.0f } ];
+	[ pZoomButton        setFrameOrigin:{ 47.0f, self.frame.size.height - 26.0f } ];
+
+} // setGLFWVariables
+
+//////////////////////////////////////////////////////////////////////////
 
 - ( void )dealloc
 {
-	[super dealloc];
-}
+	[ super dealloc ];
 
-- ( void )mouseDown:( NSEvent* )event
+} // dealloc
+
+//////////////////////////////////////////////////////////////////////////
+
+- ( void )mouseDown:( NSEvent* )pEvent
 {
-	const NSPoint pos  = [event locationInWindow];
-	const NSRect  rect = [self frame];
-	if( !ImGui::IsAnyItemHovered() && ( pos.y > ( rect.size.height - mainWindow->pTitleBar->Height() ) ) )
+	const NSPoint Location = [ pEvent locationInWindow ];
+	const NSRect  Rect     = [ self frame ];
+
+	if( !ImGui::IsAnyItemHovered() && ( Location.y > ( Rect.size.height - pMainWindow->pTitleBar->Height() ) ) )
 	{
-		const NSPoint        screenPos = [NSEvent mouseLocation];
-		const NSTimeInterval timestamp = [event timestamp];
-		if( ( timestamp - lastTitlebarClick ) < 1.0 && NSEqualPoints( screenPos, lastTitlebarPos ) )
+		const NSPoint        ScreenPos = [ NSEvent mouseLocation ];
+		const NSTimeInterval Timestamp = [ pEvent timestamp ];
+
+		if( ( Timestamp - LastTitleBarClick ) < 1.0 && NSEqualPoints( ScreenPos, LastTitleBarPos ) )
 		{
+			LastTitleBarClick = 0;
+			LastTitleBarPos   = { 0.0f, 0.0f };
+			MovingWindow      = NO;
+
 			MainWindow::Instance().Maximize();
-			lastTitlebarClick = 0;
-			lastTitlebarPos   = { 0.0f, 0.0f };
-			movingWindow      = NO;
+
 			return;
 		}
-		[self.window performWindowDragWithEvent:event];
-		lastTitlebarClick = timestamp;
-		lastTitlebarPos   = screenPos;
-		movingWindow      = YES;
+
+		LastTitleBarClick = Timestamp;
+		LastTitleBarPos   = ScreenPos;
+		MovingWindow      = YES;
+
+		[ pWindow performWindowDragWithEvent:pEvent ];
+
 		return;
 	}
-	movingWindow = NO;
-	[super mouseDown:event];
-}
 
-- ( void )mouseUp:( NSEvent* )event
+	MovingWindow = NO;
+
+	[ super mouseDown:pEvent ];
+
+} // mouseDown
+
+//////////////////////////////////////////////////////////////////////////
+
+- ( void )mouseUp:( NSEvent* )pEvent
 {
-	if( movingWindow )
+	if( MovingWindow )
 	{
-		movingWindow = NO;
+		MovingWindow = NO;
 		return;
 	}
-	[super mouseUp:event];
-}
 
-- ( void )mouseMoved:( NSEvent* )event
+	[ super mouseUp:pEvent ];
+
+} // mouseUp
+
+//////////////////////////////////////////////////////////////////////////
+
+- ( void )mouseMoved:( NSEvent* )pEvent
 {
-	if( movingWindow ) return;
-	[super mouseMoved:event];
+	if( MovingWindow )
+		return;
 
-	[self updateButtons:event];
-}
+	[ super mouseMoved:pEvent ];
+	[ self updateButtons:pEvent ];
 
-- ( void )flagsChanged:( NSEvent* )event
+} // mouseMoved
+
+//////////////////////////////////////////////////////////////////////////
+
+- ( void )flagsChanged:( NSEvent* )pEvent
 {
-	[super flagsChanged:event];
+	[ super flagsChanged:pEvent ];
+	[ self updateButtons:pEvent ];
 
-	[self updateButtons:event];
-}
+} // flagsChanged
 
-- ( BOOL )_mouseInGroup:( NSButton* )button
+//////////////////////////////////////////////////////////////////////////
+
+- ( BOOL )_mouseInGroup:( NSButton* )pButton
 {
-    return mouseInsideStandardButtons;
-}
+	return MouseInsideStandardButtons;
 
-- ( void )updateButtons:( NSEvent* )event
+} // _mouseInGroup
+
+//////////////////////////////////////////////////////////////////////////
+
+- ( void )updateButtons:( NSEvent* )pEvent
 {
-	const NSPoint pos  = [event locationInWindow];
-	const NSRect  rect = [self frame];
-	mouseInsideStandardButtons = pos.y > ( rect.size.height - mainWindow->pTitleBar->Height() ) && pos.x < 67.0f;
-	closeButton.needsDisplay = YES;
-	miniaturizeButton.needsDisplay = YES;
-	zoomButton.needsDisplay = YES;
-}
+	const NSPoint Location = [ pEvent locationInWindow ];
+	const NSRect  Rect     = [ self frame ];
 
-@end
-#endif
+	MouseInsideStandardButtons      = Location.y > ( Rect.size.height - pMainWindow->pTitleBar->Height() ) && Location.x < 67.0f;
+	pCloseButton.needsDisplay       = YES;
+	pMiniaturizeButton.needsDisplay = YES;
+	pZoomButton.needsDisplay        = YES;
+
+} // updateButtons
+
+@end // ContentView
+
+#endif // __APPLE__
