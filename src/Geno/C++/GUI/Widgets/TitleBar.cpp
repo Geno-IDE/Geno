@@ -15,8 +15,6 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#define GLFW_EXPOSE_NATIVE_X11
-
 #include "TitleBar.h"
 
 #include "Application.h"
@@ -38,7 +36,6 @@
 #include <Common/Process.h>
 
 #include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
 #include <imgui_internal.h>
 
 #include <functional>
@@ -48,6 +45,8 @@
 #include <string>
 
 #if defined( __linux__ )
+#define GLFW_EXPOSE_NATIVE_X11
+#include <GLFW/glfw3native.h>
 #include <X11/Xlib.h>
 #endif // __linux__
 
