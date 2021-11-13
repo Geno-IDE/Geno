@@ -28,7 +28,7 @@ library 'GCL'
 app( 'Geno' )
 	sysincludedirs {
 		'third_party/glew/include',
-		'third_party/glfw/include',
+		'third_party/glfw-fork/include',
 		'third_party/imgui',
 		'third_party/stb',
 		'third_party/rapidjson/include',

@@ -1,17 +1,17 @@
 return function()
 	warnings 'Off'
 	includedirs {
-		'third_party/glfw/include',
+		'third_party/glfw-fork/include',
 	}
 	files {
-		'third_party/glfw/src/egl_*.c',
-		'third_party/glfw/src/osmesa_*.c',
-		'third_party/glfw/src/context.c',
-		'third_party/glfw/src/init.c',
-		'third_party/glfw/src/input.c',
-		'third_party/glfw/src/monitor.c',
-		'third_party/glfw/src/vulkan.c',
-		'third_party/glfw/src/window.c',
+		'third_party/glfw-fork/src/egl_*.c',
+		'third_party/glfw-fork/src/osmesa_*.c',
+		'third_party/glfw-fork/src/context.c',
+		'third_party/glfw-fork/src/init.c',
+		'third_party/glfw-fork/src/input.c',
+		'third_party/glfw-fork/src/monitor.c',
+		'third_party/glfw-fork/src/vulkan.c',
+		'third_party/glfw-fork/src/window.c',
 	}
 
 	filter 'system:windows'
@@ -19,8 +19,8 @@ return function()
 		'_GLFW_WIN32',
 	}
 	files {
-		'third_party/glfw/src/win32_*.c',
-		'third_party/glfw/src/wgl_*.c',
+		'third_party/glfw-fork/src/win32_*.c',
+		'third_party/glfw-fork/src/wgl_*.c',
 	}
 
 	filter 'system:linux'
@@ -29,11 +29,11 @@ return function()
 		'_POSIX_C_SOURCE=199309L',
 	}
 	files {
-		'third_party/glfw/src/glx_*.c',
-		'third_party/glfw/src/linux_*.c',
-		'third_party/glfw/src/posix_*.c',
-		'third_party/glfw/src/x11_*.c',
-		'third_party/glfw/src/xkb_*.c',
+		'third_party/glfw-fork/src/glx_*.c',
+		'third_party/glfw-fork/src/linux_*.c',
+		'third_party/glfw-fork/src/posix_*.c',
+		'third_party/glfw-fork/src/x11_*.c',
+		'third_party/glfw-fork/src/xkb_*.c',
 	}
 
 	filter 'system:macosx'
@@ -41,12 +41,12 @@ return function()
 		'_GLFW_COCOA',
 	}
 	files {
-		'third_party/glfw/src/cocoa_*.c',
-		'third_party/glfw/src/cocoa_*.m',
-		'third_party/glfw/src/nsgl_*.m',
-		'third_party/glfw/src/posix_*.c',
+		'third_party/glfw-fork/src/cocoa_*.c',
+		'third_party/glfw-fork/src/cocoa_*.m',
+		'third_party/glfw-fork/src/nsgl_*.m',
+		'third_party/glfw-fork/src/posix_*.c',
 	}
 	removefiles {
-		'third_party/glfw/src/posix_time.c',
+		'third_party/glfw-fork/src/posix_time.c',
 	}
 end

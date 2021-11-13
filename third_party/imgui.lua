@@ -4,7 +4,7 @@ return function()
 	}
 	sysincludedirs {
 		'third_party/glew/include',
-		'third_party/glfw/include',
+		'third_party/glfw-fork/include',
 	}
 	includedirs {
 		'third_party/imgui',
