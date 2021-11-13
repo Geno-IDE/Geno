@@ -1,64 +1,84 @@
+/*
+ * Copyright (c) 2021 Sebastian Kylander https://gaztin.com/
+ *
+ * This software is provided 'as-is', without any express or implied warranty. In no event will
+ * the authors be held liable for any damages arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose, including commercial
+ * applications, and to alter it and redistribute it freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not claim that you wrote the
+ *    original software. If you use this software in a product, an acknowledgment in the product
+ *    documentation would be appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be misrepresented as
+ *    being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ */
 #pragma once
+#if defined( __APPLE__ )
 
 #include "GUI/MainWindow.h"
 
-#define _GLFW_COCOA
-#include <glfw/src/internal.h>
-#undef _GLFW_COCOA
-
 struct _GLFWwindow;
+
+//////////////////////////////////////////////////////////////////////////
 
 @interface GLFWWindowDelegate : NSObject
 {
-	_GLFWwindow* window;
+	_GLFWwindow* pWindow;
 }
 
-- ( instancetype )initWithGlfwWindow:( _GLFWwindow* )initWindow;
+- ( instancetype )initWithGlfwWindow:( _GLFWwindow* )pInitWindow;
 
-- ( void )windowDidResize:( NSNotification* )notification;
-- ( void )windowDidBecomeKey:( NSNotification* )notification;
-- ( void )windowDidResignKey:( NSNotification* )notification;
+- ( void )windowDidResize:( NSNotification* )pNotification;
+- ( void )windowDidBecomeKey:( NSNotification* )pNotification;
+- ( void )windowDidResignKey:( NSNotification* )pNotification;
 
-@end
+@end // GLFWWindowDelegate
+
+//////////////////////////////////////////////////////////////////////////
 
 @interface GLFWContentView : NSView< NSTextInputClient >
 {
-	_GLFWwindow*               window;
-	NSTrackingArea*            trackingArea;
-	NSMutableAttributedString* markedText;
+	_GLFWwindow*               pWindow;
+	NSTrackingArea*            pTrackingArea;
+	NSMutableAttributedString* pMarkedText;
 }
 
-- ( instancetype )initWithGlfwWindow:( _GLFWwindow* )initWindow;
+- ( instancetype )initWithGlfwWindow:( _GLFWwindow* )pInitWindow;
 
-@end
+@end // GLFWContentView
 
-@interface GenoWindowDelegate : GLFWWindowDelegate
+//////////////////////////////////////////////////////////////////////////
+
+@interface WindowDelegate : GLFWWindowDelegate
 {
-	MainWindow* mainWindow;
-	NSTimer*    resizeTimer;
+	MainWindow* pMainWindow;
+	NSTimer*    pResizeTimer;
 }
 
-- ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow;
-
+- ( instancetype )initWithMainWindow:( MainWindow* )pMainWindow :( _GLFWwindow* )pInitWindow;
 - ( void )setGLFWVariables;
 
-@end
+@end // WindowDelegate
 
-@interface GenoContentView : GLFWContentView
+//////////////////////////////////////////////////////////////////////////
+
+@interface ContentView : GLFWContentView
 {
-	MainWindow*    mainWindow;
-	NSTimeInterval lastTitlebarClick;
-	NSPoint        lastTitlebarPos;
-	BOOL           movingWindow;
-
-	NSButton*      closeButton;
-	NSButton*      miniaturizeButton;
-	NSButton*      zoomButton;
-	BOOL           mouseInsideStandardButtons;
+	MainWindow*    pMainWindow;
+	NSTimeInterval LastTitleBarClick;
+	NSPoint        LastTitleBarPos;
+	BOOL           MovingWindow;
+	NSButton*      pCloseButton;
+	NSButton*      pMiniaturizeButton;
+	NSButton*      pZoomButton;
+	BOOL           MouseInsideStandardButtons;
 };
 
-- ( instancetype )initWithMainWindow:( MainWindow* )mainGenoWindow :( _GLFWwindow* )initWindow;
-
+- ( instancetype )initWithMainWindow:( MainWindow* )pMainWindow :( _GLFWwindow* )pInitWindow;
 - ( void )setGLFWVariables;
 
-@end
+@end // ContentView
+
+#endif // __APPLE__

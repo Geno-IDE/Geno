@@ -122,12 +122,12 @@ MainWindow::MainWindow( void )
 	// Create drop target
 	m_pDropTarget = new Win32DropTarget();
 
-#endif // _WIN32
+#elif defined( __APPLE__ ) // _WIN32
 
-#if defined( __APPLE__ )
-	_GLFWwindow* GlfwWindow = reinterpret_cast< _GLFWwindow* >( m_pWindow );
-	[[[GenoWindowDelegate alloc] initWithMainWindow:this:GlfwWindow] setGLFWVariables];
-	[[[GenoContentView alloc]    initWithMainWindow:this:GlfwWindow] setGLFWVariables];
+	_GLFWwindow* pGLFWWindow = reinterpret_cast< _GLFWwindow* >( m_pWindow );
+	[ [ [ WindowDelegate alloc ] initWithMainWindow:this:pGLFWWindow ] setGLFWVariables ];
+	[ [ [ ContentView alloc ]    initWithMainWindow:this:pGLFWWindow ] setGLFWVariables ];
+
 #endif // __APPLE__
 
 	m_IniPath       = LocalAppData::Instance().Path() / L"imgui.ini";
