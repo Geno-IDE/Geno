@@ -26,8 +26,8 @@
 #include <GL/glew.h>
 #include <../src/internal.h>
 
-// TODO(MarcasRealAccount): Find fix for live resize not starting when pWindow edge is pressed initally until mouse moves.
-//                          Find fix for pWindow not re rendering when fullscreen/zoom popup is visible.
+// TODO(MarcasRealAccount): Find fix for live resize not starting when m_pWindow edge is pressed initally until mouse moves.
+//                          Find fix for m_pWindow not re rendering when fullscreen/zoom popup is visible.
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -37,8 +37,8 @@
 {
 	if( ( self = [ super initWithGlfwWindow:pInitWindow ] ) )
 	{
-		pMainWindow  = pMainWindow;
-		pResizeTimer = nil;
+		m_pMainWindow  = pMainWindow;
+		m_pResizeTimer = nil;
 	}
 
 	return self;
@@ -49,10 +49,10 @@
 
 - ( void )setGLFWVariables
 {
-	id OldDelegate      = pWindow->ns.delegate;
-	pWindow->ns.delegate = self;
+	id OldDelegate      = window->ns.delegate;
+	window->ns.delegate = self;
 
-	[ pWindow->ns.object setDelegate:pWindow->ns.delegate ];
+	[ window->ns.object setDelegate:window->ns.delegate ];
 	[ OldDelegate release ];
 
 } // setGLFWVariables
@@ -62,13 +62,13 @@
 - ( void )windowDidResize:( NSNotification* )pNotification
 {
 	// Set position of buttons
-	NSButton* pCloseButton       = [ pWindow->ns.object standardWindowButton:NSWindowCloseButton ];
-	NSButton* pMiniaturizeButton = [ pWindow->ns.object standardWindowButton:NSWindowMiniaturizeButton ];
-	NSButton* pZoomButton        = [ pWindow->ns.object standardWindowButton:NSWindowZoomButton ];
+	NSButton* pCloseButton       = [ window->ns.object standardWindowButton:NSWindowCloseButton ];
+	NSButton* pMiniaturizeButton = [ window->ns.object standardWindowButton:NSWindowMiniaturizeButton ];
+	NSButton* pZoomButton        = [ window->ns.object standardWindowButton:NSWindowZoomButton ];
 
-	[ pCloseButton       setFrameOrigin:{  7.0f, [ pWindow->ns.view frame ].size.height - 26.0f } ];
-	[ pMiniaturizeButton setFrameOrigin:{ 27.0f, [ pWindow->ns.view frame ].size.height - 26.0f } ];
-	[ pZoomButton        setFrameOrigin:{ 47.0f, [ pWindow->ns.view frame ].size.height - 26.0f } ];
+	[ pCloseButton       setFrameOrigin:{  7.0f, [ window->ns.view frame ].size.height - 26.0f } ];
+	[ pMiniaturizeButton setFrameOrigin:{ 27.0f, [ window->ns.view frame ].size.height - 26.0f } ];
+	[ pZoomButton        setFrameOrigin:{ 47.0f, [ window->ns.view frame ].size.height - 26.0f } ];
 	[ super windowDidResize:pNotification ];
 
 	MainWindow::Instance().Render();
@@ -79,14 +79,14 @@
 
 - ( void )windowWillStartLiveResize:( NSNotification* )pNotification
 {
-	if( ResizeTimer )
+	if( m_pResizeTimer )
 		return;
 
-	const double interval = 1.0 / pWindow->videoMode.refreshRate;
-	pResizeTimer          = [ NSTimer timerWithTimeInterval:interval repeats:YES block:^( NSTimer* ) { MainWindow::Instance().Render(); } ];
+	const double interval = 1.0 / window->videoMode.refreshRate;
+	m_pResizeTimer        = [ NSTimer timerWithTimeInterval:interval repeats:YES block:^( NSTimer* ) { MainWindow::Instance().Render(); } ];
 	NSRunLoop* pRunLoop   = [ NSRunLoop currentRunLoop ];
 
-	[ pRunLoop addTimer:ResizeTimer forMode:NSRunLoopCommonModes ];
+	[ pRunLoop addTimer:m_pResizeTimer forMode:NSRunLoopCommonModes ];
 
 } // windowWillStartLiveResize
 
@@ -94,10 +94,10 @@
 
 - ( void )windowDidEndLiveResize:( NSNotification* )pNotification
 {
-	if( ResizeTimer )
+	if( m_pResizeTimer )
 	{
-		[ ResizeTimer invalidate ];
-		pResizeTimer = nil;
+		[ m_pResizeTimer invalidate ];
+		m_pResizeTimer = nil;
 	}
 
 } // windowDidEndLiveResize
@@ -107,9 +107,9 @@
 - ( void )windowDidBecomeKey:( NSNotification* )pNotification
 {
 	[ super windowDidBecomeKey:pNotification ];
-	[ [ pWindow->ns.object standardWindowButton:NSWindowCloseButton ]       setEnabled:YES ];
-	[ [ pWindow->ns.object standardWindowButton:NSWindowMiniaturizeButton ] setEnabled:YES ];
-	[ [ pWindow->ns.object standardWindowButton:NSWindowZoomButton ]        setEnabled:YES ];
+	[ [ window->ns.object standardWindowButton:NSWindowCloseButton ]       setEnabled:YES ];
+	[ [ window->ns.object standardWindowButton:NSWindowMiniaturizeButton ] setEnabled:YES ];
+	[ [ window->ns.object standardWindowButton:NSWindowZoomButton ]        setEnabled:YES ];
 
 } // windowDidBecomeKey
 
@@ -118,9 +118,9 @@
 - ( void )windowDidResignKey:( NSNotification* )pNotification
 {
 	[ super windowDidResignKey:pNotification ];
-	[ [ pWindow->ns.object standardWindowButton:NSWindowCloseButton ]       setEnabled:NO ];
-	[ [ pWindow->ns.object standardWindowButton:NSWindowMiniaturizeButton ] setEnabled:NO ];
-	[ [ pWindow->ns.object standardWindowButton:NSWindowZoomButton ]        setEnabled:NO ];
+	[ [ window->ns.object standardWindowButton:NSWindowCloseButton ]       setEnabled:NO ];
+	[ [ window->ns.object standardWindowButton:NSWindowMiniaturizeButton ] setEnabled:NO ];
+	[ [ window->ns.object standardWindowButton:NSWindowZoomButton ]        setEnabled:NO ];
 
 } // windowDidResignKey
 
@@ -134,11 +134,11 @@
 {
 	if( ( self = [ super initWithGlfwWindow:pInitWindow ] ) )
 	{
-		pMainWindow                = pMainWindow;
-		LastTitleBarClick          = 0;
-		LastTitleBarPos            = { 0.0f, 0.0f };
-		MovingWindow               = NO;
-		MouseInsideStandardButtons = NO;
+		m_pMainWindow                = pMainWindow;
+		m_LastTitleBarClick          = 0;
+		m_LastTitleBarPos            = { 0.0f, 0.0f };
+		m_MovingWindow               = NO;
+		m_MouseInsideStandardButtons = NO;
 	}
 
 	return self;
@@ -149,29 +149,29 @@
 
 - ( void )setGLFWVariables
 {
-	id OldView       = pWindow->ns.view;
-	pWindow->ns.view = self;
+	id OldView      = window->ns.view;
+	window->ns.view = self;
 
-	[ pWindow->ns.object           setContentView:self ];
-	[ pWindow->ns.view             setWantsBestResolutionOpenGLSurface:pWindow->ns.retina ];
-	[ pWindow->context.nsgl.object setView:self ];
+	[ window->ns.object           setContentView:self ];
+	[ window->ns.view             setWantsBestResolutionOpenGLSurface:window->ns.retina ];
+	[ window->context.nsgl.object setView:self ];
 	[ OldView release ];
-	[ pWindow->ns.object setStyleMask:[ pWindow->ns.object styleMask ] | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable ];
+	[ window->ns.object setStyleMask:[ window->ns.object styleMask ] | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable ];
 
-	// Create standard pWindow buttons, the close, min and zoom (max) buttons
-	pCloseButton       = [ NSWindow standardWindowButton:NSWindowCloseButton       forStyleMask:[ pWindow->ns.object styleMask ]];
-	pMiniaturizeButton = [ NSWindow standardWindowButton:NSWindowMiniaturizeButton forStyleMask:[ pWindow->ns.object styleMask ]];
-	pZoomButton        = [ NSWindow standardWindowButton:NSWindowZoomButton        forStyleMask:[ pWindow->ns.object styleMask ]];
+	// Create standard window buttons, the close, min and zoom (max) buttons
+	m_pCloseButton       = [ NSWindow standardWindowButton:NSWindowCloseButton       forStyleMask:[ window->ns.object styleMask ]];
+	m_pMiniaturizeButton = [ NSWindow standardWindowButton:NSWindowMiniaturizeButton forStyleMask:[ window->ns.object styleMask ]];
+	m_pZoomButton        = [ NSWindow standardWindowButton:NSWindowZoomButton        forStyleMask:[ window->ns.object styleMask ]];
 
 	// Add them to the content view
-	[ self addSubview:pCloseButton ];
-	[ self addSubview:pMiniaturizeButton ];
-	[ self addSubview:pZoomButton ];
+	[ self addSubview:m_pCloseButton ];
+	[ self addSubview:m_pMiniaturizeButton ];
+	[ self addSubview:m_pZoomButton ];
 
 	// Set position of buttons
-	[ pCloseButton       setFrameOrigin:{  7.0f, self.frame.size.height - 26.0f } ];
-	[ pMiniaturizeButton setFrameOrigin:{ 27.0f, self.frame.size.height - 26.0f } ];
-	[ pZoomButton        setFrameOrigin:{ 47.0f, self.frame.size.height - 26.0f } ];
+	[ m_pCloseButton       setFrameOrigin:{  7.0f, self.frame.size.height - 26.0f } ];
+	[ m_pMiniaturizeButton setFrameOrigin:{ 27.0f, self.frame.size.height - 26.0f } ];
+	[ m_pZoomButton        setFrameOrigin:{ 47.0f, self.frame.size.height - 26.0f } ];
 
 } // setGLFWVariables
 
@@ -190,32 +190,32 @@
 	const NSPoint Location = [ pEvent locationInWindow ];
 	const NSRect  Rect     = [ self frame ];
 
-	if( !ImGui::IsAnyItemHovered() && ( Location.y > ( Rect.size.height - pMainWindow->pTitleBar->Height() ) ) )
+	if( !ImGui::IsAnyItemHovered() && ( Location.y > ( Rect.size.height - m_pMainWindow->pTitleBar->Height() ) ) )
 	{
 		const NSPoint        ScreenPos = [ NSEvent mouseLocation ];
 		const NSTimeInterval Timestamp = [ pEvent timestamp ];
 
-		if( ( Timestamp - LastTitleBarClick ) < 1.0 && NSEqualPoints( ScreenPos, LastTitleBarPos ) )
+		if( ( Timestamp - m_LastTitleBarClick ) < 1.0 && NSEqualPoints( ScreenPos, m_LastTitleBarPos ) )
 		{
-			LastTitleBarClick = 0;
-			LastTitleBarPos   = { 0.0f, 0.0f };
-			MovingWindow      = NO;
+			m_LastTitleBarClick = 0;
+			m_LastTitleBarPos   = { 0.0f, 0.0f };
+			m_MovingWindow      = NO;
 
 			MainWindow::Instance().Maximize();
 
 			return;
 		}
 
-		LastTitleBarClick = Timestamp;
-		LastTitleBarPos   = ScreenPos;
-		MovingWindow      = YES;
+		m_LastTitleBarClick = Timestamp;
+		m_LastTitleBarPos   = ScreenPos;
+		m_MovingWindow      = YES;
 
-		[ pWindow performWindowDragWithEvent:pEvent ];
+		[ self.window performWindowDragWithEvent:pEvent ];
 
 		return;
 	}
 
-	MovingWindow = NO;
+	m_MovingWindow = NO;
 
 	[ super mouseDown:pEvent ];
 
@@ -225,9 +225,9 @@
 
 - ( void )mouseUp:( NSEvent* )pEvent
 {
-	if( MovingWindow )
+	if( m_MovingWindow )
 	{
-		MovingWindow = NO;
+		m_MovingWindow = NO;
 		return;
 	}
 
@@ -239,7 +239,7 @@
 
 - ( void )mouseMoved:( NSEvent* )pEvent
 {
-	if( MovingWindow )
+	if( m_MovingWindow )
 		return;
 
 	[ super mouseMoved:pEvent ];
@@ -260,7 +260,7 @@
 
 - ( BOOL )_mouseInGroup:( NSButton* )pButton
 {
-	return MouseInsideStandardButtons;
+	return m_MouseInsideStandardButtons;
 
 } // _mouseInGroup
 
@@ -271,10 +271,10 @@
 	const NSPoint Location = [ pEvent locationInWindow ];
 	const NSRect  Rect     = [ self frame ];
 
-	MouseInsideStandardButtons      = Location.y > ( Rect.size.height - pMainWindow->pTitleBar->Height() ) && Location.x < 67.0f;
-	pCloseButton.needsDisplay       = YES;
-	pMiniaturizeButton.needsDisplay = YES;
-	pZoomButton.needsDisplay        = YES;
+	m_MouseInsideStandardButtons      = Location.y > ( Rect.size.height - m_pMainWindow->pTitleBar->Height() ) && Location.x < 67.0f;
+	m_pCloseButton.needsDisplay       = YES;
+	m_pMiniaturizeButton.needsDisplay = YES;
+	m_pZoomButton.needsDisplay        = YES;
 
 } // updateButtons
 

@@ -48,7 +48,7 @@
 #endif // _WIN32
 
 #if defined( __APPLE__ )
-#include "GUI/Platform/Macos/MacosGenoContentView.h"
+#include "GUI/Platform/macOS/macOSContentView.h"
 #endif // __APPLE__
 
 //////////////////////////////////////////////////////////////////////////
