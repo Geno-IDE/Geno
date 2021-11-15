@@ -33,7 +33,6 @@ app( 'Geno' )
 		'third_party/stb',
 		'third_party/rapidjson/include',
 		'third_party/discord-rpc/include',
-		'third_party'
 	}
 
 	filter 'system:windows'
