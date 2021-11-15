@@ -3666,50 +3666,38 @@ void TextEdit::SearchWorker( File* pFile, bool CaseSensitive, bool WholeWord, co
 
 void TextEdit::SearchManager( File* pFile, bool CaseSensitive, bool WholeWord, SearchInstance* pInstance )
 {
-#if 0
-	SearchWorker( pFile, CaseSensitive, WholeWord, &pInstance->SearchTerm, 0, ( int )pFile->Lines.size() - 1, &pInstance->Result->Result, &pInstance->State );
-
-	if( pInstance->State == SearchInstance::Running )
-		pInstance->Result->UpdateGroups();
-
-#else
-
-	int NumThreads = std::thread::hardware_concurrency();
-	int Size       = ( int )( pFile->Lines.size() - 1 ) / NumThreads;
-	int Prev       = 0;
+	const int    NumThreads = std::thread::hardware_concurrency();
+	const double Size       = ( double )( pFile->Lines.size() ) / NumThreads;
+	double       Prev       = 0.0;
 
 	std::vector< std::pair< std::thread, std::vector< LineSelectionItem > > > ThreadPool;
 
 	ThreadPool.resize( NumThreads );
 
-	for( int i = 0; i < NumThreads - 1; i++ )
+	for( int i = 0; i < NumThreads; i++ )
 	{
-		auto& Thread = ThreadPool[ i ];
+		const int StartLine = static_cast< int >( Prev );
+		const int EndLine   = static_cast< int >( Prev + Size ) - 1;
+		auto&     rThread   = ThreadPool[ i ];
+		rThread.first       = std::thread( &TextEdit::SearchWorker, this, pFile, CaseSensitive, WholeWord, &pInstance->SearchTerm, StartLine, EndLine, &rThread.second, &pInstance->State );
 
-		Thread.first = std::thread( &TextEdit::SearchWorker, this, pFile, CaseSensitive, WholeWord, &pInstance->SearchTerm, Prev, Prev + Size, &Thread.second, &pInstance->State );
-
-		Prev += Size + 1;
+		Prev += Size;
 	}
-
-	auto& LastThread = ThreadPool[ NumThreads - 1 ];
-	LastThread.first = std::thread( &TextEdit::SearchWorker, this, pFile, CaseSensitive, WholeWord, &pInstance->SearchTerm, Prev, ( int )pFile->Lines.size() - 1, &LastThread.second, &pInstance->State );
 
 	for( int i = 0; i < ( int )ThreadPool.size(); i++ )
 	{
-		auto& Thread = ThreadPool[ i ];
+		auto& rThread = ThreadPool[ i ];
 
-		Thread.first.join();
+		rThread.first.join();
 
-		for( int j = 0; j < ( int )Thread.second.size() && pInstance->State == SearchInstance::Running; j++ )
+		for( int j = 0; j < ( int )rThread.second.size() && pInstance->State == SearchInstance::Running; j++ )
 		{
-			pInstance->Result->AddResult( Thread.second[ j ] );
+			pInstance->Result->AddResult( rThread.second[ j ] );
 		}
 	}
 
 	if( pInstance->State == SearchInstance::Running )
 		pInstance->Result->UpdateGroups();
-
-#endif
 
 	if( pInstance->State == SearchInstance::Running )
 	{
