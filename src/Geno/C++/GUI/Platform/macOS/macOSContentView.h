@@ -19,13 +19,15 @@
 
 #include "GUI/MainWindow.h"
 
+#include <AppKit/AppKit.h>
+
 struct _GLFWwindow;
 
 //////////////////////////////////////////////////////////////////////////
 
 @interface GLFWWindowDelegate : NSObject
 {
-	_GLFWwindow* pWindow;
+	_GLFWwindow* window;
 }
 
 - ( instancetype )initWithGlfwWindow:( _GLFWwindow* )pInitWindow;
@@ -40,9 +42,9 @@ struct _GLFWwindow;
 
 @interface GLFWContentView : NSView< NSTextInputClient >
 {
-	_GLFWwindow*               pWindow;
-	NSTrackingArea*            pTrackingArea;
-	NSMutableAttributedString* pMarkedText;
+	_GLFWwindow*               window;
+	NSTrackingArea*            trackingArea;
+	NSMutableAttributedString* markedText;
 }
 
 - ( instancetype )initWithGlfwWindow:( _GLFWwindow* )pInitWindow;
@@ -53,8 +55,8 @@ struct _GLFWwindow;
 
 @interface WindowDelegate : GLFWWindowDelegate
 {
-	MainWindow* pMainWindow;
-	NSTimer*    pResizeTimer;
+	MainWindow* m_pMainWindow;
+	NSTimer*    m_pResizeTimer;
 }
 
 - ( instancetype )initWithMainWindow:( MainWindow* )pMainWindow :( _GLFWwindow* )pInitWindow;
@@ -66,14 +68,14 @@ struct _GLFWwindow;
 
 @interface ContentView : GLFWContentView
 {
-	MainWindow*    pMainWindow;
-	NSTimeInterval LastTitleBarClick;
-	NSPoint        LastTitleBarPos;
-	BOOL           MovingWindow;
-	NSButton*      pCloseButton;
-	NSButton*      pMiniaturizeButton;
-	NSButton*      pZoomButton;
-	BOOL           MouseInsideStandardButtons;
+	MainWindow*    m_pMainWindow;
+	NSTimeInterval m_LastTitleBarClick;
+	NSPoint        m_LastTitleBarPos;
+	BOOL           m_MovingWindow;
+	NSButton*      m_pCloseButton;
+	NSButton*      m_pMiniaturizeButton;
+	NSButton*      m_pZoomButton;
+	BOOL           m_MouseInsideStandardButtons;
 };
 
 - ( instancetype )initWithMainWindow:( MainWindow* )pMainWindow :( _GLFWwindow* )pInitWindow;

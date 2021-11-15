@@ -22,6 +22,7 @@
 #include <optional>
 #include <string>
 
+#include <GL/glew.h>
 #include <imgui.h>
 
 #if defined( _WIN32 )
