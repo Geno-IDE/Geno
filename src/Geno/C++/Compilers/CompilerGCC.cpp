@@ -17,11 +17,9 @@
 
 #include "CompilerGCC.h"
 
-#include "Components/Project.h"
-
 //////////////////////////////////////////////////////////////////////////
 
-std::wstring CompilerGCC::MakeCommandLineString( const CompileOptions& rOptions )
+std::wstring CompilerGCC::MakeCompilerCommandLineString( const Configuration& rConfiguration, const std::filesystem::path& rFilePath )
 {
 	std::wstring Command;
 	Command.reserve( 1024 );
@@ -30,16 +28,18 @@ std::wstring CompilerGCC::MakeCommandLineString( const CompileOptions& rOptions 
 	Command += L"g++";
 
 	// Language
-	switch( rOptions.Language )
-	{
-		case CompileOptions::Language::Unspecified: { Command += L" -x none";      } break;
-		case CompileOptions::Language::C:           { Command += L" -x c";         } break;
-		case CompileOptions::Language::CPlusPlus:   { Command += L" -x c++";       } break;
-		case CompileOptions::Language::Assembler:   { Command += L" -x assembler"; } break;
-	}
+	const auto FileExtension = rFilePath.extension();
+	if     ( FileExtension == ".c"   ) Command += L" -x c";
+	else if( FileExtension == ".cpp" ) Command += L" -x c++";
+	else if( FileExtension == ".cxx" ) Command += L" -x c++";
+	else if( FileExtension == ".cc"  ) Command += L" -x c++";
+	else if( FileExtension == ".asm" ) Command += L" -x assembler";
+	else                               Command += L" -x none";
+
+	// TODO: Defines
 
 	// Verbosity
-	if( rOptions.Verbose )
+	if( rConfiguration.m_Verbose )
 	{
 		// Time the execution of each subprocess
 		Command += L" -time";
@@ -48,49 +48,22 @@ std::wstring CompilerGCC::MakeCommandLineString( const CompileOptions& rOptions 
 		Command += L" -v";
 	}
 
-	// Actions
-	switch( rOptions.Action )
-	{
-		case CompileOptions::Action::OnlyPreprocess:     { Command += L" -E"; } break;
-		case CompileOptions::Action::OnlyCompile:        { Command += L" -S"; } break;
-		case CompileOptions::Action::CompileAndAssemble: { Command += L" -c"; } break;
-		default:                                                                break;
-	}
-
-	// Assembler options
-	if( rOptions.AssemblerFlags != 0 )
-	{
-		Command += L" -Wa";
-
-		if( rOptions.AssemblerFlags & CompileOptions::AssemblerFlagReduceMemoryOverheads ) { Command += L",--reduce-memory-overheads"; }
-	}
-
-	// Preprocessor options
-	if( rOptions.PreprocessorFlags != 0 )
-	{
-		Command += L" -Wp";
-
-		if( rOptions.PreprocessorFlags & CompileOptions::PreprocessorFlagUndefineSystemMacros ) { Command += L",-undef"; }
-	}
-
 	// Set output file
-	Command += L" -o " + rOptions.OutputFile.wstring();
+	Command += L" -o " + ( rConfiguration.m_OutputDir / rFilePath.stem() ).wstring();
 
 	// Finally, the input source file
-	Command += L" " + rOptions.InputFile.wstring();
+	Command += L" " + rFilePath.wstring();
 
 	return Command;
 
-} // MakeCommandLineString
+} // MakeCompilerCommandLineString
 
 //////////////////////////////////////////////////////////////////////////
 
-std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
+std::wstring CompilerGCC::MakeLinkerCommandLineString( const Configuration& rConfiguration, std::span< std::filesystem::path > InputFiles, const std::wstring& rOutputName, Project::Kind Kind )
 {
 	std::wstring Command;
 	Command.reserve( 256 );
-
-	const Project::Kind Kind = static_cast< Project::Kind >( rOptions.OutputType );
 
 	switch( Kind )
 	{
@@ -104,31 +77,21 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 			if( Kind == Project::Kind::DynamicLibrary )
 				Command += L" -shared";
 
-			// Linker options
-			if( rOptions.Flags != 0 )
-			{
-				Command += L" -Wl";
-
-				if( rOptions.Flags & LinkOptions::LinkerFlagNoDefaultLibs ) { Command += L",-nodefaultlibs"; }
-			}
-
 			// User-defined library directories
-			for( const std::filesystem::path& rLibraryDirectory : rOptions.LibraryDirectories )
+			for( const std::filesystem::path& rLibraryDirectory : rConfiguration.m_LibraryDirs )
 			{
 				Command += L" -L" + rLibraryDirectory.wstring();
 			}
 
 			// Link libraries
-			for( const std::string& rLibrary : rOptions.Libraries )
+			for( const std::wstring& rLibrary : rConfiguration.m_Libraries )
 			{
-				UTF8Converter Converter;
-
-				Command += L" -l" + Converter.from_bytes( rLibrary );
+				Command += L" -l" + rLibrary;
 			}
 
 			// Set output file
 			{
-				std::filesystem::path OutputFile = rOptions.OutputFile;
+				std::filesystem::path OutputFile = ( rConfiguration.m_OutputDir / rOutputName );
 
 				switch( Kind )
 				{
@@ -163,8 +126,8 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 			}
 
 			// Finally, set the object files
-			for( const std::filesystem::path& rInputFile : rOptions.ObjectFiles )
-				Command += L" " + rInputFile.lexically_normal().wstring();
+			for( const std::filesystem::path& rInputFile : InputFiles )
+				Command += L" " + rInputFile.wstring();
 
 		} break;
 
@@ -188,18 +151,14 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 			// Create an archive index (cf. ranlib)
 			Command += L's';
 
-			// Do not build a symbol table
-			if( rOptions.Flags & LinkOptions::LinkerFlagNoSymbolTable )
-				Command += L'S';
-
 			// Set output file with "lib" prefix
-			std::filesystem::path OutputFile = rOptions.OutputFile;
+			std::filesystem::path OutputFile = ( rConfiguration.m_OutputDir / rOutputName );
 			OutputFile.replace_filename( L"lib" + OutputFile.filename().wstring() );
 			Command += L" " + OutputFile.wstring();
 
 			// Set input files
-			for( const std::filesystem::path& rObjectFile : rOptions.ObjectFiles )
-				Command += L" " + rObjectFile.wstring();
+			for( const std::filesystem::path& rInputFile : InputFiles )
+				Command += L" " + rInputFile.wstring();
 
 		} break;
 
@@ -210,4 +169,4 @@ std::wstring CompilerGCC::MakeCommandLineString( const LinkOptions& rOptions )
 
 	return Command;
 
-} // MakeCommandLineString
+} // MakeLinkerCommandLineString

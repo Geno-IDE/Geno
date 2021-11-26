@@ -17,13 +17,24 @@
 
 #include "LinkJob.h"
 
+#include "Compilers/ICompiler.h"
+
 #include <iostream>
 
 //////////////////////////////////////////////////////////////////////////
 
-LinkJob::LinkJob( std::string ProjectName )
-	: m_ProjectName( std::move( ProjectName ) )
+LinkJob::LinkJob( Configuration Configuration, std::wstring OutputName, Project::Kind Kind, std::span< std::shared_ptr< CompileJob > > DependentJobs )
+	: m_Configuration( std::move( Configuration ) )
+	, m_OutputName   ( std::move( OutputName ) )
+	, m_Kind         ( Kind )
 {
+	m_InputFiles.reserve( DependentJobs.size() );
+
+	for( auto& rJob : DependentJobs )
+	{
+		m_InputFiles.push_back( m_Configuration.m_OutputDir / rJob->GetInputFile().stem() );
+		AddDependency( rJob );
+	}
 
 } // LinkJob
 
@@ -31,6 +42,12 @@ LinkJob::LinkJob( std::string ProjectName )
 
 void LinkJob::Run( void )
 {
-	std::cout << ( "Linking: " + m_ProjectName + "\n" );
+	if( !m_Configuration.m_Compiler )
+	{
+		std::cerr << "Failed to link. Compiler missing!\n";
+		return;
+	}
+
+	m_Configuration.m_Compiler->Link( m_Configuration, m_InputFiles, m_OutputName, m_Kind );
 
 } // Run

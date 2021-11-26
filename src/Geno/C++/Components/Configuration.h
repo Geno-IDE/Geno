@@ -16,16 +16,19 @@
  */
 
 #pragma once
-#include "Compilers/ICompiler.h"
-
 #include <Common/Macros.h>
 
+#include <filesystem>
 #include <optional>
 #include <memory>
 
+class ICompiler;
+
+//////////////////////////////////////////////////////////////////////////
+
 class Configuration
 {
-	GENO_DISABLE_COPY( Configuration );
+	GENO_DEFAULT_COPY( Configuration );
 	GENO_DEFAULT_MOVE( Configuration );
 
 //////////////////////////////////////////////////////////////////////////
@@ -40,6 +43,15 @@ public:
 
 	}; // Optimization
 
+	enum class Architecture
+	{
+		x86,
+		x86_64,
+		ARM,
+		ARM64,
+
+	}; // Architecture
+
 //////////////////////////////////////////////////////////////////////////
 
 	Configuration( void ) = default;
@@ -50,8 +62,19 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::shared_ptr< ICompiler >  m_Compiler;
-	std::optional< Optimization > m_Optimization;
+	static Architecture HostArchitecture( void );
+
+//////////////////////////////////////////////////////////////////////////
+
+	std::shared_ptr< ICompiler >         m_Compiler;
+	std::vector< std::filesystem::path > m_IncludeDirs;
+	std::vector< std::filesystem::path > m_LibraryDirs;
+	std::vector< std::wstring >          m_Libraries;
+	std::vector< std::wstring >          m_Defines;
+	std::optional< Optimization >        m_Optimization;
+	std::optional< Architecture >        m_Architecture;
+	std::filesystem::path                m_OutputDir;
+	bool                                 m_Verbose = true;
 
 }; // Configuration
 
@@ -60,26 +83,26 @@ public:
 namespace Reflection
 {
 
-constexpr std::string_view EnumToString( Configuration::Optimization Value )
-{
-	switch( Value )
+	constexpr std::string_view EnumToString( Configuration::Optimization Value )
 	{
-		case Configuration::Optimization::FavorSize:  return "FavorSize";
-		case Configuration::Optimization::FavorSpeed: return "FavorSpeed";
-		case Configuration::Optimization::Full:       return "Full";
-		default:                                      return "Unknown";
-	}
+		switch( Value )
+		{
+			case Configuration::Optimization::FavorSize:  return "FavorSize";
+			case Configuration::Optimization::FavorSpeed: return "FavorSpeed";
+			case Configuration::Optimization::Full:       return "Full";
+			default:                                      return "Unknown";
+		}
 
-} // EnumToString
+	} // EnumToString
 
 //////////////////////////////////////////////////////////////////////////
 
-constexpr void EnumFromString( std::string_view String, Configuration::Optimization& rValue )
-{
-	if(      String == "FavorSize"  ) rValue = Configuration::Optimization::FavorSize;
-	else if( String == "FavorSpeed" ) rValue = Configuration::Optimization::FavorSpeed;
-	else if( String == "Full"       ) rValue = Configuration::Optimization::Full;
+	constexpr void EnumFromString( std::string_view String, Configuration::Optimization& rValue )
+	{
+		if(      String == "FavorSize"  ) rValue = Configuration::Optimization::FavorSize;
+		else if( String == "FavorSpeed" ) rValue = Configuration::Optimization::FavorSpeed;
+		else if( String == "Full"       ) rValue = Configuration::Optimization::Full;
 
-} // EnumFromString
+	} // EnumFromString
 
 } // Reflection

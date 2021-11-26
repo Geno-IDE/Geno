@@ -43,28 +43,27 @@ void Workspace::Build( void )
 {
 	if( !m_Projects.empty() )
 	{
-		// TODO: Iterate all projects and create compile jobs for every file.
+		UTF8Converter UTF8Converter;
 
 		for( const Project& rProject : m_Projects )
 		{
-			std::vector< JobSystem::JobPtr > CompileJobs;
+			Configuration                                Configuration = m_BuildMatrix.CurrentConfiguration();
+			std::vector< std::shared_ptr< CompileJob > > CompileJobs;
+
+			Configuration.m_OutputDir = rProject.m_Location;
+
+			// TODO: Remove any duplicate files, since a single file can exist in multiple filters
 
 			for( const FileFilter& rFileFilter : rProject.m_FileFilters )
 			{
 				for( const std::filesystem::path& rFile : rFileFilter.Files )
 				{
-					CompileJobs.push_back( JobSystem::Instance().NewJob< CompileJob >( rFile ) );
+					CompileJobs.push_back( JobSystem::Instance().NewJob< CompileJob >( Configuration, rFile ) );
 				}
 			}
 
-			auto LinkJob = JobSystem::Instance().NewJob< ::LinkJob >( rProject.m_Name );
-
-			for( auto& rCompileJob : CompileJobs )
-				LinkJob->AddDependency( rCompileJob );
+			JobSystem::Instance().NewJob< LinkJob >( Configuration, UTF8Converter.from_bytes( rProject.m_Name ), rProject.m_Kind, CompileJobs );
 		}
-
-		// TODO: Create link jobs for each project that needs to be linked.
-		// The link job should depend on all jobs from that project.
 	}
 
 } // Build

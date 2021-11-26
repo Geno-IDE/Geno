@@ -16,15 +16,20 @@
  */
 
 #pragma once
+#include "Components/Configuration.h"
+#include "Components/Project.h"
+#include "Jobs/CompileJob.h"
+
 #include <Common/Async/IJob.h>
 
+#include <span>
 #include <string>
 
 class LinkJob final : public IJob
 {
 public:
 
-	LinkJob( std::string ProjectName );
+	LinkJob( Configuration Configuration, std::wstring OutputName, Project::Kind Kind, std::span< std::shared_ptr< CompileJob > > DependentJobs );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -34,6 +39,11 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::string m_ProjectName = { };
+	Configuration                        m_Configuration;
+
+	std::vector< std::filesystem::path > m_InputFiles;
+	std::wstring                         m_OutputName;
+
+	Project::Kind                        m_Kind;
 
 }; // LinkJob

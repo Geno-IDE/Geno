@@ -17,13 +17,16 @@
 
 #include "CompileJob.h"
 
+#include "Compilers/ICompiler.h"
+
 #include <iostream>
 #include <thread>
 
 //////////////////////////////////////////////////////////////////////////
 
-CompileJob::CompileJob( std::filesystem::path Path )
-	: m_Path( std::move( Path ) )
+CompileJob::CompileJob( Configuration Configuration, std::filesystem::path InputFile )
+	: m_Configuration( std::move( Configuration ) )
+	, m_InputFile    ( std::move( InputFile ) )
 {
 
 } // CompileJob
@@ -32,7 +35,12 @@ CompileJob::CompileJob( std::filesystem::path Path )
 
 void CompileJob::Run( void )
 {
-	std::cout << ( "Compiling: " + m_Path.string() + "\n" );
-	std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+	if( !m_Configuration.m_Compiler )
+	{
+		std::cerr << "Failed to compile " << m_InputFile << ". Compiler missing!\n";
+		return;
+	}
+
+	m_Configuration.m_Compiler->Compile( m_Configuration, m_InputFile );
 
 } // Run

@@ -17,6 +17,7 @@
 
 #pragma once
 #include "Compilers/ICompiler.h"
+#include "Components/Project.h"
 
 class CompilerGCC : public ICompiler
 {
@@ -28,7 +29,7 @@ public:
 
 private:
 
-	std::wstring MakeCommandLineString( const CompileOptions& rOptions ) override;
-	std::wstring MakeCommandLineString( const LinkOptions& rOptions ) override;
+	std::wstring MakeCompilerCommandLineString( const Configuration& rConfiguration, const std::filesystem::path& rFilePath ) override;
+	std::wstring MakeLinkerCommandLineString  ( const Configuration& rConfiguration, std::span< std::filesystem::path > InputFiles, const std::wstring& rOutputName, Project::Kind Kind ) override;
 
 }; // CompilerGCC

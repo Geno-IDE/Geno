@@ -100,7 +100,7 @@ static std::wstring FindWindowsSDKVersion( const std::filesystem::path& rProgram
 
 //////////////////////////////////////////////////////////////////////////
 
-std::wstring CompilerMSVC::MakeCommandLineString( const CompileOptions& rOptions )
+std::wstring CompilerMSVC::MakeCompilerCommandLineString( const Configuration& rConfiguration, const std::filesystem::path& rFilePath )
 {
 	const std::filesystem::path ProgramFilesX86 = FindProgramFilesX86Dir();
 	const std::filesystem::path MSVCDir         = FindMSVCDir( ProgramFilesX86 );
@@ -109,29 +109,24 @@ std::wstring CompilerMSVC::MakeCommandLineString( const CompileOptions& rOptions
 	CommandLine += L"\"" + ( MSVCDir / "bin" / HOST / "x64" / "cl.exe" ).wstring() + L"\"";
 	CommandLine += L" /nologo";
 
-	// Action-based options
-	switch( rOptions.Action )
-	{
-		case CompileOptions::Action::OnlyPreprocess: { CommandLine += L" /P"; } break;
-		default:                                     { CommandLine += L" /c"; } break;
-	}
+	// Compile (don't just preprocess)
+	CommandLine += L" /c";
 
-	// Language-specific options
-	switch( rOptions.Language )
-	{
-		case CompileOptions::Language::C:         { CommandLine += L" /std:c11";             } break;
-		case CompileOptions::Language::CPlusPlus: { CommandLine += L" /EHsc /std:c++latest"; } break;
-	}
+//	// Language-specific options
+//	const auto FileExtension = rFilePath.extension();
+//	if     ( FileExtension == ".c"   ) CommandLine += L" /std:c11";
+//	else if( FileExtension == ".cpp" ) CommandLine += L" /EHsc /std:c++latest";
+//	else if( FileExtension == ".cxx" ) CommandLine += L" /EHsc /std:c++latest";
+//	else if( FileExtension == ".cc"  ) CommandLine += L" /EHsc /std:c++latest";
 
 	// Add user-defined preprocessor defines
-	for( const std::string& rDefine : rOptions.Defines )
+	for( const std::wstring& rDefine : rConfiguration.m_Defines )
 	{
-		UTF8Converter Converter;
-
-		CommandLine += L" /D \"" + Converter.from_bytes( rDefine ) + L"\"";
+		CommandLine += L" /D \"" + rDefine + L"\"";
 	}
 
 	// Set standard include directories
+	// TODO: Add these to the "Windows" system default configuration's m_IncludeDirs?
 	{
 		const std::wstring          WindowsSDKVersion    = FindWindowsSDKVersion( ProgramFilesX86 );
 		const std::filesystem::path WindowsSDKIncludeDir = ProgramFilesX86 / "Windows Kits" / "10" / "Include" / WindowsSDKVersion;
@@ -143,34 +138,28 @@ std::wstring CompilerMSVC::MakeCommandLineString( const CompileOptions& rOptions
 	}
 
 	// Add user-defined include directories
-	for( const std::filesystem::path& rIncludeDir : rOptions.IncludeDirs )
+	for( const std::filesystem::path& rIncludeDir : rConfiguration.m_IncludeDirs )
 	{
 		CommandLine += L" /I\"" + rIncludeDir.wstring() + L"\"";
 	}
 
-	// Add options based on user-defined flags
-	{
-		if( rOptions.PreprocessorFlags & CompileOptions::PreprocessorFlagUndefineSystemMacros ) CommandLine += L" /u";
-	}
-
 	// Set output file
-	CommandLine += L" /Fo\"" + rOptions.OutputFile.wstring() + L"\"";
+	CommandLine += L" /Fo\"" + ( rConfiguration.m_OutputDir / rFilePath.stem() ).wstring() + L"\"";
 
 	// Set input file
-	switch( rOptions.Language )
-	{
-		case CompileOptions::Language::C:         { CommandLine += L" /Tc \"" + rOptions.InputFile.wstring() + L"\""; } break;
-		case CompileOptions::Language::CPlusPlus: { CommandLine += L" /Tp \"" + rOptions.InputFile.wstring() + L"\""; } break;
-		default:                                  { CommandLine += L" \""     + rOptions.InputFile.wstring() + L"\""; } break;
-	}
+	const auto FileExtension = rFilePath.extension();
+	if     ( FileExtension == ".c"   ) CommandLine += L" /Tc \"" + rFilePath.wstring() + L"\"";
+	else if( FileExtension == ".cpp" ) CommandLine += L" /Tp \"" + rFilePath.wstring() + L"\"";
+	else if( FileExtension == ".cxx" ) CommandLine += L" /Tp \"" + rFilePath.wstring() + L"\"";
+	else if( FileExtension == ".cc"  ) CommandLine += L" /Tp \"" + rFilePath.wstring() + L"\"";
 
 	return CommandLine;
 
-} // MakeCommandLineString
+} // MakeCompilerCommandLineString
 
 //////////////////////////////////////////////////////////////////////////
 
-std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
+std::wstring CompilerMSVC::MakeLinkerCommandLineString( const Configuration& rConfiguration, std::span< std::filesystem::path > InputFiles, const std::wstring& rOutputName, Project::Kind Kind )
 {
 	const std::filesystem::path ProgramFilesX86   = FindProgramFilesX86Dir();
 	const std::filesystem::path MSVCDir           = FindMSVCDir( ProgramFilesX86 );
@@ -179,28 +168,26 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 
 	CommandLine += L"\"" + ( MSVCDir / "bin" / HOST / "x64" / "link.exe" ).wstring() + L"\"";
 
-	const Project::Kind Kind = static_cast< Project::Kind >( rOptions.OutputType );
-
 	switch( Kind )
 	{
 		case Project::Kind::Application:
 		{
 			CommandLine += L" /SUBSYSTEM:CONSOLE";
-			CommandLine += L" /OUT:" + rOptions.OutputFile.wstring() + L".exe";
+			CommandLine += L" /OUT:\"" + ( rConfiguration.m_OutputDir / rOutputName ).wstring() + L".exe\"";
 
 		} break;
 
 		case Project::Kind::StaticLibrary:
 		{
 			CommandLine += L" /LIB";
-			CommandLine += L" /OUT:" + rOptions.OutputFile.wstring() + L".lib";
+			CommandLine += L" /OUT:\"" + ( rConfiguration.m_OutputDir / rOutputName ).wstring() + L".lib\"";
 
 		} break;
 
 		case Project::Kind::DynamicLibrary:
 		{
 			CommandLine += L" /DLL";
-			CommandLine += L" /OUT:\"" + rOptions.OutputFile.wstring() + L".dll\"";
+			CommandLine += L" /OUT:\"" + ( rConfiguration.m_OutputDir / rOutputName ).wstring() + L".dll\"";
 
 		} break;
 	}
@@ -215,7 +202,7 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 	}
 
 	// Add user-defined library paths
-	for( const std::filesystem::path& rLibraryDirectory : rOptions.LibraryDirectories )
+	for( const std::filesystem::path& rLibraryDirectory : rConfiguration.m_LibraryDirs )
 	{
 		// Get rid of trailing slashes. It's not allowed in MSVC
 		const std::filesystem::path Path = ( rLibraryDirectory / L"NUL" ).parent_path();
@@ -224,9 +211,9 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 	}
 
 	// Add input files
-	for( std::filesystem::path Library : rOptions.Libraries )
+	for( std::filesystem::path Library : rConfiguration.m_Libraries )
 	{
-		// Add '.lib' extension if missing
+		// Assume static library if the extension is missing
 		if( !Library.has_extension() )
 			Library.replace_extension( ".lib" );
 
@@ -234,16 +221,29 @@ std::wstring CompilerMSVC::MakeCommandLineString( const LinkOptions& rOptions )
 	}
 
 	// Add all object files
-	for( const std::filesystem::path& rObjectFile : rOptions.ObjectFiles )
+	for( const std::filesystem::path& rInputFile : InputFiles )
 	{
-		CommandLine += L" \"" + rObjectFile.wstring() + L"\"";
+		CommandLine += L" \"" + rInputFile.wstring() + L"\"";
 	}
 
 	// Miscellaneous options
-	CommandLine += L" /NOLOGO /MACHINE:x64";
+	CommandLine += L" /NOLOGO";
+
+	if( rConfiguration.m_Architecture )
+	{
+		switch( *rConfiguration.m_Architecture )
+		{
+			case Configuration::Architecture::x86_64:
+				CommandLine += L" /MACHINE:x64";
+				break;
+
+			default:
+				break;
+		}
+	}
 
 	return CommandLine;
 
-} // MakeCommandLineString
+} // MakeLinkerCommandLineString
 
 #endif // _WIN32
