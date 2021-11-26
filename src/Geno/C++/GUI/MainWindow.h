@@ -35,6 +35,7 @@ class  OutputWindow;
 class  TextEdit;
 class  Win32DropTarget;
 class  WorkspaceOutliner;
+class  FindInWorkspace;
 struct GLFWwindow;
 struct ImGuiContext;
 struct ImGuiSettingsHandler;
@@ -86,6 +87,7 @@ public:
 	WorkspaceOutliner* pWorkspaceOutliner = nullptr;
 	TextEdit*          pTextEdit          = nullptr;
 	OutputWindow*      pOutputWindow      = nullptr;
+	FindInWorkspace*   pFindInWorkspace   = nullptr;
 
 //////////////////////////////////////////////////////////////////////////
 
