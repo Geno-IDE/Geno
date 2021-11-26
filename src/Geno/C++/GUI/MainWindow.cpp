@@ -27,6 +27,7 @@
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
 #include "GUI/Widgets/StatusBar.h"
+#include "GUI/Widgets/FindInWorkspace.h"
 #include "GUI/Styles.h"
 
 #include <iostream>
@@ -168,6 +169,7 @@ MainWindow::MainWindow( void )
 	pWorkspaceOutliner = new WorkspaceOutliner();
 	pTextEdit          = new TextEdit();
 	pOutputWindow      = new OutputWindow();
+	pFindInWorkspace   = new FindInWorkspace();
 
 } // MainWindow
 
@@ -180,6 +182,7 @@ MainWindow::~MainWindow( void )
 	delete pTextEdit;
 	delete pWorkspaceOutliner;
 	delete pTitleBar;
+	delete pFindInWorkspace;
 
 #if defined( _WIN32 )
 
@@ -248,11 +251,12 @@ void MainWindow::Render( void )
 
 	pTitleBar->Draw();
 
-	if( pTitleBar->ShowDemoWindow        ) ImGui::ShowDemoWindow(    &pTitleBar->ShowDemoWindow );
-	if( pTitleBar->ShowAboutWindow       ) ImGui::ShowAboutWindow(   &pTitleBar->ShowAboutWindow );
-	if( pTitleBar->ShowWorkspaceOutliner ) pWorkspaceOutliner->Show( &pTitleBar->ShowWorkspaceOutliner );
-	if( pTitleBar->ShowTextEdit          ) pTextEdit         ->Show( &pTitleBar->ShowTextEdit );
-	if( pTitleBar->ShowOutputWindow      ) pOutputWindow     ->Show( &pTitleBar->ShowOutputWindow );
+	if( pTitleBar->ShowDemoWindow                 ) ImGui::ShowDemoWindow(    &pTitleBar->ShowDemoWindow );
+	if( pTitleBar->ShowAboutWindow                ) ImGui::ShowAboutWindow(   &pTitleBar->ShowAboutWindow );
+	if( pTitleBar->ShowWorkspaceOutliner          ) pWorkspaceOutliner->Show( &pTitleBar->ShowWorkspaceOutliner );
+	if( pTitleBar->ShowTextEdit                   ) pTextEdit         ->Show( &pTitleBar->ShowTextEdit );
+	if( pTitleBar->ShowOutputWindow               ) pOutputWindow     ->Show( &pTitleBar->ShowOutputWindow );
+	if( pTitleBar->ShowFindInWorkspaceWindow      ) pFindInWorkspace  ->Show( &pTitleBar->ShowFindInWorkspaceWindow );
 
 	StatusBar::Instance().Show();
 
