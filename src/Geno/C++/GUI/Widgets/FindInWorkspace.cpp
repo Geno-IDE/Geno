@@ -57,10 +57,10 @@ void FindInWorkspace::Show( bool* pOpen )
 
 	ImGuiWindowFlags Flags = ImGuiWindowFlags_NoSavedSettings;
 
-	ImGui::SetNextWindowSize( ImVec2( 900, 400 ) );
-	ImGui::SetNextWindowPos( ImVec2( rIo.DisplaySize.x * 0.5f, rIo.DisplaySize.y * 0.5f ), ImGuiCond_Once );
-
 	ImGui::Begin( "Find Files in Workspace", pOpen, Flags );
+
+	ImGui::SetWindowSize( ImVec2( 900, 400 ), ImGuiCond_FirstUseEver );
+	ImGui::SetWindowPos( ImVec2( rIo.DisplaySize.x * 0.5f, rIo.DisplaySize.y * 0.5f ), ImGuiCond_FirstUseEver );
 
 	ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
 
@@ -76,8 +76,11 @@ void FindInWorkspace::Show( bool* pOpen )
 		for( auto& rEntry : std::filesystem::recursive_directory_iterator( m_WorkspacePath ) )
 		{
 			std::filesystem::path Path = rEntry;
+			std::string Filename  = Path.filename().string();
+			std::string Filepath  = Path.string().c_str();
+			std::string Extension = Path.extension().string();
 
-			if( Path.has_extension() && Path.extension().string() == ".cpp" || Path.extension().string() == ".h" )
+			if( Path.has_extension() && Extension == ".cpp" || Extension == ".hpp" || Extension == ".cxx" || Extension == ".h" || Extension == ".c" )
 			{
 				Row++;
 
@@ -89,7 +92,7 @@ void FindInWorkspace::Show( bool* pOpen )
 					{
 						ImGui::TableSetColumnIndex( Column );
 
-						if( ImGui::Selectable( Path.filename().string().c_str() ) )
+						if( ImGui::Selectable( Filename.c_str() ) )
 						{
 							auto& ShowTextEdit = MainWindow::Instance().pTitleBar->ShowTextEdit;
 							if( !ShowTextEdit )
@@ -113,7 +116,7 @@ void FindInWorkspace::Show( bool* pOpen )
 					else if( Column == 1 )
 					{
 						ImGui::TableSetColumnIndex( Column );
-						ImGui::Text( "%s", Path.string().c_str() );
+						ImGui::Text( "%s", Filepath );
 					}
 					else
 					{
@@ -135,9 +138,9 @@ void FindInWorkspace::Show( bool* pOpen )
 				}
 			}
 		}
+		ImGui::EndTable();
 	}
 
-	ImGui::EndTable();
 	ImGui::End();
 } // Show
 
