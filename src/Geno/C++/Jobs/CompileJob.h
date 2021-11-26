@@ -16,6 +16,8 @@
  */
 
 #pragma once
+#include "Components/Configuration.h"
+
 #include <Common/Async/IJob.h>
 
 #include <filesystem>
@@ -24,7 +26,11 @@ class CompileJob final : public IJob
 {
 public:
 
-	CompileJob( std::filesystem::path Path );
+	CompileJob( Configuration Configuration, std::filesystem::path InputFile );
+
+//////////////////////////////////////////////////////////////////////////
+
+	const std::filesystem::path& GetInputFile( void ) const { return m_InputFile; }
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -34,6 +40,8 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::filesystem::path m_Path;
+	Configuration         m_Configuration;
+
+	std::filesystem::path m_InputFile;
 
 }; // CompileJob

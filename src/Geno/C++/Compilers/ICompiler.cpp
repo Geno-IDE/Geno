@@ -26,42 +26,22 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-void ICompiler::Compile( const CompileOptions& rOptions )
+void ICompiler::Compile( const Configuration& rConfiguration, const std::filesystem::path& rFilePath )
 {
-	std::future Future = std::async( &ICompiler::CompileAsync, this, rOptions );
+	const std::wstring CommandLine = MakeCompilerCommandLineString( rConfiguration, rFilePath );
+	const int          ExitCode    = Process::ResultOf( CommandLine );
 
-	m_Futures.emplace_back( std::move( Future ) );
+	Events.FinishedCompiling( *this, ExitCode );
 
 } // Compile
 
 //////////////////////////////////////////////////////////////////////////
 
-void ICompiler::Link( const LinkOptions& rOptions )
+void ICompiler::Link( const Configuration& rConfiguration, std::span< std::filesystem::path > InputFiles, const std::wstring& rOutputName, Project::Kind Kind )
 {
-	std::future Future = std::async( &ICompiler::LinkAsync, this, rOptions );
+	const std::wstring CommandLine = MakeLinkerCommandLineString( rConfiguration, InputFiles, rOutputName, Kind );
+	const int          ExitCode    = Process::ResultOf( CommandLine );
 
-	m_Futures.emplace_back( std::move( Future ) );
+	Events.FinishedLinking( *this, ExitCode );
 
 } // Link
-
-//////////////////////////////////////////////////////////////////////////
-
-void ICompiler::CompileAsync( CompileOptions Options )
-{
-	const std::wstring CommandLine = MakeCommandLineString( Options );
-	const int          ExitCode    = Process::ResultOf( CommandLine );
-
-	Events.FinishedCompiling( *this, Options, ExitCode );
-
-} // CompileAsync
-
-//////////////////////////////////////////////////////////////////////////
-
-void ICompiler::LinkAsync( LinkOptions Options )
-{
-	const std::wstring CommandLine = MakeCommandLineString( Options );
-	const int          ExitCode    = Process::ResultOf( CommandLine );
-
-	Events.FinishedLinking( *this, Options, ExitCode );
-
-} // LinkAsync

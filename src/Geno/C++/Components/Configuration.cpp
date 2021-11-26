@@ -22,6 +22,24 @@
 void Configuration::Override( const Configuration& rOther )
 {
 	if( rOther.m_Compiler     ) m_Compiler     = rOther.m_Compiler;
+	if( rOther.m_Architecture ) m_Architecture = rOther.m_Architecture;
 	if( rOther.m_Optimization ) m_Optimization = rOther.m_Optimization;
 
 } // Override
+
+//////////////////////////////////////////////////////////////////////////
+
+Configuration::Architecture Configuration::HostArchitecture( void )
+{
+
+#if defined( _M_X64 ) || defined( __x86_64__ )
+	return Architecture::x86_64;
+#elif defined( _M_IX86 ) || defined( __i386__ ) // _M_X64 || __x86_64__
+	return Architecture::x86;
+#elif defined( __aarch64__ ) // _M_IX86 || __i386__
+	return Architecture::Arm64;
+#elif defined( _M_ARM ) || defined( __arm__ ) // __aarch64__
+	return Architecture::Arm;
+#endif // _M_ARM || __arm__
+
+} // HostArchitecture

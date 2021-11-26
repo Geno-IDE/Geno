@@ -16,12 +16,13 @@
  */
 
 #pragma once
-#include "Compilers/CompileOptions.h"
-#include "Compilers/LinkOptions.h"
+#include "Components/Configuration.h"
+#include "Components/Project.h"
 
 #include <atomic>
 #include <filesystem>
 #include <future>
+#include <span>
 #include <string_view>
 #include <string>
 
@@ -42,8 +43,8 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Compile( const CompileOptions& rOptions );
-	void Link   ( const LinkOptions& rOptions );
+	void Compile( const Configuration& rConfiguration, const std::filesystem::path& rFilePath );
+	void Link   ( const Configuration& rConfiguration, std::span< std::filesystem::path > InputFiles, const std::wstring& rOutputName, Project::Kind Kind );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -53,8 +54,8 @@ public:
 
 	struct
 	{
-		Event< ICompiler, void( CompileOptions Options, int ErrorCode ) > FinishedCompiling;
-		Event< ICompiler, void( LinkOptions Options, int ErrorCode ) >    FinishedLinking;
+		Event< ICompiler, void( int ExitCode ) > FinishedCompiling;
+		Event< ICompiler, void( int ExitCode ) > FinishedLinking;
 
 	} Events;
 
@@ -62,18 +63,7 @@ public:
 
 protected:
 
-	virtual std::wstring MakeCommandLineString( const CompileOptions& rOptions ) = 0;
-	virtual std::wstring MakeCommandLineString( const LinkOptions& rOptions )    = 0;
-
-//////////////////////////////////////////////////////////////////////////
-
-private:
-
-	void CompileAsync( CompileOptions Options );
-	void LinkAsync   ( LinkOptions Options );
-
-//////////////////////////////////////////////////////////////////////////
-
-	std::vector< std::future< void > > m_Futures;
+	virtual std::wstring MakeCompilerCommandLineString( const Configuration& rConfiguration, const std::filesystem::path& rFilePath ) = 0;
+	virtual std::wstring MakeLinkerCommandLineString  ( const Configuration& rConfiguration, std::span< std::filesystem::path > InputFiles, const std::wstring& rOutputName, Project::Kind Kind ) = 0;
 
 }; // ICompiler

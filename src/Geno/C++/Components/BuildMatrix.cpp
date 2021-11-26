@@ -112,10 +112,10 @@ BuildMatrix BuildMatrix::PlatformDefault( void )
 	{
 		Column Platform;
 		Platform.Name = "Architecture";
-		Platform.Configurations.emplace_back( "x86",    Configuration() );
-		Platform.Configurations.emplace_back( "x86_64", Configuration() );
-		Platform.Configurations.emplace_back( "ARM",    Configuration() );
-		Platform.Configurations.emplace_back( "ARM64",  Configuration() );
+		Platform.Configurations.emplace_back( "x86",    Configuration() ).second.m_Architecture = Configuration::Architecture::x86;
+		Platform.Configurations.emplace_back( "x86_64", Configuration() ).second.m_Architecture = Configuration::Architecture::x86_64;
+		Platform.Configurations.emplace_back( "ARM",    Configuration() ).second.m_Architecture = Configuration::Architecture::ARM;
+		Platform.Configurations.emplace_back( "ARM64",  Configuration() ).second.m_Architecture = Configuration::Architecture::ARM64;
 		Matrix.m_Columns.emplace_back( std::move( Platform ) );
 	}
 

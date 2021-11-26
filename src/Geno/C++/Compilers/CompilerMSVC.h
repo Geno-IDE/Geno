@@ -19,6 +19,8 @@
 #if defined( _WIN32 )
 #include "Compilers/ICompiler.h"
 
+#include <span>
+
 class CompilerMSVC : public ICompiler
 {
 public:
@@ -29,8 +31,8 @@ public:
 
 private:
 
-	std::wstring MakeCommandLineString( const CompileOptions& rOptions ) override;
-	std::wstring MakeCommandLineString( const LinkOptions& rOptions ) override;
+	std::wstring MakeCompilerCommandLineString( const Configuration& rConfiguration, const std::filesystem::path& rFilePath ) override;
+	std::wstring MakeLinkerCommandLineString  ( const Configuration& rConfiguration, std::span< std::filesystem::path > InputFiles, const std::wstring& rOutputName, Project::Kind Kind ) override;
 
 }; // CompilerMSVC
 

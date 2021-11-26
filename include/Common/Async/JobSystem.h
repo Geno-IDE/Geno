@@ -70,6 +70,11 @@ private:
 template< typename T, typename... Args >
 auto JobSystem::NewJob( Args&&... rrArgs )
 {
-	return m_Jobs.emplace_back( new T( std::forward< Args... >( rrArgs )... ) );
+	std::scoped_lock Lock( m_JobsMutex );
+	std::shared_ptr  Job = std::make_shared< T >( std::forward< Args >( rrArgs )... );
+
+	m_Jobs.push_back( Job );
+
+	return Job;
 
 } // NewJob
