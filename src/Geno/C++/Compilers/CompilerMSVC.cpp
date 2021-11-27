@@ -144,7 +144,7 @@ std::wstring CompilerMSVC::MakeCompilerCommandLineString( const Configuration& r
 	}
 
 	// Set output file
-	CommandLine += L" /Fo\"" + ( rConfiguration.m_OutputDir / rFilePath.stem() ).wstring() + L"\"";
+	CommandLine += L" /Fo\"" + GetCompilerOutputPath( rConfiguration, rFilePath ).wstring() + L"\"";
 
 	// Set input file
 	const auto FileExtension = rFilePath.extension();
@@ -164,6 +164,7 @@ std::wstring CompilerMSVC::MakeLinkerCommandLineString( const Configuration& rCo
 	const std::filesystem::path ProgramFilesX86   = FindProgramFilesX86Dir();
 	const std::filesystem::path MSVCDir           = FindMSVCDir( ProgramFilesX86 );
 	const std::wstring          WindowsSDKVersion = FindWindowsSDKVersion( ProgramFilesX86 );
+	const std::filesystem::path OutputPath        = GetLinkerOutputPath( rConfiguration, rOutputName, Kind );
 	std::wstring                CommandLine;
 
 	CommandLine += L"\"" + ( MSVCDir / "bin" / HOST / "x64" / "link.exe" ).wstring() + L"\"";
@@ -173,21 +174,21 @@ std::wstring CompilerMSVC::MakeLinkerCommandLineString( const Configuration& rCo
 		case Project::Kind::Application:
 		{
 			CommandLine += L" /SUBSYSTEM:CONSOLE";
-			CommandLine += L" /OUT:\"" + ( rConfiguration.m_OutputDir / rOutputName ).wstring() + L".exe\"";
+			CommandLine += L" /OUT:\"" + OutputPath.wstring() + L".exe\"";
 
 		} break;
 
 		case Project::Kind::StaticLibrary:
 		{
 			CommandLine += L" /LIB";
-			CommandLine += L" /OUT:\"" + ( rConfiguration.m_OutputDir / rOutputName ).wstring() + L".lib\"";
+			CommandLine += L" /OUT:\"" + OutputPath.wstring() + L".lib\"";
 
 		} break;
 
 		case Project::Kind::DynamicLibrary:
 		{
 			CommandLine += L" /DLL";
-			CommandLine += L" /OUT:\"" + ( rConfiguration.m_OutputDir / rOutputName ).wstring() + L".dll\"";
+			CommandLine += L" /OUT:\"" + OutputPath.wstring() + L".dll\"";
 
 		} break;
 	}

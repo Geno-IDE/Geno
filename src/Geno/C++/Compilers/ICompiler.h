@@ -27,12 +27,11 @@
 #include <string>
 
 #include <Common/Aliases.h>
-#include <Common/Event.h>
 #include <Common/Macros.h>
 
 class ICompiler
 {
-	GENO_DISABLE_COPY( ICompiler );
+	GENO_DISABLE_COPY_AND_MOVE( ICompiler );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -43,8 +42,8 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Compile( const Configuration& rConfiguration, const std::filesystem::path& rFilePath );
-	void Link   ( const Configuration& rConfiguration, std::span< std::filesystem::path > InputFiles, const std::wstring& rOutputName, Project::Kind Kind );
+	std::optional< std::filesystem::path > Compile( const Configuration& rConfiguration, const std::filesystem::path& rFilePath );
+	std::optional< std::filesystem::path > Link   ( const Configuration& rConfiguration, std::span< std::filesystem::path > InputFiles, const std::wstring& rOutputName, Project::Kind Kind );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -52,12 +51,8 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	struct
-	{
-		Event< ICompiler, void( int ExitCode ) > FinishedCompiling;
-		Event< ICompiler, void( int ExitCode ) > FinishedLinking;
-
-	} Events;
+	static std::filesystem::path GetCompilerOutputPath( const Configuration& rConfiguration, const std::filesystem::path& rFilePath );
+	static std::filesystem::path GetLinkerOutputPath  ( const Configuration& rConfiguration, const std::wstring& rOutputName, Project::Kind Kind );
 
 //////////////////////////////////////////////////////////////////////////
 

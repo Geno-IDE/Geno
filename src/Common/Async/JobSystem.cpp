@@ -17,7 +17,7 @@
 
 #include "Common/Async/JobSystem.h"
 
-#include "Common/Async/IJob.h"
+#include "Common/Async/Job.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -80,7 +80,7 @@ void JobSystem::ThreadEntry( void )
 
 			if( Job )
 			{
-				Job->Run();
+				Job->m_Function();
 				Job->m_HasFinishedRunning = true;
 			}
 		}
