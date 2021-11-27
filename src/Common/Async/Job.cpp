@@ -15,31 +15,28 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include <memory>
-#include <vector>
+#include "Common/Async/Job.h"
 
-class IJob
+//////////////////////////////////////////////////////////////////////////
+
+void Job::AddDependency( std::weak_ptr< Job > Job )
 {
-	friend class JobSystem;
+	m_Dependencies.emplace_back( std::move( Job ) );
+
+} // AddDependency
 
 //////////////////////////////////////////////////////////////////////////
 
-public:
+bool Job::CanRun( void ) const
+{
+	for( auto& rDependency : m_Dependencies )
+	{
+		auto JobPtr = rDependency.lock();
 
-	void AddDependency( std::weak_ptr< IJob > Job );
-	bool CanRun       ( void ) const;
+		if( JobPtr && !JobPtr->m_HasFinishedRunning )
+			return false;
+	}
 
-//////////////////////////////////////////////////////////////////////////
+	return true;
 
-private:
-
-	virtual void Run( void ) = 0;
-
-//////////////////////////////////////////////////////////////////////////
-
-	std::vector< std::weak_ptr< IJob > > m_Dependencies       = { };
-
-	bool                                 m_HasFinishedRunning = false;
-
-}; // IJob
+} // CanRun

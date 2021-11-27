@@ -49,7 +49,7 @@ std::wstring CompilerGCC::MakeCompilerCommandLineString( const Configuration& rC
 	}
 
 	// Set output file
-	Command += L" -o " + ( rConfiguration.m_OutputDir / rFilePath.stem() ).wstring();
+	Command += L" -o " + GetCompilerOutputPath( rConfiguration, rFilePath ).wstring();
 
 	// Finally, the input source file
 	Command += L" " + rFilePath.wstring();
@@ -90,40 +90,7 @@ std::wstring CompilerGCC::MakeLinkerCommandLineString( const Configuration& rCon
 			}
 
 			// Set output file
-			{
-				std::filesystem::path OutputFile = ( rConfiguration.m_OutputDir / rOutputName );
-
-				switch( Kind )
-				{
-					case Project::Kind::Application:
-					{
-
-					#if defined( _WIN32 )
-						OutputFile.replace_extension( L".exe" );
-					#endif // _WIN32
-
-					} break;
-
-					case Project::Kind::DynamicLibrary:
-					{
-
-					#if defined( _WIN32 )
-						OutputFile.replace_extension( L".lib" );
-					#else // _WIN32
-						OutputFile.replace_filename(  L"lib" + OutputFile.filename().wstring() );
-						OutputFile.replace_extension( L".so" );
-					#endif // _WIN32
-
-					} break;
-
-					default:
-					{
-					} break;
-				}
-
-				// Set output file
-				Command += L" -o " + OutputFile.wstring();
-			}
+			Command += L" -o " + GetLinkerOutputPath( rConfiguration, rOutputName, Kind ).wstring();
 
 			// Finally, set the object files
 			for( const std::filesystem::path& rInputFile : InputFiles )
@@ -151,10 +118,8 @@ std::wstring CompilerGCC::MakeLinkerCommandLineString( const Configuration& rCon
 			// Create an archive index (cf. ranlib)
 			Command += L's';
 
-			// Set output file with "lib" prefix
-			std::filesystem::path OutputFile = ( rConfiguration.m_OutputDir / rOutputName );
-			OutputFile.replace_filename( L"lib" + OutputFile.filename().wstring() );
-			Command += L" " + OutputFile.wstring();
+			// Set output file
+			Command += L" " + GetLinkerOutputPath( rConfiguration, rOutputName, Kind ).wstring();
 
 			// Set input files
 			for( const std::filesystem::path& rInputFile : InputFiles )

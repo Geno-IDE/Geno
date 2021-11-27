@@ -16,32 +16,45 @@
  */
 
 #pragma once
-#include "Components/Configuration.h"
+#include "Common/Macros.h"
 
-#include <Common/Async/IJob.h>
+#include <functional>
+#include <memory>
+#include <vector>
 
-#include <filesystem>
-
-class CompileJob final : public IJob
+class Job
 {
-public:
+	GENO_DISABLE_COPY_AND_MOVE( Job );
 
-	CompileJob( Configuration Configuration, std::filesystem::path InputFile );
+	friend class JobSystem;
 
 //////////////////////////////////////////////////////////////////////////
 
-	const std::filesystem::path& GetInputFile( void ) const { return m_InputFile; }
+public:
+
+	template< typename Functor > explicit Job( Functor&& rrFunctor );
+
+//////////////////////////////////////////////////////////////////////////
+
+	void AddDependency( std::weak_ptr< Job > Job );
+	bool CanRun       ( void ) const;
 
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
-	void Run( void ) override;
+	std::vector< std::weak_ptr< Job > > m_Dependencies       = { };
+	std::function< void( void ) >       m_Function           = { };
+
+	bool                                m_HasFinishedRunning = false;
+
+}; // Job
 
 //////////////////////////////////////////////////////////////////////////
 
-	Configuration         m_Configuration;
+template< typename Functor >
+Job::Job( Functor&& rrFunctor )
+	: m_Function( std::forward< Functor >( rrFunctor ) )
+{
 
-	std::filesystem::path m_InputFile;
-
-}; // CompileJob
+} // Job

@@ -20,8 +20,6 @@
 #include "Compilers/CompilerGCC.h"
 #include "Compilers/CompilerMSVC.h"
 #include "GUI/Widgets/StatusBar.h"
-#include "Jobs/CompileJob.h"
-#include "Jobs/LinkJob.h"
 
 #include <iostream>
 
@@ -43,12 +41,15 @@ void Workspace::Build( void )
 {
 	if( !m_Projects.empty() )
 	{
-		UTF8Converter UTF8Converter;
+		UTF8Converter                            UTF8Converter;
+		std::vector< JobSystem::JobPtr >         LinkerJobs;
+		std::shared_ptr< std::filesystem::path > LinkerOutput = std::make_shared< std::filesystem::path >();
 
 		for( const Project& rProject : m_Projects )
 		{
-			Configuration                                Configuration = m_BuildMatrix.CurrentConfiguration();
-			std::vector< std::shared_ptr< CompileJob > > CompileJobs;
+			Configuration                                           Configuration = m_BuildMatrix.CurrentConfiguration();
+			std::vector< JobSystem::JobPtr >                        CompilerJobs;
+			std::vector< std::shared_ptr< std::filesystem::path > > CompilerOutputs;
 
 			Configuration.m_OutputDir = rProject.m_Location;
 
@@ -58,12 +59,66 @@ void Workspace::Build( void )
 			{
 				for( const std::filesystem::path& rFile : rFileFilter.Files )
 				{
-					CompileJobs.push_back( JobSystem::Instance().NewJob< CompileJob >( Configuration, rFile ) );
+					auto Output = std::make_shared< std::filesystem::path >();
+
+					CompilerOutputs.push_back( Output );
+
+					CompilerJobs.push_back( JobSystem::Instance().NewJob(
+						[ Configuration, rFile, Output ]( void )
+						{
+							if( !Configuration.m_Compiler )
+							{
+								std::cerr << "Failed to compile " << rFile << ". No compiler active!\n";
+								return;
+							}
+
+							if( auto Result = Configuration.m_Compiler->Compile( Configuration, rFile ) )
+							{
+								*Output = *Result;
+							}
+						}
+					) );
 				}
 			}
 
-			JobSystem::Instance().NewJob< LinkJob >( Configuration, UTF8Converter.from_bytes( rProject.m_Name ), rProject.m_Kind, CompileJobs );
+			const std::wstring  ProjectName = UTF8Converter.from_bytes( rProject.m_Name );
+			const Project::Kind Kind        = rProject.m_Kind;
+
+			LinkerJobs.push_back( JobSystem::Instance().NewJob(
+				[ Configuration, ProjectName, Kind, CompilerOutputs, LinkerOutput ]( void )
+				{
+					std::vector< std::filesystem::path > InputFiles;
+
+					for( auto& rInputFile : CompilerOutputs )
+						if( !rInputFile->empty() )
+							InputFiles.emplace_back( std::move( *rInputFile ) );
+
+					if( !InputFiles.empty() )
+					{
+						if( auto Result = Configuration.m_Compiler->Link( Configuration, InputFiles, ProjectName, Kind ) )
+							*LinkerOutput = *Result;
+					}
+				},
+				CompilerJobs
+			) );
 		}
+
+		JobSystem::Instance().NewJob(
+			[ this, LinkerJobs, LinkerOutput ]( void )
+			{
+				if( LinkerOutput->empty() )
+				{
+					std::cout << "Done building workspace\n";
+
+					Events.BuildFinished( *this, *LinkerOutput, true );
+				}
+				else
+				{
+					Events.BuildFinished( *this, "", false );
+				}
+			},
+			LinkerJobs
+		);
 	}
 
 } // Build

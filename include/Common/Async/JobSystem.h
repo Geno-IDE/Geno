@@ -16,14 +16,14 @@
  */
 
 #pragma once
+#include "Common/Async/Job.h"
 #include "Common/Macros.h"
 
 #include <deque>
 #include <mutex>
+#include <span>
 #include <thread>
 #include <vector>
-
-class IJob;
 
 class JobSystem
 {
@@ -33,7 +33,7 @@ class JobSystem
 
 public:
 
-	using JobPtr = std::shared_ptr< IJob >;
+	using JobPtr = std::shared_ptr< Job >;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -46,7 +46,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	template< typename T, typename... Args > auto NewJob( Args&&... );
+	template< typename Functor > JobPtr NewJob( Functor&& rrFunctor, std::span< JobPtr > Dependencies = { } );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -67,11 +67,14 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-template< typename T, typename... Args >
-auto JobSystem::NewJob( Args&&... rrArgs )
+template< typename Functor >
+JobSystem::JobPtr JobSystem::NewJob( Functor&& rrFunctor, std::span< JobPtr > Dependencies )
 {
 	std::scoped_lock Lock( m_JobsMutex );
-	std::shared_ptr  Job = std::make_shared< T >( std::forward< Args >( rrArgs )... );
+	std::shared_ptr  Job = std::make_shared< ::Job >( std::forward< Functor >( rrFunctor ) );
+
+	for( JobPtr& rDependency : Dependencies )
+		Job->AddDependency( rDependency );
 
 	m_Jobs.push_back( Job );
 
