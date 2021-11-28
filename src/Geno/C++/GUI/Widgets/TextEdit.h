@@ -214,6 +214,8 @@ public:
 
 	static float FontSize;
 
+	std::vector< File > Files = { };
+
 private:
 	void                SplitLines( File& rFile );
 	std::vector< Line > SplitLines( const std::string String, int* Count = nullptr );
@@ -306,8 +308,6 @@ private:
 	ImGuiTabBar* m_pTabBar = nullptr;
 
 	Texture2D m_DraggedBitmapTexture = {};
-
-	std::vector< File > m_Files = {};
 
 	std::filesystem::path m_ActiveFilePath = {};
 

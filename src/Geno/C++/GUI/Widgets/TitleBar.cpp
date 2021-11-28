@@ -413,6 +413,15 @@ void TitleBar::ActionBuildBuildAndRun( void )
 	{
 		MainWindow::Instance().pOutputWindow->ClearCapture();
 
+		// Save all open files before building
+		if( MainWindow::Instance().pTextEdit )
+		{
+			TextEdit& rTextEdit = *MainWindow::Instance().pTextEdit;
+
+			for( TextEdit::File& rFile : rTextEdit.Files )
+				rTextEdit.SaveFile( rFile );
+		}
+
 		pWorkspace->Events.BuildFinished += []( Workspace& /*rWorkspace*/, std::filesystem::path OutputFile, bool /*Success*/ )
 		{
 			StatusBar::Instance().SetColor( StatusBar::Color::ORANGE );
@@ -439,6 +448,15 @@ void TitleBar::ActionBuildBuild( void )
 	if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 	{
 		MainWindow::Instance().pOutputWindow->ClearCapture();
+
+		// Save all open files before building
+		if( MainWindow::Instance().pTextEdit )
+		{
+			TextEdit& rTextEdit = *MainWindow::Instance().pTextEdit;
+
+			for( TextEdit::File& rFile : rTextEdit.Files )
+				rTextEdit.SaveFile( rFile );
+		}
 
 		pWorkspace->Build();
 	}

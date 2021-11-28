@@ -150,9 +150,9 @@ void TextEdit::Show( bool* pOpen )
 		const ImGuiWindow*  pWindow      = ImGui::GetCurrentWindow();
 		const ImRect        TabBarBounds = ImRect( pWindow->DC.CursorPos.x, pWindow->DC.CursorPos.y, pWindow->WorkRect.Max.x, pWindow->DC.CursorPos.y + pContext->FontSize + pContext->Style.FramePadding.y * 2 );
 
-		if( !m_Files.empty() && ImGui::BeginTabBarEx( m_pTabBar, TabBarBounds, TabBarFlags, nullptr ) )
+		if( !Files.empty() && ImGui::BeginTabBarEx( m_pTabBar, TabBarBounds, TabBarFlags, nullptr ) )
 		{
-			for( File& rFile : m_Files )
+			for( File& rFile : Files )
 			{
 				std::string FileString = rFile.Path.filename().string();
 
@@ -179,20 +179,20 @@ void TextEdit::Show( bool* pOpen )
 			}
 
 			// Clear closed files from list
-			for( auto It = m_Files.begin(); It != m_Files.end(); )
+			for( auto It = Files.begin(); It != Files.end(); )
 			{
 				if( It->Open ) It++;
 				else
-					It = m_Files.erase( It );
+					It = Files.erase( It );
 			}
 
 			ImGui::EndTabBar();
 		}
 	}
 
-	if( m_Files.size() )
+	if( Files.size() )
 	{
-		for( auto& rFile : m_Files )
+		for( auto& rFile : Files )
 		{
 			if( rFile.Path.string() == m_ActiveFilePath )
 			{
@@ -230,9 +230,9 @@ void TextEdit::AddFile( const std::filesystem::path& rPath )
 	std::ifstream     InputFileStream( rPath, std::ios::binary );
 	const std::string Text( ( std::istreambuf_iterator< char >( InputFileStream ) ), std::istreambuf_iterator< char >() );
 
-	for( int i = 0; i < ( int )m_Files.size(); ++i )
+	for( int i = 0; i < ( int )Files.size(); ++i )
 	{
-		File& rFile = m_Files[ i ];
+		File& rFile = Files[ i ];
 
 		// Do not need to add rFile to vector if it already exists
 		if( rFile.Path == rPath )
@@ -256,7 +256,7 @@ void TextEdit::AddFile( const std::filesystem::path& rPath )
 
 	SplitLines( File );
 
-	m_Files.emplace_back( std::move( File ) );
+	Files.emplace_back( std::move( File ) );
 
 } // AddFile
 
@@ -293,7 +293,7 @@ void TextEdit::OnDragDrop( const Drop& rDrop, int X, int Y )
 void TextEdit::ReplaceFile( const std::filesystem::path& rOldPath, const std::filesystem::path& rNewPath )
 {
 	// Replace Renamed File
-	for( auto& rFile : m_Files )
+	for( auto& rFile : Files )
 	{
 		if( rFile.Path == rOldPath )
 		{
