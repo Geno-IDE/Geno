@@ -506,6 +506,27 @@ LRESULT MainWindow::CustomWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPAR
 
 		case WM_NCCALCSIZE:
 		{
+			// Fix maximized windows for some reason accounting for border size
+			if( WParam == TRUE )
+			{
+				WINDOWPLACEMENT WindowPlacement{ .length = sizeof( WINDOWPLACEMENT ) };
+
+				if( GetWindowPlacement( Handle, &WindowPlacement ) && WindowPlacement.showCmd == SW_SHOWMAXIMIZED )
+				{
+					NCCALCSIZE_PARAMS& rParams = *reinterpret_cast< LPNCCALCSIZE_PARAMS >( LParam );
+					const int          BorderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+					const int          BorderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+
+					rParams.rgrc[ 0 ].left   += BorderX;
+					rParams.rgrc[ 0 ].top    += BorderY;
+					rParams.rgrc[ 0 ].right  -= BorderX;
+					rParams.rgrc[ 0 ].bottom -= BorderY;
+
+					// Use the rectangle specified in rgrc[0] for the new client area
+					return WVR_VALIDRECTS;
+				}
+			}
+
 			// Preserve the old client area and align it with the upper-left corner of the new client area
 			return 0;
 
