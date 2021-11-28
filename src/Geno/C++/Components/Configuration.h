@@ -82,6 +82,20 @@ public:
 
 namespace Reflection
 {
+	constexpr std::string_view EnumToString( Configuration::Architecture Value )
+	{
+		switch( Value )
+		{
+			case Configuration::Architecture::x86:    return "x86";
+			case Configuration::Architecture::x86_64: return "x86_64";
+			case Configuration::Architecture::ARM:    return "ARM";
+			case Configuration::Architecture::ARM64:  return "ARM64";
+			default:                                  return "Unknown";
+		}
+
+	} // EnumToString
+
+//////////////////////////////////////////////////////////////////////////
 
 	constexpr std::string_view EnumToString( Configuration::Optimization Value )
 	{
@@ -94,6 +108,17 @@ namespace Reflection
 		}
 
 	} // EnumToString
+
+//////////////////////////////////////////////////////////////////////////
+
+	constexpr void EnumFromString( std::string_view String, Configuration::Architecture& rValue )
+	{
+		if(      String == "x86"    ) rValue = Configuration::Architecture::x86;
+		else if( String == "x86_64" ) rValue = Configuration::Architecture::x86_64;
+		else if( String == "ARM"    ) rValue = Configuration::Architecture::ARM;
+		else if( String == "ARM64"  ) rValue = Configuration::Architecture::ARM64;
+
+	} // EnumFromString
 
 //////////////////////////////////////////////////////////////////////////
 
