@@ -106,14 +106,16 @@ void Workspace::Build( void )
 		JobSystem::Instance().NewJob(
 			[ this, LinkerJobs, LinkerOutput ]( void )
 			{
-				if( LinkerOutput->empty() )
+				if( auto& rLinkerOutput = *LinkerOutput; !rLinkerOutput.empty() )
 				{
 					std::cout << "Done building workspace\n";
 
-					Events.BuildFinished( *this, *LinkerOutput, true );
+					Events.BuildFinished( *this, rLinkerOutput, true );
 				}
 				else
 				{
+					std::cout << "Failed to build workspace\n";
+
 					Events.BuildFinished( *this, "", false );
 				}
 			},
