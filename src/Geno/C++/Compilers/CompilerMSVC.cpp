@@ -25,11 +25,31 @@
 
 #include <Windows.h>
 
-#if defined( _WIN64 )
-#define HOST "Hostx64"
-#else // _WIN64
-#define HOST "Hostx86"
-#endif // _WIN64
+//////////////////////////////////////////////////////////////////////////
+
+static std::wstring GetHostString( void )
+{
+	switch( Configuration::HostArchitecture() )
+	{
+		case Configuration::Architecture::x86:    return L"Hostx86";
+		case Configuration::Architecture::x86_64: return L"Hostx64";
+		default:                                  return L"Hostx64";
+	}
+
+} // GetHostString
+
+//////////////////////////////////////////////////////////////////////////
+
+static std::wstring GetTargetString( const Configuration::Architecture Architecture )
+{
+	switch( Architecture )
+	{
+		case Configuration::Architecture::x86:    return L"x86";
+		case Configuration::Architecture::x86_64: return L"x64";
+		default:                                  return GetTargetString( Configuration::HostArchitecture() );
+	}
+
+} // GetTargetString
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -84,13 +104,15 @@ static std::filesystem::path FindMSVCDir( const std::filesystem::path& rProgramF
 
 //////////////////////////////////////////////////////////////////////////
 
-static std::wstring FindWindowsSDKVersion( const std::filesystem::path& rProgramFilesX86 )
+static std::wstring FindWindowsSDKVersion( const Configuration& rConfiguration, const std::filesystem::path& rProgramFilesX86 )
 {
+	const std::wstring Target = GetTargetString( rConfiguration.m_Architecture.value_or( Configuration::HostArchitecture() ) );
+
 	for( const std::filesystem::directory_entry& rDirectory : std::filesystem::directory_iterator( rProgramFilesX86 / "Windows Kits" / "10" / "Lib" ) )
 	{
 		const std::filesystem::path DirectoryPath = rDirectory.path();
 
-		if( std::filesystem::exists( DirectoryPath / "um" / "x64" / "kernel32.lib" ) )
+		if( std::filesystem::exists( DirectoryPath / "um" / Target / "kernel32.lib" ) )
 			return DirectoryPath.filename();
 	}
 
@@ -104,9 +126,11 @@ std::wstring CompilerMSVC::MakeCompilerCommandLineString( const Configuration& r
 {
 	const std::filesystem::path ProgramFilesX86 = FindProgramFilesX86Dir();
 	const std::filesystem::path MSVCDir         = FindMSVCDir( ProgramFilesX86 );
+	const std::wstring          Host            = GetHostString();
+	const std::wstring          Target          = GetTargetString( rConfiguration.m_Architecture.value_or( Configuration::HostArchitecture() ) );
 
 	std::wstring CommandLine;
-	CommandLine += L"\"" + ( MSVCDir / "bin" / HOST / "x64" / "cl.exe" ).wstring() + L"\"";
+	CommandLine += L"\"" + ( MSVCDir / "bin" / Host / Target / "cl.exe" ).wstring() + L"\"";
 	CommandLine += L" /nologo";
 
 	// Compile (don't just preprocess)
@@ -128,7 +152,7 @@ std::wstring CompilerMSVC::MakeCompilerCommandLineString( const Configuration& r
 	// Set standard include directories
 	// TODO: Add these to the "Windows" system default configuration's m_IncludeDirs?
 	{
-		const std::wstring          WindowsSDKVersion    = FindWindowsSDKVersion( ProgramFilesX86 );
+		const std::wstring          WindowsSDKVersion    = FindWindowsSDKVersion( rConfiguration, ProgramFilesX86 );
 		const std::filesystem::path WindowsSDKIncludeDir = ProgramFilesX86 / "Windows Kits" / "10" / "Include" / WindowsSDKVersion;
 
 		CommandLine += L" /I\"" + ( MSVCDir / "include"             ).wstring() + L"\"";
@@ -163,11 +187,13 @@ std::wstring CompilerMSVC::MakeLinkerCommandLineString( const Configuration& rCo
 {
 	const std::filesystem::path ProgramFilesX86   = FindProgramFilesX86Dir();
 	const std::filesystem::path MSVCDir           = FindMSVCDir( ProgramFilesX86 );
-	const std::wstring          WindowsSDKVersion = FindWindowsSDKVersion( ProgramFilesX86 );
 	const std::filesystem::path OutputPath        = GetLinkerOutputPath( rConfiguration, rOutputName, Kind );
+	const std::wstring          WindowsSDKVersion = FindWindowsSDKVersion( rConfiguration, ProgramFilesX86 );
+	const std::wstring          Host              = GetHostString();
+	const std::wstring          Target            = GetTargetString( rConfiguration.m_Architecture.value_or( Configuration::HostArchitecture() ) );
 	std::wstring                CommandLine;
 
-	CommandLine += L"\"" + ( MSVCDir / "bin" / HOST / "x64" / "link.exe" ).wstring() + L"\"";
+	CommandLine += L"\"" + ( MSVCDir / "bin" / Host / Target / "link.exe" ).wstring() + L"\"";
 
 	switch( Kind )
 	{
@@ -180,9 +206,9 @@ std::wstring CompilerMSVC::MakeLinkerCommandLineString( const Configuration& rCo
 	{
 		const std::filesystem::path WindowsSDKLibraryDir = ProgramFilesX86 / "Windows Kits" / "10" / "Lib" / WindowsSDKVersion;
 
-		CommandLine += L" /LIBPATH:\"" + ( MSVCDir / "lib" / "x64"               ).wstring() + L"\"";
-		CommandLine += L" /LIBPATH:\"" + ( WindowsSDKLibraryDir / "um" / "x64"   ).wstring() + L"\"";
-		CommandLine += L" /LIBPATH:\"" + ( WindowsSDKLibraryDir / "ucrt" / "x64" ).wstring() + L"\"";
+		CommandLine += L" /LIBPATH:\"" + ( MSVCDir / "lib" / Target               ).wstring() + L"\"";
+		CommandLine += L" /LIBPATH:\"" + ( WindowsSDKLibraryDir / "um" / Target   ).wstring() + L"\"";
+		CommandLine += L" /LIBPATH:\"" + ( WindowsSDKLibraryDir / "ucrt" / Target ).wstring() + L"\"";
 	}
 
 	// Add user-defined library paths

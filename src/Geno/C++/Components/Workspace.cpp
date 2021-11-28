@@ -344,12 +344,15 @@ void Workspace::SerializeBuildMatrixColumn( GCL::Object& rObject, const BuildMat
 	{
 		GCL::Object ConfigurationObj( rName );
 
-		if( rConfiguration.m_Compiler || rConfiguration.m_Optimization )
+		if( rConfiguration.m_Compiler || rConfiguration.m_Architecture || rConfiguration.m_Optimization )
 		{
 			GCL::Object::TableType& rTable = ConfigurationObj.SetTable();
 
 			if( rConfiguration.m_Compiler )
 				rTable.emplace_back( "Compiler" ).SetString( std::string( rConfiguration.m_Compiler->GetName() ) );
+
+			if( rConfiguration.m_Architecture )
+				rTable.emplace_back( "Architecture" ).SetString( std::string( Reflection::EnumToString( *rConfiguration.m_Architecture ) ) );
 
 			if( rConfiguration.m_Optimization )
 				rTable.emplace_back( "Optimization" ).SetString( std::string( Reflection::EnumToString( *rConfiguration.m_Optimization ) ) );
@@ -385,6 +388,22 @@ void Workspace::DeserializeBuildMatrixColumn( BuildMatrix::Column& rColumn, cons
 #endif // _WIN32
 				else if( rCompilerValue == "GCC" ) { Configuration.m_Compiler = std::make_shared< CompilerGCC >(); }
 				else                               { std::cerr << "Unrecognized compiler '" << rCompilerValue << "' for this workspace.\n"; }
+			}
+
+			if( auto Architecture = std::find_if( rTable.begin(), rTable.end(), []( const GCL::Object& rObject ) { return rObject.Name() == "Architecture"; } )
+			;   Architecture != rTable.end() && Architecture->IsString() )
+			{
+				const GCL::Object::StringType& rArchitecture = Architecture->String();
+
+				Reflection::EnumFromString( rArchitecture, Configuration.m_Architecture.emplace() );
+			}
+
+			if( auto Optimization = std::find_if( rTable.begin(), rTable.end(), []( const GCL::Object& rObject ) { return rObject.Name() == "Optimization"; } )
+			;   Optimization != rTable.end() && Optimization->IsString() )
+			{
+				const GCL::Object::StringType& rOptimization = Optimization->String();
+
+				Reflection::EnumFromString( rOptimization, Configuration.m_Optimization.emplace() );
 			}
 		}
 
