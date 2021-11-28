@@ -452,12 +452,9 @@ void MainWindow::ImGuiSettingsWriteAllCB( ImGuiContext* pContext, ImGuiSettingsH
 {
 	for( ImGuiWindow* pWindow : pContext->Windows )
 	{
-		if( pWindow->Active )
-		{
-			pOutBuffer->appendf( "[%s][%s]\n", pHandler->TypeName, pWindow->Name );
-			pOutBuffer->appendf( "Active=%d\n", pWindow->Active );
-			pOutBuffer->append( "\n" );
-		}
+		pOutBuffer->appendf( "[%s][%s]\n", pHandler->TypeName, pWindow->Name );
+		pOutBuffer->appendf( "Active=%d\n", pWindow->WasActive ); // For some reason, Active is set to false while closing the application
+		pOutBuffer->append( "\n" );
 	}
 
 	for( int I = static_cast< int >( MainWindow::Instance().GetRecentWorkspaces().size() ) - 1; I >= 0; I-- )
