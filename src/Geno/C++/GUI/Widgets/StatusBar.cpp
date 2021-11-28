@@ -111,14 +111,24 @@ void StatusBar::SetSearchResultInfo( std::string SearchTerm, int Results )
 
 //////////////////////////////////////////////////////////////////////////
 
+float StatusBar::GetHeight( void )
+{
+	return ImGui::GetFrameHeight();
+
+} // GetHeight
+
+//////////////////////////////////////////////////////////////////////////
+
 void StatusBar::Show( void )
 {
+	const float Height = GetHeight();
+
 	m_Active = true;
 
 	ImGuiViewport* pViewport = ImGui::GetMainViewport();
 
-	ImGui::SetNextWindowPos( ImVec2( pViewport->Pos.x, pViewport->Pos.y + pViewport->Size.y - HEIGHT ) );
-	ImGui::SetNextWindowSize( ImVec2( pViewport->Size.x, HEIGHT ) );
+	ImGui::SetNextWindowPos( ImVec2( pViewport->Pos.x, pViewport->Pos.y + pViewport->Size.y - Height ) );
+	ImGui::SetNextWindowSize( ImVec2( pViewport->Size.x, Height ) );
 	ImGui::SetNextWindowViewport( pViewport->ID );
 
 	const ImGuiWindowFlags WindowFlags = 0

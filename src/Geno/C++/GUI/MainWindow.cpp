@@ -241,7 +241,7 @@ void MainWindow::Render( void )
 	ImGuiViewport* pViewport = ImGui::GetMainViewport();
 	ImGui::NewFrame();
 
-	pViewport->WorkSize.y -= StatusBar::HEIGHT;
+	pViewport->WorkSize.y -= StatusBar::GetHeight();
 
 	ImGui::DockSpaceOverViewport( pViewport );
 	ImGui::PushFont( m_pFontSans );
