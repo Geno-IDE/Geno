@@ -470,18 +470,19 @@ void TitleBar::AddBuildMatrixColumn( BuildMatrix::Column& rColumn )
 	ImGui::Spacing();
 	ImGui::Text( "%s:", rColumn.Name.c_str() );
 
-	const std::string Label = "##" + rColumn.Name;
+	const std::string Label         = "##" + rColumn.Name;
+	const char*       pPreviewValue = ( rColumn.CurrentConfiguration_ >= 0 && rColumn.CurrentConfiguration_ < rColumn.Configurations.size() ) ? rColumn.Configurations[ rColumn.CurrentConfiguration_ ].first.c_str() : "";
 
 	// Add combo for this column
 	ImGui::SetNextItemWidth( 100.0f );
 	ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 1, 1 ) );
 	ImGui::SetCursorPosY( 10.0f );
-	if( ImGui::BeginCombo( Label.c_str(), rColumn.CurrentConfiguration.c_str() ) )
+	if( ImGui::BeginCombo( Label.c_str(), pPreviewValue ) )
 	{
-		for( auto& [ rName, rConfiguration ] : rColumn.Configurations )
+		for( size_t i = 0; i < rColumn.Configurations.size(); ++i )
 		{
-			if( ImGui::Selectable( rName.c_str() ) )
-				rColumn.CurrentConfiguration = rName;
+			if( ImGui::Selectable( rColumn.Configurations[ i ].first.c_str() ) )
+				rColumn.CurrentConfiguration_ = static_cast< int32_t >( i );
 		}
 
 		ImGui::EndCombo();
