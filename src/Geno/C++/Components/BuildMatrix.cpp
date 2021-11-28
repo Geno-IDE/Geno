@@ -39,11 +39,11 @@ void BuildMatrix::NewColumn( std::string Name )
 
 void BuildMatrix::NewConfiguration( std::string_view WhichColumn, std::string Configuration )
 {
-	for( Column& column : m_Columns )
+	for( Column& rColumn : m_Columns )
 	{
-		if( column.Name == WhichColumn )
+		if( rColumn.Name == WhichColumn )
 		{
-			column.Configurations.emplace_back( std::move( Configuration ), ::Configuration() );
+			rColumn.Configurations.emplace_back( std::move( Configuration ), ::Configuration() );
 			return;
 		}
 	}
@@ -59,15 +59,12 @@ Configuration BuildMatrix::CurrentConfiguration( void ) const
 	// Combine the values of all current configurations in each column
 	for( const Column& rColumn : m_Columns )
 	{
-		if( rColumn.CurrentConfiguration.empty() )
+		if( !( rColumn.CurrentConfiguration_ >= 0 && rColumn.CurrentConfiguration_ < rColumn.Configurations.size() ) )
 			continue;
 
 		// Find the current configuration
-		auto CurrentConfiguration = std::find_if( rColumn.Configurations.begin(), rColumn.Configurations.end(), [ &rColumn ]( const auto& rPair ) { return rPair.first == rColumn.CurrentConfiguration; } );
-		if( CurrentConfiguration == rColumn.Configurations.end() )
-			continue;
-
-		Result.Override( CurrentConfiguration->second );
+		auto&[ rName, rConfiguration ] = rColumn.Configurations[ rColumn.CurrentConfiguration_ ];
+		Result.Override( rConfiguration );
 	}
 
 	return Result;
