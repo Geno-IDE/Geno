@@ -171,26 +171,9 @@ std::wstring CompilerMSVC::MakeLinkerCommandLineString( const Configuration& rCo
 
 	switch( Kind )
 	{
-		case Project::Kind::Application:
-		{
-			CommandLine += L" /SUBSYSTEM:CONSOLE";
-			CommandLine += L" /OUT:\"" + OutputPath.wstring() + L".exe\"";
-
-		} break;
-
-		case Project::Kind::StaticLibrary:
-		{
-			CommandLine += L" /LIB";
-			CommandLine += L" /OUT:\"" + OutputPath.wstring() + L".lib\"";
-
-		} break;
-
-		case Project::Kind::DynamicLibrary:
-		{
-			CommandLine += L" /DLL";
-			CommandLine += L" /OUT:\"" + OutputPath.wstring() + L".dll\"";
-
-		} break;
+		case Project::Kind::Application:    { CommandLine += L" /SUBSYSTEM:CONSOLE /OUT:\"" + OutputPath.wstring() + L"\""; } break;
+		case Project::Kind::StaticLibrary:  { CommandLine += L" /LIB /OUT:\"" + OutputPath.wstring() + L"\"";               } break;
+		case Project::Kind::DynamicLibrary: { CommandLine += L" /DLL /OUT:\"" + OutputPath.wstring() + L"\"";               } break;
 	}
 
 	// Add standard library paths
