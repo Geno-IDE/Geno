@@ -23,11 +23,14 @@
 #include "TextEdit.h"
 #include "TitleBar.h"
 
-#include "Auxiliary/ImGuiAux.h"
-
 #include <filesystem>
 #include <iostream>
 #include <sstream>
+#include <regex>
+
+#if defined( __linux__ )
+#include <sys/stat.h>
+#endif // __linux__
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -41,6 +44,13 @@ FindInWorkspace::~FindInWorkspace( void )
 {
 
 } // ~FindInWorkspace
+
+//////////////////////////////////////////////////////////////////////////
+
+static bool CheckExtension( const std::string& rExtension )
+{
+	return rExtension == ".cpp" || rExtension == ".hpp" || rExtension == ".cxx" || rExtension == ".h" || rExtension == ".c";
+} // CheckExtension
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -64,7 +74,7 @@ void FindInWorkspace::Show( bool* pOpen )
 
 	ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
 
-	if( ImGui::BeginTable( "##FileTable", 3, TableFlags ) )
+	if( ImGui::BeginTable( "##FileTable", 3, TableFlags, ImVec2( ImGui::GetWindowSize().x - 4, ImGui::GetWindowSize().y * 0.85f ) ) )
 	{
 		ImGui::TableSetupColumn( "File" );
 		ImGui::TableSetupColumn( "Path" );
@@ -116,7 +126,7 @@ void FindInWorkspace::Show( bool* pOpen )
 					else if( Column == 1 )
 					{
 						ImGui::TableSetColumnIndex( Column );
-						ImGui::Text( "%s", Filepath );
+						ImGui::Text( "%s", Filepath.c_str() );
 					}
 					else
 					{
@@ -130,6 +140,7 @@ void FindInWorkspace::Show( bool* pOpen )
 
 							std::stringstream SS;
 							SS << std::put_time( std::localtime( &mod_time ), "%d/%m/%Y" );
+							SS << std::put_time( std::localtime( &mod_time ), "  %T" );
 
 							ImGui::Text( "%s", SS.str().c_str() );
 						}
