@@ -108,7 +108,7 @@ void TitleBar::Draw( void )
 			ImGui::MenuItem( "Workspace", "Alt+W", &ShowWorkspaceOutliner );
 			ImGui::MenuItem( "Output", "Alt+O", &ShowOutputWindow );
 
-			ImGui::MenuItem( "Find Files in Workspace", "Alt+Shift+O", &ShowFindInWorkspaceWindow );
+			ImGui::MenuItem( "Find Files in Workspace", "Alt+J", &ShowFindInWorkspaceWindow );
 
 			ImGui::EndMenu();
 		}
@@ -291,8 +291,7 @@ void TitleBar::Draw( void )
 	// Keybinds
 
 	if( ImGui::IsKeyDown( GLFW_KEY_LEFT_SHIFT ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_SHIFT ) )
-	{
-		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ShowFindInWorkspaceWindow ^= 1;
+	{	
 	}
 	else if( ImGui::IsKeyDown( GLFW_KEY_LEFT_CONTROL ) || ImGui::IsKeyDown( GLFW_KEY_RIGHT_CONTROL ) )
 	{
@@ -306,6 +305,7 @@ void TitleBar::Draw( void )
 		if( ImGui::IsKeyPressed( GLFW_KEY_T ) ) ShowTextEdit ^= 1;
 		if( ImGui::IsKeyPressed( GLFW_KEY_W ) ) ShowWorkspaceOutliner ^= 1;
 		if( ImGui::IsKeyPressed( GLFW_KEY_O ) ) ShowOutputWindow ^= 1;
+		if( ImGui::IsKeyPressed( GLFW_KEY_J ) ) ShowFindInWorkspaceWindow ^= 1;
 	}
 	else
 	{
