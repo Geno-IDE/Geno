@@ -22,6 +22,7 @@
 #include "GUI/MainWindow.h"
 #include "TextEdit.h"
 #include "TitleBar.h"
+#include "Auxiliary/ImGuiAux.h"
 
 #include <filesystem>
 #include <iostream>
@@ -36,6 +37,7 @@
 
 FindInWorkspace::FindInWorkspace( void )
 {
+
 } // FindInWorkspace
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,13 +52,31 @@ FindInWorkspace::~FindInWorkspace( void )
 static bool CheckExtension( const std::string& rExtension )
 {
 	return rExtension == ".cpp" || rExtension == ".hpp" || rExtension == ".cxx" || rExtension == ".h" || rExtension == ".c";
+
 } // CheckExtension
+
+//////////////////////////////////////////////////////////////////////////
+
+// Yes, I made my own Draw function just to get text input flags.
+bool DrawFilterText( ImGuiTextFilter& rTextFilter, ImGuiInputTextFlags Flags = ImGuiInputTextFlags_None, const char* pLabel = "Filter", float Width = 0.0f, ImGuiInputTextCallback TextCallback = NULL, void* UserData = NULL )
+{
+	if( Width != 0.0f )
+		ImGui::SetNextItemWidth( Width );
+
+	bool TextChanged = ImGui::InputText( pLabel, rTextFilter.InputBuf, IM_ARRAYSIZE( rTextFilter.InputBuf ), Flags, TextCallback, UserData );
+
+	if( TextChanged )
+		rTextFilter.Build();
+
+	return TextChanged;
+
+} // DrawFilterText
 
 //////////////////////////////////////////////////////////////////////////
 
 void FindInWorkspace::Show( bool* pOpen )
 {
-	if( !pOpen && !Application::Instance().CurrentWorkspace() )
+	if( pOpen == false || Application::Instance().CurrentWorkspace() == nullptr )
 		return;
 
 	//////////////////////////////////////////////////////////////////////////
@@ -74,14 +94,14 @@ void FindInWorkspace::Show( bool* pOpen )
 
 	ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
 
+	int TableRow = 0;
+
 	if( ImGui::BeginTable( "##FileTable", 3, TableFlags, ImVec2( ImGui::GetWindowSize().x - 4, ImGui::GetWindowSize().y * 0.85f ) ) )
 	{
 		ImGui::TableSetupColumn( "File" );
 		ImGui::TableSetupColumn( "Path" );
 		ImGui::TableSetupColumn( "Last Modified" );
 		ImGui::TableHeadersRow();
-
-		int Row = 0;
 
 		for( auto& rEntry : std::filesystem::recursive_directory_iterator( m_WorkspacePath ) )
 		{
@@ -90,9 +110,9 @@ void FindInWorkspace::Show( bool* pOpen )
 			std::string Filepath  = Path.string().c_str();
 			std::string Extension = Path.extension().string();
 
-			if( Path.has_extension() && Extension == ".cpp" || Extension == ".hpp" || Extension == ".cxx" || Extension == ".h" || Extension == ".c" )
+			if( Path.has_extension() && CheckExtension( Extension ) && m_TextFilter.PassFilter( Filename.c_str() ) )
 			{
-				Row++;
+				TableRow++;
 
 				ImGui::TableNextRow();
 
@@ -136,11 +156,11 @@ void FindInWorkspace::Show( bool* pOpen )
 
 						if( stat( Path.string().c_str(), &TimeResult ) == 0 )
 						{
-							auto mod_time = TimeResult.st_mtime;
+							auto ModTime = TimeResult.st_mtime;
 
 							std::stringstream SS;
-							SS << std::put_time( std::localtime( &mod_time ), "%d/%m/%Y" );
-							SS << std::put_time( std::localtime( &mod_time ), "  %T" );
+							SS << std::put_time( std::localtime( &ModTime ), "%d/%m/%Y" );
+							SS << std::put_time( std::localtime( &ModTime ), "  %T"     );
 
 							ImGui::Text( "%s", SS.str().c_str() );
 						}
@@ -152,7 +172,10 @@ void FindInWorkspace::Show( bool* pOpen )
 		ImGui::EndTable();
 	}
 
+	m_TextFilter.Draw( "Search for files..." );
+
 	ImGui::End();
+
 } // Show
 
 //////////////////////////////////////////////////////////////////////////

@@ -28,7 +28,7 @@ class FindInWorkspace
 {
 public:
 
-	FindInWorkspace( void );
+	 FindInWorkspace( void );
 	~FindInWorkspace( void );
 
 	//////////////////////////////////////////////////////////////////////////
@@ -42,5 +42,6 @@ public:
 private:
 
 	std::string m_WorkspacePath = "";
+	ImGuiTextFilter m_TextFilter;
 
 }; // FindInWorkspace
