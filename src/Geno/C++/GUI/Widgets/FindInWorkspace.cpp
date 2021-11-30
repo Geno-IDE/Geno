@@ -49,28 +49,11 @@ FindInWorkspace::~FindInWorkspace( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-static bool CheckExtension( const std::string& rExtension )
+bool CheckExtension( const std::string& rExtension )
 {
 	return rExtension == ".cpp" || rExtension == ".hpp" || rExtension == ".cxx" || rExtension == ".h" || rExtension == ".c";
 
 } // CheckExtension
-
-//////////////////////////////////////////////////////////////////////////
-
-// Yes, I made my own Draw function just to get text input flags.
-bool DrawFilterText( ImGuiTextFilter& rTextFilter, ImGuiInputTextFlags Flags = ImGuiInputTextFlags_None, const char* pLabel = "Filter", float Width = 0.0f, ImGuiInputTextCallback TextCallback = NULL, void* UserData = NULL )
-{
-	if( Width != 0.0f )
-		ImGui::SetNextItemWidth( Width );
-
-	bool TextChanged = ImGui::InputText( pLabel, rTextFilter.InputBuf, IM_ARRAYSIZE( rTextFilter.InputBuf ), Flags, TextCallback, UserData );
-
-	if( TextChanged )
-		rTextFilter.Build();
-
-	return TextChanged;
-
-} // DrawFilterText
 
 //////////////////////////////////////////////////////////////////////////
 
