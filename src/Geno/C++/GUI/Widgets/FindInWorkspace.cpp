@@ -64,6 +64,7 @@ void FindInWorkspace::Show( bool* pOpen )
 
 	//////////////////////////////////////////////////////////////////////////
 
+	m_WorkspacePath = "";
 	m_WorkspacePath = Application::Instance().CurrentWorkspace()->m_Location.string();
 
 	ImGuiIO& rIo = ImGui::GetIO();
@@ -77,14 +78,14 @@ void FindInWorkspace::Show( bool* pOpen )
 
 	ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollX | ImGuiTableFlags_NoBordersInBody;
 
-	int TableRow = 0;
-
 	if( ImGui::BeginTable( "##FileTable", 3, TableFlags, ImVec2( ImGui::GetWindowSize().x - 4, ImGui::GetWindowSize().y * 0.85f ) ) )
 	{
 		ImGui::TableSetupColumn( "File" );
 		ImGui::TableSetupColumn( "Path" );
 		ImGui::TableSetupColumn( "Last Modified" );
 		ImGui::TableHeadersRow();
+
+		int TableRow = 0;
 
 		for( auto& rEntry : std::filesystem::recursive_directory_iterator( m_WorkspacePath ) )
 		{
@@ -155,7 +156,10 @@ void FindInWorkspace::Show( bool* pOpen )
 		ImGui::EndTable();
 	}
 
-	m_TextFilter.Draw( "Search for files..." );
+
+	ImGui::Text( "Search for files..." );
+	ImGui::SameLine();
+	m_TextFilter.Draw( "##search" );
 
 	ImGui::End();
 
