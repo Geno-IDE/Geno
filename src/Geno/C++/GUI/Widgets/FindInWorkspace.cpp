@@ -59,7 +59,7 @@ bool CheckExtension( const std::string& rExtension )
 
 void FindInWorkspace::Show( bool* pOpen )
 {
-	if( pOpen == false || Application::Instance().CurrentWorkspace() == nullptr )
+	if( pOpen == 0 /* false */ || Application::Instance().CurrentWorkspace() == nullptr )
 		return;
 
 	//////////////////////////////////////////////////////////////////////////
@@ -119,7 +119,7 @@ void FindInWorkspace::Show( bool* pOpen )
 
 							auto& ShowFindInWrks = MainWindow::Instance().pTitleBar->ShowFindInWorkspaceWindow;
 							ShowFindInWrks = false;
-							pOpen = false;
+							pOpen = 0 /* false */;
 						}
 
 						if( ImGui::IsItemHovered() )
