@@ -89,10 +89,13 @@ void StatusBar::SetText( std::string Text )
 
 void StatusBar::SetCurrentFileInfo( int Column, int Row, int Length, int Lines )
 {
-	m_TextEditInfo = "Col :  "    + std::to_string( Column ) + "    " +
-	                 "Row :  "    + std::to_string( Row )    + "    " +
-	                 "Length :  " + std::to_string( Length ) + "    " +
-	                 "Lines :  "  + std::to_string( Lines );
+	if( Column == 0 && Row == 0 && Length == 0 && Lines == 0 )
+		m_TextEditInfo =  "";
+	else
+		m_TextEditInfo = "Col :  "   + std::to_string( Column )  + "    " +
+						"Row :  "    + std::to_string( Row )    + "    " +
+						"Length :  " + std::to_string( Length ) + "    " +
+						"Lines :  "  + std::to_string( Lines );
 
 } // SetCurrentFileInfo
 
