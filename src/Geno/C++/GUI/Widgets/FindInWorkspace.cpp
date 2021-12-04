@@ -29,7 +29,8 @@
 #include <sstream>
 #include <regex>
 
-#if defined( __linux__ )
+#if defined( __linux__ ) || defined ( __APPLE__ )
+#include <sys/types.h>
 #include <sys/stat.h>
 #endif // __linux__
 
