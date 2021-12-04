@@ -190,7 +190,7 @@ void TextEdit::Show( bool* pOpen )
 		}
 	}
 
-	if ( m_Files.size() )
+	if( m_Files.size() )
 	{
 
 		for( auto& rFile : m_Files )
