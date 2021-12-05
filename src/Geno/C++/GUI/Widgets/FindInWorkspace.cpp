@@ -162,7 +162,7 @@ void FindInWorkspace::Show( bool* pOpen )
 	ImGui::SameLine();
 	m_TextFilter.Draw( "##search" );
 
-	if( ImGui::IsWindowFocused( ImGuiFocusedFlags_RootAndChildWindows ) && !ImGui::IsMouseClicked( 0 ) )
+	if( ImGui::IsWindowFocused( ImGuiFocusedFlags_RootAndChildWindows ) && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked( 0 ) )
 		ImGui::SetKeyboardFocusHere( 0 );
 
 	ImGui::End();
