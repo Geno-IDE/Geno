@@ -587,7 +587,7 @@ void Project::RenameFile( const std::filesystem::path& rFile, const std::filesys
 
 std::vector< std::filesystem::path > Project::FindSourceFolders( void )
 {
-	// Find the first file (thats a c++/c file) and check get the parent path.
+	// Walk through all files and get the parent path. And check if that path does not exist already.
 
 	std::vector<std::filesystem::path> SourcePaths;
 
