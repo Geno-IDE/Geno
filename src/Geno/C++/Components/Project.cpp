@@ -585,6 +585,45 @@ void Project::RenameFile( const std::filesystem::path& rFile, const std::filesys
 
 //////////////////////////////////////////////////////////////////////////
 
+std::vector< std::filesystem::path > Project::FindSourceFolders( void )
+{
+	// Find the first file (thats a c++/c file) and check get the parent path.
+
+	std::vector<std::filesystem::path> SourcePaths;
+
+	for ( FileFilter& rFileFilter : m_FileFilters )
+	{
+		for ( auto& rFile : rFileFilter.Files )
+		{
+			// Path already found.
+			if( std::find( SourcePaths.begin(), SourcePaths.end(), rFile.parent_path() ) != SourcePaths.end() )
+				break;
+
+			auto Extension = rFile.extension();
+
+			// #TODO: We really need a function that does this.
+			if(
+				  Extension == ".cc"
+				||Extension == ".cpp"
+				||Extension == ".cxx"
+				||Extension == ".c++"
+				||Extension == ".h"
+				||Extension == ".hh"
+				||Extension == ".hpp"
+				||Extension == ".hxx"
+				||Extension == ".h++" )
+			{
+				SourcePaths.push_back( rFile.parent_path() );
+			}
+		}
+	}
+
+	return SourcePaths;
+
+} // FindSourceFolders
+
+//////////////////////////////////////////////////////////////////////////
+
 void Project::GCLObjectCallback( GCL::Object Object, void* pUser )
 {
 	Project*         pSelf = static_cast< Project* >( pUser );

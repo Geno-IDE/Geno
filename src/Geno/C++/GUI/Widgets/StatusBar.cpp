@@ -93,8 +93,8 @@ void StatusBar::SetCurrentFileInfo( int Column, int Row, int Length, int Lines )
 		m_TextEditInfo =  "";
 	else
 		m_TextEditInfo = "Col :  "   + std::to_string( Column )  + "    " +
-						"Row :  "    + std::to_string( Row )    + "    " +
-						"Length :  " + std::to_string( Length ) + "    " +
+						"Row :  "    + std::to_string( Row )     + "    " +
+						"Length :  " + std::to_string( Length )  + "    " +
 						"Lines :  "  + std::to_string( Lines );
 
 } // SetCurrentFileInfo
@@ -119,6 +119,11 @@ float StatusBar::GetHeight( void )
 	return ImGui::GetFrameHeight();
 
 } // GetHeight
+
+void StatusBar::ClearCurrentFileInfo( void )
+{
+	m_TextEditInfo.clear();
+} // ClearCurrentFileInfo
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -17,6 +17,7 @@
 
 #include "FindInWorkspace.h"
 #include "Application.h"
+#include "Components/Project.h"
 #include "Components/Workspace.h"
 #include "GUI/PrimaryMonitor.h"
 #include "GUI/MainWindow.h"
@@ -25,28 +26,11 @@
 #include "Auxiliary/ImGuiAux.h"
 
 #include <filesystem>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <iostream>
 #include <sstream>
 #include <regex>
-
-#if defined( __linux__ ) || defined ( __APPLE__ )
-#include <sys/types.h>
-#include <sys/stat.h>
-#endif // __linux__
-
-//////////////////////////////////////////////////////////////////////////
-
-FindInWorkspace::FindInWorkspace( void )
-{
-
-} // FindInWorkspace
-
-//////////////////////////////////////////////////////////////////////////
-
-FindInWorkspace::~FindInWorkspace( void )
-{
-
-} // ~FindInWorkspace
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -66,7 +50,8 @@ void FindInWorkspace::Show( bool* pOpen )
 	//////////////////////////////////////////////////////////////////////////
 
 	m_WorkspacePath = "";
-	m_WorkspacePath = Application::Instance().CurrentWorkspace()->m_Location.string();
+	m_pWorkspace = Application::Instance().CurrentWorkspace();
+	m_WorkspacePath = m_pWorkspace->m_Location.string();
 
 	ImGuiIO& rIo = ImGui::GetIO();
 
@@ -88,72 +73,89 @@ void FindInWorkspace::Show( bool* pOpen )
 
 		int TableRow = 0;
 
-		for( auto& rEntry : std::filesystem::recursive_directory_iterator( m_WorkspacePath ) )
+		std::vector< std::vector< std::filesystem::path > > SrcPaths;
+
+		for( Project& rProject : m_pWorkspace->m_Projects )
 		{
-			std::filesystem::path Path = rEntry;
-			std::string Filename  = Path.filename().string();
-			std::string Filepath  = Path.string().c_str();
-			std::string Extension = Path.extension().string();
+			SrcPaths.push_back( rProject.FindSourceFolders() );
+		}
 
-			if( Path.has_extension() && CheckExtension( Extension ) && m_TextFilter.PassFilter( Filename.c_str() ) )
+		for ( auto& rProjectSrcPaths : SrcPaths )
+		{
+			for ( auto& rFile : rProjectSrcPaths )
 			{
-				TableRow++;
-
-				ImGui::TableNextRow();
-
-				for( int Column = 0; Column < 3; Column++ )
+				if( std::filesystem::exists( rFile ) )
 				{
-					if( Column == 0 )
+					for( auto& rEntry : std::filesystem::recursive_directory_iterator( rFile ) )
 					{
-						ImGui::TableSetColumnIndex( Column );
+						std::filesystem::path Path = rEntry;
+						std::string Filename  = Path.filename().string();
+						std::string Filepath  = Path.string().c_str();
+						std::string Extension = Path.extension().string();
 
-						if( ImGui::Selectable( Filename.c_str() ) )
+						if( Path.has_extension() && CheckExtension( Extension ) && m_TextFilter.PassFilter( Filename.c_str() ) )
 						{
-							auto& ShowTextEdit = MainWindow::Instance().pTitleBar->ShowTextEdit;
-							if( !ShowTextEdit )
+							TableRow++;
+
+							ImGui::TableNextRow();
+
+							for( int Column = 0; Column < 3; Column++ )
 							{
-								ShowTextEdit = true;
-								MainWindow::Instance().pTextEdit->Show( &ShowTextEdit );
+								if( Column == 0 )
+								{
+									ImGui::TableSetColumnIndex( Column );
+
+									if( ImGui::Selectable( Filename.c_str() ) )
+									{
+										auto& ShowTextEdit = MainWindow::Instance().pTitleBar->ShowTextEdit;
+										if( !ShowTextEdit )
+										{
+											ShowTextEdit = true;
+											MainWindow::Instance().pTextEdit->Show( &ShowTextEdit );
+										}
+
+										MainWindow::Instance().pTextEdit->AddFile( Path );
+
+										auto& ShowFindInWrks = MainWindow::Instance().pTitleBar->ShowFindInWorkspaceWindow;
+										ShowFindInWrks = false;
+										pOpen = 0 /* false */;
+									}
+
+									if( ImGui::IsItemHovered() )
+									{
+										ImGui::SetMouseCursor( ImGuiMouseCursor_Hand );
+									}
+								}
+								else if( Column == 1 )
+								{
+									ImGui::TableSetColumnIndex( Column );
+									ImGui::Text( "%s", Filepath.c_str() );
+								}
+								else
+								{
+									ImGui::TableSetColumnIndex( Column );
+
+									struct stat TimeResult;
+
+									if( stat( Path.string().c_str(), &TimeResult ) == 0 )
+									{
+										auto ModTime = TimeResult.st_mtime;
+
+										std::stringstream SS;
+										SS << std::put_time( std::localtime( &ModTime ), "%d/%m/%Y" );
+										SS << std::put_time( std::localtime( &ModTime ), "  %T" );
+
+										ImGui::Text( "%s", SS.str().c_str() );
+									}
+
+								}
 							}
-
-							MainWindow::Instance().pTextEdit->AddFile( Path );
-
-							auto& ShowFindInWrks = MainWindow::Instance().pTitleBar->ShowFindInWorkspaceWindow;
-							ShowFindInWrks = false;
-							pOpen = 0 /* false */;
 						}
-
-						if( ImGui::IsItemHovered() )
-						{
-							ImGui::SetMouseCursor( ImGuiMouseCursor_Hand );
-						}
-					}
-					else if( Column == 1 )
-					{
-						ImGui::TableSetColumnIndex( Column );
-						ImGui::Text( "%s", Filepath.c_str() );
-					}
-					else
-					{
-						ImGui::TableSetColumnIndex( Column );
-
-						struct stat TimeResult;
-
-						if( stat( Path.string().c_str(), &TimeResult ) == 0 )
-						{
-							auto ModTime = TimeResult.st_mtime;
-
-							std::stringstream SS;
-							SS << std::put_time( std::localtime( &ModTime ), "%d/%m/%Y" );
-							SS << std::put_time( std::localtime( &ModTime ), "  %T"     );
-
-							ImGui::Text( "%s", SS.str().c_str() );
-						}
-
 					}
 				}
 			}
 		}
+
 		ImGui::EndTable();
 	}
 

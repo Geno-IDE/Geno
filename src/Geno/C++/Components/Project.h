@@ -71,16 +71,17 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	void                  SortFileFilters ( void );
-	FileFilter*           NewFileFilter   ( const std::filesystem::path& Name );
-	void                  RemoveFileFilter( const std::filesystem::path& Name );
-	FileFilter*           FileFilterByName( const std::filesystem::path& Name );
-	std::filesystem::path FileInFileFilter( const std::filesystem::path& rFile, const std::filesystem::path& rFileFilter );
-	void                  RenameFileFilter( const std::filesystem::path& rFileFilter, const std::string& rName );
-	bool                  NewFile         ( const std::filesystem::path& rPath, const std::filesystem::path& rFileFilter );
-	bool                  AddFile         ( const std::filesystem::path& rPath, const std::filesystem::path& rFileFilter );
-	void                  RemoveFile      ( const std::filesystem::path& rFile, const std::filesystem::path& rFileFilter );
-	void                  RenameFile      ( const std::filesystem::path& rFile, const std::filesystem::path& rFileFilter, const std::string& rName );
+	void                  SortFileFilters                 ( void );
+	FileFilter*           NewFileFilter                   ( const std::filesystem::path& Name );
+	void                  RemoveFileFilter                ( const std::filesystem::path& Name );
+	FileFilter*           FileFilterByName                ( const std::filesystem::path& Name );
+	std::filesystem::path FileInFileFilter                ( const std::filesystem::path& rFile, const std::filesystem::path& rFileFilter );
+	void                  RenameFileFilter                ( const std::filesystem::path& rFileFilter, const std::string& rName );
+	bool                  NewFile                         ( const std::filesystem::path& rPath, const std::filesystem::path& rFileFilter );
+	bool                  AddFile                         ( const std::filesystem::path& rPath, const std::filesystem::path& rFileFilter );
+	void                  RemoveFile                      ( const std::filesystem::path& rFile, const std::filesystem::path& rFileFilter );
+	void                  RenameFile                      ( const std::filesystem::path& rFile, const std::filesystem::path& rFileFilter, const std::string& rName );
+	std::vector< std::filesystem::path > FindSourceFolders( void );
 
 //////////////////////////////////////////////////////////////////////////
 
