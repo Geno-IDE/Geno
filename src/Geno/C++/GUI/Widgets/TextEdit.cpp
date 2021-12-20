@@ -192,7 +192,6 @@ void TextEdit::Show( bool* pOpen )
 
 	if( m_Files.size() )
 	{
-
 		for( auto& rFile : m_Files )
 		{
 			if( rFile.Path.string() == m_ActiveFilePath )
@@ -209,8 +208,8 @@ void TextEdit::Show( bool* pOpen )
 		}
 	}
 	else
-		StatusBar::Instance().SetCurrentFileInfo( 0, 0, 0, 0 );
-
+		StatusBar::Instance().ClearCurrentFileInfo();
+	
 	ImGui::End();
 	ImGui::PopStyleColor();
 

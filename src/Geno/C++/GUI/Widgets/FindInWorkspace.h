@@ -24,12 +24,14 @@
 
 #include <imgui.h>
 
+class Workspace;
+
 class FindInWorkspace
 {
 public:
 
-	 FindInWorkspace( void );
-	~FindInWorkspace( void );
+	 FindInWorkspace( void ) { }
+	~FindInWorkspace( void ) { }
 
 	//////////////////////////////////////////////////////////////////////////
 
@@ -43,5 +45,7 @@ private:
 
 	std::string m_WorkspacePath = "";
 	ImGuiTextFilter m_TextFilter;
+
+	Workspace* m_pWorkspace;
 
 }; // FindInWorkspace
