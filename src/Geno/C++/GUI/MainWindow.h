@@ -52,7 +52,8 @@ class MainWindow
 
 public:
 
-	using ModalVector = std::vector< IModal* >;
+	using ModalVector      = std::vector< IModal* >;
+	using WorkspaceVector = std::vector< std::filesystem::path >;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -70,6 +71,7 @@ public:
 	void    DragOver            ( int X, int Y );
 	void    DragLeave           ( void );
 	void    DragDrop            ( const Drop& rDrop, int X, int Y );
+	void    AddRecentWorkspace  ( char Path );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -88,6 +90,10 @@ public:
 	TextEdit*          pTextEdit          = nullptr;
 	OutputWindow*      pOutputWindow      = nullptr;
 	FindInWorkspace*   pFindInWorkspace   = nullptr;
+
+//////////////////////////////////////////////////////////////////////////
+
+	WorkspaceVector       m_RecentWorkspace    = { };
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -398,6 +398,13 @@ void MainWindow::DragDrop( const Drop& rDrop, int X, int Y )
 
 //////////////////////////////////////////////////////////////////////////
 
+void MainWindow::AddRecentWorkspace( char Path )
+{
+	m_RecentWorkspace.push_back( ( char* )&Path );
+} // AddRecentWorkspace
+
+//////////////////////////////////////////////////////////////////////////
+
 void MainWindow::GLFWErrorCB( int Error, const char* pDescription )
 {
 	std::cerr << "GLFW Error: (" << Error << ") " << pDescription << "\n";
@@ -427,13 +434,24 @@ void* MainWindow::ImGuiSettingsReadOpenCB( ImGuiContext* /*pContext*/, ImGuiSett
 
 void MainWindow::ImGuiSettingsReadLineCB( ImGuiContext* /*pContext*/, ImGuiSettingsHandler* pHandler, void* pEntry, const char* pLine )
 {
-	MainWindow* pSelf = ( MainWindow* )pHandler->UserData;
-	const char* pName = ( const char* )pEntry;
-	int         Bool;
+	MainWindow*           pSelf = ( MainWindow* )pHandler->UserData;
+	const char*           pName = ( const char* )pEntry;
+	int                   Bool;
+	char                  Path[ 1024 ];
 
 	if(      strcmp( pName, "Text Edit" ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pTitleBar->ShowTextEdit          = Bool; }
 	else if( strcmp( pName, "Workspace" ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pTitleBar->ShowWorkspaceOutliner = Bool; }
 	else if( strcmp( pName, "Output"    ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pTitleBar->ShowOutputWindow      = Bool; }
+
+	// Recent Workspaces
+
+	if( strcmp( pName, pLine ) )
+	{
+	#undef sscanf
+		int TotalRead = sscanf( pLine, "Path=%s", Path, static_cast<int>( sizeof( pLine ) ) );
+		if( TotalRead == 1 )
+			pSelf->AddRecentWorkspace( *Path );
+	}
 
 } // ImGuiSettingsReadLineCB
 
@@ -449,6 +467,18 @@ void MainWindow::ImGuiSettingsWriteAllCB( ImGuiContext* pContext, ImGuiSettingsH
 			pOutBuffer->appendf( "Active=%d\n", pWindow->Active );
 			pOutBuffer->append( "\n" );
 		}
+	}
+
+	for( size_t I = MainWindow::Instance().m_RecentWorkspace.size() - 1; I >= 0; I-- )
+	{
+		auto& workspacePath = MainWindow::Instance().m_RecentWorkspace[ I ];
+
+		pOutBuffer->appendf( "[%s][%s]\n", pHandler->TypeName, "Recent Workspaces" );
+		pOutBuffer->appendf( "Path=%s\n", MainWindow::Instance().m_RecentWorkspace[ I ].string().c_str() );
+		pOutBuffer->append( "\n" );
+
+		if( I == 0 )
+			break;
 	}
 
 } // ImGuiSettingsWriteAllCB
