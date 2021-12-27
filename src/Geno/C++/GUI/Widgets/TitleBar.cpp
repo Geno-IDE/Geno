@@ -338,6 +338,8 @@ void TitleBar::ActionFileOpenWorkspace( void )
 {
 	OpenFileModal::Instance().Show( "Open Workspace", "*.gwks", []( const std::filesystem::path& rFile )
 	{
+		MainWindow::Instance().m_RecentWorkspace.emplace_back( rFile );
+
 		Application::Instance().LoadWorkspace( rFile );
 	} );
 
