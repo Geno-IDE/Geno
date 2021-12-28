@@ -56,13 +56,14 @@ public:
 
 private:
 
-	void ActionFileNewWorkspace    ( void );
-	void ActionExtShowGenoDiscord  ( void );
-	void ActionFileOpenWorkspace   ( void );
-	void ActionFileCloseWorkspace  ( void );
-	void ActionBuildBuildAndRun    ( void );
-	void ActionBuildBuild          ( void );
-	void AddBuildMatrixColumn      ( BuildMatrix::Column& rColumn );
+	void ActionFileNewWorkspace       ( void );
+	void ActionExtShowGenoDiscord     ( void );
+	void ActionFileOpenWorkspace      ( void );
+	void ActionFileOpenRecentWorkspace( std::filesystem::path Path );
+	void ActionFileCloseWorkspace     ( void );
+	void ActionBuildBuildAndRun       ( void );
+	void ActionBuildBuild             ( void );
+	void AddBuildMatrixColumn         ( BuildMatrix::Column& rColumn );
 
 //////////////////////////////////////////////////////////////////////////
 

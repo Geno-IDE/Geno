@@ -83,8 +83,28 @@ void TitleBar::Draw( void )
 
 		if( ImGui::BeginMenu( "File" ) )
 		{
+			if( ImGui::BeginMenu( "Open" ) )
+			{
+				if( ImGui::MenuItem( "Open Workspace", "Ctrl+O", false, true ) ) ActionFileOpenWorkspace();
+
+				if( ImGui::BeginMenu( "Open Recent" ) )
+				{
+					for( int i = 0; i < static_cast< int >( MainWindow::Instance().GetRecentWorkspaces().size() ); i++ )
+					{
+						auto& rPath = MainWindow::Instance().GetRecentWorkspaces()[ i ];
+
+						std::string Shortcut = "Ctrl+Shift+" + std::to_string( i );
+
+						if( ImGui::MenuItem( rPath.string().c_str(), Shortcut.c_str(), false, true ) ) ActionFileOpenRecentWorkspace( rPath );
+					}
+
+					ImGui::EndMenu();
+				}
+
+				ImGui::EndMenu();
+			}
+
 			if( ImGui::MenuItem( "New Workspace", "Ctrl+N", false, true ) ) ActionFileNewWorkspace();
-			if( ImGui::MenuItem( "Open Workspace", "Ctrl+O", false, true ) ) ActionFileOpenWorkspace();
 			if( ImGui::MenuItem( "Close Workspace", "Ctrl+W", false, WorkspaceActive ) ) ActionFileCloseWorkspace();
 
 			ImGui::Separator();
@@ -338,12 +358,35 @@ void TitleBar::ActionFileOpenWorkspace( void )
 {
 	OpenFileModal::Instance().Show( "Open Workspace", "*.gwks", []( const std::filesystem::path& rFile )
 	{
-		MainWindow::Instance().m_RecentWorkspace.emplace_back( rFile );
+		MainWindow::Instance().GetRecentWorkspaces().insert( MainWindow::Instance().GetRecentWorkspaces().begin(), rFile );
 
 		Application::Instance().LoadWorkspace( rFile );
 	} );
 
 } // ActionFileOpenWorkspace
+
+//////////////////////////////////////////////////////////////////////////
+
+void TitleBar::ActionFileOpenRecentWorkspace( std::filesystem::path Path )
+{
+	Application::Instance().CloseWorkspace();
+	Application::Instance().LoadWorkspace( Path );
+
+	// Find the same value and put that remove and then put it at the front of the vector.
+	if( std::find( MainWindow::Instance().GetRecentWorkspaces().begin(), MainWindow::Instance().GetRecentWorkspaces().end(), Path ) != MainWindow::Instance().GetRecentWorkspaces().end() )
+	{
+		for( auto it = MainWindow::Instance().GetRecentWorkspaces().begin(); it != MainWindow::Instance().GetRecentWorkspaces().end(); )
+		{
+			if( *it == Path )
+				it = MainWindow::Instance().GetRecentWorkspaces().erase( it );
+			else
+				++it;
+		}
+	}
+
+	MainWindow::Instance().GetRecentWorkspaces().insert( MainWindow::Instance().GetRecentWorkspaces().begin(), Path );
+
+} // ActionFileOpenRecentWorkspace
 
 //////////////////////////////////////////////////////////////////////////
 
