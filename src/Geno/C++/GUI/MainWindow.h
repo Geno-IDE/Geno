@@ -71,7 +71,7 @@ public:
 	void    DragOver            ( int X, int Y );
 	void    DragLeave           ( void );
 	void    DragDrop            ( const Drop& rDrop, int X, int Y );
-	void    AddRecentWorkspace  ( char Path );
+	void    AddRecentWorkspace  ( char* pPath );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -93,7 +93,9 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	WorkspaceVector       m_RecentWorkspace    = { };
+	WorkspaceVector&      GetRecentWorkspaces()     { return m_RecentWorkspaces; }
+	std::filesystem::path GetMostRecentWorkspace()  { return ""; }
+
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -116,6 +118,7 @@ private:
 	bool b_Rendering = false;
 
 	ModalVector           m_Modals             = { };
+	WorkspaceVector       m_RecentWorkspaces   = { };
 
 	std::filesystem::path m_IniPath            = { };
 

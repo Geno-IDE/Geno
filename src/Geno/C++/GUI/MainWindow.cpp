@@ -398,9 +398,9 @@ void MainWindow::DragDrop( const Drop& rDrop, int X, int Y )
 
 //////////////////////////////////////////////////////////////////////////
 
-void MainWindow::AddRecentWorkspace( char Path )
+void MainWindow::AddRecentWorkspace( char* pPath )
 {
-	m_RecentWorkspace.push_back( ( char* )&Path );
+	m_RecentWorkspaces.push_back( pPath );
 } // AddRecentWorkspace
 
 //////////////////////////////////////////////////////////////////////////
@@ -448,9 +448,11 @@ void MainWindow::ImGuiSettingsReadLineCB( ImGuiContext* /*pContext*/, ImGuiSetti
 	if( strcmp( pName, pLine ) )
 	{
 	#undef sscanf
-		int TotalRead = sscanf( pLine, "Path=%s", Path, static_cast<int>( sizeof( pLine ) ) );
+		int TotalRead = sscanf( pLine, "Path=%s", Path/*, static_cast<int>( sizeof( pLine ) ) */ );
 		if( TotalRead == 1 )
-			pSelf->AddRecentWorkspace( *Path );
+		{
+			pSelf->AddRecentWorkspace( Path );
+		}
 	}
 
 } // ImGuiSettingsReadLineCB
@@ -469,12 +471,12 @@ void MainWindow::ImGuiSettingsWriteAllCB( ImGuiContext* pContext, ImGuiSettingsH
 		}
 	}
 
-	for( size_t I = MainWindow::Instance().m_RecentWorkspace.size() - 1; I >= 0; I-- )
+	for( int I = static_cast< int >( MainWindow::Instance().GetRecentWorkspaces().size() ) - 1; I >= 0; I-- )
 	{
-		auto& workspacePath = MainWindow::Instance().m_RecentWorkspace[ I ];
+		auto& workspacePath = MainWindow::Instance().GetRecentWorkspaces()[ I ];
 
 		pOutBuffer->appendf( "[%s][%s]\n", pHandler->TypeName, "Recent Workspaces" );
-		pOutBuffer->appendf( "Path=%s\n", MainWindow::Instance().m_RecentWorkspace[ I ].string().c_str() );
+		pOutBuffer->appendf( "Path=%s\n", MainWindow::Instance().GetRecentWorkspaces()[ I ].string().c_str() );
 		pOutBuffer->append( "\n" );
 
 		if( I == 0 )
