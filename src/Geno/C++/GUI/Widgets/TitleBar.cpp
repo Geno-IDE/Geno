@@ -358,6 +358,13 @@ void TitleBar::ActionFileOpenWorkspace( void )
 	{
 		if( MainWindow::Instance().GetRecentWorkspaces().size() < 5 )
 			MainWindow::Instance().GetRecentWorkspaces().insert( MainWindow::Instance().GetRecentWorkspaces().begin(), rFile );
+		else
+		{
+			MainWindow::Instance().GetRecentWorkspaces().pop_back();
+
+			MainWindow::Instance().GetRecentWorkspaces().insert( MainWindow::Instance().GetRecentWorkspaces().begin(), rFile );
+		}
+
 
 		Application::Instance().LoadWorkspace( rFile );
 	} );
