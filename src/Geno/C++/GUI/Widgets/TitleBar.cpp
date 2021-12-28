@@ -93,9 +93,7 @@ void TitleBar::Draw( void )
 					{
 						auto& rPath = MainWindow::Instance().GetRecentWorkspaces()[ i ];
 
-						std::string Shortcut = "Ctrl+Shift+" + std::to_string( i );
-
-						if( ImGui::MenuItem( rPath.string().c_str(), Shortcut.c_str(), false, true ) ) ActionFileOpenRecentWorkspace( rPath );
+						if( ImGui::MenuItem( rPath.string().c_str(), "", false, true ) ) ActionFileOpenRecentWorkspace( rPath );
 					}
 
 					ImGui::EndMenu();
@@ -358,7 +356,8 @@ void TitleBar::ActionFileOpenWorkspace( void )
 {
 	OpenFileModal::Instance().Show( "Open Workspace", "*.gwks", []( const std::filesystem::path& rFile )
 	{
-		MainWindow::Instance().GetRecentWorkspaces().insert( MainWindow::Instance().GetRecentWorkspaces().begin(), rFile );
+		if( MainWindow::Instance().GetRecentWorkspaces().size() < 5 )
+			MainWindow::Instance().GetRecentWorkspaces().insert( MainWindow::Instance().GetRecentWorkspaces().begin(), rFile );
 
 		Application::Instance().LoadWorkspace( rFile );
 	} );
