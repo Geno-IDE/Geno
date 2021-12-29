@@ -444,15 +444,15 @@ void MainWindow::ImGuiSettingsReadLineCB( ImGuiContext* /*pContext*/, ImGuiSetti
 	else if( strcmp( pName, "Output"    ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pTitleBar->ShowOutputWindow      = Bool; }
 
 	// Recent Workspaces
-
-	if( strcmp( pName, pLine ) )
 	{
-	#undef sscanf
-		int TotalRead = sscanf( pLine, "Path=%s", Path/*, static_cast<int>( sizeof( pLine ) ) */ );
-		if( TotalRead == 1 )
-		{
+	#if defined ( _WIN32 )
+		int Result = sscanf( pLine, "Path=%s", Path, ( unsigned )_countof( Path ) );
+	#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
+		int Result = sscanf( pLine, "Path=%s", Path );
+	#endif // defined( __linux__ ) || defined( __APPLE__ )
+
+		if( Result == 1 )
 			pSelf->AddRecentWorkspace( Path );
-		}
 	}
 
 } // ImGuiSettingsReadLineCB
@@ -473,8 +473,6 @@ void MainWindow::ImGuiSettingsWriteAllCB( ImGuiContext* pContext, ImGuiSettingsH
 
 	for( int I = static_cast< int >( MainWindow::Instance().GetRecentWorkspaces().size() ) - 1; I >= 0; I-- )
 	{
-		auto& workspacePath = MainWindow::Instance().GetRecentWorkspaces()[ I ];
-
 		pOutBuffer->appendf( "[%s][%s]\n", pHandler->TypeName, "Recent Workspaces" );
 		pOutBuffer->appendf( "Path=%s\n", MainWindow::Instance().GetRecentWorkspaces()[ I ].string().c_str() );
 		pOutBuffer->append( "\n" );
