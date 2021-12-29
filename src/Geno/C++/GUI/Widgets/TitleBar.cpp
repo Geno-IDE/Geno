@@ -356,13 +356,14 @@ void TitleBar::ActionFileOpenWorkspace( void )
 {
 	OpenFileModal::Instance().Show( "Open Workspace", "*.gwks", []( const std::filesystem::path& rFile )
 	{
-		if( MainWindow::Instance().GetRecentWorkspaces().size() < 5 )
-			MainWindow::Instance().GetRecentWorkspaces().insert( MainWindow::Instance().GetRecentWorkspaces().begin(), rFile );
+		auto& RecentWorkspaces = MainWindow::Instance().GetRecentWorkspaces();
+
+		if( RecentWorkspaces.size() < 5 )
+			RecentWorkspaces.insert( MainWindow::Instance().GetRecentWorkspaces().begin(), rFile );
 		else
 		{
-			MainWindow::Instance().GetRecentWorkspaces().pop_back();
-
-			MainWindow::Instance().GetRecentWorkspaces().insert( MainWindow::Instance().GetRecentWorkspaces().begin(), rFile );
+			RecentWorkspaces.pop_back();
+			RecentWorkspaces.insert( MainWindow::Instance().GetRecentWorkspaces().begin(), rFile );
 		}
 
 
@@ -379,18 +380,20 @@ void TitleBar::ActionFileOpenRecentWorkspace( std::filesystem::path Path )
 	Application::Instance().LoadWorkspace( Path );
 
 	// Find the same value and put that remove and then put it at the front of the vector.
-	if( std::find( MainWindow::Instance().GetRecentWorkspaces().begin(), MainWindow::Instance().GetRecentWorkspaces().end(), Path ) != MainWindow::Instance().GetRecentWorkspaces().end() )
+	auto& RecentWorkspaces = MainWindow::Instance().GetRecentWorkspaces();
+
+	if( std::find( RecentWorkspaces.begin(), RecentWorkspaces.end(), Path ) != RecentWorkspaces.end() )
 	{
-		for( auto it = MainWindow::Instance().GetRecentWorkspaces().begin(); it != MainWindow::Instance().GetRecentWorkspaces().end(); )
+		for( auto it = RecentWorkspaces.begin(); it != RecentWorkspaces.end(); )
 		{
 			if( *it == Path )
-				it = MainWindow::Instance().GetRecentWorkspaces().erase( it );
+				it = RecentWorkspaces.erase( it );
 			else
 				++it;
 		}
 	}
 
-	MainWindow::Instance().GetRecentWorkspaces().insert( MainWindow::Instance().GetRecentWorkspaces().begin(), Path );
+	RecentWorkspaces.insert( RecentWorkspaces.begin(), Path );
 
 } // ActionFileOpenRecentWorkspace
 
