@@ -445,11 +445,7 @@ void MainWindow::ImGuiSettingsReadLineCB( ImGuiContext* /*pContext*/, ImGuiSetti
 
 	// Recent Workspaces
 	{
-	#if defined ( _WIN32 )
-		int Result = sscanf( pLine, "Path=%s", Path, ( unsigned )_countof( Path ) );
-	#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
-		int Result = sscanf( pLine, "Path=%s", Path );
-	#endif // defined( __linux__ ) || defined( __APPLE__ )
+		int Result = sscanf( pLine, "Path=%s", Path, ( unsigned )sizeof( Path ) );
 
 		if( Result == 1 )
 			pSelf->AddRecentWorkspace( Path );
