@@ -30,7 +30,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-void FileFilterSettingsModal::Show( std::string Project, std::filesystem::path FileFilter )
+void FileFilterSettingsModal::Show( std::string Project, std::string FileFilter )
 {
 	if( Open() )
 	{
@@ -50,18 +50,17 @@ void FileFilterSettingsModal::UpdateDerived( void )
 		return;
 	}
 
-	Project* pProject = pWorkspace->ProjectByName( m_EditedProject );
+	INode* pProject = pWorkspace->ChildByName( m_EditedProject );
 	if( !pProject )
 	{
 		ImGui::Text( "No project found by the name '%s'", m_EditedProject.c_str() );
 		return;
 	}
 
-	FileFilter* pFileFilter = pProject->FileFilterByName( m_EditedFileFilter );
+	INode* pFileFilter = pProject->ChildByName( m_EditedFileFilter );
 	if( !pFileFilter )
 	{
-		std::string EditedFileFilterString = m_EditedFileFilter.string();
-		ImGui::Text( "No file filter found by the name '%s'", EditedFileFilterString.c_str() );
+		ImGui::Text( "No file filter found by the name '%s'", m_EditedFileFilter.c_str() );
 		return;
 	}
 
@@ -79,14 +78,14 @@ void FileFilterSettingsModal::UpdateDerived( void )
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted( "Path" );
 				ImGui::TableNextColumn();
-				std::filesystem::path FileFilterPath = std::filesystem::canonical(pProject->m_Location / pFileFilter->Path);
-				std::string FileFilterPathString = FileFilterPath.string();
+				std::filesystem::path FileFilterPath       = std::filesystem::canonical( pProject->m_Location );
+				std::string           FileFilterPathString = FileFilterPath.string();
 				ImGui::SetNextItemWidth( -FLT_MIN );
 				ImGui::InputText( "##PATH", &FileFilterPathString );
 				ImGui::TableNextColumn();
 				if( ImGui::Button( "Browse" ) )
 				{
-					OpenFileModal::Instance().SetCurrentDirectory( FileFilterPath );
+					OpenFileModal::Instance().SetCurrentDirectory( pProject->m_Location );
 					OpenFileModal::Instance().Show( [ this ]( const std::filesystem::path& rPath )
 						{
 							Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
@@ -95,24 +94,27 @@ void FileFilterSettingsModal::UpdateDerived( void )
 								return;
 							}
 
-							Project* pProject = pWorkspace->ProjectByName( m_EditedProject );
+							INode* pProject = pWorkspace->ChildByName( m_EditedProject );
 							if( !pProject )
 							{
 								return;
 							}
 
-							FileFilter* pFileFilter = pProject->FileFilterByName( m_EditedFileFilter );
+							INode* pFileFilter = pProject->ChildByName( m_EditedFileFilter );
 							if( !pFileFilter )
 							{
 								return;
 							}
 
-							pFileFilter->Path = std::filesystem::relative( rPath, pProject->m_Location );
+							std::filesystem::path P = rPath;
+							P                       = std::filesystem::path( "" );
+
+							//pFileFilter->Path = std::filesystem::relative( rPath, pProject->m_Location );
 						} );
 				}
 				else
 				{
-					pFileFilter->Path = std::filesystem::relative( FileFilterPathString, pProject->m_Location );
+					//pFileFilter->Path = std::filesystem::relative( FileFilterPathString, pProject->m_Location );
 				}
 				ImGui::EndTable();
 			}
@@ -124,7 +126,7 @@ void FileFilterSettingsModal::UpdateDerived( void )
 	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + 4 );
 	if( ImGui::Button( "Save & Close", ImVec2(100, 0) ) )
 	{
-		pProject->Serialize();
+		//pProject->Serialize();
 		Close();
 	}
 } // UpdateDerived

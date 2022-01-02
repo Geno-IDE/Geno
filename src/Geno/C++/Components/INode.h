@@ -17,51 +17,68 @@
 
 #pragma once
 
-#include "Auxiliary/jsonSerializer.h"
-#include "WidgetCommands/CommandStack.h"
-
 #include <filesystem>
-#include <functional>
-#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
-class IWidget
+//////////////////////////////////////////////////////////////////////////
+
+enum class NodeKind
+{
+	Workspace,
+	Project,
+	FileFilter,
+	File,
+	None
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class INode;
+class ICompiler;
+
+//////////////////////////////////////////////////////////////////////////
+
+// Pair.first = Index of Removed Node in m_pChildren
+// Pair.second = Removed Node to be added back at the index in m_pChildren
+inline std::vector< std::pair< uint32_t, INode* > > RemovedNodes;
+
+void DeleteRemovedNodes( void );
+void AddRemovedNode( INode*& pParentNode, const std::string& rName );
+
+//////////////////////////////////////////////////////////////////////////
+
+class INode
 {
 public:
 
-	IWidget( const std::filesystem::path& rJsonFile );
-	virtual ~IWidget( void ) = default;
+	INode( std::filesystem::path Location, std::string Name, NodeKind Kind );
+	virtual ~INode();
 
 //////////////////////////////////////////////////////////////////////////
 
-	using KeyCombination = std::vector< int >;
-
-	std::map< KeyCombination, std::string > m_KeyBindings = {};
+	virtual void Rename( std::string Name ) = 0;
 
 //////////////////////////////////////////////////////////////////////////
 
-protected:
+	INode* ChildByName( const std::string& rName );
+	void   SortChildren( void );
+	void   AddChild( INode* pChild );
+	void   RemoveChild( const std::string& rName );
 
-	void Observe();
-
-	void WriteKeyBindings( jsonSerializer& rSerializer );
-	void ReadKeyBindings( const rapidjson::Value::ConstMemberIterator& rIt );
-
-//////////////////////////////////////////////////////////////////////////
-
-	virtual void WriteSettings( jsonSerializer& rSerializer )                     = 0;
-	virtual void ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt ) = 0;
+	bool operator==( INode*& rNode );
 
 //////////////////////////////////////////////////////////////////////////
 
-	CommandStack m_UndoCommandStack = {};
-	CommandStack m_RedoCommandStack = {};
+	NodeKind m_Kind = NodeKind::None;
 
-	using Action = std::function< void( void ) >;
+	std::string           m_Name;
+	std::filesystem::path m_Location;
 
-	std::map< std::string, Action > m_Actions = {};
+	INode*                m_pParent   = nullptr;
+	std::vector< INode* > m_pChildren = {};
 
-	std::filesystem::path m_JsonFile = {};
+	bool m_ExpandNode = false; // Only To Be Used In WorkspaceOutliner.cpp
 
-}; // IWidget
+}; // INode

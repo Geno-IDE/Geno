@@ -18,6 +18,7 @@
 #pragma once
 #include "Common/Macros.h"
 #include "Common/Texture2D.h"
+#include "Components/INode.h"
 
 #include "IWidget.h"
 
@@ -46,17 +47,16 @@ private:
 
 private:
 
-	Texture2D             m_IconTextureWorkspace    = { };
-	Texture2D             m_IconTextureProject      = { };
-	Texture2D             m_IconTextureFileFilter   = { };
-	Texture2D             m_IconTextureSourceFile   = { };
+	Texture2D m_IconTextureWorkspace  = {};
+	Texture2D m_IconTextureProject    = {};
+	Texture2D m_IconTextureFileFilter = {};
+	Texture2D m_IconTextureSourceFile = {};
 
-	std::filesystem::path m_SelectedFile            = { };
-	std::filesystem::path m_SelectedFileFilterName  = { };
-	std::string           m_RenameText              = { };
-	std::string           m_SelectedProjectName     = { };
-	std::string           m_ProjectNodeToBeExpanded = { };
+	std::string m_RenameText = {};
 
-	bool                  m_ExpandWorkspaceNode     = false;
+	INode* m_pSelectedNode = nullptr;
+
+	bool m_RenameNode          = false;
+	bool m_ShowNodeContextMenu = false;
 
 }; // WorkspaceWidget

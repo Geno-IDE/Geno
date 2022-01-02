@@ -19,9 +19,11 @@
 
 #include <filesystem>
 #include <functional>
-#include <rapidjson/prettywriter.h>
 #include <string>
 #include <vector>
+
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
 
 class jsonSerializer
 {
@@ -113,6 +115,17 @@ public:
 		m_Writer->EndArray();
 
 	} // Add<std::vector<unsigned int>>
+
+	template<>
+	void Add( const std::string& rName, const std::vector< std::string >& rArray )
+	{
+		m_Writer->String( rName.c_str() );
+		m_Writer->StartArray();
+		for( const std::string& rValue : rArray )
+			m_Writer->String( rValue.c_str() );
+		m_Writer->EndArray();
+
+	} // Add<std::vector<std::string>>
 
 	void Null( const std::string& rName );
 

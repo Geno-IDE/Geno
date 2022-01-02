@@ -18,7 +18,6 @@
 #pragma once
 #include "Components/Workspace.h"
 
-#include <optional>
 #include <vector>
 
 #include <Common/Macros.h>
@@ -54,7 +53,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::optional< Workspace > m_CurrentWorkspace;
+	Workspace*                 m_CurrentWorkspace = nullptr;
 	std::filesystem::path      m_ExePath;
 	std::filesystem::path      m_AppDir;
 	std::filesystem::path      m_DataDir;

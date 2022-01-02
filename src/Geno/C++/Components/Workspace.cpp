@@ -21,16 +21,19 @@
 #include "Compilers/CompilerMSVC.h"
 #include "GUI/Widgets/StatusBar.h"
 
+#include "Auxiliary/jsonSerializer.h"
+
+#include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include <GCL/Deserializer.h>
 #include <GCL/Serializer.h>
 
 //////////////////////////////////////////////////////////////////////////
 
-Workspace::Workspace( std::filesystem::path Location )
-	: m_Location( std::move( Location ) )
-	, m_Name    ( "MyWorkspace" )
+Workspace::Workspace( std::string Name, std::filesystem::path Location )
+	: INode( std::move( Location ), std::move( Name ), NodeKind::Workspace )
 {
 } // Workspace
 
@@ -38,13 +41,13 @@ Workspace::Workspace( std::filesystem::path Location )
 
 void Workspace::Build( void )
 {
-	if( !m_Projects.empty() )
+	if( !m_pChildren.empty() )
 	{
 		m_ProjectsLeftToBuild.clear();
 
 		// Keep track of which projects need to be built.
-		for( Project& prj : m_Projects )
-			m_ProjectsLeftToBuild.push_back( prj.m_Name );
+		for( INode*& prj : m_pChildren )
+			m_ProjectsLeftToBuild.push_back( prj->m_Name );
 
 		BuildNextProject();
 	}
@@ -58,44 +61,46 @@ bool Workspace::Serialize( void )
 	if( m_Location.empty() )
 		return false;
 
-	GCL::Serializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
-	if( !Serializer.IsOpen() )
-		return false;
-
-	// Name string
-	{
-		GCL::Object Name( "Name" );
-		Name.SetString( m_Name );
-
-		Serializer.WriteObject( Name );
-	}
+	jsonSerializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
 
 	// Matrix table
 	{
-		GCL::Object Matrix( "Matrix", std::in_place_type< GCL::Object::TableType > );
+		Serializer.Object( "Matrix", [ this, &Serializer ]( void )
+			{
+				for( const BuildMatrix::Column& rColumn : m_BuildMatrix.m_Columns )
+				{
+					Serializer.Object( rColumn.Name, [ & ]( void ) {
 
-		for( const BuildMatrix::Column& column : m_BuildMatrix.m_Columns )
-		{
-			SerializeBuildMatrixColumn( Matrix, column );
-		}
+						for( const auto& rConfiguration : rColumn.Configurations )
+							{
+								Serializer.Object( rConfiguration.first, [ & ]( void )
+									{
+										if(rConfiguration.second.m_Compiler || rConfiguration.second.m_Optimization)
+										{
+											if( rConfiguration.second.m_Compiler)
+											{
+												Serializer.Add( "Compiler", std::string( rConfiguration.second.m_Compiler->GetName() ) );
+											}
+										}
 
-		Serializer.WriteObject( Matrix );
+									} );
+							}
+
+					} );
+				}
+			} );
 	}
 
-	// Projects array
+	// Projects Array
 	{
-		GCL::Object Projects( "Projects", std::in_place_type< GCL::Object::TableType > );
-
-		for( Project& rProject : m_Projects )
+		std::vector< std::string > Projects;
+		for( INode*& rNode : m_pChildren )
 		{
-			std::filesystem::path relative_project_path = rProject.m_Location.lexically_relative( m_Location ) / rProject.m_Name;
-
-			Projects.AddChild( GCL::Object( relative_project_path.string() ) );
-
-			rProject.Serialize();
+			Project* rProject = ( Project* )rNode;
+			Projects.push_back( ( m_Location.lexically_relative( rNode->m_Location ) / rNode->m_Name ).string() );
+			rProject->Serialize();
 		}
-
-		Serializer.WriteObject( Projects );
+		Serializer.Add( "Projects", std::move( Projects ) );
 	}
 
 	return true;
@@ -109,11 +114,38 @@ bool Workspace::Deserialize( void )
 	if( m_Location.empty() )
 		return false;
 
-	GCL::Deserializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
-	if( !Serializer.IsOpen() )
-		return false;
+	rapidjson::Document Doc;
 
-	Serializer.Objects( this, GCLObjectCallback );
+	std::ifstream     gwks( ( m_Location / m_Name ).replace_extension( EXTENSION ), std::ios::in );
+	std::stringstream Content;
+	Content << gwks.rdbuf();
+	gwks.close();
+	Doc.Parse( Content.str().c_str() );
+
+	for( auto It = Doc.MemberBegin(); It < Doc.MemberEnd(); ++It )
+	{
+		const std::string MemberName = It->name.GetString();
+
+		if( MemberName == "Matrix" )
+		{
+			//TODO
+		}
+		else if( MemberName == "Projects" )
+		{
+			const auto Array = It->value.GetArray();
+			for( auto i = Array.Begin(); i < Array.End(); ++i )
+			{
+				std::filesystem::path ProjectPath = i->GetString();
+
+				if( !ProjectPath.is_absolute() )
+					ProjectPath = m_Location / ProjectPath;
+
+				ProjectPath = ProjectPath.lexically_normal();
+
+				AddProject( std::move( ProjectPath ) );
+			}
+		}
+	}
 
 	return true;
 
@@ -138,86 +170,31 @@ void Workspace::Rename( std::string Name )
 
 //////////////////////////////////////////////////////////////////////////
 
-Project& Workspace::NewProject( std::filesystem::path Location, std::string Name )
+Project* Workspace::NewProject( std::filesystem::path Location, std::string Name )
 {
-	Project& project = m_Projects.emplace_back( std::move( Location ) );
-	project.m_Name   = std::move( Name );
+	Project* pProject = new Project( std::move( Location ), std::move( Name ) );
+	AddChild( pProject );
 
-	return project;
+	return pProject;
 
 } // NewProject
 
 //////////////////////////////////////////////////////////////////////////
 
-Project* Workspace::ProjectByName( std::string_view Name )
-{
-	for( Project& rProject : m_Projects )
-	{
-		if( rProject.m_Name == Name )
-			return &rProject;
-	}
-
-	return nullptr;
-
-} // ProjectByName
-
-//////////////////////////////////////////////////////////////////////////
-
 bool Workspace::AddProject( const std::filesystem::path& rPath )
 {
-	Project* pProject = ProjectByName( rPath.stem().string() );
-	if( !pProject )
+	if( !ChildByName( rPath.stem().string() ) )
 	{
 		std::filesystem::path ProjectPath = rPath;
 		ProjectPath                       = ProjectPath.lexically_normal();
 
-		Project& rProject = NewProject( ProjectPath.parent_path(), ProjectPath.stem().string() );
-		if( rProject.Deserialize() )
+		Project* pProject = NewProject( ProjectPath.parent_path(), ProjectPath.stem().string() );
+		if (pProject->Deserialize())
 			return true;
 	}
 	return false;
 
 } // AddProject
-
-//////////////////////////////////////////////////////////////////////////
-
-void Workspace::RemoveProject( const std::string& rName )
-{
-	if( ProjectByName( rName ) )
-	{
-		for( auto It = m_Projects.begin(); It != m_Projects.end(); ++It )
-		{
-			if( It->m_Name == rName )
-			{
-				m_Projects.erase( It );
-				Serialize();
-				break;
-			}
-		}
-	}
-
-} // RemoveProject
-
-//////////////////////////////////////////////////////////////////////////
-
-void Workspace::RenameProject( const std::string& rProjectName, std::string Name )
-{
-	if( Project* pProject = ProjectByName( rProjectName ) )
-	{
-		const std::filesystem::path OldPath = ( pProject->m_Location / pProject->m_Name ).replace_extension( Project::EXTENSION );
-
-		if( std::filesystem::exists( OldPath ) )
-		{
-			const std::filesystem::path NewPath = ( pProject->m_Location / Name ).replace_extension( Project::EXTENSION );
-			std::filesystem::rename( OldPath, NewPath );
-		}
-
-		pProject->m_Name = std::move( Name );
-		pProject->Serialize();
-		Serialize();
-	}
-
-} // RenameProject
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -253,8 +230,8 @@ void Workspace::GCLObjectCallback( GCL::Object pObject, void* pUser )
 
 			ProjectPath = ProjectPath.lexically_normal();
 
-			Project& rProject = pSelf->NewProject( ProjectPath.parent_path(), ProjectPath.filename().string() );
-			rProject.Deserialize();
+			Project* pProject = pSelf->NewProject( ProjectPath.parent_path(), ProjectPath.filename().string() );
+			pProject->Deserialize();
 		}
 	}
 
@@ -268,7 +245,10 @@ void Workspace::BuildNextProject( void )
 		return;
 
 	// Find the next project to build
-	auto ProjectIt = std::find_if( m_Projects.begin(), m_Projects.end(), [ this ]( ::Project& rProject ) { return ( rProject.m_Name == m_ProjectsLeftToBuild.back() ); } );
+	/*
+	*
+	* auto ProjectIt = std::find_if( m_pChildren.begin(), m_pChildren.end(), [ this ]( ::Project& rProject )
+		{ return ( rProject.m_Name == m_ProjectsLeftToBuild.back() ); } );
 	if( ProjectIt == m_Projects.end() )
 	{
 		// If next project was not found, remove it from the queue and try again
@@ -320,6 +300,8 @@ void Workspace::BuildNextProject( void )
 			BuildNextProject();
 		}
 	}
+	* 
+	*/
 
 } // BuildNextProject
 

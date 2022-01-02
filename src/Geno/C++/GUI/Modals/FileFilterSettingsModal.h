@@ -32,7 +32,7 @@ class FileFilterSettingsModal : public IModal
 //////////////////////////////////////////////////////////////////////////
 
 public:
-	void Show( std::string Project, std::filesystem::path FileFilter );
+	void Show( std::string Project, std::string FileFilter );
 
 	//////////////////////////////////////////////////////////////////////////
 
@@ -45,5 +45,5 @@ private:
 	//////////////////////////////////////////////////////////////////////////
 
 	std::string           m_EditedProject;
-	std::filesystem::path m_EditedFileFilter;
+	std::string m_EditedFileFilter;
 };
