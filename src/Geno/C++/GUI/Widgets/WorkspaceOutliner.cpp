@@ -29,8 +29,8 @@
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Modals/ProjectSettingsModal.h"
-#include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/TitleBar.h"
+#include "GUI/Widgets/TextEdit.h"
 #include "WidgetCommands/OutlinerCommands.h"
 
 #include <fstream>

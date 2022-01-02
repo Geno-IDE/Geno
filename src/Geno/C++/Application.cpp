@@ -98,6 +98,9 @@ void Application::CloseWorkspace( void )
 	if( m_CurrentWorkspace )
 		m_CurrentWorkspace->Serialize();
 
+	// Free All Removed Nodes Memory
+	DeleteRemovedNodes();
+
 	delete m_CurrentWorkspace;
 	m_CurrentWorkspace = nullptr;
 

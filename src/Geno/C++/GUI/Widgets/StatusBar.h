@@ -52,8 +52,6 @@ public:
 
 	}; // Color
 
-	static constexpr float HEIGHT = 24.f;
-
 //////////////////////////////////////////////////////////////////////////
 
 	StatusBar( void ) = default;
@@ -62,12 +60,17 @@ public:
 
 public:
 
-	void Show               ( void );
-	void SetColor           ( int R, int G, int B );
-	void SetColor           ( Color color );
-	void SetText            ( std::string Text );
-	void SetCurrentFileInfo ( int Column, int Row, int Length, int Lines );
-	void SetSearchResultInfo( std::string SearchTerm, int Results );
+	void Show                ( void );
+	void SetColor            ( int R, int G, int B );
+	void SetColor            ( Color color );
+	void SetText             ( std::string Text );
+	void SetCurrentFileInfo  ( int Column, int Row, int Length, int Lines );
+	void SetSearchResultInfo ( std::string SearchTerm, int Results );
+	void ClearCurrentFileInfo( void );
+
+//////////////////////////////////////////////////////////////////////////
+
+	static float GetHeight( void );
 
 //////////////////////////////////////////////////////////////////////////
 

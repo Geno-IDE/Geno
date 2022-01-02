@@ -190,21 +190,26 @@ void TextEdit::Show( bool* pOpen )
 		}
 	}
 
-	for( auto& rFile : m_Files )
+	if( m_Files.size() )
 	{
-		if( rFile.Path.string() == m_ActiveFilePath )
+		for( auto& rFile : m_Files )
 		{
-			if( rFile.Cursors.size() )
+			if( rFile.Path.string() == m_ActiveFilePath )
 			{
-				auto& rCursor = rFile.Cursors.at( 0 );
-				int   Length = static_cast< int >( rFile.Text.size() );
-				int   Lines  = static_cast< int >( rFile.Lines.size() );
+				if( rFile.Cursors.size() )
+				{
+					auto& rCursor = rFile.Cursors.at( 0 );
+					int   Length = static_cast< int >( rFile.Text.size() );
+					int   Lines  = static_cast< int >( rFile.Lines.size() );
 
-				StatusBar::Instance().SetCurrentFileInfo( rCursor.Position.x + 1, rCursor.Position.y + 1, Length, Lines );
+					StatusBar::Instance().SetCurrentFileInfo( rCursor.Position.x + 1, rCursor.Position.y + 1, Length, Lines );
+				}
 			}
 		}
 	}
-
+	else
+		StatusBar::Instance().ClearCurrentFileInfo();
+	
 	ImGui::End();
 	ImGui::PopStyleColor();
 

@@ -395,6 +395,60 @@ void Project::Rename( std::string Name )
 
 //////////////////////////////////////////////////////////////////////////
 
+static void FindSourceFoldersInChildren( INode*& rNode, std::vector< std::filesystem::path >& rSourcePaths )
+{
+	if( !rNode ) { return; }
+
+	for (INode*& rChildNode : rNode->m_pChildren)
+	{
+		if (rChildNode->m_Kind == NodeKind::FileFilter)
+		{
+			FindSourceFoldersInChildren( rChildNode, rSourcePaths );
+		}
+		else if(rChildNode->m_Kind == NodeKind::File)
+		{
+			// Path already found.
+			if( std::find( rSourcePaths.begin(), rSourcePaths.end(), rChildNode->m_Location ) != rSourcePaths.end() )
+				break;
+
+			auto Extension = ( rChildNode->m_Location / rChildNode->m_Name ).extension();
+
+			// #TODO: We really need a function that does this.
+			if(
+				Extension == ".cc"
+				|| Extension == ".cpp"
+				|| Extension == ".cxx"
+				|| Extension == ".c++"
+				|| Extension == ".h"
+				|| Extension == ".hh"
+				|| Extension == ".hpp"
+				|| Extension == ".hxx"
+				|| Extension == ".h++" )
+			{
+				rSourcePaths.push_back( rChildNode->m_Location );
+			}
+		}
+	}
+} // FindSourceFoldersInChildren
+
+//////////////////////////////////////////////////////////////////////////
+
+std::vector< std::filesystem::path > Project::FindSourceFolders( void )
+{
+	// Walk through all files and get the parent path. And check if that path does not exist already.
+	std::vector<std::filesystem::path> SourcePaths;
+
+	for(INode*& rNode : m_pChildren)
+	{
+		FindSourceFoldersInChildren( rNode, SourcePaths );
+	}
+
+	return SourcePaths;
+
+} // FindSourceFolders
+
+//////////////////////////////////////////////////////////////////////////
+
 void Project::BuildNextFile( ICompiler& rCompiler )
 {
 	if( m_FilesLeftToBuild.empty() )

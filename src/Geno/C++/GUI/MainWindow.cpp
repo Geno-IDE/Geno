@@ -27,6 +27,7 @@
 #include "GUI/Widgets/TextEdit.h"
 #include "GUI/Widgets/WorkspaceOutliner.h"
 #include "GUI/Widgets/StatusBar.h"
+#include "GUI/Widgets/FindInWorkspace.h"
 #include "GUI/Styles.h"
 
 #include <iostream>
@@ -168,6 +169,7 @@ MainWindow::MainWindow( void )
 	pWorkspaceOutliner = new WorkspaceOutliner();
 	pTextEdit          = new TextEdit();
 	pOutputWindow      = new OutputWindow();
+	pFindInWorkspace   = new FindInWorkspace();
 
 } // MainWindow
 
@@ -180,6 +182,7 @@ MainWindow::~MainWindow( void )
 	delete pTextEdit;
 	delete pWorkspaceOutliner;
 	delete pTitleBar;
+	delete pFindInWorkspace;
 
 #if defined( _WIN32 )
 
@@ -241,18 +244,19 @@ void MainWindow::Render( void )
 	ImGuiViewport* pViewport = ImGui::GetMainViewport();
 	ImGui::NewFrame();
 
-	pViewport->WorkSize.y -= StatusBar::HEIGHT;
+	pViewport->WorkSize.y -= StatusBar::GetHeight();
 
 	ImGui::DockSpaceOverViewport( pViewport );
 	ImGui::PushFont( m_pFontSans );
 
 	pTitleBar->Draw();
 
-	if( pTitleBar->ShowDemoWindow        ) ImGui::ShowDemoWindow(    &pTitleBar->ShowDemoWindow );
-	if( pTitleBar->ShowAboutWindow       ) ImGui::ShowAboutWindow(   &pTitleBar->ShowAboutWindow );
-	if( pTitleBar->ShowWorkspaceOutliner ) pWorkspaceOutliner->Show( &pTitleBar->ShowWorkspaceOutliner );
-	if( pTitleBar->ShowTextEdit          ) pTextEdit         ->Show( &pTitleBar->ShowTextEdit );
-	if( pTitleBar->ShowOutputWindow      ) pOutputWindow     ->Show( &pTitleBar->ShowOutputWindow );
+	if( pTitleBar->ShowDemoWindow                 ) ImGui::ShowDemoWindow(    &pTitleBar->ShowDemoWindow );
+	if( pTitleBar->ShowAboutWindow                ) ImGui::ShowAboutWindow(   &pTitleBar->ShowAboutWindow );
+	if( pTitleBar->ShowWorkspaceOutliner          ) pWorkspaceOutliner->Show( &pTitleBar->ShowWorkspaceOutliner );
+	if( pTitleBar->ShowTextEdit                   ) pTextEdit         ->Show( &pTitleBar->ShowTextEdit );
+	if( pTitleBar->ShowOutputWindow               ) pOutputWindow     ->Show( &pTitleBar->ShowOutputWindow );
+	if( pTitleBar->ShowFindInWorkspaceWindow      ) pFindInWorkspace  ->Show( &pTitleBar->ShowFindInWorkspaceWindow );
 
 	StatusBar::Instance().Show();
 
@@ -506,6 +510,27 @@ LRESULT MainWindow::CustomWindowProc( HWND Handle, UINT Msg, WPARAM WParam, LPAR
 
 		case WM_NCCALCSIZE:
 		{
+			// Fix maximized windows for some reason accounting for border size
+			if( WParam == TRUE )
+			{
+				WINDOWPLACEMENT WindowPlacement{ .length = sizeof( WINDOWPLACEMENT ) };
+
+				if( GetWindowPlacement( Handle, &WindowPlacement ) && WindowPlacement.showCmd == SW_SHOWMAXIMIZED )
+				{
+					NCCALCSIZE_PARAMS& rParams = *reinterpret_cast< LPNCCALCSIZE_PARAMS >( LParam );
+					const int          BorderX = GetSystemMetrics( SM_CXFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+					const int          BorderY = GetSystemMetrics( SM_CYFRAME ) + GetSystemMetrics( SM_CXPADDEDBORDER );
+
+					rParams.rgrc[ 0 ].left   += BorderX;
+					rParams.rgrc[ 0 ].top    += BorderY;
+					rParams.rgrc[ 0 ].right  -= BorderX;
+					rParams.rgrc[ 0 ].bottom -= BorderY;
+
+					// Use the rectangle specified in rgrc[0] for the new client area
+					return WVR_VALIDRECTS;
+				}
+			}
+
 			// Preserve the old client area and align it with the upper-left corner of the new client area
 			return 0;
 

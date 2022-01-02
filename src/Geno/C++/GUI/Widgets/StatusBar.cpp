@@ -89,10 +89,13 @@ void StatusBar::SetText( std::string Text )
 
 void StatusBar::SetCurrentFileInfo( int Column, int Row, int Length, int Lines )
 {
-	m_TextEditInfo = "Col :  "    + std::to_string( Column ) + "    " +
-	                 "Row :  "    + std::to_string( Row )    + "    " +
-	                 "Length :  " + std::to_string( Length ) + "    " +
-	                 "Lines :  "  + std::to_string( Lines );
+	if( Column == 0 && Row == 0 && Length == 0 && Lines == 0 )
+		m_TextEditInfo =  "";
+	else
+		m_TextEditInfo = "Col :  "   + std::to_string( Column )  + "    " +
+						"Row :  "    + std::to_string( Row )     + "    " +
+						"Length :  " + std::to_string( Length )  + "    " +
+						"Lines :  "  + std::to_string( Lines );
 
 } // SetCurrentFileInfo
 
@@ -111,14 +114,29 @@ void StatusBar::SetSearchResultInfo( std::string SearchTerm, int Results )
 
 //////////////////////////////////////////////////////////////////////////
 
+float StatusBar::GetHeight( void )
+{
+	return ImGui::GetFrameHeight();
+
+} // GetHeight
+
+void StatusBar::ClearCurrentFileInfo( void )
+{
+	m_TextEditInfo.clear();
+} // ClearCurrentFileInfo
+
+//////////////////////////////////////////////////////////////////////////
+
 void StatusBar::Show( void )
 {
+	const float Height = GetHeight();
+
 	m_Active = true;
 
 	ImGuiViewport* pViewport = ImGui::GetMainViewport();
 
-	ImGui::SetNextWindowPos( ImVec2( pViewport->Pos.x, pViewport->Pos.y + pViewport->Size.y - HEIGHT ) );
-	ImGui::SetNextWindowSize( ImVec2( pViewport->Size.x, HEIGHT ) );
+	ImGui::SetNextWindowPos( ImVec2( pViewport->Pos.x, pViewport->Pos.y + pViewport->Size.y - Height ) );
+	ImGui::SetNextWindowSize( ImVec2( pViewport->Size.x, Height ) );
 	ImGui::SetNextWindowViewport( pViewport->ID );
 
 	const ImGuiWindowFlags WindowFlags = 0

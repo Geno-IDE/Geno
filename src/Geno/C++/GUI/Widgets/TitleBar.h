@@ -44,12 +44,13 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	bool ShowTextEdit            = false;
-	bool ShowDemoWindow          = false;
-	bool ShowAboutWindow         = false;
-	bool ShowOutputWindow        = false;
-	bool ShowWorkspaceOutliner   = false;
-	bool ShowGenoDiscordSettings = false;
+	bool ShowTextEdit              = false;
+	bool ShowDemoWindow            = false;
+	bool ShowAboutWindow           = false;
+	bool ShowOutputWindow          = false;
+	bool ShowWorkspaceOutliner     = false;
+	bool ShowGenoDiscordSettings   = false;
+	bool ShowFindInWorkspaceWindow = false;
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -2,7 +2,7 @@
 require 'customizations'
 
 cdialect 'C11'
-cppdialect 'C++17'
+cppdialect 'C++20'
 exceptionhandling 'Off'
 flags { 'FatalWarnings', 'MultiProcessorCompile' }
 includedirs { '../include/' }

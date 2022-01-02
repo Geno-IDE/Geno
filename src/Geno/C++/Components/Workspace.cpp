@@ -96,6 +96,7 @@ bool Workspace::Serialize( void )
 		std::vector< std::string > Projects;
 		for( INode*& rNode : m_pChildren )
 		{
+			if( !rNode ) { continue; }
 			Project* rProject = ( Project* )rNode;
 			Projects.push_back( ( m_Location.lexically_relative( rNode->m_Location ) / rNode->m_Name ).string() );
 			rProject->Serialize();

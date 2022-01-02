@@ -87,6 +87,8 @@ public:
 
 	void Rename( std::string Name ) override;
 
+	std::vector< std::filesystem::path > FindSourceFolders( void );
+
 //////////////////////////////////////////////////////////////////////////
 
 	struct
