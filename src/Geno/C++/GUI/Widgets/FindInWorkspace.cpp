@@ -75,9 +75,10 @@ void FindInWorkspace::Show( bool* pOpen )
 
 		std::vector< std::vector< std::filesystem::path > > SrcPaths;
 
-		for( Project& rProject : m_pWorkspace->m_Projects )
+		for( INode*& rNode : m_pWorkspace->m_pChildren )
 		{
-			SrcPaths.push_back( rProject.FindSourceFolders() );
+			Project* pProject = ( Project* )rNode;
+			SrcPaths.push_back( pProject->FindSourceFolders() );
 		}
 
 		for ( auto& rProjectSrcPaths : SrcPaths )

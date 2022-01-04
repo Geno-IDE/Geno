@@ -16,48 +16,52 @@
  */
 
 #pragma once
-#include "Common/Macros.h"
-#include "Common/Texture2D.h"
-#include "Components/INode.h"
 
-#include "IWidget.h"
+#include "Auxiliary/jsonSerializer.h"
+#include "WidgetCommands/CommandStack.h"
 
 #include <filesystem>
+#include <functional>
+#include <map>
 #include <string>
+#include <vector>
 
-class WorkspaceOutliner : public IWidget
+class IWidget
 {
 public:
 
-	 WorkspaceOutliner( void );
-	~WorkspaceOutliner( void );
+	IWidget( const std::filesystem::path& rJsonFile );
+	virtual ~IWidget( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Show( bool* pOpen );
+	using KeyCombination = std::vector< int >;
+
+	std::map< KeyCombination, std::string > m_KeyBindings = {};
 
 //////////////////////////////////////////////////////////////////////////
 
-private:
+protected:
 
-	void WriteSettings( jsonSerializer& rSerializer ) override;
-	void ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt ) override;
+	void Observe();
+
+	void WriteKeyBindings( jsonSerializer& rSerializer );
+	void ReadKeyBindings( const rapidjson::Value::ConstMemberIterator& rIt );
 
 //////////////////////////////////////////////////////////////////////////
 
-private:
+	virtual void WriteSettings( jsonSerializer& rSerializer )                     = 0;
+	virtual void ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt ) = 0;
 
-	Texture2D m_IconTextureWorkspace  = {};
-	Texture2D m_IconTextureProject    = {};
-	Texture2D m_IconTextureFileFilter = {};
-	Texture2D m_IconTextureSourceFile = {};
+//////////////////////////////////////////////////////////////////////////
 
-	std::string m_RenameText = {};
+	CommandStack m_UndoCommandStack = {};
+	CommandStack m_RedoCommandStack = {};
 
-	INode*                      m_pSelectedNode = nullptr;
-	std::vector< unsigned int > m_NodesSequence = {};
+	using Action = std::function< void( void ) >;
 
-	bool m_RenameNode          = false;
-	bool m_ShowNodeContextMenu = false;
+	std::map< std::string, Action > m_Actions = {};
 
-}; // WorkspaceWidget
+	std::filesystem::path m_JsonFile = {};
+
+}; // IWidget

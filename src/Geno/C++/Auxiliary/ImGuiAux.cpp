@@ -72,7 +72,7 @@ void ImGuiAux::RenameTree( std::string& rNameToRename, bool& rRename, const std:
 
 //////////////////////////////////////////////////////////////////////////
 
-bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, bool Rename, const bool DrawArrow )
+bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, bool Rename, const bool HighlightBg, const bool DrawArrow )
 {
 	const float   Height    = ImGui::GetFontSize();
 	ImGuiWindow*  pWindow   = ImGui::GetCurrentWindow();
@@ -92,8 +92,15 @@ bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, 
 			if( ImGui::ButtonBehavior( Bounds, ID, &Hovered, &Held, true ) )
 				pWindow->DC.StateStorage->SetInt( ID, Opened ? 0 : 1 );
 
-			if( Hovered || Held )
-				pWindow->DrawList->AddRectFilled( Bounds.Min, Bounds.Max, ImGui::GetColorU32( Held ? ImGuiCol_HeaderActive : ImGuiCol_HeaderHovered ) );
+			if( !HighlightBg )
+			{
+				if( Hovered || Held )
+					pWindow->DrawList->AddRectFilled( Bounds.Min, Bounds.Max, ImGui::GetColorU32( Held ? ImGuiCol_HeaderActive : ImGuiCol_HeaderHovered ) );
+			}
+			else
+			{
+				pWindow->DrawList->AddRectFilled( Bounds.Min, Bounds.Max, ImGui::ColorConvertFloat4ToU32( { 0.2f, 0.6f, 0.8f, 1.0f } ) );
+			}
 		}
 	}
 

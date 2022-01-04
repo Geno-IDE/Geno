@@ -16,89 +16,71 @@
  */
 
 #pragma once
-#include "Components/Configuration.h"
-#include "Components/INode.h"
-
-#include <Common/Event.h>
-#include <GCL/Object.h>
 
 #include <filesystem>
+#include <string>
+#include <utility>
 #include <vector>
 
+//////////////////////////////////////////////////////////////////////////
+
+enum class NodeKind
+{
+	Workspace,
+	Project,
+	FileFilter,
+	File,
+	None
+
+}; // NodeKind
+
+//////////////////////////////////////////////////////////////////////////
+
+class INode;
 class ICompiler;
 
-class File : public INode
+//////////////////////////////////////////////////////////////////////////
+
+// Pair.first = Index of Removed Node in m_pChildren
+// Pair.second = Removed Node to be added back at the index in m_pChildren
+inline std::vector< std::pair< uint32_t, INode* > > RemovedNodes;
+
+void DeleteRemovedNodes( void );
+void AddRemovedNode( INode*& pParentNode, const std::string& rName );
+
+//////////////////////////////////////////////////////////////////////////
+
+class INode
 {
 public:
-	File( std::filesystem::path Location, std::string Name );
 
-	void Rename( std::string Name ) override;
-
-}; // File
+	INode( std::filesystem::path Location, std::string Name, NodeKind Kind );
+	virtual ~INode();
 
 //////////////////////////////////////////////////////////////////////////
 
-class FileFilter :public INode
-{
-public:
-
-	FileFilter( std::string Name );
-
-	void Rename( std::string Name ) override;
-	void NewFile( std::filesystem::path Location, std::string Name );
-
-}; // FileFilter
+	virtual void Rename( std::string Name ) = 0;
 
 //////////////////////////////////////////////////////////////////////////
 
-class Project : public INode
-{
-	GENO_DISABLE_COPY( Project );
+	INode* ChildByName( const std::string& rName );
+	void   SortChildren( void );
+	void   AddChild( INode* pChild );
+	void   RemoveChild( const std::string& rName );
+
+	bool operator==( INode*& rNode );
 
 //////////////////////////////////////////////////////////////////////////
 
-public:
+	NodeKind m_Kind = NodeKind::None;
 
-	enum class Kind
-	{
-		Unspecified,
-		Application,
-		StaticLibrary,
-		DynamicLibrary,
+	std::string           m_Name;
+	unsigned int          m_Id = 0;
+	std::filesystem::path m_Location;
 
-	}; // Kind
+	INode*                m_pParent   = nullptr;
+	std::vector< INode* > m_pChildren = {};
 
+	bool m_ExpandNode = false; // Only To Be Used In WorkspaceOutliner.cpp
 
-//////////////////////////////////////////////////////////////////////////
-
-	static constexpr std::string_view EXTENSION = ".gprj";
-
-//////////////////////////////////////////////////////////////////////////
-
-	explicit Project( std::filesystem::path Location, std::string Name );
-
-//////////////////////////////////////////////////////////////////////////
-
-	bool Serialize  ( void );
-	bool Deserialize( void );
-
-//////////////////////////////////////////////////////////////////////////
-
-	void Rename( std::string Name ) override;
-
-	std::vector< std::filesystem::path > FindSourceFolders( void );
-
-//////////////////////////////////////////////////////////////////////////
-
-	struct
-	{
-		Event< Project, void( std::filesystem::path OutputFile, bool Success ) > BuildFinished;
-
-	} Events;
-
-//////////////////////////////////////////////////////////////////////////
-
-	Kind          m_ProjectKind = Kind::Application;
-	Configuration m_LocalConfiguration;
-
-}; // Project
+}; // INode

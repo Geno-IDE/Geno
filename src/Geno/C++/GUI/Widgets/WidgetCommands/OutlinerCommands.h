@@ -16,9 +16,9 @@
  */
 
 #pragma once
-#include "ICommand.h"
 
-#include "Components/Project.h"
+#include "Components/INode.h"
+#include "ICommand.h"
 
 #include <filesystem>
 #include <string>
@@ -26,26 +26,15 @@
 namespace OutlinerCommands
 {
 
-enum class ItemType
-{
-	File,
-	FileFilter,
-	Project,
-	Workspace
-
-}; // ItemType
-
-//////////////////////////////////////////////////////////////////////////
-
-class RenameItemCommand : public ICommand
+class RenameNodeCommand : public ICommand
 {
 public:
 
-	RenameItemCommand( ItemType RenameItemType, const std::filesystem::path& rPreviousName, const std::filesystem::path& rNewName, const std::string& rProjectName = {}, const std::filesystem::path& rFileFilterName = {} );
+	RenameNodeCommand( std::string NewName, INode* pNode );
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Execute( void ) override;
+	void      Execute( void ) override;
 	ICommand* Undo( void ) override;
 	ICommand* Redo( void ) override;
 
@@ -53,26 +42,23 @@ public:
 
 private:
 
-	ItemType m_RenameItemType;
+	std::string m_PreviousName = {};
+	std::string m_NewName      = {};
+	INode* m_pNode;
 
-	std::filesystem::path m_PreviousName   = {};
-	std::filesystem::path m_NewName        = {};
-	std::filesystem::path m_FileFilterName = {}; // This Will Be Used Only In Case Of File
-	std::string           m_ProjectName    = {}; // This Will Be Used Only In Case Of File/FileFilter
-
-}; // RenameItemCommand
+}; // RenameNodeCommand
 
 //////////////////////////////////////////////////////////////////////////
 
-class NewItemCommand : public ICommand
+class NewNodeCommand : public ICommand
 {
 public:
 
-	NewItemCommand( ItemType NewItemType, const std::filesystem::path& rLocation, const std::string& rName, const std::string& rProjectName = {}, const std::filesystem::path& rFileFilterName = {} );
+	NewNodeCommand( NodeKind NewNodeKind, std::string Name, std::filesystem::path Location, INode* pParentNode );
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Execute( void ) override;
+	void      Execute( void ) override;
 	ICommand* Undo( void ) override;
 	ICommand* Redo( void ) override;
 
@@ -80,27 +66,24 @@ public:
 
 private:
 
-	ItemType m_NewItemType;
-
-	std::filesystem::path m_Location = {};
+	NodeKind              m_NewNodeKind;
 	std::string           m_Name     = {};
+	std::filesystem::path m_Location = {};
+	INode*                m_pParentNode;
 
-	std::filesystem::path m_FileFilterName = {}; // This Will Be Used Only In Case Of File
-	std::string           m_ProjectName    = {}; // This Will Be Used Only In Case Of File/FileFilter
-
-}; // NewItemCommand
+}; // NewNodeCommand
 
 //////////////////////////////////////////////////////////////////////////
 
-class AddItemCommand : public ICommand
+class AddNodeCommand : public ICommand
 {
 public:
 
-	AddItemCommand( ItemType AddItemType, const std::filesystem::path& rPath, const std::string& rProjectName = {}, const std::filesystem::path& rFileFilterName = {} );
+	AddNodeCommand( NodeKind AddNodeKind, std::string Name, std::filesystem::path Location, INode* pParentNode );
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Execute( void ) override;
+	void      Execute( void ) override;
 	ICommand* Undo( void ) override;
 	ICommand* Redo( void ) override;
 
@@ -108,25 +91,24 @@ public:
 
 private:
 
-	ItemType m_AddItemType;
+	NodeKind              m_AddNodeKind;
+	std::string           m_Name     = {};
+	std::filesystem::path m_Location = {};
+	INode*                m_pParentNode;
 
-	std::filesystem::path m_Path           = {};
-	std::filesystem::path m_FileFilterName = {}; // This Will Be Used Only In Case Of File
-	std::string           m_ProjectName    = {}; // This Will Be Used Only In Case Of File/FileFilter
-
-}; // AddItemCommand
+}; // AddNodeCommand
 
 //////////////////////////////////////////////////////////////////////////
 
-class RemoveItemCommand : public ICommand
+class RemoveNodeCommand : public ICommand
 {
 public:
 
-	RemoveItemCommand( ItemType RemoveItemType, const std::filesystem::path& rName, const std::string& rProjectName = {}, const std::filesystem::path& rFileFilterName = {} );
+	RemoveNodeCommand( std::string Name, INode* pParentNode );
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Execute( void ) override;
+	void      Execute( void ) override;
 	ICommand* Undo( void ) override;
 	ICommand* Redo( void ) override;
 
@@ -134,14 +116,9 @@ public:
 
 private:
 
-	ItemType m_RemoveItemType;
+	std::string m_Name = {};
+	INode*      m_pParentNode;
 
-	std::filesystem::path m_Name           = {};
-	std::filesystem::path m_FileFilterName = {}; // This Will Be Used Only In Case Of File
-	std::string           m_ProjectName    = {}; // This Will Be Used Only In Case Of File/FileFilter
+}; // RemoveNodeCommand
 
-	FileFilter m_FileFilter = {};
-
-}; // RemoveItemCommand
-
-} // namespace WOC
+} // namespace OutlinerCommands

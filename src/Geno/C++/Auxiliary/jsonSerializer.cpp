@@ -15,35 +15,45 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-#include "GUI/Modals/IModal.h"
+#include "jsonSerializer.h"
 
-#include <filesystem>
-#include <string>
+#include <fstream>
 
-#include <Common/Macros.h>
-
-class FileFilterSettingsModal : public IModal
+jsonSerializer::jsonSerializer( const std::filesystem::path& rFile )
+	: m_File( rFile )
 {
-	GENO_SINGLETON( FileFilterSettingsModal );
+	m_Writer = new rapidjson::PrettyWriter< rapidjson::StringBuffer >( m_Buffer );
+	m_Writer->StartObject();
 
-	FileFilterSettingsModal( void ) = default;
-	
+} // jsonSerializer
+
 //////////////////////////////////////////////////////////////////////////
 
-public:
-	void Show( std::string Project, std::filesystem::path FileFilter );
+jsonSerializer::~jsonSerializer( void )
+{
+	m_Writer->EndObject();
+	std::ofstream File( m_File, std::ios::out );
+	File << m_Buffer.GetString();
+	File.close();
+	delete m_Writer;
 
-	//////////////////////////////////////////////////////////////////////////
+} // ~jsonSerializer
 
-private:
-	std::string PopupID( void ) override { return "FileFilterSettings"; }
-	std::string Title( void ) override { return "File Filter Settings"; }
-	void        UpdateDerived( void ) override;
-	void        OnClose( void ) override;
+//////////////////////////////////////////////////////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////
+void jsonSerializer::Object( const std::string& rName, const std::function< void( void ) >& rFunc )
+{
+	m_Writer->String( rName.c_str() );
+	m_Writer->StartObject();
+	rFunc();
+	m_Writer->EndObject();
 
-	std::string           m_EditedProject;
-	std::filesystem::path m_EditedFileFilter;
-};
+} // Object
+
+//////////////////////////////////////////////////////////////////////////
+
+void jsonSerializer::Null( const std::string& rName )
+{
+	m_Writer->String( rName.c_str() );
+	m_Writer->Null();
+} // Null

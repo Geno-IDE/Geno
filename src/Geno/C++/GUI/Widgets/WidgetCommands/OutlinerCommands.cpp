@@ -18,301 +18,194 @@
 #include "OutlinerCommands.h"
 
 #include "Application.h"
+#include "Components/Project.h"
 #include "GUI/MainWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 
 //////////////////////////////////////////////////////////////////////////
 
-OutlinerCommands::RenameItemCommand::RenameItemCommand( ItemType RenameItemType, const std::filesystem::path& rPreviousName, const std::filesystem::path& rNewName, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
-	: m_RenameItemType( RenameItemType )
-	, m_PreviousName  ( rPreviousName )
-	, m_NewName       ( rNewName )
-	, m_FileFilterName( rFileFilterName )
-	, m_ProjectName   ( rProjectName )
+OutlinerCommands::RenameNodeCommand::RenameNodeCommand( std::string NewName, INode* pNode )
+	: m_NewName( std::move( NewName ) )
+	, m_pNode( std::move( pNode ) )
 {
-} // RenameItemCommand
+} // RenameNodeCommand
 
 //////////////////////////////////////////////////////////////////////////
 
-void OutlinerCommands::RenameItemCommand::Execute( void )
+void OutlinerCommands::RenameNodeCommand::Execute( void )
 {
-	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
-	switch( m_RenameItemType )
-	{
-		case ItemType::Workspace:
-			pWorkspace->Rename( m_NewName.string() );
-			break;
-		case ItemType::Project:
-			pWorkspace->RenameProject( m_PreviousName.string(), m_NewName.string() );
-			break;
-		case ItemType::FileFilter:
-			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
-			{
-				pProject->RenameFileFilter( m_PreviousName, m_NewName.string() );
-			}
-			break;
-		case ItemType::File:
-			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
-			{
-				pProject->RenameFile( m_PreviousName, m_FileFilterName, m_NewName.filename().string() );
-				MainWindow::Instance().pTextEdit->ReplaceFile( m_PreviousName, m_NewName );
-			}
-			break;
-	}
+	m_PreviousName = m_pNode->m_Name;
+	m_pNode->Rename( m_NewName );
 
-} // RenameItemCommand::Execute
+} // RenameNodeCommand::Execute
 
 //////////////////////////////////////////////////////////////////////////
 
-ICommand* OutlinerCommands::RenameItemCommand::Undo( void )
+ICommand* OutlinerCommands::RenameNodeCommand::Undo( void )
 {
-	// m_PreviousName -> Used For Locating Project/FileFilter/File
-	// m_NewName      -> Used As Rename String
-
-	auto Temp      = m_NewName; // As We Now Have To Find The Item With The Renamed Name
-	m_NewName      = m_PreviousName; // Set The Name Before Rename For Undo
-	m_PreviousName = Temp;
+	const std::string Temp = m_pNode->m_Name;
+	if( m_PreviousName.empty() )
+		m_PreviousName = m_NewName;
+	m_NewName = m_PreviousName;
 
 	Execute();
 
-	return new RenameItemCommand( m_RenameItemType, m_NewName, m_PreviousName, m_ProjectName, m_FileFilterName );
+	return new RenameNodeCommand( Temp, m_pNode );
 
-} // RenameItemCommand::Undo
+} // RenameNodeCommand::Undo
 
 //////////////////////////////////////////////////////////////////////////
 
-ICommand* OutlinerCommands::RenameItemCommand::Redo( void )
+ICommand* OutlinerCommands::RenameNodeCommand::Redo( void )
 {
 	Execute();
-	return new RenameItemCommand( m_RenameItemType, m_PreviousName, m_NewName, m_ProjectName, m_FileFilterName );
 
-} // RenameItemCommand::Redo
+	return new RenameNodeCommand( m_PreviousName, m_pNode );
 
-//////////////////////////////////////////////////////////////////////////
-
-OutlinerCommands::NewItemCommand::NewItemCommand( ItemType NewItemType, const std::filesystem::path& rLocation, const std::string& rName, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
-	: m_NewItemType   ( NewItemType )
-	, m_Location      ( rLocation )
-	, m_Name          ( rName )
-	, m_FileFilterName( rFileFilterName )
-	, m_ProjectName   ( rProjectName )
-{
-} // NewItemCommand
+} // RenameNodeCommand::Redo
 
 //////////////////////////////////////////////////////////////////////////
 
-void OutlinerCommands::NewItemCommand::Execute( void )
+OutlinerCommands::NewNodeCommand::NewNodeCommand( NodeKind NewNodeKind, std::string Name, std::filesystem::path Location, INode* pParentNode )
+	: m_NewNodeKind( std::move( NewNodeKind ) )
+	, m_Name( std::move( Name ) )
+	, m_Location( std::move( Location ) )
+	, m_pParentNode( std::move( pParentNode ) )
 {
-	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
-	switch( m_NewItemType )
+} // NewNodeCommand
+
+//////////////////////////////////////////////////////////////////////////
+
+void OutlinerCommands::NewNodeCommand::Execute( void )
+{
+	switch( m_NewNodeKind )
 	{
-		case ItemType::Workspace:
+		case NodeKind::Workspace:
 			break;
-		case ItemType::Project:
+		case NodeKind::Project:
+		{
+			Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
 			pWorkspace->NewProject( m_Location, m_Name );
-			break;
-		case ItemType::FileFilter:
-			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
-			{
-				pProject->NewFileFilter( m_Name );
-			}
-			break;
-		case ItemType::File:
-			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
-			{
-				pProject->NewFile( m_Location / m_Name, m_FileFilterName );
-			}
-			break;
+		}
+		break;
+		case NodeKind::FileFilter:
+		{
+			if( !m_pParentNode->ChildByName( m_Name ) )
+				m_pParentNode->AddChild( new FileFilter( m_Name ) );
+		}
+		break;
+		case NodeKind::File:
+		{
+			FileFilter* pFileFilter = ( FileFilter* )m_pParentNode;
+			pFileFilter->NewFile( m_Location, m_Name );
+		}
+		break;
 	}
 
-} // NewItemCommand::Execute
+} // NewNodeCommand::Execute
 
 //////////////////////////////////////////////////////////////////////////
 
-ICommand* OutlinerCommands::NewItemCommand::Undo( void )
+ICommand* OutlinerCommands::NewNodeCommand::Undo( void )
 {
-	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
-	switch( m_NewItemType )
-	{
-		case ItemType::Workspace:
-			break;
-		case ItemType::Project:
-			pWorkspace->RemoveProject( m_Name );
-			break;
-		case ItemType::FileFilter:
-			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
-			{
-				pProject->RemoveFileFilter( m_Name );
-			}
-			break;
-		case ItemType::File:
-			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
-			{
-				pProject->RemoveFile( m_Location / m_Name, m_FileFilterName );
-			}
-			break;
-	}
+	m_pParentNode->RemoveChild( m_Name );
+	return new NewNodeCommand( m_NewNodeKind, m_Name, m_Location, m_pParentNode );
 
-	return new NewItemCommand( m_NewItemType, m_Location, m_Name, m_ProjectName, m_FileFilterName );
-
-} // NewItemCommand::Undo
+} // NewNodeCommand::Undo
 
 //////////////////////////////////////////////////////////////////////////
 
-ICommand* OutlinerCommands::NewItemCommand::Redo( void )
+ICommand* OutlinerCommands::NewNodeCommand::Redo( void )
+{
+	AddRemovedNode( m_pParentNode, m_Name );
+	return new NewNodeCommand( m_NewNodeKind, m_Name, m_Location, m_pParentNode );
+
+} // NewNodeCommand::Redo
+
+//////////////////////////////////////////////////////////////////////////
+
+OutlinerCommands::AddNodeCommand::AddNodeCommand( NodeKind AddNodeKind, std::string Name, std::filesystem::path Location, INode* pParentNode )
+	: m_AddNodeKind( std::move( AddNodeKind ) )
+	, m_Name( std::move( Name ) )
+	, m_Location( std::move( Location ) )
+	, m_pParentNode( std::move( pParentNode ) )
+{
+} // AddNodeCommand
+
+//////////////////////////////////////////////////////////////////////////
+
+void OutlinerCommands::AddNodeCommand::Execute( void )
+{
+	switch( m_AddNodeKind )
+	{
+		case NodeKind::Workspace:
+			break;
+		case NodeKind::Project:
+		{
+			Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
+			pWorkspace->AddProject( m_Location / m_Name );
+		}
+		break;
+		case NodeKind::File:
+		{
+			if( !m_pParentNode->ChildByName( m_Name ) )
+				m_pParentNode->AddChild( new File( m_Location, m_Name ) );
+		}
+		break;
+		case NodeKind::FileFilter:
+			break;
+	}
+
+} // AddNodeCommand::Execute
+
+//////////////////////////////////////////////////////////////////////////
+
+ICommand* OutlinerCommands::AddNodeCommand::Undo( void )
+{
+	m_pParentNode->RemoveChild( m_Name );
+	return new AddNodeCommand( m_AddNodeKind, m_Name, m_Location, m_pParentNode );
+
+} // AddNodeCommand::Undo
+
+//////////////////////////////////////////////////////////////////////////
+
+ICommand* OutlinerCommands::AddNodeCommand::Redo( void )
+{
+	AddRemovedNode( m_pParentNode, m_Name );
+	return new AddNodeCommand( m_AddNodeKind, m_Name, m_Location, m_pParentNode );
+
+} // AddNodeCommand::Redo
+
+//////////////////////////////////////////////////////////////////////////
+
+OutlinerCommands::RemoveNodeCommand::RemoveNodeCommand( std::string Name, INode* pParentNode )
+	: m_Name( std::move( Name ) )
+	, m_pParentNode( std::move( pParentNode ) )
+{
+} // RemoveNodeCommand
+
+//////////////////////////////////////////////////////////////////////////
+
+void OutlinerCommands::RemoveNodeCommand::Execute( void )
+{
+	m_pParentNode->RemoveChild( m_Name );
+
+} // RemoveNodeCommand::Execute
+
+//////////////////////////////////////////////////////////////////////////
+
+ICommand* OutlinerCommands::RemoveNodeCommand::Undo( void )
+{
+	AddRemovedNode( m_pParentNode, m_Name );
+	return new RemoveNodeCommand( m_Name, m_pParentNode );
+
+} // RemoveNodeCommand::Undo
+
+//////////////////////////////////////////////////////////////////////////
+
+ICommand* OutlinerCommands::RemoveNodeCommand::Redo( void )
 {
 	Execute();
-	return new NewItemCommand( m_NewItemType, m_Location, m_Name, m_ProjectName, m_FileFilterName );
+	return new RemoveNodeCommand( m_Name, m_pParentNode );
 
-} // NewItemCommand::Redo
-
-//////////////////////////////////////////////////////////////////////////
-
-OutlinerCommands::AddItemCommand::AddItemCommand( ItemType AddItemType, const std::filesystem::path& rPath, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
-	: m_AddItemType   ( AddItemType )
-	, m_Path          ( rPath )
-	, m_FileFilterName( rFileFilterName )
-	, m_ProjectName   ( rProjectName )
-{
-} // AddItemCommand
-
-//////////////////////////////////////////////////////////////////////////
-
-void OutlinerCommands::AddItemCommand::Execute( void )
-{
-	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
-
-	switch( m_AddItemType )
-	{
-		case ItemType::Workspace:
-			break;
-		case ItemType::Project:
-			pWorkspace->AddProject( m_Path );
-			break;
-		case ItemType::File:
-			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
-			{
-				pProject->AddFile( m_Path, m_FileFilterName );
-			}
-			break;
-		case ItemType::FileFilter:
-			break;
-	}
-
-} // AddItemCommand::Execute
-
-//////////////////////////////////////////////////////////////////////////
-
-ICommand* OutlinerCommands::AddItemCommand::Undo( void )
-{
-	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
-
-	switch( m_AddItemType )
-	{
-		case ItemType::Workspace:
-			break;
-		case ItemType::Project:
-			pWorkspace->RemoveProject( m_Path.stem().string() );
-			break;
-		case ItemType::File:
-			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
-			{
-				pProject->RemoveFile( m_Path, m_FileFilterName );
-			}
-			break;
-		case ItemType::FileFilter:
-			break;
-	}
-
-	return new AddItemCommand( m_AddItemType, m_Path, m_ProjectName, m_FileFilterName );
-
-} // AddItemCommand::Undo
-
-//////////////////////////////////////////////////////////////////////////
-
-ICommand* OutlinerCommands::AddItemCommand::Redo( void )
-{
-	Execute();
-	return new AddItemCommand( m_AddItemType, m_Path, m_ProjectName, m_FileFilterName );
-
-} // AddItemCommand::Redo
-
-//////////////////////////////////////////////////////////////////////////
-
-OutlinerCommands::RemoveItemCommand::RemoveItemCommand( ItemType RemoveItemType, const std::filesystem::path& rName, const std::string& rProjectName, const std::filesystem::path& rFileFilterName )
-	: m_RemoveItemType( RemoveItemType )
-	, m_Name          ( rName )
-	, m_FileFilterName( rFileFilterName )
-	, m_ProjectName   ( rProjectName )
-{
-} // RemoveItemCommand
-
-//////////////////////////////////////////////////////////////////////////
-
-void OutlinerCommands::RemoveItemCommand::Execute( void )
-{
-	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
-
-	switch( m_RemoveItemType )
-	{
-		case ItemType::Workspace:
-			break;
-		case ItemType::Project:
-			pWorkspace->RemoveProject( m_Name.stem().string() );
-			break;
-		case ItemType::FileFilter:
-			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
-			{
-				m_FileFilter = *pProject->FileFilterByName( m_Name );
-				pProject->RemoveFileFilter( m_Name );
-			}
-			break;
-		case ItemType::File:
-			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
-			{
-				pProject->RemoveFile( m_Name, m_FileFilterName );
-			}
-			break;
-	}
-
-} // RemoveItemCommand::Execute
-
-//////////////////////////////////////////////////////////////////////////
-
-ICommand* OutlinerCommands::RemoveItemCommand::Undo( void )
-{
-	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
-
-	switch( m_RemoveItemType )
-	{
-		case ItemType::Workspace:
-			break;
-		case ItemType::Project:
-			pWorkspace->AddProject( m_Name );
-			break;
-		case ItemType::FileFilter:
-			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
-			{
-				pProject->m_FileFilters.emplace_back( std::move( m_FileFilter ) );
-			}
-			break;
-		case ItemType::File:
-			if( Project* pProject = pWorkspace->ProjectByName( m_ProjectName ) )
-			{
-				pProject->AddFile( m_Name, m_FileFilterName );
-			}
-			break;
-	}
-
-	return new RemoveItemCommand( m_RemoveItemType, m_Name, m_ProjectName, m_FileFilterName );
-
-} // RemoveItemCommand::Undo
-
-//////////////////////////////////////////////////////////////////////////
-
-ICommand* OutlinerCommands::RemoveItemCommand::Redo( void )
-{
-	Execute();
-	return new RemoveItemCommand( m_RemoveItemType, m_Name, m_ProjectName, m_FileFilterName );
-
-} // RemoveItemCommand::Redo
+} // RemoveNodeCommand::Redo

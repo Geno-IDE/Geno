@@ -72,7 +72,7 @@ void ProjectSettingsModal::UpdateDerived( void )
 		return;
 	}
 
-	Project* pProject = pWorkspace->ProjectByName( m_EditedProject );
+	Project* pProject = ( Project* )pWorkspace->ChildByName( m_EditedProject );
 	if( !pProject )
 	{
 		ImGui::Text( "No project found by the name '%s'", m_EditedProject.c_str() );
@@ -106,14 +106,14 @@ void ProjectSettingsModal::UpdateDerived( void )
 				case CategoryGeneral:
 				{
 					const std::array KindNames   = { "Application", "Static Library", "Dynamic Library" };
-					int              CurrentItem = static_cast< int >( pProject->m_Kind ) - 1;
+					int              CurrentItem = static_cast< int >( pProject->m_ProjectKind ) - 1;
 
 					ImGui::TextUnformatted( "Kind" );
 
 					ImGui::SetNextItemWidth( -5.0f );
 					if( ImGui::Combo( "##Kind", &CurrentItem, KindNames.data(), static_cast< int >( KindNames.size() ) ) )
 					{
-						pProject->m_Kind = static_cast< Project::Kind >( CurrentItem + 1 );
+						pProject->m_ProjectKind = static_cast< Project::Kind >( CurrentItem + 1 );
 					}
 
 				} break;
@@ -159,7 +159,7 @@ void ProjectSettingsModal::UpdateDerived( void )
 
 				case CategoryLinker:
 				{
-					if( pProject->m_Kind == Project::Kind::StaticLibrary )
+					if( pProject->m_ProjectKind == Project::Kind::StaticLibrary )
 					{
 						ImGui::TextUnformatted( "There are no linker settings for static libraries!" );
 						break;
