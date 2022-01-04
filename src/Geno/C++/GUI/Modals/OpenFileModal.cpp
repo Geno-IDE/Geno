@@ -302,7 +302,7 @@ void OpenFileModal::UpdateDerived( void )
 								ImGui::TableNextRow();
 								ImGui::TableSetColumnIndex( 0 );
 
-								if( ImGuiAux::PushTreeWithIcon( Path.filename().string().c_str(), m_IconFolder, false, false ) )
+								if( ImGuiAux::PushTreeWithIcon( Path.filename().string().c_str(), m_IconFolder, false, false, false ) )
 								{
 									if( ImGui::IsItemClicked() )
 									{

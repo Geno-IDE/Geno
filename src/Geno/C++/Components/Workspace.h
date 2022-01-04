@@ -22,7 +22,6 @@
 #include "Components/Project.h"
 
 #include <Common/Event.h>
-#include <GCL/Deserializer.h>
 
 #include <filesystem>
 #include <memory>
@@ -73,15 +72,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-private:
-
-	static void GCLObjectCallback( GCL::Object pObject, void* pUser );
-
-//////////////////////////////////////////////////////////////////////////
-
-	void BuildNextProject            ( void );
-	void OnBuildFinished             ( const std::filesystem::path& rOutput, bool Success );
-	void SerializeBuildMatrixColumn  ( GCL::Object& rObject, const BuildMatrix::Column& rColumn );
-	void DeserializeBuildMatrixColumn( BuildMatrix::Column& rColumn, const GCL::Object& rObject );
+	void BuildNextProject( void );
+	void OnBuildFinished ( const std::filesystem::path& rOutput, bool Success );
 
 }; // Workspace

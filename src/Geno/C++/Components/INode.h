@@ -31,7 +31,8 @@ enum class NodeKind
 	FileFilter,
 	File,
 	None
-};
+
+}; // NodeKind
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -74,6 +75,7 @@ public:
 	NodeKind m_Kind = NodeKind::None;
 
 	std::string           m_Name;
+	unsigned int          m_Id = 0;
 	std::filesystem::path m_Location;
 
 	INode*                m_pParent   = nullptr;

@@ -21,16 +21,16 @@
 #include "Auxiliary/ImGuiAux.h"
 #include "Auxiliary/STBAux.h"
 #include "Components/Project.h"
+#include "Components/Workspace.h"
 #include "Discord/DiscordRPC.h"
 #include "GUI/MainWindow.h"
 #include "GUI/Modals//MessageModal.h"
 #include "GUI/Modals/BuildMatrixModal.h"
-#include "GUI/Modals/FileFilterSettingsModal.h"
 #include "GUI/Modals/NewItemModal.h"
 #include "GUI/Modals/OpenFileModal.h"
 #include "GUI/Modals/ProjectSettingsModal.h"
-#include "GUI/Widgets/TitleBar.h"
 #include "GUI/Widgets/TextEdit.h"
+#include "GUI/Widgets/TitleBar.h"
 #include "WidgetCommands/OutlinerCommands.h"
 
 #include <fstream>
@@ -79,6 +79,23 @@ WorkspaceOutliner::~WorkspaceOutliner( void )
 
 //////////////////////////////////////////////////////////////////////////
 
+static void UpdateSelectedNode( INode*& rSelectedNode, INode* pNode, unsigned int ID )
+{
+	for( INode*& rNode : pNode->m_pChildren )
+	{
+		if( rNode->m_Id == ID )
+		{
+			rSelectedNode = rNode;
+			return;
+		}
+		else
+			UpdateSelectedNode( rSelectedNode, rNode, ID );
+	}
+
+} // UpdateSelectedNode
+
+//////////////////////////////////////////////////////////////////////////
+
 void WorkspaceOutliner::Show( bool* pOpen )
 {
 	ImGui::SetNextWindowSize( ImVec2( 350, 196 * 4 ), ImGuiCond_FirstUseEver );
@@ -92,21 +109,29 @@ void WorkspaceOutliner::Show( bool* pOpen )
 			const std::string WorkspaceIDString = pWorkspace->m_Name + "##WKS_" + pWorkspace->m_Name;
 			static bool       ForceFocusRename  = false;
 
-			auto Undo = [ this ]( void )
-			{
-				m_UndoCommandStack.UndoCommand( m_RedoCommandStack );
-			};
-
-			auto Redo = [ this ]( void )
-			{
-				m_RedoCommandStack.RedoCommand( m_UndoCommandStack );
-			};
-
 			if( m_Actions.size() == 0 )
 			{
+				auto Undo = [ this ]( void )
+				{
+					m_UndoCommandStack.UndoCommand( m_RedoCommandStack );
+				};
+
+				auto Redo = [ this ]( void )
+				{
+					m_RedoCommandStack.RedoCommand( m_UndoCommandStack );
+				};
+
+				auto RenameNode = [ & ]( void )
+				{
+					m_RenameNode     = true;
+					m_RenameText     = m_pSelectedNode->m_Name;
+					ForceFocusRename = true;
+				};
+
 				m_Actions = {
 					{ "Undo", Undo },
-					{ "Redo", Redo }
+					{ "Redo", Redo },
+					{ "RenameNode", RenameNode }
 				};
 			}
 
@@ -115,11 +140,49 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				m_KeyBindings = {
 					{ { GLFW_KEY_LEFT_CONTROL, GLFW_KEY_Z }, "Undo" },
 					{ { GLFW_KEY_LEFT_CONTROL, GLFW_KEY_Y }, "Redo" },
-					{ { GLFW_KEY_LEFT_CONTROL, GLFW_KEY_LEFT_SHIFT, GLFW_KEY_Z }, "Redo" }
+					{ { GLFW_KEY_LEFT_CONTROL, GLFW_KEY_LEFT_SHIFT, GLFW_KEY_Z }, "Redo" },
+					{ { GLFW_KEY_LEFT_ALT, GLFW_KEY_R }, "RenameNode" }
 				};
 			}
 
 			Observe();
+
+			if( ImGui::IsKeyPressed( GLFW_KEY_UP ) )
+			{
+				for( int i = 1; i < ( int )m_NodesSequence.size(); ++i )
+				{
+					if( m_NodesSequence[ i ] == m_pSelectedNode->m_Id )
+					{
+						if( m_NodesSequence[ i - 1 ] == pWorkspace->m_Id )
+							m_pSelectedNode = pWorkspace;
+						else
+						{
+							UpdateSelectedNode( m_pSelectedNode, pWorkspace, m_NodesSequence[ i - 1 ] );
+							break;
+						}
+					}
+				}
+			}
+
+			if( ImGui::IsKeyPressed( GLFW_KEY_DOWN ) )
+			{
+				for( int i = 0; i < ( int )m_NodesSequence.size() - 1; ++i )
+				{
+					if( m_NodesSequence[ i ] == m_pSelectedNode->m_Id )
+					{
+						UpdateSelectedNode( m_pSelectedNode, pWorkspace, m_NodesSequence[ i + 1 ] );
+						break;
+					}
+				}
+			}
+
+			if( ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_LeftArrow ) ) )
+				m_pSelectedNode->m_ExpandNode = false;
+
+			if( ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_RightArrow ) ) )
+				m_pSelectedNode->m_ExpandNode = true;
+
+			m_NodesSequence.clear();
 
 			bool ToRenameWorkspace = pWorkspace->m_Name == m_pSelectedNode->m_Name && m_RenameNode;
 
@@ -142,12 +205,13 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					} );
 			};
 
-			ImGui::SetNextItemOpen( pWorkspace->m_ExpandNode, pWorkspace->m_ExpandNode ? ImGuiCond_Always : ImGuiCond_Appearing );
-			pWorkspace->m_ExpandNode = false;
+			ImGui::SetNextItemOpen( pWorkspace->m_ExpandNode, pWorkspace->m_ExpandNode ? ImGuiCond_Always : ImGuiCond_None );
 
-			if( ImGuiAux::PushTreeWithIcon( WorkspaceIDString.c_str(), m_IconTextureWorkspace, ToRenameWorkspace ) )
+			if( ImGuiAux::PushTreeWithIcon( WorkspaceIDString.c_str(), m_IconTextureWorkspace, ToRenameWorkspace, m_pSelectedNode == pWorkspace ) )
 			{
 				if( ToRenameWorkspace ) { RenameWorkspaceFunc(); }
+
+				m_NodesSequence.push_back( pWorkspace->m_Id );
 
 				if( ImGui::IsItemClicked( ImGuiMouseButton_Right ) )
 				{
@@ -192,12 +256,13 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 					const std::string ProjectIDString = rProject->m_Name + "##PRJ_" + rProject->m_Name;
 
-					ImGui::SetNextItemOpen( rProject->m_ExpandNode, rProject->m_ExpandNode ? ImGuiCond_Always : ImGuiCond_Appearing );
-					rProject->m_ExpandNode = false;
+					ImGui::SetNextItemOpen( rProject->m_ExpandNode, rProject->m_ExpandNode ? ImGuiCond_Always : ImGuiCond_None );
 
-					if( ImGuiAux::PushTreeWithIcon( ProjectIDString.c_str(), m_IconTextureProject, ToRenameProject, rProject->m_pChildren.size() ) )
+					if( ImGuiAux::PushTreeWithIcon( ProjectIDString.c_str(), m_IconTextureProject, ToRenameProject, m_pSelectedNode == rProject, rProject->m_pChildren.size() ) )
 					{
 						if( ToRenameProject ) { RenameProjectFunc(); }
+
+						m_NodesSequence.push_back( rProject->m_Id );
 
 						if( ImGui::IsItemClicked( ImGuiMouseButton_Right ) )
 						{
@@ -237,13 +302,15 @@ void WorkspaceOutliner::Show( bool* pOpen )
 						{
 							if( !rFile ) { return; }
 
+							m_NodesSequence.push_back( rFile->m_Id );
+
 							bool ToRenameFile  = m_RenameNode && rFile == m_pSelectedNode;
-							bool ColorFileText = MainWindow::Instance().pTextEdit->GetActiveFilePath() == rFile->m_Location / rFile->m_Name;
+							bool ColorFileText = MainWindow::Instance().pTextEdit->GetActiveFilePath() == rFile->m_Location / rFile->m_Name && m_pSelectedNode != rFile;
 
 							if( ColorFileText )
 								ImGui::PushStyleColor( ImGuiCol_Text, { 0.2f, 0.6f, 0.8f, 1.0f } );
 
-							const bool FileTreeOpened = ImGuiAux::PushTreeWithIcon( rFile->m_Name.c_str(), m_IconTextureSourceFile, ToRenameFile, false );
+							const bool FileTreeOpened = ImGuiAux::PushTreeWithIcon( rFile->m_Name.c_str(), m_IconTextureSourceFile, ToRenameFile, m_pSelectedNode == rFile, false );
 
 							if( ColorFileText )
 								ImGui::PopStyleColor();
@@ -310,12 +377,13 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 							const std::string FileFilterIDString = rNode->m_Name + "##FILTER_" + rNode->m_Name;
 
-							ImGui::SetNextItemOpen( rNode->m_ExpandNode, rNode->m_ExpandNode ? ImGuiCond_Always : ImGuiCond_Appearing );
-							rNode->m_ExpandNode = false;
+							ImGui::SetNextItemOpen( rNode->m_ExpandNode, rNode->m_ExpandNode ? ImGuiCond_Always : ImGuiCond_None );
 
-							if( ImGuiAux::PushTreeWithIcon( FileFilterIDString.c_str(), m_IconTextureFileFilter, ToRenameFileFilter, rNode->m_pChildren.size() ) )
+							if( ImGuiAux::PushTreeWithIcon( FileFilterIDString.c_str(), m_IconTextureFileFilter, ToRenameFileFilter, m_pSelectedNode == rNode, rNode->m_pChildren.size() ) )
 							{
 								if( ToRenameFileFilter ) { RenameFileFilterFunc(); }
+
+								m_NodesSequence.push_back( rNode->m_Id );
 
 								if( ImGui::IsItemClicked( ImGuiMouseButton_Right ) )
 								{
@@ -345,6 +413,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							{
 								if( ToRenameFileFilter ) { RenameFileFilterFunc(); }
 
+								m_NodesSequence.push_back( rNode->m_Id );
+
 								if( ImGui::IsItemClicked( ImGuiMouseButton_Right ) )
 								{
 									m_ShowNodeContextMenu = true;
@@ -372,6 +442,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					{
 						if( ToRenameProject ) { RenameProjectFunc(); }
 
+						m_NodesSequence.push_back( rProject->m_Id );
+
 						if( ImGui::IsItemClicked( ImGuiMouseButton_Right ) )
 						{
 							m_ShowNodeContextMenu = true;
@@ -389,6 +461,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 			else
 			{
 				if( ToRenameWorkspace ) { RenameWorkspaceFunc(); }
+
+				m_NodesSequence.push_back( pWorkspace->m_Id );
 
 				if( ImGui::IsItemClicked( ImGuiMouseButton_Right ) )
 				{
@@ -421,29 +495,24 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					m_RenameNode          = true;
 					m_ShowNodeContextMenu = false;
+					m_RenameText          = m_pSelectedNode->m_Name;
+					ForceFocusRename      = true;
 
-					if( m_RenameNode )
-					{
-						m_RenameText     = m_pSelectedNode->m_Name;
-						ForceFocusRename = true;
-					}
 				}
 				if( ImGui::MenuItem( "Add Project" ) )
 				{
 					OpenFileModal::Instance().Show( "Add Project", "*.gprj", [ this ]( const std::filesystem::path& rPath )
 						{ m_UndoCommandStack.DoCommand( new OutlinerCommands::AddNodeCommand( NodeKind::Project, rPath.stem().string(), rPath.parent_path().string(), m_pSelectedNode ) ); } );
 
-					m_ShowNodeContextMenu = false;
+					m_ShowNodeContextMenu         = false;
 					m_pSelectedNode->m_ExpandNode = true;
 				}
 				if( ImGui::MenuItem( "New Project" ) )
 				{
 					NewItemModal::Instance().Show( "New Project", ".gprj", pWorkspace->m_Location, [ this ]( const std::string& rName, const std::filesystem::path& rLocation )
-						{						
-							m_UndoCommandStack.DoCommand( new OutlinerCommands::NewNodeCommand( NodeKind::Project, rName, rLocation, m_pSelectedNode ) );
-						} );
+						{ m_UndoCommandStack.DoCommand( new OutlinerCommands::NewNodeCommand( NodeKind::Project, rName, rLocation, m_pSelectedNode ) ); } );
 
-					m_ShowNodeContextMenu = false;
+					m_ShowNodeContextMenu         = false;
 					m_pSelectedNode->m_ExpandNode = true;
 				}
 
@@ -463,12 +532,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					m_RenameNode          = true;
 					m_ShowNodeContextMenu = false;
-
-					if( m_RenameNode )
-					{
-						m_RenameText     = m_pSelectedNode->m_Name;
-						ForceFocusRename = true;
-					}
+					m_RenameText          = m_pSelectedNode->m_Name;
+					ForceFocusRename      = true;
 				}
 
 				if( ImGui::MenuItem( "New File Filter" ) )
@@ -493,22 +558,18 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				if( ImGui::MenuItem( "New File" ) )
 				{
 					NewItemModal::Instance().Show( "New File", nullptr, m_pSelectedNode->m_Location, [ this ]( const std::string& rName, const std::filesystem::path& rLocation )
-						{
-							m_UndoCommandStack.DoCommand( new OutlinerCommands::NewNodeCommand( NodeKind::File, rName, rLocation, m_pSelectedNode->m_pChildren[ 0 ] ) );
-						} );
+						{ m_UndoCommandStack.DoCommand( new OutlinerCommands::NewNodeCommand( NodeKind::File, rName, rLocation, m_pSelectedNode->m_pChildren[ 0 ] ) ); } );
 
-					m_ShowNodeContextMenu = false;
+					m_ShowNodeContextMenu         = false;
 					m_pSelectedNode->m_ExpandNode = true;
 				}
 
 				if( ImGui::MenuItem( "Add File" ) )
 				{
 					OpenFileModal::Instance().Show( "Add File", nullptr, [ this ]( const std::filesystem::path& rFile )
-						{
-							m_UndoCommandStack.DoCommand( new OutlinerCommands::AddNodeCommand( NodeKind::File, rFile.filename().string(), rFile.parent_path(), m_pSelectedNode->m_pChildren[ 0 ] ) );
-						} );
+						{ m_UndoCommandStack.DoCommand( new OutlinerCommands::AddNodeCommand( NodeKind::File, rFile.filename().string(), rFile.parent_path(), m_pSelectedNode->m_pChildren[ 0 ] ) ); } );
 
-					m_ShowNodeContextMenu = false;
+					m_ShowNodeContextMenu         = false;
 					m_pSelectedNode->m_ExpandNode = true;
 				}
 
@@ -535,12 +596,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					m_RenameNode          = true;
 					m_ShowNodeContextMenu = false;
-
-					if( m_RenameNode )
-					{
-						m_RenameText     = m_pSelectedNode->m_Name;
-						ForceFocusRename = true;
-					}
+					m_RenameText          = m_pSelectedNode->m_Name;
+					ForceFocusRename      = true;
 				}
 
 				if( ImGui::MenuItem( "Remove" ) )
@@ -575,16 +632,13 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				if( ImGui::MenuItem( "New File" ) )
 				{
 					INode* pNode = m_pSelectedNode;
-					while( m_pSelectedNode->m_pParent->m_Kind != NodeKind::Project )
-						m_pSelectedNode = m_pSelectedNode->m_pParent;
+					while( pNode->m_pParent->m_Kind != NodeKind::Project )
+						pNode = pNode->m_pParent;
 
-					NewItemModal::Instance().Show( "New File", nullptr, std::filesystem::canonical( m_pSelectedNode->m_pParent->m_Location ), [ this, &pNode ]( const std::string& rName, const std::filesystem::path& rLocation )
-						{
-							m_UndoCommandStack.DoCommand( new OutlinerCommands::NewNodeCommand( NodeKind::File, rName, rLocation, pNode ) );
-						} );
+					NewItemModal::Instance().Show( "New File", nullptr, std::filesystem::canonical( pNode->m_pParent->m_Location ), [ this ]( const std::string& rName, const std::filesystem::path& rLocation )
+						{ m_UndoCommandStack.DoCommand( new OutlinerCommands::NewNodeCommand( NodeKind::File, rName, rLocation, m_pSelectedNode ) ); } );
 
-					m_ShowNodeContextMenu = false;
-					m_pSelectedNode       = pNode;
+					m_ShowNodeContextMenu         = false;
 					m_pSelectedNode->m_ExpandNode = true;
 				}
 
@@ -592,16 +646,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					OpenFileModal::Instance().Show( "Add File", nullptr, [ this ]( const std::filesystem::path& rPath )
 						{ m_UndoCommandStack.DoCommand( new OutlinerCommands::AddNodeCommand( NodeKind::File, rPath.filename().string(), rPath.parent_path(), m_pSelectedNode ) ); } );
-					m_ShowNodeContextMenu = false;
+					m_ShowNodeContextMenu         = false;
 					m_pSelectedNode->m_ExpandNode = true;
-				}
-
-				ImGui::Separator();
-
-				if( ImGui::MenuItem( "Settings" ) )
-				{
-					//FileFilterSettingsModal::Instance().Show( m_SelectedProjectName, m_SelectedFileFilterName );
-					//ShowFileFilterContextMenu = false;
 				}
 
 				ImGui::EndPopup();
@@ -612,12 +658,8 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				{
 					m_RenameNode          = true;
 					m_ShowNodeContextMenu = false;
-
-					if( m_RenameNode )
-					{
-						m_RenameText     = m_pSelectedNode->m_Name;
-						ForceFocusRename = true;
-					}
+					m_RenameText          = m_pSelectedNode->m_Name;
+					ForceFocusRename      = true;
 				}
 
 				if( ImGui::MenuItem( "Remove" ) )

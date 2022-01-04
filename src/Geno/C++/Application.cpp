@@ -64,6 +64,7 @@ void Application::NewWorkspace( std::filesystem::path Location, std::string Name
 
 	m_CurrentWorkspace                = new Workspace( std::move( Name ), std::move( Location ) );
 	m_CurrentWorkspace->m_BuildMatrix = BuildMatrix::PlatformDefault();
+	m_CurrentWorkspace->m_ExpandNode  = true;
 
 } // NewWorkspace
 

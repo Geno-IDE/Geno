@@ -17,12 +17,16 @@
 
 #include "INode.h"
 
+inline unsigned int NodeIdCounter = 0;
+
 INode::INode( std::filesystem::path Location, std::string Name, NodeKind Kind )
 	: m_Kind( std::move( Kind ) )
 	, m_Name( std::move( Name ) )
 	, m_Location( std::move( Location ) )
 {
 	m_pChildren.resize( 0 );
+	m_Id = ++NodeIdCounter;
+
 } // INode
 
 //////////////////////////////////////////////////////////////////////////
@@ -144,7 +148,8 @@ void INode::RemoveChild( const std::string& rName )
 
 bool INode::operator==( INode*& rNode )
 {
-	return m_Name == rNode->m_Name && m_Kind == rNode->m_Kind && m_Location == rNode->m_Location && m_pParent->m_Name == rNode->m_pParent->m_Name;
+	return m_Id == rNode->m_Id;
+
 } // operator==
 
 //////////////////////////////////////////////////////////////////////////

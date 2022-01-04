@@ -54,7 +54,8 @@ private:
 
 	std::string m_RenameText = {};
 
-	INode* m_pSelectedNode = nullptr;
+	INode*                      m_pSelectedNode = nullptr;
+	std::vector< unsigned int > m_NodesSequence = {};
 
 	bool m_RenameNode          = false;
 	bool m_ShowNodeContextMenu = false;
