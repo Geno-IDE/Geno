@@ -274,7 +274,7 @@ void OpenFileModal::UpdateDerived( void )
 					ImGui::TableSetupColumn( "Size", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize( "Size" ).x * 2.5f );
 					ImGui::TableHeadersRow();
 
-					for( const auto& rCurrentPathIt : std::filesystem::directory_iterator( m_CurrentPath ) )
+					for( const auto& rCurrentPathIt : std::filesystem::directory_iterator( m_CurrentPath , std::filesystem::directory_options::skip_permission_denied ) )
 					{
 						std::filesystem::path Path         = rCurrentPathIt.path();
 						bool                  IsHiddenFile = Path.filename().string()[ 0 ] == '.';
