@@ -72,14 +72,14 @@ void ImGuiAux::RenameTree( std::string& rNameToRename, bool& rRename, const std:
 
 //////////////////////////////////////////////////////////////////////////
 
-bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, bool Rename, const bool DrawArrow )
+bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, bool Rename, const bool HighlightBg, bool* pExpand, const bool DrawArrow )
 {
 	const float   Height    = ImGui::GetFontSize();
 	ImGuiWindow*  pWindow   = ImGui::GetCurrentWindow();
 	ImGuiStyle&   rStyle    = ImGui::GetStyle();
 	const ImGuiID ID        = pWindow->GetID( pLabel );
 	ImVec2        CursorPos = pWindow->DC.CursorPos;
-	const ImRect  Bounds    = ImRect( CursorPos, ImVec2( CursorPos.x + ImGui::GetContentRegionAvail().x, CursorPos.y + Height + rStyle.FramePadding.y * 2 ) );
+	const ImRect  Bounds    = ImRect( ImVec2( 0, CursorPos.y ), ImVec2( CursorPos.x + ImGui::GetContentRegionAvail().x, CursorPos.y + Height + rStyle.FramePadding.y * 2 ) );
 	const bool    Opened    = ImGui::TreeNodeBehaviorIsOpen( ID );
 
 	// Button logic and draw background
@@ -90,10 +90,21 @@ bool ImGuiAux::PushTreeWithIcon( const char* pLabel, const Texture2D& rTexture, 
 		if( !Rename )
 		{
 			if( ImGui::ButtonBehavior( Bounds, ID, &Hovered, &Held, true ) )
+			{
+				if( pExpand )
+					*pExpand = *pExpand ? false : true;
 				pWindow->DC.StateStorage->SetInt( ID, Opened ? 0 : 1 );
+			}
 
-			if( Hovered || Held )
-				pWindow->DrawList->AddRectFilled( Bounds.Min, Bounds.Max, ImGui::GetColorU32( Held ? ImGuiCol_HeaderActive : ImGuiCol_HeaderHovered ) );
+			if( !HighlightBg )
+			{
+				if( Hovered || Held )
+					pWindow->DrawList->AddRectFilled( Bounds.Min, Bounds.Max, ImGui::GetColorU32( Held ? ImGuiCol_HeaderActive : ImGuiCol_HeaderHovered ) );
+			}
+			else
+			{
+				pWindow->DrawList->AddRectFilled( Bounds.Min, Bounds.Max, ImGui::ColorConvertFloat4ToU32( { 0.2f, 0.6f, 0.8f, 1.0f } ) );
+			}
 		}
 	}
 

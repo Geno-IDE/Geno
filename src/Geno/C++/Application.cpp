@@ -63,9 +63,9 @@ void Application::NewWorkspace( std::filesystem::path Location, std::string Name
 {
 	CloseWorkspace();
 
-	Workspace& rWorkspace    = m_CurrentWorkspace.emplace( std::move( Location ) );
-	rWorkspace.m_Name        = std::move( Name );
+	Workspace& rWorkspace    = m_CurrentWorkspace.emplace( std::move( Name ), std::move( Location ) );
 	rWorkspace.m_BuildMatrix = BuildMatrix::PlatformDefault();
+	rWorkspace.m_ExpandNode  = true;
 
 } // NewWorkspace
 
@@ -99,6 +99,9 @@ void Application::CloseWorkspace( void )
 {
 	if( m_CurrentWorkspace )
 		m_CurrentWorkspace->Serialize();
+
+	// Free All Removed Nodes Memory
+	DeleteRemovedNodes();
 
 	m_CurrentWorkspace.reset();
 

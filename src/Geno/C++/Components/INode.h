@@ -16,59 +16,69 @@
  */
 
 #pragma once
-#include "Compilers/ICompiler.h"
-#include "Components/BuildMatrix.h"
-#include "Components/INode.h"
-#include "Components/Project.h"
-
-#include <Common/Event.h>
-#include <Common/Process.h>
-#include <GCL/Deserializer.h>
 
 #include <filesystem>
-#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
-class Workspace;
+//////////////////////////////////////////////////////////////////////////
 
-class Workspace : public INode
+enum class NodeKind
 {
-	GENO_DISABLE_COPY( Workspace );
-	GENO_DEFAULT_MOVE( Workspace );
+	Workspace,
+	Project,
+	FileFilter,
+	File,
+	None
+
+}; // NodeKind
 
 //////////////////////////////////////////////////////////////////////////
 
+class INode;
+class ICompiler;
+
+//////////////////////////////////////////////////////////////////////////
+
+inline std::vector< INode* > RemovedNodes;
+
+void DeleteRemovedNodes( void );
+void AddRemovedNode( INode*& pParentNode, const std::string& rName );
+
+//////////////////////////////////////////////////////////////////////////
+
+class INode
+{
 public:
 
-	static constexpr std::string_view EXTENSION = ".gwks";
+	INode( std::filesystem::path Location, std::string Name, NodeKind Kind );
+	virtual ~INode();
 
 //////////////////////////////////////////////////////////////////////////
 
-	explicit Workspace( std::string Name, std::filesystem::path Location );
+	virtual void Rename( std::string Name ) = 0;
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Build      ( void );
-	bool Serialize  ( void );
-	bool Deserialize( void );
+	INode* ChildByName( const std::string& rName );
+	void   SortChildren( void );
+	void   AddChild( INode* pChild );
+	void   RemoveChild( const std::string& rName );
+
+	bool operator==( const INode* pNode );
 
 //////////////////////////////////////////////////////////////////////////
 
-	void     Rename( std::string Name ) override;
-	Project& NewProject( std::filesystem::path Location, std::string Name );
-	bool     AddProject( const std::filesystem::path& rPath );
+	NodeKind m_Kind = NodeKind::None;
 
-//////////////////////////////////////////////////////////////////////////
+	std::string           m_Name;
+	uint32_t              m_Id = 0;
+	std::filesystem::path m_Location;
 
-	struct
-	{
-		Event< Workspace, void( std::filesystem::path OutputFile, bool Success ) > BuildFinished;
+	INode*                m_pParent   = nullptr;
+	std::vector< INode* > m_pChildren = {};
 
-	} Events;
+	bool m_ExpandNode = false; // Only To Be Used In WorkspaceOutliner.cpp
 
-//////////////////////////////////////////////////////////////////////////
-
-	BuildMatrix m_BuildMatrix;
-	std::unique_ptr< Process > m_AppProcess;
-}; // Workspace
+}; // INode

@@ -18,17 +18,19 @@
 #pragma once
 #include "Common/Macros.h"
 #include "Common/Texture2D.h"
+#include "Components/INode.h"
 
-#include "WidgetCommands/CommandStack.h"
+#include "IWidget.h"
 
 #include <filesystem>
 #include <string>
 
-class WorkspaceOutliner
+class WorkspaceOutliner : public IWidget
 {
 public:
 
-	WorkspaceOutliner( void );
+	 WorkspaceOutliner( void );
+	~WorkspaceOutliner( void );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -38,20 +40,24 @@ public:
 
 private:
 
-	Texture2D             m_IconTextureWorkspace    = { };
-	Texture2D             m_IconTextureProject      = { };
-	Texture2D             m_IconTextureFileFilter   = { };
-	Texture2D             m_IconTextureSourceFile   = { };
+	void WriteSettings( JSONSerializer& rSerializer ) override;
+	void ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt ) override;
 
-	std::filesystem::path m_SelectedFile            = { };
-	std::filesystem::path m_SelectedFileFilterName  = { };
-	std::string           m_RenameText              = { };
-	std::string           m_SelectedProjectName     = { };
-	std::string           m_ProjectNodeToBeExpanded = { };
+//////////////////////////////////////////////////////////////////////////
 
-	bool                  m_ExpandWorkspaceNode     = false;
+private:
 
-	CommandStack m_UndoCommandStack = {};
-	CommandStack m_RedoCommandStack = {};
+	Texture2D m_IconTextureWorkspace  = {};
+	Texture2D m_IconTextureProject    = {};
+	Texture2D m_IconTextureFileFilter = {};
+	Texture2D m_IconTextureSourceFile = {};
+
+	std::string m_RenameText = {};
+
+	INode*                      m_pSelectedNode = nullptr;
+	std::vector< unsigned int > m_NodesSequence = {};
+
+	bool m_RenameNode          = false;
+	bool m_ShowNodeContextMenu = false;
 
 }; // WorkspaceWidget

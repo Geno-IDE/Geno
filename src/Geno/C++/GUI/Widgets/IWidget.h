@@ -16,59 +16,52 @@
  */
 
 #pragma once
-#include "Compilers/ICompiler.h"
-#include "Components/BuildMatrix.h"
-#include "Components/INode.h"
-#include "Components/Project.h"
 
-#include <Common/Event.h>
-#include <Common/Process.h>
-#include <GCL/Deserializer.h>
+#include "Auxiliary/JSONSerializer.h"
+#include "WidgetCommands/CommandStack.h"
 
 #include <filesystem>
-#include <memory>
+#include <functional>
+#include <map>
 #include <string>
 #include <vector>
 
-class Workspace;
-
-class Workspace : public INode
+class IWidget
 {
-	GENO_DISABLE_COPY( Workspace );
-	GENO_DEFAULT_MOVE( Workspace );
-
-//////////////////////////////////////////////////////////////////////////
-
 public:
 
-	static constexpr std::string_view EXTENSION = ".gwks";
+	IWidget( const std::filesystem::path& rJsonFile );
+	virtual ~IWidget( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
 
-	explicit Workspace( std::string Name, std::filesystem::path Location );
+	using KeyCombination = std::vector< int >;
+
+	std::map< KeyCombination, std::string > m_KeyBindings = {};
 
 //////////////////////////////////////////////////////////////////////////
 
-	void Build      ( void );
-	bool Serialize  ( void );
-	bool Deserialize( void );
+protected:
+
+	void Observe();
+
+	void WriteKeyBindings( JSONSerializer& rSerializer );
+	void ReadKeyBindings( const rapidjson::Value::ConstMemberIterator& rIt );
 
 //////////////////////////////////////////////////////////////////////////
 
-	void     Rename( std::string Name ) override;
-	Project& NewProject( std::filesystem::path Location, std::string Name );
-	bool     AddProject( const std::filesystem::path& rPath );
+	virtual void WriteSettings( JSONSerializer& rSerializer )                     = 0;
+	virtual void ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt ) = 0;
 
 //////////////////////////////////////////////////////////////////////////
 
-	struct
-	{
-		Event< Workspace, void( std::filesystem::path OutputFile, bool Success ) > BuildFinished;
+	CommandStack m_UndoCommandStack = {};
+	CommandStack m_RedoCommandStack = {};
 
-	} Events;
+	using Action = std::function< void( void ) >;
 
-//////////////////////////////////////////////////////////////////////////
+	std::map< std::string, Action > m_Actions = {};
 
-	BuildMatrix m_BuildMatrix;
-	std::unique_ptr< Process > m_AppProcess;
-}; // Workspace
+	std::filesystem::path m_JsonFile = {};
+
+}; // IWidget

@@ -274,7 +274,7 @@ void OpenFileModal::UpdateDerived( void )
 					ImGui::TableSetupColumn( "Size", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize( "Size" ).x * 2.5f );
 					ImGui::TableHeadersRow();
 
-					for( const auto& rCurrentPathIt : std::filesystem::directory_iterator( m_CurrentPath , std::filesystem::directory_options::skip_permission_denied ) )
+					for( const auto& rCurrentPathIt : std::filesystem::directory_iterator( m_CurrentPath, std::filesystem::directory_options::skip_permission_denied ) )
 					{
 						std::filesystem::path Path         = rCurrentPathIt.path();
 						bool                  IsHiddenFile = Path.filename().string()[ 0 ] == '.';
@@ -302,7 +302,7 @@ void OpenFileModal::UpdateDerived( void )
 								ImGui::TableNextRow();
 								ImGui::TableSetColumnIndex( 0 );
 
-								if( ImGuiAux::PushTreeWithIcon( Path.filename().string().c_str(), m_IconFolder, false, false ) )
+								if( ImGuiAux::PushTreeWithIcon( Path.filename().string().c_str(), m_IconFolder, false, false, nullptr, false ) )
 								{
 									if( ImGui::IsItemClicked() )
 									{
@@ -321,7 +321,7 @@ void OpenFileModal::UpdateDerived( void )
 								ImGui::TableNextRow();
 								ImGui::TableSetColumnIndex( 0 );
 
-								if( ImGuiAux::PushTreeWithIcon( Path.filename().string().c_str(), m_IconFile, false, false ) )
+								if( ImGuiAux::PushTreeWithIcon( Path.filename().string().c_str(), m_IconFile, false, false, nullptr, false ) )
 								{
 									if( ImGui::IsItemClicked() )
 									{
@@ -357,7 +357,7 @@ void OpenFileModal::UpdateDerived( void )
 						ImGui::TableNextRow();
 						ImGui::TableSetColumnIndex( 0 );
 
-						const bool TreeOpen = ImGuiAux::PushTreeWithIcon( "", m_IconFolder, m_CreateFolder, false );
+						const bool TreeOpen = ImGuiAux::PushTreeWithIcon( "", m_IconFolder, m_CreateFolder, false, nullptr, false );
 
 						m_SearchResult = "New Folder";
 

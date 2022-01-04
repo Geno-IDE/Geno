@@ -17,6 +17,7 @@
 
 #pragma once
 #include "Components/Configuration.h"
+#include "Components/INode.h"
 
 #include <Common/Event.h>
 #include <GCL/Object.h>
@@ -26,15 +27,31 @@
 
 class ICompiler;
 
-struct FileFilter
+class File : public INode
 {
-	std::filesystem::path                Name;
-	std::filesystem::path                Path;
-	std::vector< std::filesystem::path > Files;
+public:
+	File( std::filesystem::path Location, std::string Name );
+
+	void Rename( std::string Name ) override;
+
+}; // File
+
+//////////////////////////////////////////////////////////////////////////
+
+class FileFilter :public INode
+{
+public:
+
+	FileFilter( std::filesystem::path Location, std::string Name );
+
+	void Rename( std::string Name ) override;
+	void NewFile( std::filesystem::path Location, std::string Name );
 
 }; // FileFilter
 
-class Project
+//////////////////////////////////////////////////////////////////////////
+
+class Project : public INode
 {
 	GENO_DISABLE_COPY( Project );
 
@@ -58,10 +75,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	explicit Project( std::filesystem::path Location );
-	         Project( Project&& rrOther );
-
-	Project& operator=( Project&& rrOther );
+	explicit Project( std::filesystem::path Location, std::string Name );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -70,16 +84,8 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	void                  SortFileFilters                 ( void );
-	FileFilter*           NewFileFilter                   ( const std::filesystem::path& Name );
-	void                  RemoveFileFilter                ( const std::filesystem::path& Name );
-	FileFilter*           FileFilterByName                ( const std::filesystem::path& Name );
-	std::filesystem::path FileInFileFilter                ( const std::filesystem::path& rFile, const std::filesystem::path& rFileFilter );
-	void                  RenameFileFilter                ( const std::filesystem::path& rFileFilter, const std::string& rName );
-	bool                  NewFile                         ( const std::filesystem::path& rPath, const std::filesystem::path& rFileFilter );
-	bool                  AddFile                         ( const std::filesystem::path& rPath, const std::filesystem::path& rFileFilter );
-	void                  RemoveFile                      ( const std::filesystem::path& rFile, const std::filesystem::path& rFileFilter );
-	void                  RenameFile                      ( const std::filesystem::path& rFile, const std::filesystem::path& rFileFilter, const std::string& rName );
+	void Rename( std::string Name ) override;
+
 	std::vector< std::filesystem::path > FindSourceFolders( void );
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,17 +98,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	Kind                                 m_Kind = Kind::Application;
-	Configuration                        m_LocalConfiguration;
-
-	std::filesystem::path                m_Location;
-	std::string                          m_Name;
-	std::vector< FileFilter >            m_FileFilters;
-
-//////////////////////////////////////////////////////////////////////////
-
-private:
-
-	static void GCLObjectCallback( GCL::Object Object, void* pUser );
+	Kind          m_ProjectKind = Kind::Application;
+	Configuration m_LocalConfiguration;
 
 }; // Project
