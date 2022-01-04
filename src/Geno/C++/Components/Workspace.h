@@ -18,6 +18,7 @@
 #pragma once
 #include "Compilers/ICompiler.h"
 #include "Components/BuildMatrix.h"
+#include "Components/INode.h"
 #include "Components/Project.h"
 
 #include <Common/Event.h>
@@ -31,7 +32,7 @@
 
 class Workspace;
 
-class Workspace
+class Workspace : public INode
 {
 	GENO_DISABLE_COPY( Workspace );
 	GENO_DEFAULT_MOVE( Workspace );
@@ -44,7 +45,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	explicit Workspace( std::filesystem::path Location );
+	explicit Workspace( std::string Name, std::filesystem::path Location );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -54,12 +55,9 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	void     Rename       ( std::string Name );
-	Project& NewProject   ( std::filesystem::path Location, std::string Name );
-	Project* ProjectByName( std::string_view Name );
-	bool     AddProject   ( const std::filesystem::path& rPath );
-	void     RemoveProject( const std::string& rName );
-	void     RenameProject( const std::string& rProjectName, std::string Name );
+	void     Rename( std::string Name ) override;
+	Project* NewProject( std::filesystem::path Location, std::string Name );
+	bool     AddProject( const std::filesystem::path& rPath );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -71,21 +69,6 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	BuildMatrix                m_BuildMatrix;
-	std::filesystem::path      m_Location;
-	std::string                m_Name;
-	std::vector< Project >     m_Projects;
+	BuildMatrix m_BuildMatrix;
 	std::unique_ptr< Process > m_AppProcess;
-
-//////////////////////////////////////////////////////////////////////////
-
-private:
-
-	static void GCLObjectCallback( GCL::Object pObject, void* pUser );
-
-//////////////////////////////////////////////////////////////////////////
-
-	void SerializeBuildMatrixColumn  ( GCL::Object& rObject, const BuildMatrix::Column& rColumn );
-	void DeserializeBuildMatrixColumn( BuildMatrix::Column& rColumn, const GCL::Object& rObject );
-
 }; // Workspace
