@@ -444,7 +444,11 @@ void MainWindow::ImGuiSettingsReadLineCB( ImGuiContext* /*pContext*/, ImGuiSetti
 	else if( strcmp( pName, "Output"    ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pTitleBar->ShowOutputWindow      = Bool; }
 
 	// Recent Workspaces
+#if defined( _WIN32 )
 	if( sscanf( pLine, "Path=%s", Path, ( unsigned )sizeof( Path ) ) == 1 ) pSelf->AddRecentWorkspace( Path );
+#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
+	if( sscanf( pLine, "Path=%s", Path ) == 1 ) pSelf->AddRecentWorkspace( Path );
+#endif //  __linux__ || __APPLE__ 
 
 } // ImGuiSettingsReadLineCB
 
