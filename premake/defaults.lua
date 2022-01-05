@@ -39,6 +39,7 @@ filter 'system:windows'
 	}
 
 filter 'system:not windows'
+	cppdialect 'C++2a'
 	toolset 'gcc'
 
 filter 'system:linux'
