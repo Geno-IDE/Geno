@@ -22,6 +22,8 @@
 #include "Compilers/CompilerMSVC.h"
 #include "GUI/Widgets/StatusBar.h"
 
+#include "Auxiliary/JSONSerializer.h"
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -166,7 +168,7 @@ bool Workspace::Serialize( void )
 	if( m_Location.empty() )
 		return false;
 
-	jsonSerializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
+	JSONSerializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
 
 	// Matrix table
 	{
@@ -206,7 +208,7 @@ bool Workspace::Serialize( void )
 		{
 			if( !rNode ) { continue; }
 			Project* rProject = ( Project* )rNode;
-			Projects.push_back( ( m_Location.lexically_relative( rNode->m_Location ) / rNode->m_Name ).string() );
+			Projects.push_back( ( rNode->m_Location.lexically_relative( m_Location ) / rNode->m_Name ).string() );
 			rProject->Serialize();
 		}
 		Serializer.Add( "Projects", std::move( Projects ) );
@@ -279,12 +281,12 @@ void Workspace::Rename( std::string Name )
 
 //////////////////////////////////////////////////////////////////////////
 
-Project* Workspace::NewProject( std::filesystem::path Location, std::string Name )
+Project& Workspace::NewProject( std::filesystem::path Location, std::string Name )
 {
 	Project* pProject = new Project( std::move( Location ), std::move( Name ) );
 	AddChild( pProject );
 
-	return pProject;
+	return *pProject;
 
 } // NewProject
 
@@ -297,8 +299,8 @@ bool Workspace::AddProject( const std::filesystem::path& rPath )
 		std::filesystem::path ProjectPath = rPath;
 		ProjectPath                       = ProjectPath.lexically_normal();
 
-		Project* pProject = NewProject( ProjectPath.parent_path(), ProjectPath.stem().string() );
-		if (pProject->Deserialize())
+		Project& rProject = NewProject( ProjectPath.parent_path(), ProjectPath.stem().string() );
+		if( rProject.Deserialize() )
 			return true;
 	}
 	return false;

@@ -17,7 +17,7 @@
 
 #include "INode.h"
 
-inline unsigned int NodeIdCounter = 0;
+static uint32_t NodeIdCounter = 0;
 
 INode::INode( std::filesystem::path Location, std::string Name, NodeKind Kind )
 	: m_Kind( std::move( Kind ) )
@@ -137,8 +137,9 @@ void INode::RemoveChild( const std::string& rName )
 	{
 		if( m_pChildren[ i ] && m_pChildren[ i ]->m_Name == rName )
 		{
-			RemovedNodes.push_back( { i, m_pChildren[ i ] } );
+			RemovedNodes.push_back( m_pChildren[ i ] );
 			m_pChildren[ i ] = nullptr;
+			m_pChildren.erase( m_pChildren.begin() + i );
 		}
 	}
 
@@ -146,9 +147,9 @@ void INode::RemoveChild( const std::string& rName )
 
 //////////////////////////////////////////////////////////////////////////
 
-bool INode::operator==( INode*& rNode )
+bool INode::operator==( const INode* pNode )
 {
-	return m_Id == rNode->m_Id;
+	return m_Id == pNode->m_Id;
 
 } // operator==
 
@@ -156,10 +157,9 @@ bool INode::operator==( INode*& rNode )
 
 void DeleteRemovedNodes( void )
 {
-	for( auto& rRemovedNode : RemovedNodes )
+	for( INode*& rRemovedNode : RemovedNodes )
 	{
-		if( rRemovedNode.second )
-			delete rRemovedNode.second;
+		delete rRemovedNode;
 	}
 
 } // DeleteRemovedNodes
@@ -168,16 +168,16 @@ void DeleteRemovedNodes( void )
 
 void AddRemovedNode( INode*& pParentNode, const std::string& rName )
 {
-	for( auto& rRemovedNode : RemovedNodes )
+	for( int i = 0; i < ( int )RemovedNodes.size(); ++i )
 	{
-		INode* pNode = rRemovedNode.second;
-
-		if( pNode )
+		if( RemovedNodes[ i ] )
 		{
-			if( pNode->m_Name == rName && pNode->m_pParent == pParentNode )
+			if( RemovedNodes[ i ]->m_Name == rName && RemovedNodes[ i ]->m_pParent == pParentNode )
 			{
-				pParentNode->m_pChildren[ rRemovedNode.first ] = pNode;
-				rRemovedNode.second                            = nullptr;
+				pParentNode->m_pChildren.push_back( RemovedNodes[ i ] );
+				pParentNode->SortChildren();
+				RemovedNodes[ i ] = nullptr;
+				RemovedNodes.erase( RemovedNodes.begin() + i );
 				break;
 			}
 		}

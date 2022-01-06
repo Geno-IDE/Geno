@@ -42,7 +42,7 @@ class FileFilter :public INode
 {
 public:
 
-	FileFilter( std::string Name );
+	FileFilter( std::filesystem::path Location, std::string Name );
 
 	void Rename( std::string Name ) override;
 	void NewFile( std::filesystem::path Location, std::string Name );

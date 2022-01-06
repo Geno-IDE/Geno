@@ -25,107 +25,19 @@
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 
-class jsonSerializer
+class JSONSerializer
 {
 public:
 
-	 jsonSerializer( const std::filesystem::path& rFile );
-	~jsonSerializer( void );
+	 JSONSerializer( const std::filesystem::path& rFile );
+	~JSONSerializer( void );
 
 //////////////////////////////////////////////////////////////////////////
 
 	void Object( const std::string& rName, const std::function< void( void ) >& rFunc );
 
 	template< typename T >
-	void Add( const std::string& rName, const T& rValue )
-	{
-		static_assert( false );
-
-	} // Add<T>
-
-	template<>
-	void Add( const std::string& rName, const std::string& rValue )
-	{
-		m_Writer->String( rName.c_str() );
-		m_Writer->String( rValue.c_str() );
-
-	} // Add<std::string>
-
-	template<>
-	void Add( const std::string& rName, const bool& rValue )
-	{
-		m_Writer->String( rName.c_str() );
-		m_Writer->Bool( rValue );
-
-	} // Add<bool>
-
-	template<>
-	void Add( const std::string& rName, const int& rValue )
-	{
-		m_Writer->String( rName.c_str() );
-		m_Writer->Int( rValue );
-
-	} // Add<int>
-
-	template<>
-	void Add( const std::string& rName, const double& rValue )
-	{
-		m_Writer->String( rName.c_str() );
-		m_Writer->Double( rValue );
-
-	} // Add<double>
-
-	template<>
-	void Add( const std::string& rName, const unsigned int& rValue )
-	{
-		m_Writer->String( rName.c_str() );
-		m_Writer->Uint( rValue );
-
-	} // Add<unsigned int>
-
-	template<>
-	void Add( const std::string& rName, const std::vector< int >& rArray )
-	{
-		m_Writer->String( rName.c_str() );
-		m_Writer->StartArray();
-		for( const int& rValue : rArray )
-			m_Writer->Int( rValue );
-		m_Writer->EndArray();
-
-	} // Add<std::vector<int>>
-
-	template<>
-	void Add( const std::string& rName, const std::vector< double >& rArray )
-	{
-		m_Writer->String( rName.c_str() );
-		m_Writer->StartArray();
-		for( const double& rValue : rArray )
-			m_Writer->Double( rValue );
-		m_Writer->EndArray();
-
-	} // Add<std::vector<double>>
-
-	template<>
-	void Add( const std::string& rName, const std::vector< unsigned int >& rArray )
-	{
-		m_Writer->String( rName.c_str() );
-		m_Writer->StartArray();
-		for( const unsigned int& rValue : rArray )
-			m_Writer->Uint( rValue );
-		m_Writer->EndArray();
-
-	} // Add<std::vector<unsigned int>>
-
-	template<>
-	void Add( const std::string& rName, const std::vector< std::string >& rArray )
-	{
-		m_Writer->String( rName.c_str() );
-		m_Writer->StartArray();
-		for( const std::string& rValue : rArray )
-			m_Writer->String( rValue.c_str() );
-		m_Writer->EndArray();
-
-	} // Add<std::vector<std::string>>
+	void Add( const std::string& rName, const T& rValue );
 
 	void Null( const std::string& rName );
 
@@ -138,4 +50,115 @@ private:
 
 	std::filesystem::path m_File = {};
 
-}; // jsonSerializer
+}; // JSONSerializer
+
+//////////////////////////////////////////////////////////////////////////
+
+template< typename T >
+inline void JSONSerializer::Add( const std::string& rName, const T& rValue )
+{
+	static_assert( false );
+
+} // Add< T >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void JSONSerializer::Add< std::string >( const std::string& rName, const std::string& rValue )
+{
+	m_Writer->String( rName.c_str() );
+	m_Writer->String( rValue.c_str() );
+
+} // Add< std::string >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void JSONSerializer::Add< bool >( const std::string& rName, const bool& rValue )
+{
+	m_Writer->String( rName.c_str() );
+	m_Writer->Bool( rValue );
+
+} // Add<bool>
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void JSONSerializer::Add< int >( const std::string& rName, const int& rValue )
+{
+	m_Writer->String( rName.c_str() );
+	m_Writer->Int( rValue );
+
+} // Add< int >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void JSONSerializer::Add< double >( const std::string& rName, const double& rValue )
+{
+	m_Writer->String( rName.c_str() );
+	m_Writer->Double( rValue );
+
+} // Add< double >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void JSONSerializer::Add< uint32_t >( const std::string& rName, const uint32_t& rValue )
+{
+	m_Writer->String( rName.c_str() );
+	m_Writer->Uint( rValue );
+
+} // Add< unsigned int >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void JSONSerializer::Add< std::vector< int > >( const std::string& rName, const std::vector< int >& rArray )
+{
+	m_Writer->String( rName.c_str() );
+	m_Writer->StartArray();
+	for( const int& rValue : rArray )
+		m_Writer->Int( rValue );
+	m_Writer->EndArray();
+
+} // Add< std::vector< int > >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void JSONSerializer::Add< std::vector< double > >( const std::string& rName, const std::vector< double >& rArray )
+{
+	m_Writer->String( rName.c_str() );
+	m_Writer->StartArray();
+	for( const double& rValue : rArray )
+		m_Writer->Double( rValue );
+	m_Writer->EndArray();
+
+} // Add< std::vector< double > >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void JSONSerializer::Add< std::vector< uint32_t > >( const std::string& rName, const std::vector< uint32_t >& rArray )
+{
+	m_Writer->String( rName.c_str() );
+	m_Writer->StartArray();
+	for( const unsigned int& rValue : rArray )
+		m_Writer->Uint( rValue );
+	m_Writer->EndArray();
+
+} // Add< std::vector< unsigned int > >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void JSONSerializer::Add< std::vector< std::string > >( const std::string& rName, const std::vector< std::string >& rArray )
+{
+	m_Writer->String( rName.c_str() );
+	m_Writer->StartArray();
+	for( const std::string& rValue : rArray )
+		m_Writer->String( rValue.c_str() );
+	m_Writer->EndArray();
+
+} // Add< std::vector< std::string > >

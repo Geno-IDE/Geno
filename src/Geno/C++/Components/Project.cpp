@@ -17,7 +17,7 @@
 
 #include "Project.h"
 
-#include "Auxiliary/jsonSerializer.h"
+#include "Auxiliary/JSONSerializer.h"
 #include "Compilers/ICompiler.h"
 #include "GUI/Widgets/StatusBar.h"
 
@@ -51,8 +51,8 @@ void File::Rename( std::string Name )
 
 //////////////////////////////////////////////////////////////////////////
 
-FileFilter::FileFilter( std::string Name )
-	: INode( {}, std::move( Name ), NodeKind::FileFilter )
+FileFilter::FileFilter( std::filesystem::path Location, std::string Name )
+	: INode( std::move( Location ), std::move( Name ), NodeKind::FileFilter )
 {
 } // FileFilter
 
@@ -86,7 +86,7 @@ void FileFilter::NewFile( std::filesystem::path Location, std::string Name )
 Project::Project( std::filesystem::path Location, std::string Name )
 	: INode( std::move( Location ), std::move( Name ), NodeKind::Project )
 {
-	AddChild( new FileFilter( "" ) ); // Create Default Empty FileFilter
+	AddChild( new FileFilter( m_Location, "" ) ); // Create Default Empty FileFilter
 
 } // Project
 
@@ -101,15 +101,14 @@ bool Project::Serialize( void )
 		std::cerr << "Failed to serialize ";
 
 		if( m_Name.empty() ) std::cerr << "unnamed project.";
-		else
-			std::cerr << "project '" << m_Name << "'.";
+		else                 std::cerr << "project '" << m_Name << "'.";
 
 		std::cerr << " Location not specified.\n";
 
 		return false;
 	}
 
-	jsonSerializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
+	JSONSerializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
 
 	// Kind
 	{
@@ -190,13 +189,18 @@ static void DeserializeChildren( const rapidjson::Value::ConstMemberIterator& rI
 		{
 			for( auto ArrayIt = It->value.GetArray().Begin(); ArrayIt < It->value.GetArray().End(); ++ArrayIt )
 			{
-				const std::filesystem::path FilePath = std::filesystem::path( ArrayIt->GetString() );
+				std::filesystem::path FilePath = ArrayIt->GetString();
+
+				if( !FilePath.is_absolute() )
+					FilePath = pNode->m_Location / FilePath;
+				FilePath = FilePath.lexically_normal();
+
 				pNode->AddChild( new File( FilePath.parent_path(), FilePath.filename().string() ) );
 			}
 		}
 		else
 		{
-			pNode->AddChild( new FileFilter( MemberName ) );
+			pNode->AddChild( new FileFilter( pNode->m_Location, MemberName ) );
 			DeserializeChildren( It, pNode->m_pChildren[ pNode->m_pChildren.size() - 1 ] );
 		}
 	}
@@ -236,7 +240,7 @@ bool Project::Deserialize( void )
 		{
 			const std::string ProjectKind = It->value.GetString();
 
-			if( ProjectKind == "Application" )        { m_ProjectKind = Kind::Application;    }
+			if     ( ProjectKind == "Application" )   { m_ProjectKind = Kind::Application;    }
 			else if( ProjectKind == "StaticLibrary" ) { m_ProjectKind = Kind::StaticLibrary;  }
 			else if( ProjectKind == "DynamicLibrary" ){ m_ProjectKind = Kind::DynamicLibrary; }
 			else                                      { m_ProjectKind = Kind::Unspecified;    }
@@ -248,7 +252,7 @@ bool Project::Deserialize( void )
 				const std::string FilterName = FiltersIt->name.GetString();
 
 				if( FilterName != "Default" )
-					AddChild( new FileFilter( std::move( FilterName ) ) );
+					AddChild( new FileFilter( m_Location, std::move( FilterName ) ) );
 
 				DeserializeChildren( FiltersIt, m_pChildren[ m_pChildren.size() - 1 ] );
 			}

@@ -67,7 +67,7 @@ ICommand* OutlinerCommands::RenameNodeCommand::Redo( void )
 //////////////////////////////////////////////////////////////////////////
 
 OutlinerCommands::NewNodeCommand::NewNodeCommand( NodeKind NewNodeKind, std::string Name, std::filesystem::path Location, INode* pParentNode )
-	: m_NewNodeKind( std::move( NewNodeKind ) )
+	: m_NewNodeKind( NewNodeKind )
 	, m_Name( std::move( Name ) )
 	, m_Location( std::move( Location ) )
 	, m_pParentNode( std::move( pParentNode ) )
@@ -91,7 +91,7 @@ void OutlinerCommands::NewNodeCommand::Execute( void )
 		case NodeKind::FileFilter:
 		{
 			if( !m_pParentNode->ChildByName( m_Name ) )
-				m_pParentNode->AddChild( new FileFilter( m_Name ) );
+				m_pParentNode->AddChild( new FileFilter( m_pParentNode->m_Location, m_Name ) );
 		}
 		break;
 		case NodeKind::File:
@@ -125,7 +125,7 @@ ICommand* OutlinerCommands::NewNodeCommand::Redo( void )
 //////////////////////////////////////////////////////////////////////////
 
 OutlinerCommands::AddNodeCommand::AddNodeCommand( NodeKind AddNodeKind, std::string Name, std::filesystem::path Location, INode* pParentNode )
-	: m_AddNodeKind( std::move( AddNodeKind ) )
+	: m_AddNodeKind( AddNodeKind )
 	, m_Name( std::move( Name ) )
 	, m_Location( std::move( Location ) )
 	, m_pParentNode( std::move( pParentNode ) )
