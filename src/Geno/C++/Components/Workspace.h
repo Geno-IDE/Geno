@@ -56,7 +56,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 
 	void     Rename( std::string Name ) override;
-	Project* NewProject( std::filesystem::path Location, std::string Name );
+	Project& NewProject( std::filesystem::path Location, std::string Name );
 	bool     AddProject( const std::filesystem::path& rPath );
 
 //////////////////////////////////////////////////////////////////////////

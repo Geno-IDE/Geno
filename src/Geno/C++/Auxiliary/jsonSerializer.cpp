@@ -15,21 +15,21 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "jsonSerializer.h"
+#include "JSONSerializer.h"
 
 #include <fstream>
 
-jsonSerializer::jsonSerializer( const std::filesystem::path& rFile )
+JSONSerializer::JSONSerializer( const std::filesystem::path& rFile )
 	: m_File( rFile )
 {
 	m_Writer = new rapidjson::PrettyWriter< rapidjson::StringBuffer >( m_Buffer );
 	m_Writer->StartObject();
 
-} // jsonSerializer
+} // JSONSerializer
 
 //////////////////////////////////////////////////////////////////////////
 
-jsonSerializer::~jsonSerializer( void )
+JSONSerializer::~JSONSerializer( void )
 {
 	m_Writer->EndObject();
 	std::ofstream File( m_File, std::ios::out );
@@ -37,11 +37,11 @@ jsonSerializer::~jsonSerializer( void )
 	File.close();
 	delete m_Writer;
 
-} // ~jsonSerializer
+} // ~JSONSerializer
 
 //////////////////////////////////////////////////////////////////////////
 
-void jsonSerializer::Object( const std::string& rName, const std::function< void( void ) >& rFunc )
+void JSONSerializer::Object( const std::string& rName, const std::function< void( void ) >& rFunc )
 {
 	m_Writer->String( rName.c_str() );
 	m_Writer->StartObject();
@@ -52,7 +52,7 @@ void jsonSerializer::Object( const std::string& rName, const std::function< void
 
 //////////////////////////////////////////////////////////////////////////
 
-void jsonSerializer::Null( const std::string& rName )
+void JSONSerializer::Null( const std::string& rName )
 {
 	m_Writer->String( rName.c_str() );
 	m_Writer->Null();

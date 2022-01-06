@@ -40,7 +40,7 @@ public:
 
 private:
 
-	void WriteSettings( jsonSerializer& rSerializer ) override;
+	void WriteSettings( JSONSerializer& rSerializer ) override;
 	void ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt ) override;
 
 //////////////////////////////////////////////////////////////////////////

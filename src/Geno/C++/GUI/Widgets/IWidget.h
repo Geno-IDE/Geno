@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "Auxiliary/jsonSerializer.h"
+#include "Auxiliary/JSONSerializer.h"
 #include "WidgetCommands/CommandStack.h"
 
 #include <filesystem>
@@ -45,12 +45,12 @@ protected:
 
 	void Observe();
 
-	void WriteKeyBindings( jsonSerializer& rSerializer );
+	void WriteKeyBindings( JSONSerializer& rSerializer );
 	void ReadKeyBindings( const rapidjson::Value::ConstMemberIterator& rIt );
 
 //////////////////////////////////////////////////////////////////////////
 
-	virtual void WriteSettings( jsonSerializer& rSerializer )                     = 0;
+	virtual void WriteSettings( JSONSerializer& rSerializer )                     = 0;
 	virtual void ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt ) = 0;
 
 //////////////////////////////////////////////////////////////////////////

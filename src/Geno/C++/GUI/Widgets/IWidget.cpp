@@ -49,7 +49,7 @@ void IWidget::Observe()
 
 //////////////////////////////////////////////////////////////////////////
 
-void IWidget::WriteKeyBindings( jsonSerializer& rSerializer )
+void IWidget::WriteKeyBindings( JSONSerializer& rSerializer )
 {
 	rSerializer.Object( "KeyBindings", [ this, &rSerializer ]( void )
 		{

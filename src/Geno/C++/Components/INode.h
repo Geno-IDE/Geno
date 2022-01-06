@@ -41,9 +41,7 @@ class ICompiler;
 
 //////////////////////////////////////////////////////////////////////////
 
-// Pair.first = Index of Removed Node in m_pChildren
-// Pair.second = Removed Node to be added back at the index in m_pChildren
-inline std::vector< std::pair< uint32_t, INode* > > RemovedNodes;
+inline std::vector< INode* > RemovedNodes;
 
 void DeleteRemovedNodes( void );
 void AddRemovedNode( INode*& pParentNode, const std::string& rName );
@@ -68,14 +66,14 @@ public:
 	void   AddChild( INode* pChild );
 	void   RemoveChild( const std::string& rName );
 
-	bool operator==( INode*& rNode );
+	bool operator==( const INode* pNode );
 
 //////////////////////////////////////////////////////////////////////////
 
 	NodeKind m_Kind = NodeKind::None;
 
 	std::string           m_Name;
-	unsigned int          m_Id = 0;
+	uint32_t              m_Id = 0;
 	std::filesystem::path m_Location;
 
 	INode*                m_pParent   = nullptr;

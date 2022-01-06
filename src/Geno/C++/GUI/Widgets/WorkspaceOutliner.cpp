@@ -72,14 +72,14 @@ WorkspaceOutliner::WorkspaceOutliner( void )
 
 WorkspaceOutliner::~WorkspaceOutliner( void )
 {
-	jsonSerializer Serializer( m_JsonFile );
+	JSONSerializer Serializer( m_JsonFile );
 	WriteSettings( Serializer );
 
 } // ~WorkspaceOutliner
 
 //////////////////////////////////////////////////////////////////////////
 
-static void UpdateSelectedNode( INode*& rSelectedNode, INode* pNode, unsigned int ID )
+static void UpdateSelectedNode( INode*& rSelectedNode, INode* pNode, uint32_t ID )
 {
 	for( INode*& rNode : pNode->m_pChildren )
 	{
@@ -205,9 +205,9 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					} );
 			};
 
-			ImGui::SetNextItemOpen( pWorkspace->m_ExpandNode, pWorkspace->m_ExpandNode ? ImGuiCond_Always : ImGuiCond_None );
+		    ImGui::SetNextItemOpen( pWorkspace->m_ExpandNode, pWorkspace->m_ExpandNode ? ImGuiCond_Always : ImGuiCond_None );
 
-			if( ImGuiAux::PushTreeWithIcon( WorkspaceIDString.c_str(), m_IconTextureWorkspace, ToRenameWorkspace, m_pSelectedNode == pWorkspace ) )
+			if( ImGuiAux::PushTreeWithIcon( WorkspaceIDString.c_str(), m_IconTextureWorkspace, ToRenameWorkspace, m_pSelectedNode == pWorkspace, &pWorkspace->m_ExpandNode ) )
 			{
 				if( ToRenameWorkspace ) { RenameWorkspaceFunc(); }
 
@@ -258,7 +258,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 					ImGui::SetNextItemOpen( rProject->m_ExpandNode, rProject->m_ExpandNode ? ImGuiCond_Always : ImGuiCond_None );
 
-					if( ImGuiAux::PushTreeWithIcon( ProjectIDString.c_str(), m_IconTextureProject, ToRenameProject, m_pSelectedNode == rProject, rProject->m_pChildren.size() ) )
+					if( ImGuiAux::PushTreeWithIcon( ProjectIDString.c_str(), m_IconTextureProject, ToRenameProject, m_pSelectedNode == rProject, &rProject->m_ExpandNode, rProject->m_pChildren.size() ) )
 					{
 						if( ToRenameProject ) { RenameProjectFunc(); }
 
@@ -310,7 +310,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 							if( ColorFileText )
 								ImGui::PushStyleColor( ImGuiCol_Text, { 0.2f, 0.6f, 0.8f, 1.0f } );
 
-							const bool FileTreeOpened = ImGuiAux::PushTreeWithIcon( rFile->m_Name.c_str(), m_IconTextureSourceFile, ToRenameFile, m_pSelectedNode == rFile, false );
+							const bool FileTreeOpened = ImGuiAux::PushTreeWithIcon( rFile->m_Name.c_str(), m_IconTextureSourceFile, ToRenameFile, m_pSelectedNode == rFile, &rFile->m_ExpandNode, false );
 
 							if( ColorFileText )
 								ImGui::PopStyleColor();
@@ -379,7 +379,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 							ImGui::SetNextItemOpen( rNode->m_ExpandNode, rNode->m_ExpandNode ? ImGuiCond_Always : ImGuiCond_None );
 
-							if( ImGuiAux::PushTreeWithIcon( FileFilterIDString.c_str(), m_IconTextureFileFilter, ToRenameFileFilter, m_pSelectedNode == rNode, rNode->m_pChildren.size() ) )
+							if( ImGuiAux::PushTreeWithIcon( FileFilterIDString.c_str(), m_IconTextureFileFilter, ToRenameFileFilter, m_pSelectedNode == rNode, &rNode->m_ExpandNode, rNode->m_pChildren.size() ) )
 							{
 								if( ToRenameFileFilter ) { RenameFileFilterFunc(); }
 
@@ -631,11 +631,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 				if( ImGui::MenuItem( "New File" ) )
 				{
-					INode* pNode = m_pSelectedNode;
-					while( pNode->m_pParent->m_Kind != NodeKind::Project )
-						pNode = pNode->m_pParent;
-
-					NewItemModal::Instance().Show( "New File", nullptr, std::filesystem::canonical( pNode->m_pParent->m_Location ), [ this ]( const std::string& rName, const std::filesystem::path& rLocation )
+					NewItemModal::Instance().Show( "New File", nullptr, std::filesystem::canonical( m_pSelectedNode->m_Location ), [ this ]( const std::string& rName, const std::filesystem::path& rLocation )
 						{ m_UndoCommandStack.DoCommand( new OutlinerCommands::NewNodeCommand( NodeKind::File, rName, rLocation, m_pSelectedNode ) ); } );
 
 					m_ShowNodeContextMenu         = false;
@@ -687,7 +683,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 //////////////////////////////////////////////////////////////////////////
 
-void WorkspaceOutliner::WriteSettings( jsonSerializer& rSerializer )
+void WorkspaceOutliner::WriteSettings( JSONSerializer& rSerializer )
 {
 	Workspace*            pWorkspace = Application::Instance().CurrentWorkspace();
 	std::filesystem::path Workspace  = pWorkspace->m_Location / ( pWorkspace->m_Name + ".gwks" );
