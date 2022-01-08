@@ -130,6 +130,8 @@ public:
 		Coordinate SelectionOrigin = Coordinate( ~0, ~0 );
 
 		bool Disabled = false;
+		bool Main     = false;
+		bool Last     = false;
 	};
 
 	typedef std::vector< Glyph > Line;
@@ -242,6 +244,10 @@ private:
 	void                             HandleMouseInputs( File& rFile );
 	ImVec2                           GetMousePosition();
 	void                             SetBoxSelection( File& rFile, int LineIndex, float XPosition );
+	void                             AddCursor( File& rFile, Cursor& rCursor );
+	Cursor&                          GetLastAddedCursor( File& rFile );
+	Cursor&                          GetMainCursor( File& rFile );
+	void                             EraseAllCursors( File& rFile, bool ExcludeMainCursor = false );
 	void                             ScrollToCursor( File& rFile );
 	void                             ScrollTo( File& rFile, Coordinate Position );
 	void                             ScrollTo( File& rFile, Coordinate Position, ImGuiWindow* pWindow );
@@ -268,7 +274,7 @@ private:
 	float                            CalculateTabAlignmentDistance( File& rFile, Coordinate FromPosition );
 	void                             AdjustCursors( File& rFile, int Cursor, int XOffset, int YOffset );
 	void                             YeetDuplicateCursors( File& rFile );
-	void                             DisableIntersectionsInSelection( File& rFile, int Cursor );
+	void                             DisableIntersectionsInSelection( File& rFile, Cursor& rCursor );
 	void                             DeleteDisabledCursor( File& rFile );
 	void                             DeleteSelection( File& rFile, int Cursor );
 	void                             Enter( File& rFile );
