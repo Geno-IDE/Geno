@@ -198,9 +198,9 @@ void TextEdit::Show( bool* pOpen )
 			{
 				if( rFile.Cursors.size() )
 				{
-					auto& rCursor = rFile.Cursors.at( 0 );
-					int   Length = static_cast< int >( rFile.Text.size() );
-					int   Lines  = static_cast< int >( rFile.Lines.size() );
+					auto& rCursor = GetMainCursor( rFile );
+					int   Length  = static_cast< int >( rFile.Text.size() );
+					int   Lines   = static_cast< int >( rFile.Lines.size() );
 
 					StatusBar::Instance().SetCurrentFileInfo( rCursor.Position.x + 1, rCursor.Position.y + 1, Length, Lines );
 				}
@@ -209,7 +209,7 @@ void TextEdit::Show( bool* pOpen )
 	}
 	else
 		StatusBar::Instance().ClearCurrentFileInfo();
-	
+
 	ImGui::End();
 	ImGui::PopStyleColor();
 
@@ -706,14 +706,14 @@ void TextEdit::HandleMouseInputs( File& rFile )
 		if( ImGui::IsMouseReleased( ImGuiMouseButton_Left ) || ( Props.Changes && ImGui::IsMouseDown( ImGuiMouseButton_Left ) ) )
 		{
 			if( Props.Changes )
-				rFile.Cursors[ rFile.Cursors.size() - 1 ].SelectionOrigin = GetCoordinate( rFile, MouseCoords );
+				GetLastAddedCursor( rFile ).SelectionOrigin = GetCoordinate( rFile, MouseCoords );
 
 			DeleteDisabledCursor( rFile );
 		}
 
 		if( DoubleClicked )
 		{
-			Cursor& rLastCursor = rFile.Cursors[ rFile.Cursors.size() - 1 ];
+			Cursor& rLastCursor = GetLastAddedCursor( rFile );
 
 			std::string Word = GetWordAt( rFile, rLastCursor );
 
@@ -737,7 +737,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 					return;
 				}
 
-				rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+				EraseAllCursors( rFile, true );
 
 				Cursor& rCursor = rFile.Cursors[ 0 ];
 
@@ -770,7 +770,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 			}
 			else if( Shift && !Ctrl && rFile.CursorMultiMode == MultiCursorMode::Box )
 			{
-				Cursor& rCursor = rFile.Cursors[ 0 ];
+				Cursor& rCursor = GetMainCursor( rFile );
 
 				if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) )
 				{
@@ -788,9 +788,11 @@ void TextEdit::HandleMouseInputs( File& rFile )
 				Cursor NewCursor;
 
 				NewCursor.Position       = NewPosition;
-				NewCursor.SelectionStart = NewCursor.SelectionEnd = Coordinate( 0, 0 );
+				NewCursor.SelectionStart = Coordinate( 0, 0 );
+				NewCursor.SelectionEnd   = Coordinate( 0, 0 );
+				NewCursor.Main           = rFile.Cursors.size() == 0;
 
-				rFile.Cursors.push_back( NewCursor );
+				AddCursor( rFile, NewCursor );
 
 				Props.CursorBlink     = 0;
 				rFile.CursorMultiMode = MultiCursorMode::Normal;
@@ -809,7 +811,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 			if( rFile.CursorMultiMode == MultiCursorMode::Box )
 			{
 				int     Line    = GetCoordinateY( rFile, MouseCoords.y );
-				Cursor& rCursor = rFile.Cursors[ 0 ];
+				Cursor& rCursor = GetMainCursor( rFile );
 
 				if( rCursor.SelectionOrigin == Coordinate( -1, -1 ) )
 				{
@@ -825,7 +827,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 			else
 			{
 				Coordinate Pos     = GetCoordinate( rFile, MouseCoords );
-				Cursor&    rCursor = rFile.Cursors[ rFile.Cursors.size() - 1 ];
+				Cursor&    rCursor = GetLastAddedCursor( rFile );
 
 				if( rCursor.SelectionOrigin != Coordinate( ~0, ~0 ) )
 				{
@@ -844,7 +846,7 @@ void TextEdit::HandleMouseInputs( File& rFile )
 
 					rCursor.Position = Pos;
 
-					DisableIntersectionsInSelection( rFile, ( int )rFile.Cursors.size() - 1 );
+					DisableIntersectionsInSelection( rFile, rCursor );
 				}
 				else
 				{
@@ -876,9 +878,9 @@ ImVec2 TextEdit::GetMousePosition()
 
 void TextEdit::SetBoxSelection( File& rFile, int LineIndex, float XPosition )
 {
-	rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+	EraseAllCursors( rFile, true );
 
-	Cursor CurrCursor      = rFile.Cursors[ 0 ];
+	Cursor CurrCursor      = GetMainCursor( rFile );
 	float  OriginXDistance = GetDistance( rFile, CurrCursor.SelectionOrigin );
 
 	if( LineIndex > CurrCursor.SelectionOrigin.y )
@@ -910,7 +912,7 @@ void TextEdit::SetBoxSelection( File& rFile, int LineIndex, float XPosition )
 				Cursor.SelectionEnd   = Coordinate( 0, 0 );
 			}
 
-			rFile.Cursors.push_back( Cursor );
+			AddCursor( rFile, Cursor );
 		}
 	}
 	else if( LineIndex < CurrCursor.SelectionOrigin.y )
@@ -942,7 +944,7 @@ void TextEdit::SetBoxSelection( File& rFile, int LineIndex, float XPosition )
 				Cursor.SelectionEnd   = Coordinate( 0, 0 );
 			}
 
-			rFile.Cursors.push_back( Cursor );
+			AddCursor( rFile, Cursor );
 		}
 	}
 	else
@@ -950,7 +952,7 @@ void TextEdit::SetBoxSelection( File& rFile, int LineIndex, float XPosition )
 		rFile.BoxModeDir = BoxModeDirection::None;
 	}
 
-	Cursor& rCursor = rFile.Cursors[ 0 ];
+	Cursor& rCursor = GetMainCursor( rFile );
 
 	int PosX = GetCoordinateX( rFile, rCursor.Position.y, XPosition, true );
 
@@ -974,6 +976,97 @@ void TextEdit::SetBoxSelection( File& rFile, int LineIndex, float XPosition )
 	}
 
 } // SetBoxSelection
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::AddCursor( File& rFile, Cursor& rCursor )
+{
+	rCursor.Last = true;
+
+	for( int i = ( int )rFile.Cursors.size() - 1; i >= 0; i-- )
+	{
+		Cursor& rCur = rFile.Cursors[ i ];
+
+		if( rCursor.Position > rCur.Position )
+		{
+			rFile.Cursors.insert( rFile.Cursors.begin() + i + 1, rCursor );
+
+			for( int j = 0; j <= i; j++ )
+			{
+				rFile.Cursors[ j ].Last = false;
+			}
+
+			return;
+		}
+
+		rCur.Last = false;
+	}
+
+	rFile.Cursors.insert( rFile.Cursors.begin(), rCursor );
+
+} // AddCursor
+
+//////////////////////////////////////////////////////////////////////////
+
+TextEdit::Cursor& TextEdit::GetLastAddedCursor( File& rFile )
+{
+	GENO_ASSERT( rFile.Cursors.size() > 0 );
+
+	for( Cursor& rCursor : rFile.Cursors )
+	{
+		if( rCursor.Last )
+			return rCursor;
+	}
+
+	GENO_ASSERT( false );
+
+	// This should never happen
+	return rFile.Cursors[ 0 ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+TextEdit::Cursor& TextEdit::GetMainCursor( File& rFile )
+{
+	GENO_ASSERT( rFile.Cursors.size() > 0 );
+
+	for( Cursor& rCursor : rFile.Cursors )
+	{
+		if( rCursor.Main )
+			return rCursor;
+	}
+
+	GENO_ASSERT( false );
+
+	// This should never happen
+	return rFile.Cursors[ 0 ];
+
+} // GetMainCursor
+
+//////////////////////////////////////////////////////////////////////////
+
+void TextEdit::EraseAllCursors( File& rFile, bool ExcludeMainCursor )
+{
+	Cursor Tmp;
+
+	if( ExcludeMainCursor )
+	{
+		for( Cursor& rCursor : rFile.Cursors )
+		{
+			if( rCursor.Main )
+			{
+				Tmp = rCursor;
+				break;
+			}
+		}
+	}
+
+	rFile.Cursors.erase( rFile.Cursors.begin(), rFile.Cursors.end() );
+
+	if( ExcludeMainCursor )
+		rFile.Cursors.push_back( Tmp );
+
+} // EraseAllCursors
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -1519,7 +1612,7 @@ void TextEdit::SetSelection( File& rFile, Coordinate Start, Coordinate End, int 
 
 void TextEdit::SelectAll( File& rFile )
 {
-	rFile.Cursors.erase( rFile.Cursors.begin() + 1, rFile.Cursors.end() );
+	EraseAllCursors( rFile, true );
 
 	rFile.CursorMultiMode = MultiCursorMode::Normal;
 
@@ -1703,15 +1796,15 @@ void TextEdit::YeetDuplicateCursors( File& rFile )
 
 //////////////////////////////////////////////////////////////////////////
 
-void TextEdit::DisableIntersectionsInSelection( File& rFile, int CursorIndex )
+void TextEdit::DisableIntersectionsInSelection( File& rFile, Cursor& rCursor )
 {
-	Cursor& rCursor = rFile.Cursors[ CursorIndex ];
+	rCursor.Disabled = true;
 
 	for( int i = 0; i < ( int )rFile.Cursors.size(); i++ )
 	{
-		if( i == CursorIndex ) continue;
-
 		Cursor& rCursor2 = rFile.Cursors[ i ];
+
+		if( rCursor2.Disabled ) continue;
 
 		if( ( rCursor2.SelectionStart > rCursor.SelectionStart && rCursor2.SelectionStart < rCursor.SelectionEnd ) || ( rCursor2.SelectionEnd > rCursor.SelectionStart && rCursor2.SelectionEnd < rCursor.SelectionEnd ) || ( rCursor2.Position >= rCursor.SelectionStart && rCursor2.Position <= rCursor.SelectionEnd ) )
 		{
@@ -1722,6 +1815,8 @@ void TextEdit::DisableIntersectionsInSelection( File& rFile, int CursorIndex )
 			rCursor2.Disabled = false;
 		}
 	}
+
+	rCursor.Disabled = false;
 
 } // DisableIntersectingSelections
 
@@ -2498,7 +2593,7 @@ void TextEdit::MoveUp( File& rFile, bool Shift, bool Alt )
 
 	if( ( rFile.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
-		Cursor& rRefCursor = rFile.Cursors[ 0 ];
+		Cursor& rRefCursor = GetMainCursor( rFile );
 
 		if( rFile.CursorMultiMode == MultiCursorMode::Normal )
 		{
@@ -2511,18 +2606,23 @@ void TextEdit::MoveUp( File& rFile, bool Shift, bool Alt )
 		}
 
 		rFile.CursorMultiMode = MultiCursorMode::Box;
-		Cursor& rCursor       = rFile.Cursors.back();
-		float   XDist         = GetDistance( rFile, rCursor.Position );
-		int     Line          = -1;
 
-		if( rFile.BoxModeDir != BoxModeDirection::None )
+		Coordinate Position;
+
+		switch( rFile.BoxModeDir )
 		{
-			Line = rCursor.Position.y - 1;
+			case BoxModeDirection::Up:
+				Position = rFile.Cursors[ 0 ].Position;
+				break;
+			case BoxModeDirection::Down:
+				Position = rFile.Cursors.back().Position;
+				break;
+			case BoxModeDirection::None:
+				Position = rRefCursor.Position;
 		}
-		else
-		{
-			Line = rRefCursor.Position.y - 1;
-		}
+
+		float XDist = GetDistance( rFile, Position );
+		int   Line  = Position.y - 1;
 
 		if( Line < 0 ) return;
 
@@ -2608,7 +2708,7 @@ void TextEdit::MoveDown( File& rFile, bool Shift, bool Alt )
 
 	if( ( rFile.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
-		Cursor& rRefCursor = rFile.Cursors[ 0 ];
+		Cursor& rRefCursor = GetMainCursor( rFile );
 
 		if( rFile.CursorMultiMode == MultiCursorMode::Normal )
 		{
@@ -2621,18 +2721,23 @@ void TextEdit::MoveDown( File& rFile, bool Shift, bool Alt )
 		}
 
 		rFile.CursorMultiMode = MultiCursorMode::Box;
-		Cursor& rCursor       = rFile.Cursors.back();
-		float   XDist         = GetDistance( rFile, rCursor.Position );
-		int     Line          = -1;
 
-		if( rFile.BoxModeDir != BoxModeDirection::None )
+		Coordinate Position;
+
+		switch( rFile.BoxModeDir )
 		{
-			Line = rCursor.Position.y + 1;
+			case BoxModeDirection::Up:
+				Position = rFile.Cursors[ 0 ].Position;
+				break;
+			case BoxModeDirection::Down:
+				Position = rFile.Cursors.back().Position;
+				break;
+			case BoxModeDirection::None:
+				Position = rRefCursor.Position;
 		}
-		else
-		{
-			Line = rRefCursor.Position.y + 1;
-		}
+
+		float XDist = GetDistance( rFile, Position );
+		int   Line  = Position.y + 1;
 
 		if( Line >= ( int )rFile.Lines.size() ) return;
 
@@ -2712,7 +2817,7 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift, bool Alt )
 {
 	if( ( rFile.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
-		Cursor& rCursor = rFile.Cursors[ 0 ];
+		Cursor& rCursor = GetMainCursor( rFile );
 
 		if( rFile.CursorMultiMode == MultiCursorMode::Normal )
 		{
@@ -2725,7 +2830,20 @@ void TextEdit::MoveRight( File& rFile, bool Ctrl, bool Shift, bool Alt )
 		}
 
 		rFile.CursorMultiMode = MultiCursorMode::Box;
-		Coordinate Coord      = rFile.Cursors.back().Position;
+
+		Coordinate Coord;
+
+		switch( rFile.BoxModeDir )
+		{
+			case BoxModeDirection::Up:
+				Coord = rFile.Cursors[ 0 ].Position;
+				break;
+			case BoxModeDirection::Down:
+				Coord = rFile.Cursors.back().Position;
+				break;
+			case BoxModeDirection::None:
+				Coord = rCursor.Position;
+		}
 
 		if( Ctrl )
 		{
@@ -2848,7 +2966,7 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift, bool Alt )
 {
 	if( ( rFile.CursorMultiMode == MultiCursorMode::Box || Alt ) && Shift )
 	{
-		Cursor& rCursor = rFile.Cursors[ 0 ];
+		Cursor& rCursor = GetMainCursor( rFile );
 
 		if( rFile.CursorMultiMode == MultiCursorMode::Normal )
 		{
@@ -2861,7 +2979,20 @@ void TextEdit::MoveLeft( File& rFile, bool Ctrl, bool Shift, bool Alt )
 		}
 
 		rFile.CursorMultiMode = MultiCursorMode::Box;
-		Coordinate Coord      = rFile.Cursors.back().Position;
+
+		Coordinate Coord;
+
+		switch( rFile.BoxModeDir )
+		{
+			case BoxModeDirection::Up:
+				Coord = rFile.Cursors[ 0 ].Position;
+				break;
+			case BoxModeDirection::Down:
+				Coord = rFile.Cursors.back().Position;
+				break;
+			case BoxModeDirection::None:
+				Coord = rCursor.Position;
+		}
 
 		if( Coord.x == 0 && Coord.y == 0 ) return;
 
@@ -3152,7 +3283,7 @@ void TextEdit::End( File& rFile, bool Ctrl, bool Shift )
 
 void TextEdit::Esc( File& rFile )
 {
-	rFile.Cursors.erase( rFile.Cursors.begin(), rFile.Cursors.end() - 1 );
+	EraseAllCursors( rFile, true );
 
 	Cursor& rCursor         = rFile.Cursors[ 0 ];
 	rCursor.SelectionStart  = Coordinate( 0, 0 );
@@ -3332,7 +3463,7 @@ void TextEdit::Paste( File& rFile )
 
 void TextEdit::SwapLines( File& rFile, bool Up )
 {
-	if( rFile.Cursors.size() > 1 && rFile.CursorMultiMode == MultiCursorMode::Normal ) rFile.Cursors.erase( rFile.Cursors.begin(), rFile.Cursors.end() - 1 );
+	if( rFile.Cursors.size() > 1 && rFile.CursorMultiMode == MultiCursorMode::Normal ) EraseAllCursors( rFile, true );
 
 	int     LineToMove  = -1;
 	int     Destination = -1;
@@ -3344,16 +3475,8 @@ void TextEdit::SwapLines( File& rFile, bool Up )
 	{
 		if( rFile.CursorMultiMode == MultiCursorMode::Box && rFile.BoxModeDir != BoxModeDirection::None )
 		{
-			if( rFile.BoxModeDir == BoxModeDirection::Down )
-			{
-				LineToMove  = rCursor.Position.y - 1;
-				Destination = rBackCursor.Position.y + 1;
-			}
-			if( rFile.BoxModeDir == BoxModeDirection::Up )
-			{
-				LineToMove  = rBackCursor.Position.y - 1;
-				Destination = rCursor.Position.y + 1;
-			}
+			LineToMove  = rCursor.Position.y - 1;
+			Destination = rBackCursor.Position.y + 1;
 
 			if( LineToMove == -1 ) return;
 
@@ -3400,16 +3523,8 @@ void TextEdit::SwapLines( File& rFile, bool Up )
 	{
 		if( rFile.CursorMultiMode == MultiCursorMode::Box && rFile.BoxModeDir != BoxModeDirection::None )
 		{
-			if( rFile.BoxModeDir == BoxModeDirection::Down )
-			{
-				LineToMove  = rBackCursor.Position.y + 1;
-				Destination = rCursor.Position.y;
-			}
-			if( rFile.BoxModeDir == BoxModeDirection::Up )
-			{
-				LineToMove  = rCursor.Position.y + 1;
-				Destination = rBackCursor.Position.y;
-			}
+			LineToMove  = rBackCursor.Position.y + 1;
+			Destination = rCursor.Position.y;
 
 			if( LineToMove + 1 == ( int )rFile.Lines.size() ) return;
 
