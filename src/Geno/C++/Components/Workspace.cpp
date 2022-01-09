@@ -51,7 +51,10 @@ void Workspace::Build( void )
 			std::vector< JobSystem::JobPtr >                        CompilerJobs;
 			std::vector< std::shared_ptr< std::filesystem::path > > CompilerOutputs;
 
-			Configuration.m_OutputDir = rProject.m_Location;
+			Configuration.Override( rProject.m_LocalConfiguration );
+
+			if( !Configuration.m_OutputDir )
+				Configuration.m_OutputDir = rProject.m_Location;
 
 			// TODO: Remove any duplicate files, since a single file can exist in multiple filters
 
@@ -59,6 +62,16 @@ void Workspace::Build( void )
 			{
 				for( const std::filesystem::path& rFile : rFileFilter.Files )
 				{
+					auto Extension = rFile.extension();
+
+					// Skip any files that shouldn't be compiled
+					// TODO: We want to support other languages in the future. Perhaps store the compiler in each file-config?
+					if( Extension != ".cc"
+					 && Extension != ".cpp"
+					 && Extension != ".cxx"
+					 && Extension != ".c++" )
+						continue;
+
 					auto Output = std::make_shared< std::filesystem::path >();
 
 					CompilerOutputs.push_back( Output );

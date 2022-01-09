@@ -66,15 +66,15 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::shared_ptr< ICompiler >         m_Compiler;
-	std::vector< std::filesystem::path > m_IncludeDirs;
-	std::vector< std::filesystem::path > m_LibraryDirs;
-	std::vector< std::wstring >          m_Libraries;
-	std::vector< std::wstring >          m_Defines;
-	std::optional< Optimization >        m_Optimization;
-	std::optional< Architecture >        m_Architecture;
-	std::filesystem::path                m_OutputDir;
-	bool                                 m_Verbose = true;
+	std::shared_ptr< ICompiler >           m_Compiler;
+	std::vector< std::filesystem::path >   m_IncludeDirs;
+	std::vector< std::filesystem::path >   m_LibraryDirs;
+	std::vector< std::string >             m_Libraries;
+	std::vector< std::string >             m_Defines;
+	std::optional< Optimization >          m_Optimization;
+	std::optional< Architecture >          m_Architecture;
+	std::optional< std::filesystem::path > m_OutputDir;
+	std::optional< bool >                  m_Verbose;
 
 }; // Configuration
 

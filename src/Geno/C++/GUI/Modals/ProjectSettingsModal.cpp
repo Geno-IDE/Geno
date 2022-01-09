@@ -122,9 +122,9 @@ void ProjectSettingsModal::UpdateDerived( void )
 				{
 					ImGui::TextUnformatted( "Include Directories" );
 
-					for( size_t i = 0; i < pProject->m_IncludeDirectories.size(); ++i )
+					for( size_t i = 0; i < pProject->m_LocalConfiguration.m_IncludeDirs.size(); ++i )
 					{
-						std::filesystem::path& rIncludeDir = pProject->m_IncludeDirectories[ i ];
+						std::filesystem::path& rIncludeDir = pProject->m_LocalConfiguration.m_IncludeDirs[ i ];
 						std::string            Buffer      = rIncludeDir.lexically_relative( pProject->m_Location ).string();
 						const std::string      Label       = "##INCLUDEDIR_" + std::to_string( i );
 
@@ -136,15 +136,15 @@ void ProjectSettingsModal::UpdateDerived( void )
 
 					if( ImGui::SmallButton( "+##ADD_INCLUDE_DIR" ) )
 					{
-						pProject->m_IncludeDirectories.emplace_back();
+						pProject->m_LocalConfiguration.m_IncludeDirs.emplace_back();
 					}
 
 					ImGui::Separator();
 					ImGui::TextUnformatted( "Preprocessor Defines" );
 
-					for( size_t i = 0; i < pProject->m_Defines.size(); ++i )
+					for( size_t i = 0; i < pProject->m_LocalConfiguration.m_Defines.size(); ++i )
 					{
-						std::string&      rDefine = pProject->m_Defines[ i ];
+						std::string&      rDefine = pProject->m_LocalConfiguration.m_Defines[ i ];
 						const std::string Label   = "##DEFINE_" + std::to_string( i );
 
 						ImGui::InputText( Label.c_str(), &rDefine );
@@ -152,7 +152,7 @@ void ProjectSettingsModal::UpdateDerived( void )
 
 					if( ImGui::SmallButton( "+##ADD_DEFINE" ) )
 					{
-						pProject->m_Defines.emplace_back();
+						pProject->m_LocalConfiguration.m_Defines.emplace_back();
 					}
 
 				} break;
@@ -167,9 +167,9 @@ void ProjectSettingsModal::UpdateDerived( void )
 
 					ImGui::TextUnformatted( "Library Directories" );
 
-					for( size_t i = 0; i < pProject->m_LibraryDirectories.size(); ++i )
+					for( size_t i = 0; i < pProject->m_LocalConfiguration.m_LibraryDirs.size(); ++i )
 					{
-						std::filesystem::path& rLibraryDir = pProject->m_LibraryDirectories[ i ];
+						std::filesystem::path& rLibraryDir = pProject->m_LocalConfiguration.m_LibraryDirs[ i ];
 						std::string            Buffer      = rLibraryDir.lexically_relative( pProject->m_Location ).string();
 						const std::string      Label       = "##LIBRARYDIR_" + std::to_string( i );
 
@@ -181,14 +181,14 @@ void ProjectSettingsModal::UpdateDerived( void )
 
 					if( ImGui::SmallButton( "+##ADD_LIBRARY_DIR" ) )
 					{
-						pProject->m_LibraryDirectories.emplace_back();
+						pProject->m_LocalConfiguration.m_LibraryDirs.emplace_back();
 					}
 
 					ImGui::TextUnformatted( "Libraries" );
 
-					for( size_t i = 0; i < pProject->m_Libraries.size(); ++i )
+					for( size_t i = 0; i < pProject->m_LocalConfiguration.m_Libraries.size(); ++i )
 					{
-						std::string&      rLibrary = pProject->m_Libraries[ i ];
+						std::string&      rLibrary = pProject->m_LocalConfiguration.m_Libraries[ i ];
 						const std::string Label    = "##LIBRARY_" + std::to_string( i );
 
 						ImGui::InputText( Label.c_str(), &rLibrary );
@@ -196,7 +196,7 @@ void ProjectSettingsModal::UpdateDerived( void )
 
 					if( ImGui::SmallButton( "+##ADD_LIBRARY" ) )
 					{
-						pProject->m_Libraries.emplace_back();
+						pProject->m_LocalConfiguration.m_Libraries.emplace_back();
 					}
 
 				} break;

@@ -128,6 +128,7 @@ std::wstring CompilerMSVC::MakeCompilerCommandLineString( const Configuration& r
 	const std::filesystem::path MSVCDir         = FindMSVCDir( ProgramFilesX86 );
 	const std::wstring          Host            = GetHostString();
 	const std::wstring          Target          = GetTargetString( rConfiguration.m_Architecture.value_or( Configuration::HostArchitecture() ) );
+	UTF8Converter               UTF8;
 
 	std::wstring CommandLine;
 	CommandLine += L"\"" + ( MSVCDir / "bin" / Host / Target / "cl.exe" ).wstring() + L"\"";
@@ -136,17 +137,17 @@ std::wstring CompilerMSVC::MakeCompilerCommandLineString( const Configuration& r
 	// Compile (don't just preprocess)
 	CommandLine += L" /c";
 
-//	// Language-specific options
-//	const auto FileExtension = rFilePath.extension();
-//	if     ( FileExtension == ".c"   ) CommandLine += L" /std:c11";
-//	else if( FileExtension == ".cpp" ) CommandLine += L" /EHsc /std:c++latest";
-//	else if( FileExtension == ".cxx" ) CommandLine += L" /EHsc /std:c++latest";
-//	else if( FileExtension == ".cc"  ) CommandLine += L" /EHsc /std:c++latest";
+	// Language-specific options
+	const auto FileExtension = rFilePath.extension();
+	if     ( FileExtension == ".c"   ) CommandLine += L" /std:c11";
+	else if( FileExtension == ".cpp" ) CommandLine += L" /std:c++latest /D _HAS_EXCEPTIONS=0";
+	else if( FileExtension == ".cxx" ) CommandLine += L" /std:c++latest /D _HAS_EXCEPTIONS=0";
+	else if( FileExtension == ".cc"  ) CommandLine += L" /std:c++latest /D _HAS_EXCEPTIONS=0";
 
 	// Add user-defined preprocessor defines
-	for( const std::wstring& rDefine : rConfiguration.m_Defines )
+	for( const std::string& rDefine : rConfiguration.m_Defines )
 	{
-		CommandLine += L" /D \"" + rDefine + L"\"";
+		CommandLine += L" /D \"" + UTF8.from_bytes( rDefine ) + L"\"";
 	}
 
 	// Set standard include directories
@@ -171,7 +172,6 @@ std::wstring CompilerMSVC::MakeCompilerCommandLineString( const Configuration& r
 	CommandLine += L" /Fo\"" + GetCompilerOutputPath( rConfiguration, rFilePath ).wstring() + L"\"";
 
 	// Set input file
-	const auto FileExtension = rFilePath.extension();
 	if     ( FileExtension == ".c"   ) CommandLine += L" /Tc \"" + rFilePath.wstring() + L"\"";
 	else if( FileExtension == ".cpp" ) CommandLine += L" /Tp \"" + rFilePath.wstring() + L"\"";
 	else if( FileExtension == ".cxx" ) CommandLine += L" /Tp \"" + rFilePath.wstring() + L"\"";
@@ -233,7 +233,7 @@ std::wstring CompilerMSVC::MakeLinkerCommandLineString( const Configuration& rCo
 	// Add all object files
 	for( const std::filesystem::path& rInputFile : InputFiles )
 	{
-		CommandLine += L" \"" + rInputFile.wstring() + L"\"";
+		CommandLine += L" \"" + rInputFile.wstring() + L".obj\"";
 	}
 
 	// Miscellaneous options
