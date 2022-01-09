@@ -65,6 +65,8 @@ std::wstring CompilerGCC::MakeLinkerCommandLineString( const Configuration& rCon
 	std::wstring Command;
 	Command.reserve( 256 );
 
+	UTF8Converter UTF8;
+
 	switch( Kind )
 	{
 		case Project::Kind::Application:
@@ -84,9 +86,9 @@ std::wstring CompilerGCC::MakeLinkerCommandLineString( const Configuration& rCon
 			}
 
 			// Link libraries
-			for( const std::wstring& rLibrary : rConfiguration.m_Libraries )
+			for( const std::string& rLibrary : rConfiguration.m_Libraries )
 			{
-				Command += L" -l" + rLibrary;
+				Command += L" -l" + UTF8.from_bytes( rLibrary );
 			}
 
 			// Set output file

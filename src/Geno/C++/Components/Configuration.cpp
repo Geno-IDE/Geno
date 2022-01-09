@@ -24,6 +24,13 @@ void Configuration::Override( const Configuration& rOther )
 	if( rOther.m_Compiler     ) m_Compiler     = rOther.m_Compiler;
 	if( rOther.m_Architecture ) m_Architecture = rOther.m_Architecture;
 	if( rOther.m_Optimization ) m_Optimization = rOther.m_Optimization;
+	if( rOther.m_OutputDir    ) m_OutputDir    = rOther.m_OutputDir;
+	if( rOther.m_Verbose      ) m_Verbose      = rOther.m_Verbose;
+
+	for( auto& rIncludeDir : rOther.m_IncludeDirs ) m_IncludeDirs.push_back( rIncludeDir );
+	for( auto& rLibraryDir : rOther.m_LibraryDirs ) m_LibraryDirs.push_back( rLibraryDir );
+	for( auto& rLibrary    : rOther.m_Libraries   ) m_Libraries  .push_back( rLibrary );
+	for( auto& rDefine     : rOther.m_Defines     ) m_Defines    .push_back( rDefine );
 
 } // Override
 

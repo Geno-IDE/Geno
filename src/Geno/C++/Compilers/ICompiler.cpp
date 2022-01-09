@@ -56,7 +56,7 @@ std::optional< std::filesystem::path > ICompiler::Link( const Configuration& rCo
 
 std::filesystem::path ICompiler::GetCompilerOutputPath( const Configuration& rConfiguration, const std::filesystem::path& rFilePath )
 {
-	return ( rConfiguration.m_OutputDir / rFilePath.stem() );
+	return ( *rConfiguration.m_OutputDir / rFilePath.stem() );
 
 } // GetCompilerOutputPath
 
@@ -64,7 +64,7 @@ std::filesystem::path ICompiler::GetCompilerOutputPath( const Configuration& rCo
 
 std::filesystem::path ICompiler::GetLinkerOutputPath( const Configuration& rConfiguration, const std::wstring& rOutputName, Project::Kind Kind )
 {
-	std::filesystem::path OutputFile = ( rConfiguration.m_OutputDir / rOutputName );
+	std::filesystem::path OutputFile = ( *rConfiguration.m_OutputDir / rOutputName );
 
 	switch( Kind )
 	{

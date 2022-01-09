@@ -93,14 +93,11 @@ public:
 //////////////////////////////////////////////////////////////////////////
 
 	Kind                                 m_Kind = Kind::Application;
+	Configuration                        m_LocalConfiguration;
 
 	std::filesystem::path                m_Location;
 	std::string                          m_Name;
 	std::vector< FileFilter >            m_FileFilters;
-	std::vector< std::filesystem::path > m_IncludeDirectories;
-	std::vector< std::filesystem::path > m_LibraryDirectories;
-	std::vector< std::string >           m_Defines;
-	std::vector< std::string >           m_Libraries;
 
 //////////////////////////////////////////////////////////////////////////
 
