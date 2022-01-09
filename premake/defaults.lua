@@ -8,7 +8,7 @@ flags { 'FatalWarnings', 'MultiProcessorCompile' }
 includedirs { '../include/' }
 objdir '../obj'
 rtti 'Off'
-targetdir '../%{iif(prj.kind == "StaticLib" or prj.kind == "SharedLib","lib","bin")}/%{cfg.platform}/%{cfg.buildcfg}'
+targetdir '../%{iif(prj.kind == "StaticLib" or prj.kind == "SharedLib","lib","bin")}/%{cfg.platform .. iif(cfg.buildcfg == "Debug","-d","")}'
 warnings 'Extra'
 
 defines {
