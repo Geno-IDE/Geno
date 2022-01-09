@@ -140,7 +140,7 @@ void Application::HandleCommandLineArgs( int NumArgs, char** ppArgs )
 			m_ExePath = std::filesystem::absolute( ppArgs[ 0 ] ).lexically_normal();
 #if defined( _WIN32 ) || defined( __linux__ )
 			m_AppDir  = m_ExePath.parent_path();
-			m_DataDir = m_AppDir.parent_path().parent_path().parent_path() / L"data";
+			m_DataDir = m_AppDir.parent_path().parent_path() / L"data";
 #elif defined( __APPLE__ ) // _WIN32 || __linux__
 			m_AppDir  = m_ExePath.parent_path().parent_path().parent_path();
 			m_DataDir = m_AppDir / L"Contents" / L"Resources" / L"data";
