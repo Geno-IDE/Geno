@@ -43,12 +43,23 @@ void Workspace::Build( void )
 	{
 		UTF8Converter                            UTF8Converter;
 		std::vector< JobSystem::JobPtr >         LinkerJobs;
+		std::vector< std::string >               LinkerJobProjectNames;
 		std::shared_ptr< std::filesystem::path > LinkerOutput = std::make_shared< std::filesystem::path >();
 
-		for( const Project& rProject : m_Projects )
+		// Sort projects so that the link jobs exist to be depended upon
+		std::vector< std::reference_wrapper< const Project > > ProjectRefs;
+		std::copy( m_Projects.begin(), m_Projects.end(), std::back_inserter( ProjectRefs ) );
+		std::sort( ProjectRefs.begin(), ProjectRefs.end(), []( const Project& rA, const Project& rB )
+			{
+				auto& rLibraries = rB.m_LocalConfiguration.m_Libraries;
+				return std::find( rLibraries.begin(), rLibraries.end(), rA.m_Name ) != rLibraries.end();
+			}
+		);
+
+		for( const Project& rProject : ProjectRefs )
 		{
 			Configuration                                           Configuration = m_BuildMatrix.CurrentConfiguration();
-			std::vector< JobSystem::JobPtr >                        CompilerJobs;
+			std::vector< JobSystem::JobPtr >                        LinkerDependencies;
 			std::vector< std::shared_ptr< std::filesystem::path > > CompilerOutputs;
 
 			Configuration.Override( rProject.m_LocalConfiguration );
@@ -66,7 +77,8 @@ void Workspace::Build( void )
 
 					// Skip any files that shouldn't be compiled
 					// TODO: We want to support other languages in the future. Perhaps store the compiler in each file-config?
-					if( Extension != ".cc"
+					if( Extension != ".c"
+					 && Extension != ".cc"
 					 && Extension != ".cpp"
 					 && Extension != ".cxx"
 					 && Extension != ".c++" )
@@ -76,7 +88,7 @@ void Workspace::Build( void )
 
 					CompilerOutputs.push_back( Output );
 
-					CompilerJobs.push_back( JobSystem::Instance().NewJob(
+					LinkerDependencies.push_back( JobSystem::Instance().NewJob(
 						[ Configuration, rFile, Output ]( void )
 						{
 							if( !Configuration.m_Compiler )
@@ -94,9 +106,18 @@ void Workspace::Build( void )
 				}
 			}
 
+			// Assemble a list of link jobs for projects that this depends on
+			for( std::string& rLibrary : Configuration.m_Libraries )
+			{
+				auto Name = std::find_if( LinkerJobProjectNames.begin(), LinkerJobProjectNames.end(), [ &rLibrary ]( const std::string& rName ) { return rName == rLibrary; } );
+				if( Name != LinkerJobProjectNames.end() )
+					LinkerDependencies.push_back( *std::next( LinkerJobs.begin(), std::distance( LinkerJobProjectNames.begin(), Name ) ) );
+			}
+
 			const std::wstring  ProjectName = UTF8Converter.from_bytes( rProject.m_Name );
 			const Project::Kind Kind        = rProject.m_Kind;
 
+			LinkerJobProjectNames.push_back( rProject.m_Name );
 			LinkerJobs.push_back( JobSystem::Instance().NewJob(
 				[ Configuration, ProjectName, Kind, CompilerOutputs, LinkerOutput ]( void )
 				{
@@ -112,7 +133,7 @@ void Workspace::Build( void )
 							*LinkerOutput = *Result;
 					}
 				},
-				CompilerJobs
+				LinkerDependencies
 			) );
 		}
 
