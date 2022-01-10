@@ -16,6 +16,7 @@
  */
 
 #pragma once
+#include "Auxiliary/JSONSerializer.h"
 #include "Components/Configuration.h"
 #include "Components/INode.h"
 
@@ -38,16 +39,19 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-class FileFilter :public INode
+class Group : public INode
 {
 public:
-
-	FileFilter( std::filesystem::path Location, std::string Name );
+	Group( std::filesystem::path Location, std::string Name, bool WorkspaceGroup = false );
 
 	void Rename( std::string Name ) override;
-	void NewFile( std::filesystem::path Location, std::string Name );
 
-}; // FileFilter
+	void Serialize( JSONSerializer& rSerializer );
+	void Deserialize( const rapidjson::Value::ConstMemberIterator& rIt );
+
+	bool m_WorkspaceGroup = false;
+
+}; // Group
 
 //////////////////////////////////////////////////////////////////////////
 

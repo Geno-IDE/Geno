@@ -51,12 +51,12 @@ static constexpr const char* StringifyCategory( Category Category )
 
 //////////////////////////////////////////////////////////////////////////
 
-void ProjectSettingsModal::Show( std::string Project )
+void ProjectSettingsModal::Show( INode* pNode )
 {
 	if( Open() )
 	{
 		m_CurrentCategory = -1;
-		m_EditedProject   = std::move( Project );
+		m_pProjectNode    = std::move( pNode );
 	}
 
 } // Show
@@ -65,19 +65,7 @@ void ProjectSettingsModal::Show( std::string Project )
 
 void ProjectSettingsModal::UpdateDerived( void )
 {
-	Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
-	if( !pWorkspace )
-	{
-		ImGui::TextUnformatted( "No active workspace" );
-		return;
-	}
-
-	Project* pProject = ( Project* )pWorkspace->ChildByName( m_EditedProject );
-	if( !pProject )
-	{
-		ImGui::Text( "No project found by the name '%s'", m_EditedProject.c_str() );
-		return;
-	}
+	Project* pProject = ( Project* )m_pProjectNode;
 
 	if( ImGui::BeginChild( 1, ImVec2( 0, -30 ) ) )
 	{
@@ -222,6 +210,6 @@ void ProjectSettingsModal::UpdateDerived( void )
 void ProjectSettingsModal::OnClose( void )
 {
 	m_CurrentCategory = -1;
-	m_EditedProject.clear();
+	m_pProjectNode    = nullptr;
 
 } // OnClose
