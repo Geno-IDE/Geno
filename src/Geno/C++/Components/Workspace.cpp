@@ -35,6 +35,8 @@
 Workspace::Workspace( std::string Name, std::filesystem::path Location )
 	: INode( std::move( Location ), std::move( Name ), NodeKind::Workspace )
 {
+	AddChild( new Group( m_Location, "", true ) ); // Create Default Group
+
 } // Workspace
 
 //////////////////////////////////////////////////////////////////////////
@@ -201,17 +203,17 @@ bool Workspace::Serialize( void )
 		*/
 	}
 
-	// Projects Array
+	// Groups
 	{
-		std::vector< std::string > Projects;
-		for( INode*& rNode : m_pChildren )
-		{
-			if( !rNode ) { continue; }
-			Project* rProject = ( Project* )rNode;
-			Projects.push_back( ( rNode->m_Location.lexically_relative( m_Location ) / rNode->m_Name ).string() );
-			rProject->Serialize();
-		}
-		Serializer.Add( "Projects", std::move( Projects ) );
+		Serializer.Object( "Groups", [ & ]()
+			{
+				for( INode* pNode : m_pChildren )
+				{
+					Group* pGroup = ( Group* )pNode;
+					pGroup->Serialize( Serializer );
+				}
+
+			} );
 	}
 
 	return true;
@@ -241,19 +243,23 @@ bool Workspace::Deserialize( void )
 		{
 			//TODO Deserialize Build Matrix Column
 		}
-		else if( MemberName == "Projects" )
+		else if( MemberName == "Groups" )
 		{
-			const auto Array = It->value.GetArray();
-			for( auto i = Array.Begin(); i < Array.End(); ++i )
+			for( auto GroupsIt = It->value.MemberBegin(); GroupsIt < It->value.MemberEnd(); ++GroupsIt )
 			{
-				std::filesystem::path ProjectPath = i->GetString();
+				const std::string GroupName = GroupsIt->name.GetString();
 
-				if( !ProjectPath.is_absolute() )
-					ProjectPath = m_Location / ProjectPath;
-
-				ProjectPath = ProjectPath.lexically_normal();
-
-				AddProject( std::move( ProjectPath ) );
+				if( GroupName == "DefaultGroup" )
+				{
+					Group* pGroup = ( Group* )m_pChildren[ 0 ];
+					pGroup->Deserialize( GroupsIt );
+				}
+				else
+				{
+					Group* pGroup = new Group( m_Location, GroupName, true );
+					pGroup->Deserialize( GroupsIt );
+					AddChild( std::move( pGroup ) );
+				}
 			}
 		}
 	}
@@ -278,31 +284,3 @@ void Workspace::Rename( std::string Name )
 	Serialize();
 
 } // Rename
-
-//////////////////////////////////////////////////////////////////////////
-
-Project& Workspace::NewProject( std::filesystem::path Location, std::string Name )
-{
-	Project* pProject = new Project( std::move( Location ), std::move( Name ) );
-	AddChild( pProject );
-
-	return *pProject;
-
-} // NewProject
-
-//////////////////////////////////////////////////////////////////////////
-
-bool Workspace::AddProject( const std::filesystem::path& rPath )
-{
-	if( !ChildByName( rPath.stem().string() ) )
-	{
-		std::filesystem::path ProjectPath = rPath;
-		ProjectPath                       = ProjectPath.lexically_normal();
-
-		Project& rProject = NewProject( ProjectPath.parent_path(), ProjectPath.stem().string() );
-		if( rProject.Deserialize() )
-			return true;
-	}
-	return false;
-
-} // AddProject

@@ -22,6 +22,8 @@
 #include "GUI/MainWindow.h"
 #include "GUI/Widgets/TextEdit.h"
 
+#include <fstream>
+
 //////////////////////////////////////////////////////////////////////////
 
 OutlinerCommands::RenameNodeCommand::RenameNodeCommand( std::string NewName, INode* pNode )
@@ -78,28 +80,40 @@ OutlinerCommands::NewNodeCommand::NewNodeCommand( NodeKind NewNodeKind, std::str
 
 void OutlinerCommands::NewNodeCommand::Execute( void )
 {
-	switch( m_NewNodeKind )
+	if( !m_pParentNode->ChildByName( m_Name ) )
 	{
-		case NodeKind::Workspace:
+		switch( m_NewNodeKind )
+		{
+			case NodeKind::Workspace:
+				break;
+			case NodeKind::Project:
+				m_pParentNode->AddChild( new Project( m_Location, m_Name ) );
+				break;
+			case NodeKind::Group:
+			{
+				bool WorkspaceGroup = false;
+				if( m_pParentNode->m_Kind == NodeKind::Workspace ) WorkspaceGroup = true;
+				else if( m_pParentNode->m_Kind == NodeKind::Group )
+				{
+					Group* pGroup  = ( Group* )m_pParentNode;
+					WorkspaceGroup = pGroup->m_WorkspaceGroup;
+				}
+				m_pParentNode->AddChild( new Group( m_pParentNode->m_Location, m_Name, std::move( WorkspaceGroup ) ) );
+			}
+				break;
+			case NodeKind::File:
+			{
+				std::ofstream OutputFile( m_Location / m_Name, std::ios::binary | std::ios::trunc );
+				if( OutputFile.is_open() )
+				{
+					m_pParentNode->AddChild( new File( m_Location, m_Name ) );
+					OutputFile.close();
+				}
+			}
 			break;
-		case NodeKind::Project:
-		{
-			Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
-			pWorkspace->NewProject( m_Location, m_Name );
+			case NodeKind::None:
+				break;
 		}
-		break;
-		case NodeKind::FileFilter:
-		{
-			if( !m_pParentNode->ChildByName( m_Name ) )
-				m_pParentNode->AddChild( new FileFilter( m_pParentNode->m_Location, m_Name ) );
-		}
-		break;
-		case NodeKind::File:
-		{
-			FileFilter* pFileFilter = ( FileFilter* )m_pParentNode;
-			pFileFilter->NewFile( m_Location, m_Name );
-		}
-		break;
 	}
 
 } // NewNodeCommand::Execute
@@ -136,23 +150,28 @@ OutlinerCommands::AddNodeCommand::AddNodeCommand( NodeKind AddNodeKind, std::str
 
 void OutlinerCommands::AddNodeCommand::Execute( void )
 {
+	if( m_pParentNode->ChildByName( m_Name ) ) return;
+
 	switch( m_AddNodeKind )
 	{
 		case NodeKind::Workspace:
+		case NodeKind::Group:
+		case NodeKind::None:
 			break;
 		case NodeKind::Project:
 		{
-			Workspace* pWorkspace = Application::Instance().CurrentWorkspace();
-			pWorkspace->AddProject( m_Location / m_Name );
+			std::filesystem::path Path = m_Location / m_Name;
+			Path                       = Path.lexically_normal();
+
+			Project* pProject = new Project( m_Location.parent_path(), Path.stem().string() );
+			if( pProject->Deserialize() )
+				m_pParentNode->AddChild( std::move( pProject ) );
+			else
+				delete pProject;
 		}
 		break;
 		case NodeKind::File:
-		{
-			if( !m_pParentNode->ChildByName( m_Name ) )
-				m_pParentNode->AddChild( new File( m_Location, m_Name ) );
-		}
-		break;
-		case NodeKind::FileFilter:
+			m_pParentNode->AddChild( new File( m_Location, m_Name ) );
 			break;
 	}
 

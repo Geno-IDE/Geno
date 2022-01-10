@@ -28,7 +28,7 @@ enum class NodeKind
 {
 	Workspace,
 	Project,
-	FileFilter,
+	Group,
 	File,
 	None
 
