@@ -43,21 +43,25 @@ private:
 	void WriteSettings( JSONSerializer& rSerializer ) override;
 	void ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt ) override;
 
+	void DrawNodes( INode* pNode );
+	void CreateNewGroup( void );
+
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
 	Texture2D m_IconTextureWorkspace  = {};
 	Texture2D m_IconTextureProject    = {};
-	Texture2D m_IconTextureFileFilter = {};
+	Texture2D m_IconTextureGroup      = {};
 	Texture2D m_IconTextureSourceFile = {};
 
 	std::string m_RenameText = {};
 
-	INode*                      m_pSelectedNode = nullptr;
-	std::vector< unsigned int > m_NodesSequence = {};
+	INode*                  m_pSelectedNode = nullptr;
+	std::vector< uint32_t > m_NodesSequence = {};
 
 	bool m_RenameNode          = false;
 	bool m_ShowNodeContextMenu = false;
+	bool m_ForceFocusRename    = false;
 
 }; // WorkspaceWidget

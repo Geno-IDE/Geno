@@ -33,8 +33,11 @@ JSONSerializer::~JSONSerializer( void )
 {
 	m_Writer->EndObject();
 	std::ofstream File( m_File, std::ios::out );
-	File << m_Buffer.GetString();
-	File.close();
+	if( File.is_open() )
+	{
+		File << m_Buffer.GetString();
+		File.close();
+	}
 	delete m_Writer;
 
 } // ~JSONSerializer

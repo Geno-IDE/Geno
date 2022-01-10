@@ -42,6 +42,24 @@ bool CheckExtension( const std::string& rExtension )
 
 //////////////////////////////////////////////////////////////////////////
 
+static void Iterate( INode* pNode, std::vector< std::vector< std::filesystem::path > >& rSrcPaths )
+{
+	for( INode*& rNode : pNode->m_pChildren )
+	{
+		if( rNode->m_Kind == NodeKind::Group )
+		{
+			Iterate( rNode, rSrcPaths );
+		}
+		else if( rNode->m_Kind == NodeKind::Project )
+		{
+			Project* pProject = ( Project* )rNode;
+			rSrcPaths.push_back( pProject->FindSourceFolders() );
+		}
+	}
+} // Iterate
+
+//////////////////////////////////////////////////////////////////////////
+
 void FindInWorkspace::Show( bool* pOpen )
 {
 	if( pOpen == 0 /* false */ || Application::Instance().CurrentWorkspace() == nullptr )
@@ -75,11 +93,7 @@ void FindInWorkspace::Show( bool* pOpen )
 
 		std::vector< std::vector< std::filesystem::path > > SrcPaths;
 
-		for( INode*& rNode : m_pWorkspace->m_pChildren )
-		{
-			Project* pProject = ( Project* )rNode;
-			SrcPaths.push_back( pProject->FindSourceFolders() );
-		}
+		Iterate( m_pWorkspace, SrcPaths );
 
 		for ( auto& rProjectSrcPaths : SrcPaths )
 		{

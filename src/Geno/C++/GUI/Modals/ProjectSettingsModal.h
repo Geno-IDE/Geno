@@ -17,6 +17,7 @@
 
 #pragma once
 #include "GUI/Modals/IModal.h"
+#include "Components/INode.h"
 
 #include <filesystem>
 
@@ -39,7 +40,7 @@ class ProjectSettingsModal : public IModal
 
 public:
 
-	void Show( std::string Project );
+	void Show( INode* pNode );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -52,8 +53,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-	std::string m_EditedProject;
-
-	int         m_CurrentCategory = -1;
+	INode* m_pProjectNode = nullptr;
+	int    m_CurrentCategory = -1;
 
 }; // ProjectSettingsModal
