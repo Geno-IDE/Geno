@@ -397,7 +397,7 @@ void MainWindow::DragDrop( const Drop& rDrop, int X, int Y )
 
 //////////////////////////////////////////////////////////////////////////
 
-void MainWindow::AddRecentWorkspace( char* pPath )
+void MainWindow::AddRecentWorkspace( const char* pPath )
 {
 	m_RecentWorkspaces.push_back( pPath );
 } // AddRecentWorkspace
@@ -442,7 +442,7 @@ void MainWindow::ImGuiSettingsReadLineCB( ImGuiContext* /*pContext*/, ImGuiSetti
 	else if( strcmp( pName, "Output"    ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pTitleBar->ShowOutputWindow      = Bool; }
 
 	// Load Recent Workspaces
-	if( strncmp( pLine, "Path=", 5 ) == 0 ) { pSelf->AddRecentWorkspace( ( char* )pLine + 5 ); }
+	if( strncmp( pLine, "Path=", 5 ) == 0 ) { pSelf->AddRecentWorkspace( pLine + 5 ); }
 
 } // ImGuiSettingsReadLineCB
 

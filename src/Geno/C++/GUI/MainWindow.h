@@ -71,7 +71,7 @@ public:
 	void    DragOver            ( int X, int Y );
 	void    DragLeave           ( void );
 	void    DragDrop            ( const Drop& rDrop, int X, int Y );
-	void    AddRecentWorkspace  ( char* pPath );
+	void    AddRecentWorkspace  ( const char* pPath );
 
 //////////////////////////////////////////////////////////////////////////
 
