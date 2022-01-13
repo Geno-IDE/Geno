@@ -42,7 +42,7 @@ public:
 
 		ConfigurationVector Configurations;
 		std::string         Name;
-		int32_t             CurrentConfiguration_ = 0;
+		int32_t             CurrentConfiguration = 0;
 
 	}; // Column
 

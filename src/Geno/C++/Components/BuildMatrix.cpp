@@ -59,11 +59,11 @@ Configuration BuildMatrix::CurrentConfiguration( void ) const
 	// Combine the values of all current configurations in each column
 	for( const Column& rColumn : m_Columns )
 	{
-		if( !( rColumn.CurrentConfiguration_ >= 0 && rColumn.CurrentConfiguration_ < rColumn.Configurations.size() ) )
+		if( !( rColumn.CurrentConfiguration >= 0 && rColumn.CurrentConfiguration < static_cast< int32_t >( rColumn.Configurations.size() ) ) )
 			continue;
 
 		// Find the current configuration
-		auto&[ rName, rConfiguration ] = rColumn.Configurations[ rColumn.CurrentConfiguration_ ];
+		auto&[ rName, rConfiguration ] = rColumn.Configurations[ rColumn.CurrentConfiguration ];
 		Result.Override( rConfiguration );
 	}
 

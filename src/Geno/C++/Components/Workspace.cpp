@@ -47,7 +47,7 @@ void Workspace::Build( void )
 		std::shared_ptr< std::filesystem::path > LinkerOutput = std::make_shared< std::filesystem::path >();
 
 		// Sort projects so that the link jobs exist to be depended upon
-		std::vector< std::reference_wrapper< const Project > > ProjectRefs;
+		std::vector< std::reference_wrapper< Project > > ProjectRefs;
 		std::copy( m_Projects.begin(), m_Projects.end(), std::back_inserter( ProjectRefs ) );
 		std::sort( ProjectRefs.begin(), ProjectRefs.end(), []( const Project& rA, const Project& rB )
 			{
@@ -56,7 +56,7 @@ void Workspace::Build( void )
 			}
 		);
 
-		for( const Project& rProject : ProjectRefs )
+		for( Project& rProject : ProjectRefs )
 		{
 			Configuration                                           Configuration = m_BuildMatrix.CurrentConfiguration();
 			std::vector< JobSystem::JobPtr >                        LinkerDependencies;
@@ -109,7 +109,7 @@ void Workspace::Build( void )
 			// Assemble a list of link jobs for projects that this depends on
 			for( std::string& rLibrary : Configuration.m_Libraries )
 			{
-				auto Name = std::find_if( LinkerJobProjectNames.begin(), LinkerJobProjectNames.end(), [ &rLibrary ]( const std::string& rName ) { return rName == rLibrary; } );
+				auto Name = std::find( LinkerJobProjectNames.begin(), LinkerJobProjectNames.end(), rLibrary );
 				if( Name != LinkerJobProjectNames.end() )
 					LinkerDependencies.push_back( *std::next( LinkerJobs.begin(), std::distance( LinkerJobProjectNames.begin(), Name ) ) );
 			}
