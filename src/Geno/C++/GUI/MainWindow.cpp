@@ -436,18 +436,13 @@ void MainWindow::ImGuiSettingsReadLineCB( ImGuiContext* /*pContext*/, ImGuiSetti
 	MainWindow*           pSelf = ( MainWindow* )pHandler->UserData;
 	const char*           pName = ( const char* )pEntry;
 	int                   Bool;
-	char                  Path[ 1024 ];
 
 	if(      strcmp( pName, "Text Edit" ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pTitleBar->ShowTextEdit          = Bool; }
 	else if( strcmp( pName, "Workspace" ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pTitleBar->ShowWorkspaceOutliner = Bool; }
 	else if( strcmp( pName, "Output"    ) == 0 ) { if( sscanf( pLine, "Active=%d", &Bool ) == 1 ) pSelf->pTitleBar->ShowOutputWindow      = Bool; }
 
-	// Recent Workspaces
-#if defined( _WIN32 )
-	if( strncmp( pLine, "Path=", 5 ) == 0 ) { pSelf->AddRecentWorkspace( pLine + 5 ); }
-#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
-	if( strncmp( pLine, "Path=", 5 ) == 0 ) { pSelf->AddRecentWorkspace( pLine + 5 ); }
-#endif //  __linux__ || __APPLE__ 
+	// Load Recent Workspaces
+	if( strncmp( pLine, "Path=", 5 ) == 0 ) { pSelf->AddRecentWorkspace( ( char* )pLine + 5 ); }
 
 } // ImGuiSettingsReadLineCB
 
