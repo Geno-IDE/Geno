@@ -93,9 +93,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	WorkspaceVector&      GetRecentWorkspaces()     {                                 return m_RecentWorkspaces;      }
-	std::filesystem::path GetMostRecentWorkspace()  { if( m_RecentWorkspaces.size() ) return m_RecentWorkspaces[ 0 ]; }
-
+	WorkspaceVector&      GetRecentWorkspaces()     { return m_RecentWorkspaces; }
 
 //////////////////////////////////////////////////////////////////////////
 

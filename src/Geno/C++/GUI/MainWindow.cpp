@@ -45,7 +45,6 @@
 
 #if defined( _WIN32 )
 #include "win32-resource.h"
-#define sscanf sscanf_s
 #endif // _WIN32
 
 #if defined( __APPLE__ )
@@ -445,9 +444,9 @@ void MainWindow::ImGuiSettingsReadLineCB( ImGuiContext* /*pContext*/, ImGuiSetti
 
 	// Recent Workspaces
 #if defined( _WIN32 )
-	if( sscanf( pLine, "Path=%s", Path, ( unsigned )sizeof( Path ) ) == 1 ) pSelf->AddRecentWorkspace( Path );
+	if( strncmp( pLine, "Path=", 5 ) == 0 ) { if( sscanf_s( pLine, "Path=%s", Path, ( unsigned )sizeof( Path ) ) == 1 ) pSelf->AddRecentWorkspace( Path ); }
 #elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
-	if( sscanf( pLine, "Path=%s", Path ) == 1 ) pSelf->AddRecentWorkspace( Path );
+	if( strncmp( pLine, "Path=", 5 ) == 0 ) { if( sscanf( pLine, "Path=%s", Path ) == 1 ) pSelf->AddRecentWorkspace( Path ); }
 #endif //  __linux__ || __APPLE__ 
 
 } // ImGuiSettingsReadLineCB
@@ -471,9 +470,6 @@ void MainWindow::ImGuiSettingsWriteAllCB( ImGuiContext* pContext, ImGuiSettingsH
 		pOutBuffer->appendf( "[%s][%s]\n", pHandler->TypeName, "Recent Workspaces" );
 		pOutBuffer->appendf( "Path=%s\n", MainWindow::Instance().GetRecentWorkspaces()[ I ].string().c_str() );
 		pOutBuffer->append( "\n" );
-
-		if( I == 0 )
-			break;
 	}
 
 } // ImGuiSettingsWriteAllCB
