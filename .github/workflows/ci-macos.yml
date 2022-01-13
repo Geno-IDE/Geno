@@ -22,4 +22,4 @@ jobs:
       run: xcodebuild clean -workspace "Geno.xcworkspace" -scheme "Geno"
 
     - name: Build project
-      run: xcodebuild build -workspace "Geno.xcworkspace" -scheme "Geno" -configuration Release | xcpretty -c && exit ${PIPESTATUS[0]}
+      run: set -o pipefail && xcodebuild build -workspace "Geno.xcworkspace" -scheme "Geno" -configuration Release | xcbeautify
