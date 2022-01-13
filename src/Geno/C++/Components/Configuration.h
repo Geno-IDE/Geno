@@ -21,6 +21,7 @@
 #include <filesystem>
 #include <optional>
 #include <memory>
+#include <vector>
 
 class ICompiler;
 
