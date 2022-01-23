@@ -74,7 +74,7 @@ private:
 
 	std::wstring_view m_CommandLine;
 
-	int m_ExitCode  = -2;
+	int m_ExitCode  = 0;
 
 #if defined( _WIN32 )
 	ProcessID m_Pid = nullptr;
