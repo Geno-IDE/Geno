@@ -184,7 +184,7 @@ void OpenFileModal::UpdateDerived( void )
 					ImGui::SameLine();
 				}
 
-				if( ImGui::BeginChild( 5, ImVec2( ImGui::GetContentRegionAvailWidth() - 50.0f, 0 ), false, ImGuiWindowFlags_HorizontalScrollbar ) ) //Browse With Buttons
+				if( ImGui::BeginChild( 5, ImVec2( ImGui::GetContentRegionAvail().x - 50.0f, 0 ), false, ImGuiWindowFlags_HorizontalScrollbar ) ) //Browse With Buttons
 				{
 					if( !m_SearchEnabled )
 					{
@@ -230,7 +230,7 @@ void OpenFileModal::UpdateDerived( void )
 					}
 					else
 					{
-						ImGui::SetNextItemWidth( ImGui::GetContentRegionAvailWidth() );
+						ImGui::SetNextItemWidth( ImGui::GetContentRegionAvail().x );
 						ImGui::SetCursorPosY( ImGui::GetWindowHeight() * 0.5f - 12.0f );
 
 						ImGui::PushStyleVar( ImGuiStyleVar_FrameRounding, 4.0f );

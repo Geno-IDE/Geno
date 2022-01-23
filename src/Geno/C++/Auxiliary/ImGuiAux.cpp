@@ -33,7 +33,7 @@ void ImGuiAux::RenameTree( std::string& rNameToRename, bool& rRename, const std:
 	else
 		HighlightBorder = false;
 
-	ImGui::SetNextItemWidth( ImGui::GetContentRegionAvailWidth() );
+	ImGui::SetNextItemWidth( ImGui::GetContentRegionAvail().x );
 
 	auto& BgColor = ImGui::GetStyle().Colors[ ImGuiCol_WindowBg ];
 

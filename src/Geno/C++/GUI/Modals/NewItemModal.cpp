@@ -60,7 +60,7 @@ void NewItemModal::UpdateDerived( void )
 
 	ImGui::PushStyleVar( ImGuiStyleVar_FrameRounding, 6.0f );
 
-	ImGui::SetNextItemWidth( ImGui::GetContentRegionAvailWidth() );
+	ImGui::SetNextItemWidth( ImGui::GetContentRegionAvail().x );
 
 	ImGui::InputText( "##FileName", &m_Name );
 
@@ -69,7 +69,7 @@ void NewItemModal::UpdateDerived( void )
 
 	ImVec2 ButtonSize = ImVec2( ImGui::GetFontSize() * m_IconFolder.GetAspectRatio(), ImGui::GetFontSize() );
 
-	ImGui::SetNextItemWidth( ImGui::GetContentRegionAvailWidth() - ButtonSize.x * 1.5f );
+	ImGui::SetNextItemWidth( ImGui::GetContentRegionAvail().x - ButtonSize.x * 1.5f );
 
 	ImGui::InputText( "##Directory", &m_Directory, ImGuiInputTextFlags_ReadOnly );
 
