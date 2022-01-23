@@ -65,9 +65,9 @@ Process::Process( Process&& rrOther ) noexcept
 	m_ExitCode    = std::exchange( rrOther.m_ExitCode, -2 );
 #if defined( _WIN32 )
 	m_Pid         = std::exchange( rrOther.m_Pid, nullptr );
-#elif defined( __linux__ ) && defined( __APPLE__ )
+#elif defined( __linux__ ) || defined( __APPLE__ ) // WIN32
 	m_Pid         = std::exchange( rrOther.m_Pid, 0 );
-#endif
+#endif // __linux__ || __APPLE__
 } // Process
 
 //////////////////////////////////////////////////////////////////////////
