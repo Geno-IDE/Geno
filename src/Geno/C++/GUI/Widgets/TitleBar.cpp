@@ -186,7 +186,12 @@ void TitleBar::Draw( void )
 				}
 
 				if( Pressed )
+				{
+					if( Application::Instance().CurrentWorkspace()->m_AppProcess )
+						Application::Instance().CurrentWorkspace()->m_AppProcess.Kill();
+
 					exit( 0 );
+				}
 
 				ButtonRect.Min.x -= ButtonSize;
 				ButtonRect.Max.x -= ButtonSize;
@@ -422,15 +427,18 @@ void TitleBar::ActionBuildBuildAndRun( void )
 				rTextEdit.SaveFile( rFile );
 		}
 
-		pWorkspace->Events.BuildFinished += []( Workspace& /*rWorkspace*/, std::filesystem::path OutputFile, bool /*Success*/ )
+		pWorkspace->Events.BuildFinished += []( Workspace& rWorkspace, std::filesystem::path OutputFile, bool /*Success*/ )
 		{
 			StatusBar::Instance().SetColor( StatusBar::Color::ORANGE );
 
 			const std::string OutputString = OutputFile.string();
+			const std::wstring OutputWString = OutputFile.wstring();
 
 			std::cout << "=== Running " << OutputString << "===\n";
 
-			const int ExitCode = Process::ResultOf( OutputFile.wstring() );
+			rWorkspace.m_AppProcess = Process( OutputWString );
+
+			const int ExitCode = rWorkspace.m_AppProcess.ResultOf();
 			std::cout << "=== " << OutputString << " finished with exit code " << ExitCode << " ===\n";
 
 			StatusBar::Instance().SetColor( StatusBar::Color::RED );
