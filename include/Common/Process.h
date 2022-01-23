@@ -76,6 +76,10 @@ private:
 
 	int m_ExitCode  = -2;
 
+#if defined( _WIN32 )
 	ProcessID m_Pid = nullptr;
+#elif defined( __linux__ ) && defined( __APPLE__ )
+	ProcessID m_Pid = 0;
+#endif
 
 }; // Process
