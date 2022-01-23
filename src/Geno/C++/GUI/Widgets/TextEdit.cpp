@@ -3834,14 +3834,7 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 
 	bool Shift = ImGui::GetIO().KeyShift;
 
-	if( rDiag.SearchResult == nullptr )
-	{
-		ImGui::PushDisabled();
-	}
-	else if( rDiag.SearchResult->Empty() )
-	{
-		ImGui::PushDisabled();
-	}
+	ImGui::BeginDisabled( ( rDiag.SearchResult == nullptr ) || ( rDiag.SearchResult->Empty() ) );
 
 	if( ImGui::Button( "Next" ) || ( ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Enter ) ) && ImGui::IsWindowFocused() && !Shift ) )
 	{
@@ -3899,14 +3892,7 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 		}
 	}
 
-	if( rDiag.SearchResult == nullptr )
-	{
-		ImGui::PopDisabled();
-	}
-	else if( rDiag.SearchResult->Empty() )
-	{
-		ImGui::PopDisabled();
-	}
+	ImGui::EndDisabled();
 
 	ImGui::SameLine();
 
