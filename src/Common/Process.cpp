@@ -42,8 +42,7 @@ Process::Process( const std::wstring_view& rCommandLine )
 {
 	m_CommandLine = rCommandLine;
 
-	// I am sure that -1 is an error code when an app crashes so I'll put it at -2.
-	m_ExitCode = -2;
+	m_ExitCode = 0;
 
 	m_Pid = 0;
 } // Process
@@ -62,7 +61,7 @@ Process::Process( const Process& rOther )
 Process::Process( Process&& rrOther ) noexcept
 {
 	m_CommandLine = std::exchange( rrOther.m_CommandLine, nullptr );
-	m_ExitCode    = std::exchange( rrOther.m_ExitCode, -2 );
+	m_ExitCode    = std::exchange( rrOther.m_ExitCode, 0 );
 #if defined( _WIN32 )
 	m_Pid         = std::exchange( rrOther.m_Pid, nullptr );
 #elif defined( __linux__ ) || defined( __APPLE__ ) // WIN32
@@ -133,10 +132,7 @@ int Process::Wait( void )
 
 #elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 
-	int status;
-	waitpid( m_Pid, &status, 0 );
-
-	m_ExitCode = status;
+	waitpid( m_Pid, &m_ExitCode, 0 );
 
 	Kill();
 
@@ -155,9 +151,6 @@ void Process::Kill( void )
 
 	//CloseHandle( m_Pid );
 	TerminateProcess( m_Pid, 1 );
-
-	if( m_ExitCode < 0 )
-		m_ExitCode = 1;
 
 	m_Pid = nullptr;
 

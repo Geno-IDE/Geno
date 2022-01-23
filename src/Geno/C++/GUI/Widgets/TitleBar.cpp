@@ -188,7 +188,7 @@ void TitleBar::Draw( void )
 				if( Pressed )
 				{
 					if( Application::Instance().CurrentWorkspace()->m_AppProcess )
-						Application::Instance().CurrentWorkspace()->m_AppProcess.Kill();
+						Application::Instance().CurrentWorkspace()->m_AppProcess->Kill();
 
 					exit( 0 );
 				}
@@ -436,9 +436,9 @@ void TitleBar::ActionBuildBuildAndRun( void )
 
 			std::cout << "=== Running " << OutputString << "===\n";
 
-			rWorkspace.m_AppProcess = Process( OutputWString );
+			rWorkspace.m_AppProcess = std::make_unique<Process>( OutputWString );
 
-			const int ExitCode = rWorkspace.m_AppProcess.ResultOf();
+			const int ExitCode = rWorkspace.m_AppProcess->ResultOf();
 			std::cout << "=== " << OutputString << " finished with exit code " << ExitCode << " ===\n";
 
 			StatusBar::Instance().SetColor( StatusBar::Color::RED );

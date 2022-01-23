@@ -75,7 +75,7 @@ public:
 	std::filesystem::path      m_Location;
 	std::string                m_Name;
 	std::vector< Project >     m_Projects;
-	Process                    m_AppProcess;
+	std::unique_ptr< Process > m_AppProcess;
 
 //////////////////////////////////////////////////////////////////////////
 
