@@ -3817,7 +3817,7 @@ void TextEdit::ShowSearchDialog( File& rFile, ImGuiID FocusId, ImGuiWindow* pWin
 		ImGui::SetKeyboardFocusHere( 0 );
 	}
 
-	if( ImGui::InputText( "", &rDiag.SearchTerm ) || Props.Changes )
+	if( ImGui::InputText( "##SearchTerm", &rDiag.SearchTerm ) || Props.Changes )
 	{
 		Search( rFile, rDiag.CaseSensitive, rDiag.WholeWord, rDiag.SearchTerm );
 
