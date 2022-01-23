@@ -54,7 +54,7 @@ public:
 		 return *this;
 	 }
 
-	 operator bool() { return m_Pid != nullptr; }
+	 operator bool() { return m_Pid != 0; }
 
 //////////////////////////////////////////////////////////////////////////
 
