@@ -63,7 +63,7 @@ Process::Process( Process&& rrOther ) noexcept
 {
 	m_CommandLine = std::exchange( rrOther.m_CommandLine, nullptr );
 	m_ExitCode    = std::exchange( rrOther.m_ExitCode, -2 );
-	m_Pid         = std::exchange( rrOther.m_Pid, nullptr );
+	m_Pid         = std::exchange( rrOther.m_Pid, 0 );
 } // Process
 
 //////////////////////////////////////////////////////////////////////////
@@ -130,7 +130,7 @@ int Process::Wait( void )
 #elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 
 	int status;
-	waitpid( PID, &status, 0 );
+	waitpid( m_Pid, &status, 0 );
 
 	m_ExitCode = status;
 
