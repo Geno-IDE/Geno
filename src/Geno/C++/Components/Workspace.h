@@ -21,6 +21,7 @@
 #include "Components/Project.h"
 
 #include <Common/Event.h>
+#include <Common/Process.h>
 #include <GCL/Deserializer.h>
 
 #include <filesystem>
@@ -74,6 +75,7 @@ public:
 	std::filesystem::path      m_Location;
 	std::string                m_Name;
 	std::vector< Project >     m_Projects;
+	Process                    m_AppProcess;
 
 //////////////////////////////////////////////////////////////////////////
 

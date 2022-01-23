@@ -29,7 +29,6 @@
 #include <fcntl.h>
 
 #if defined( _WIN32 )
-#include <Windows.h>
 #include <corecrt_io.h>
 #define fdopen _fdopen
 #elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
@@ -39,20 +38,42 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-#if defined( _WIN32 )
-using ProcessID = HANDLE;
-#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
-using ProcessID = pid_t;
-#endif // __linux__ || __APPLE__
+Process::Process( const std::wstring_view& rCommandLine )
+{
+	m_CommandLine = rCommandLine;
+
+	// I am sure that -1 is an error code when an app crashes so I'll put it at -2.
+	m_ExitCode = -2;
+
+	m_Pid = 0;
+} // Process
 
 //////////////////////////////////////////////////////////////////////////
 
-static ProcessID StartProcess( const std::wstring_view CommandLine, FILE* pOutputStream )
+Process::Process( const Process& rOther )
+{
+	m_CommandLine = rOther.m_CommandLine;
+	m_ExitCode    = rOther.m_ExitCode;
+	m_Pid         = rOther.m_Pid;
+} // Process
+
+//////////////////////////////////////////////////////////////////////////
+
+Process::Process( Process&& rrOther ) noexcept
+{
+	m_CommandLine = std::exchange( rrOther.m_CommandLine, nullptr );
+	m_ExitCode    = std::exchange( rrOther.m_ExitCode, -2 );
+	m_Pid         = std::exchange( rrOther.m_Pid, nullptr );
+} // Process
+
+//////////////////////////////////////////////////////////////////////////
+
+void Process::Start( FILE* pOutputStream )
 {
 
 #if defined( _WIN32 )
 
-	STARTUPINFOW StartupInfo = { };
+	STARTUPINFOW StartupInfo ={ };
 	StartupInfo.cb           = sizeof( STARTUPINFO );
 	StartupInfo.wShowWindow  = SW_HIDE;
 	StartupInfo.dwFlags      = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
@@ -60,10 +81,10 @@ static ProcessID StartProcess( const std::wstring_view CommandLine, FILE* pOutpu
 	StartupInfo.hStdError    = reinterpret_cast< HANDLE >( _get_osfhandle( fileno( pOutputStream ) ) );
 
 	PROCESS_INFORMATION ProcessInfo;
-	WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( CommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) );
+	WIN32_CALL( CreateProcessW( nullptr, const_cast< LPWSTR >( m_CommandLine.data() ), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &StartupInfo, &ProcessInfo ) );
 	CloseHandle( ProcessInfo.hThread );
 
-	return ProcessInfo.hProcess;
+	m_Pid = ProcessInfo.hProcess;
 
 #elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 
@@ -75,20 +96,20 @@ static ProcessID StartProcess( const std::wstring_view CommandLine, FILE* pOutpu
 		dup2( fileno( pOutputStream ), 1 );
 		dup2( fileno( pOutputStream ), 2 );
 
-		execl( "/bin/sh", "/bin/sh", "-c", UTF8Converter().to_bytes( CommandLine.data(), CommandLine.data() + CommandLine.size() ).c_str(), NULL );
+		execl( "/bin/sh", "/bin/sh", "-c", UTF8Converter().to_bytes( m_CommandLine.data(), m_CommandLine.data() + m_CommandLine.size() ).c_str(), NULL );
 
 		exit( EXIT_FAILURE );
 	}
 
-	return PID;
+	m_Pid = PID;
 
 #endif // __linux__ || __APPLE__
 
-} // StartProcess
+} // Start
 
 //////////////////////////////////////////////////////////////////////////
 
-static int WaitProcess( ProcessID PID )
+int Process::Wait( void )
 {
 
 #if defined( _WIN32 )
@@ -96,37 +117,72 @@ static int WaitProcess( ProcessID PID )
 	BOOL  Result;
 	DWORD ExitCode;
 
-	while( WIN32_CALL( Result = GetExitCodeProcess( PID, &ExitCode ) ) && ExitCode == STILL_ACTIVE )
+	while( WIN32_CALL( Result = GetExitCodeProcess( m_Pid, &ExitCode ) ) && ExitCode == STILL_ACTIVE )
 		Sleep( 1 );
 
-	CloseHandle( PID );
+	CloseHandle( m_Pid );
 
-	return Result ? static_cast< int >( ExitCode ) : -1;
+	m_Pid = nullptr;
+	m_ExitCode = ExitCode;
+
+	return Result ? static_cast< int >( m_ExitCode ) : -1;
 
 #elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 
 	int status;
 	waitpid( PID, &status, 0 );
 
-	return status;
+	m_ExitCode = status;
+
+	Kill();
+
+	return m_ExitCode;
 
 #endif // __linux__ || __APPLE__
 
-} // WaitProcess
+} // Wait
 
 //////////////////////////////////////////////////////////////////////////
 
-int Process::ResultOf( const std::wstring_view CommandLine )
+void Process::Kill( void )
 {
-	ProcessID pid = StartProcess( CommandLine, stdout );
 
-	return WaitProcess( pid );
+#if defined( _WIN32 )
+
+	//CloseHandle( m_Pid );
+	TerminateProcess( m_Pid, 1 );
+
+	if( m_ExitCode < 0 )
+		m_ExitCode = 1;
+
+	m_Pid = nullptr;
+
+#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
+
+	execl( "/bin/sh", "/bin/sh", "kill", "-9", m_Pid );
+
+	// #TODO: The exit might equal 9 I'm not sure.
+	m_ExitCode = 0;
+
+	m_Pid = 0;
+
+#endif // __linux__ || __APPLE__
+
+} // Kill
+
+//////////////////////////////////////////////////////////////////////////
+
+int Process::ResultOf( void )
+{
+	Start( stdout );
+
+	return Wait();
 
 } // ResultOf
 
 //////////////////////////////////////////////////////////////////////////
 
-std::wstring Process::OutputOf( const std::wstring_view CommandLine, int& rResult )
+std::wstring Process::OutputOf( int& rResult )
 {
 
 #if defined( _WIN32 )
@@ -143,8 +199,8 @@ std::wstring Process::OutputOf( const std::wstring_view CommandLine, int& rResul
 		std::wstring Output;
 		std::string  AnsiBuffer;
 		FILE*        pProcOutputHandle = fdopen( _open_osfhandle( reinterpret_cast< intptr_t >( Write ), _O_APPEND ), "w" );
-		ProcessID    PID               = StartProcess( CommandLine, pProcOutputHandle );
-		rResult                        = WaitProcess( PID );
+		Start( pProcOutputHandle );
+		rResult                        = Wait();
 
 		DWORD BytesAvailable;
 		if( PeekNamedPipe( Read, nullptr, 0, nullptr, &BytesAvailable, nullptr ) && BytesAvailable )
@@ -171,8 +227,8 @@ std::wstring Process::OutputOf( const std::wstring_view CommandLine, int& rResul
 	fcntl( FileDescriptors[ 0 ], F_SETFL, O_NONBLOCK ); // Don't want to block on read
 
 	FILE*     pStream = fdopen( FileDescriptors[ 1 ], "w" );
-	ProcessID PID     = StartProcess( CommandLine, pStream );
-	rResult           = WaitProcess( PID );
+	Start( pStream );
+	rResult           = Wait();
 
 	char        Buffer[ 1024 ];
 	ssize_t     Length;
@@ -194,10 +250,10 @@ std::wstring Process::OutputOf( const std::wstring_view CommandLine, int& rResul
 
 //////////////////////////////////////////////////////////////////////////
 
-std::wstring Process::OutputOf( const std::wstring_view CommandLine )
+std::wstring Process::OutputOf( void )
 {
 	int Result;
 
-	return OutputOf( CommandLine, Result );
+	return OutputOf( Result );
 
 } // OutputOf

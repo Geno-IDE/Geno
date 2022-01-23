@@ -16,14 +16,62 @@
  */
 
 #pragma once
+
 #include <string>
 #include <string_view>
 
-namespace Process
+ //////////////////////////////////////////////////////////////////////////
+
+#if defined( _WIN32 )
+#include <Windows.h>
+using ProcessID = HANDLE;
+#elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
+using ProcessID = pid_t;
+#endif // __linux__ || __APPLE__
+
+//////////////////////////////////////////////////////////////////////////
+
+class Process
 {
+public:
+	 Process( void ) { }
+	 Process( const std::wstring_view& rCommandLine );
+	~Process( void ) { Kill(); }
+	 Process( const Process& rOther );
+	 Process( Process&& rrOther ) noexcept;
 
-extern int          ResultOf( const std::wstring_view CommandLine );
-extern std::wstring OutputOf( const std::wstring_view CommandLine, int& rResult );
-extern std::wstring OutputOf( const std::wstring_view CommandLine );
+	 Process& operator=( const Process& rOther )
+	 {
+		 return *this = Process( rOther );
+	 }
 
-}; // namespace Process
+	 Process& operator=( const Process&& rrOther ) noexcept
+	 {
+		 m_CommandLine = rrOther.m_CommandLine;
+		 m_ExitCode = rrOther.m_ExitCode;
+		 m_Pid = rrOther.m_Pid;
+
+		 return *this;
+	 }
+
+	 operator bool() { return m_Pid != nullptr; }
+
+//////////////////////////////////////////////////////////////////////////
+
+	 void         SetCommandLine( const std::wstring_view& rCommandLine ) { m_CommandLine = rCommandLine; }
+	 void         Kill          ( void );
+	 void         Start         ( FILE* pOutputStream );
+	 int          Wait          ( void );
+	 int          ResultOf      ( void );
+	 std::wstring OutputOf      ( int& rResult );
+	 std::wstring OutputOf      ( void );
+
+private:
+
+	std::wstring_view m_CommandLine;
+
+	int m_ExitCode  = -2;
+
+	ProcessID m_Pid = nullptr;
+
+}; // Process

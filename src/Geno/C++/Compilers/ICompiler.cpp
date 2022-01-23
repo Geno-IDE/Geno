@@ -28,8 +28,9 @@
 
 std::optional< std::filesystem::path > ICompiler::Compile( const Configuration& rConfiguration, const std::filesystem::path& rFilePath )
 {
-	const std::wstring CommandLine = MakeCompilerCommandLineString( rConfiguration, rFilePath );
-	const int          ExitCode    = Process::ResultOf( CommandLine );
+	const std::wstring CommandLine    = MakeCompilerCommandLineString( rConfiguration, rFilePath );
+	Process            CompileProcess = Process( CommandLine );
+	const int          ExitCode       = CompileProcess.ResultOf();
 
 	if( ExitCode == 0 )
 		return GetCompilerOutputPath( rConfiguration, rFilePath );
@@ -42,8 +43,9 @@ std::optional< std::filesystem::path > ICompiler::Compile( const Configuration& 
 
 std::optional< std::filesystem::path > ICompiler::Link( const Configuration& rConfiguration, std::span< std::filesystem::path > InputFiles, const std::wstring& rOutputName, Project::Kind Kind )
 {
-	const std::wstring CommandLine = MakeLinkerCommandLineString( rConfiguration, InputFiles, rOutputName, Kind );
-	const int          ExitCode    = Process::ResultOf( CommandLine );
+	const std::wstring CommandLine    = MakeLinkerCommandLineString( rConfiguration, InputFiles, rOutputName, Kind );
+	Process            LinkProcess    = Process( CommandLine );
+	const int          ExitCode       = LinkProcess.ResultOf();
 
 	if( ExitCode == 0 )
 		return GetLinkerOutputPath( rConfiguration, rOutputName, Kind );
