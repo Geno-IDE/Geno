@@ -54,7 +54,11 @@ public:
 		 return *this;
 	 }
 
+ #if defined( _WIN32 )
+	 operator bool() { return m_Pid != nullptr; }
+ #elif defined( __linux__ ) && defined( __APPLE__ )
 	 operator bool() { return m_Pid != 0; }
+ #endif
 
 //////////////////////////////////////////////////////////////////////////
 
