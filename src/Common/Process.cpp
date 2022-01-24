@@ -35,6 +35,7 @@
 #elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 #include <sys/wait.h>
 #include <sys/signal.h>
+#include <signal.h>
 #include <unistd.h>
 #endif // __linux__ || __APPLE__
 
