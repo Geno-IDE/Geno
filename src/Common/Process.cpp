@@ -27,6 +27,7 @@
 #include <thread>
 
 #include <fcntl.h>
+#include <iostream>
 
 #if defined( _WIN32 )
 #include <corecrt_io.h>
