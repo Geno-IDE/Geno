@@ -163,7 +163,7 @@ void OutlinerCommands::AddNodeCommand::Execute( void )
 			std::filesystem::path Path = m_Location / m_Name;
 			Path                       = Path.lexically_normal();
 
-			Project* pProject = new Project( m_Location.parent_path(), Path.stem().string() );
+			Project* pProject = new Project( m_Location, Path.stem().string() );
 			if( pProject->Deserialize() )
 				m_pParentNode->AddChild( std::move( pProject ) );
 			else

@@ -17,12 +17,12 @@
 
 #include "Workspace.h"
 
-#include "Auxiliary/jsonSerializer.h"
+#include "Auxiliary/JSONSerializer.h"
 #include "Compilers/CompilerGCC.h"
 #include "Compilers/CompilerMSVC.h"
+#include "GUI/MainWindow.h"
+#include "GUI/Widgets/OutputWindow.h"
 #include "GUI/Widgets/StatusBar.h"
-
-#include "Auxiliary/JSONSerializer.h"
 
 #include <fstream>
 #include <iostream>
@@ -41,73 +41,57 @@ Workspace::Workspace( std::string Name, std::filesystem::path Location )
 
 //////////////////////////////////////////////////////////////////////////
 
-void Workspace::Build( void )
+void Workspace::Build( INode* pNodeToBuild )
 {
-	if( !m_pChildren.empty() )
+	MainWindow::Instance().pOutputWindow->ClearCapture();
+
+	UTF8Converter                                           UTF8Converter;
+	std::vector< JobSystem::JobPtr >                        LinkerJobs;
+	std::vector< std::string >                              LinkerJobProjectNames;
+	std::shared_ptr< std::filesystem::path >                LinkerOutput  = std::make_shared< std::filesystem::path >();
+	Configuration                                           Configuration;
+	std::vector< JobSystem::JobPtr >                        LinkerDependencies;
+	std::vector< std::shared_ptr< std::filesystem::path > > CompilerOutputs;
+
+	std::function< void( INode*, bool ) > Func = [ & ]( INode* pNode, bool NodeToBuild )
 	{
-		UTF8Converter                            UTF8Converter;
-		std::vector< JobSystem::JobPtr >         LinkerJobs;
-		std::vector< std::string >               LinkerJobProjectNames;
-		std::shared_ptr< std::filesystem::path > LinkerOutput = std::make_shared< std::filesystem::path >();
-
-		// Sort projects so that the link jobs exist to be depended upon
-		std::vector< std::reference_wrapper< Project > > ProjectRefs;
-		std::copy( m_Projects.begin(), m_Projects.end(), std::back_inserter( ProjectRefs ) );
-		std::sort( ProjectRefs.begin(), ProjectRefs.end(), []( const Project& rA, const Project& rB )
-			{
-				auto& rLibraries = rB.m_LocalConfiguration.m_Libraries;
-				return std::find( rLibraries.begin(), rLibraries.end(), rA.m_Name ) != rLibraries.end();
-			}
-		);
-
-		for( Project& rProject : ProjectRefs )
+		if( pNode->m_Kind == NodeKind::Group && !NodeToBuild )
 		{
-			Configuration                                           Configuration = m_BuildMatrix.CurrentConfiguration();
-			std::vector< JobSystem::JobPtr >                        LinkerDependencies;
-			std::vector< std::shared_ptr< std::filesystem::path > > CompilerOutputs;
+			for( INode* pChildNode : pNode->m_pChildren )
+				Func( pChildNode, false );
+		}
+		else if( pNode->m_Kind == NodeKind::Project || NodeToBuild )
+		{
+			/*NodeToBuild = true ( If A Specific Node Is To Be Built )*/
+			Configuration = m_BuildMatrix.CurrentConfiguration();
 
-			Configuration.Override( rProject.m_LocalConfiguration );
+			LinkerDependencies.clear();
+			CompilerOutputs   .clear();
+
+			// We Need The Project Node For Building A Specific Node In That Project
+			INode* pTempNode = pNode;
+
+			if(NodeToBuild && pNode->m_Kind != NodeKind::Project)
+			{
+				while( pTempNode->m_pParent->m_Kind != NodeKind::Project )
+					pTempNode = pTempNode->m_pParent;
+				pTempNode = pTempNode->m_pParent;
+			}
+
+			Project* pProject = ( Project* )pTempNode;
+			Configuration.Override( pProject->m_LocalConfiguration );
 
 			if( !Configuration.m_OutputDir )
-				Configuration.m_OutputDir = rProject.m_Location;
+				Configuration.m_OutputDir = pProject->m_Location;
 
-			// TODO: Remove any duplicate files, since a single file can exist in multiple filters
-
-			for( const FileFilter& rFileFilter : rProject.m_FileFilters )
+			if( NodeToBuild && pNode->m_Kind != NodeKind::Project )
 			{
-				for( const std::filesystem::path& rFile : rFileFilter.Files )
-				{
-					auto Extension = rFile.extension();
-
-					// Skip any files that shouldn't be compiled
-					// TODO: We want to support other languages in the future. Perhaps store the compiler in each file-config?
-					if( Extension != ".c"
-					 && Extension != ".cc"
-					 && Extension != ".cpp"
-					 && Extension != ".cxx"
-					 && Extension != ".c++" )
-						continue;
-
-					auto Output = std::make_shared< std::filesystem::path >();
-
-					CompilerOutputs.push_back( Output );
-
-					LinkerDependencies.push_back( JobSystem::Instance().NewJob(
-						[ Configuration, rFile, Output ]( void )
-						{
-							if( !Configuration.m_Compiler )
-							{
-								std::cerr << "Failed to compile " << rFile << ". No compiler active!\n";
-								return;
-							}
-
-							if( auto Result = Configuration.m_Compiler->Compile( Configuration, rFile ) )
-							{
-								*Output = *Result;
-							}
-						}
-					) );
-				}
+				Func( pNode, false );
+			}
+			else
+			{
+				for( INode* pChildNode : pNode->m_pChildren )
+					Func( pChildNode, false );
 			}
 
 			// Assemble a list of link jobs for projects that this depends on
@@ -118,10 +102,10 @@ void Workspace::Build( void )
 					LinkerDependencies.push_back( *std::next( LinkerJobs.begin(), std::distance( LinkerJobProjectNames.begin(), Name ) ) );
 			}
 
-			const std::wstring  ProjectName = UTF8Converter.from_bytes( rProject.m_Name );
-			const Project::Kind Kind        = rProject.m_Kind;
+			const std::wstring  ProjectName = UTF8Converter.from_bytes( pProject->m_Name );
+			const Project::Kind Kind        = pProject->m_ProjectKind;
 
-			LinkerJobProjectNames.push_back( rProject.m_Name );
+			LinkerJobProjectNames.push_back( pProject->m_Name );
 			LinkerJobs.push_back( JobSystem::Instance().NewJob(
 				[ Configuration, ProjectName, Kind, CompilerOutputs, LinkerOutput ]( void )
 				{
@@ -140,26 +124,78 @@ void Workspace::Build( void )
 				LinkerDependencies
 			) );
 		}
+		else if( pNode->m_Kind == NodeKind::File && !NodeToBuild )
+		{
+			const std::filesystem::path FilePath  = pNode->m_Location / pNode->m_Name;
+			auto                        Extension = FilePath.extension();
 
-		JobSystem::Instance().NewJob(
-			[ this, LinkerJobs, LinkerOutput ]( void )
-			{
-				if( auto& rLinkerOutput = *LinkerOutput; !rLinkerOutput.empty() )
+			// Skip any files that shouldn't be compiled
+			// TODO: We want to support other languages in the future. Perhaps store the compiler in each file-config?
+			if( Extension != ".c"
+			 && Extension != ".cc"
+			 && Extension != ".cpp"
+			 && Extension != ".cxx"
+			 && Extension != ".c++" )
+				return;
+
+			auto Output = std::make_shared< std::filesystem::path >();
+
+			CompilerOutputs.push_back( Output );
+
+			LinkerDependencies.push_back( JobSystem::Instance().NewJob(
+				[ Configuration, FilePath, Output ]( void )
 				{
-					std::cout << "Done building workspace\n";
+					if( !Configuration.m_Compiler )
+					{
+						std::cerr << "Failed to compile " << FilePath << ". No compiler active!\n";
+						return;
+					}
 
-					Events.BuildFinished( *this, rLinkerOutput, true );
+					if( auto Result = Configuration.m_Compiler->Compile( Configuration, FilePath ) )
+					{
+						*Output = *Result;
+					}
 				}
-				else
-				{
-					std::cout << "Failed to build workspace\n";
+			) );
+		}
+	};
 
-					Events.BuildFinished( *this, "", false );
-				}
-			},
-			LinkerJobs
-		);
+	if( pNodeToBuild )
+	{
+		if(pNodeToBuild->m_Kind == NodeKind::Group)
+		{
+			Group* pGroup = ( Group* )pNodeToBuild;
+			pGroup->m_WorkspaceGroup ? Func( pNodeToBuild, false ) : Func( pNodeToBuild, true );
+		}
+		else
+		{
+			Func( pNodeToBuild, true );
+		}
 	}
+	else
+	{
+		for( INode* pChildNode : m_pChildren )
+			Func( pChildNode, false );
+	}
+
+	JobSystem::Instance().NewJob(
+		[ this, LinkerJobs, LinkerOutput ]( void )
+		{
+			if( auto& rLinkerOutput = *LinkerOutput; !rLinkerOutput.empty() )
+			{
+				std::cout << "Done building workspace\n";
+
+				Events.BuildFinished( *this, rLinkerOutput, true );
+			}
+			else
+			{
+				std::cout << "Failed to build workspace\n";
+
+				Events.BuildFinished( *this, "", false );
+			}
+		},
+		LinkerJobs
+	);
 
 } // Build
 

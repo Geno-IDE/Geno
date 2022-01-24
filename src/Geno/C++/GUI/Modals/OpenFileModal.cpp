@@ -361,6 +361,8 @@ void OpenFileModal::UpdateDerived( void )
 
 						m_SearchResult = "New Folder";
 
+						ImGui::SetKeyboardFocusHere();
+
 						ImGuiAux::RenameTree( m_SearchResult, m_CreateFolder, [ & ]()
 							{
 								std::filesystem::path NewDirPath = m_CurrentPath / m_SearchResult;
