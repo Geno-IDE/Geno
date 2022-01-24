@@ -315,7 +315,7 @@ bool Project::Deserialize( void )
 					Path = m_Location / Path;
 
 				Path = Path.lexically_normal();
-				m_IncludeDirectories.push_back( Path );
+				m_LocalConfiguration.m_IncludeDirs.push_back( Path );
 			}
 		}
 		else if( MemberName == "LibraryDirs" )
@@ -329,7 +329,7 @@ bool Project::Deserialize( void )
 					Path = m_Location / Path;
 
 				Path = Path.lexically_normal();
-				m_LibraryDirectories.push_back( Path );
+				m_LocalConfiguration.m_LibraryDirs.push_back( Path );
 			}
 		}
 		else if( MemberName == "Defines" )
@@ -337,7 +337,7 @@ bool Project::Deserialize( void )
 			const auto Array = It->value.GetArray();
 			for( auto i = Array.Begin(); i < Array.End(); ++i )
 			{
-				m_Defines.push_back( i->GetString() );
+				m_LocalConfiguration.m_Defines.push_back( i->GetString() );
 			}
 		}
 		else if( MemberName == "Libraries" )
@@ -345,7 +345,7 @@ bool Project::Deserialize( void )
 			const auto Array = It->value.GetArray();
 			for( auto i = Array.Begin(); i < Array.End(); ++i )
 			{
-				m_Libraries.push_back( i->GetString() );
+				m_LocalConfiguration.m_Libraries.push_back( i->GetString() );
 			}
 		}
 	}
