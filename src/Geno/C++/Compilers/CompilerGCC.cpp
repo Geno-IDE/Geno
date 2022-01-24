@@ -27,6 +27,9 @@ std::wstring CompilerGCC::MakeCompilerCommandLineString( const Configuration& rC
 	// Start with GCC executable
 	Command += L"g++";
 
+	// Make it so that we compile separately.
+	Command += L" -c";
+
 	// Language
 	const auto FileExtension = rFilePath.extension();
 	if     ( FileExtension == ".c"   ) Command += L" -x c";
