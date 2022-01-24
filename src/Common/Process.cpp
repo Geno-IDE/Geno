@@ -33,6 +33,7 @@
 #define fdopen _fdopen
 #elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 #include <sys/wait.h>
+#include <sys/signal.h>
 #include <unistd.h>
 #endif // __linux__ || __APPLE__
 
@@ -128,7 +129,7 @@ int Process::Wait( void )
 	m_Pid = nullptr;
 	m_ExitCode = ExitCode;
 
-	return Result ? static_cast< int >( m_ExitCode ) : -1;
+	return Result ? m_ExitCode : -1;
 
 #elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 
@@ -156,10 +157,11 @@ void Process::Kill( void )
 
 #elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 
-	execl( "/bin/sh", "/bin/sh", "kill", "-9", m_Pid );
+	m_ExitCode = kill( m_Pid, SIGUSR1 );
 
-	// #TODO: The exit might equal 9 I'm not sure.
-	m_ExitCode = 0;
+	// #TODO: Report/show a dialog that the "kill" command has failed.
+	if( m_ExitCode == -1 )
+		std::cerr << "Kill command failed, tried to kill PID: " << m_Pid << "\n";
 
 	m_Pid = 0;
 
