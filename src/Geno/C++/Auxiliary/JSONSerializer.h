@@ -57,7 +57,9 @@ private:
 template< typename T >
 inline void JSONSerializer::Add( const std::string& rName, const T& rValue )
 {
-	static_assert( false );
+	std::string TempStr   = rName;
+	T           TempValue = rValue;
+	return;
 
 } // Add< T >
 

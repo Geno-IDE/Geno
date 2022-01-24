@@ -144,7 +144,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 			Observe();
 
-			if( ImGui::IsWindowFocused() )
+			if( ImGui::IsWindowFocused() && !m_RenameNode && !m_ShowNodeContextMenu )
 			{
 				if( ImGui::IsKeyPressed( GLFW_KEY_UP ) )
 				{
@@ -233,6 +233,9 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 				ImGui::Separator();
 
+				if( ImGui::MenuItem( "Build Workspace" ) )
+					pWorkspace->Build();
+
 				if( ImGui::MenuItem( "Build Matrix" ) )
 				{
 					BuildMatrixModal::Instance().Show();
@@ -278,6 +281,9 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					m_pSelectedNode       = m_pSelectedNode->m_pParent;
 					m_ShowNodeContextMenu = false;
 				}
+
+				if( ImGui::MenuItem( "Build Project" ) )
+					pWorkspace->Build( m_pSelectedNode );
 
 				ImGui::Separator();
 
@@ -352,6 +358,9 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					m_ShowNodeContextMenu = false;
 				}
 
+				if( ImGui::MenuItem( "Build Group" ) )
+					pWorkspace->Build( m_pSelectedNode );
+
 				ImGui::EndPopup();
 			}
 			else if( ImGui::BeginPopup( "FileContextMenu", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings ) )
@@ -374,6 +383,9 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					m_ShowNodeContextMenu = false;
 				}
 
+				if( ImGui::MenuItem( "Build File" ) )
+					pWorkspace->Build( m_pSelectedNode );
+
 				ImGui::EndPopup();
 			}
 		}
@@ -391,10 +403,6 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 void WorkspaceOutliner::WriteSettings( JSONSerializer& rSerializer )
 {
-	Workspace*            pWorkspace = Application::Instance().CurrentWorkspace();
-	std::filesystem::path Workspace  = pWorkspace->m_Location / ( pWorkspace->m_Name + ".gwks" );
-	rSerializer.Add( "Workspace", Workspace.string() );
-
 	WriteKeyBindings( rSerializer );
 
 } // WriteSettings
@@ -404,9 +412,7 @@ void WorkspaceOutliner::WriteSettings( JSONSerializer& rSerializer )
 void WorkspaceOutliner::ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt )
 {
 	const std::string MemberName = rIt->name.GetString();
-	if( MemberName == "Workspace" )
-		Application::Instance().LoadWorkspace( std::string( rIt->value.GetString() ) );
-	else if( MemberName == "KeyBindings" )
+	if( MemberName == "KeyBindings" )
 		ReadKeyBindings( rIt );
 
 } // ReadSettings
