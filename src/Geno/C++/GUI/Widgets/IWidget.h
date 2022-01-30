@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "Auxiliary/JSONSerializer.h"
 #include "WidgetCommands/CommandStack.h"
 
 #include <filesystem>
@@ -26,11 +25,14 @@
 #include <string>
 #include <vector>
 
+#include <GCL/Deserializer.h>
+#include <GCL/Serializer.h>
+
 class IWidget
 {
 public:
 
-	IWidget( const std::filesystem::path& rJsonFile );
+	IWidget( const std::filesystem::path& rWidgetFile );
 	virtual ~IWidget( void ) = default;
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,13 +47,13 @@ protected:
 
 	void Observe();
 
-	void WriteKeyBindings( JSONSerializer& rSerializer );
-	void ReadKeyBindings( const rapidjson::Value::ConstMemberIterator& rIt );
+	void WriteKeyBindings( GCL::Serializer& rSerializer );
+	void ReadKeyBindings( GCL::Member& rMember );
 
 //////////////////////////////////////////////////////////////////////////
 
-	virtual void WriteSettings( JSONSerializer& rSerializer )                     = 0;
-	virtual void ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt ) = 0;
+	virtual void WriteSettings( GCL::Serializer& rSerializer ) = 0;
+	virtual void ReadSettings ( GCL::Member& rMember )         = 0;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -62,6 +64,6 @@ protected:
 
 	std::map< std::string, Action > m_Actions = {};
 
-	std::filesystem::path m_JsonFile = {};
+	std::filesystem::path m_WidgetFile = {};
 
 }; // IWidget

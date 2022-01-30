@@ -16,12 +16,13 @@
  */
 
 #pragma once
-#include "Auxiliary/JSONSerializer.h"
+
 #include "Components/Configuration.h"
 #include "Components/INode.h"
 
 #include <Common/Event.h>
-#include <GCL/Object.h>
+#include <GCL/Deserializer.h>
+#include <GCL/Serializer.h>
 
 #include <filesystem>
 #include <vector>
@@ -46,8 +47,8 @@ public:
 
 	void Rename( std::string Name ) override;
 
-	void Serialize( JSONSerializer& rSerializer );
-	void Deserialize( const rapidjson::Value::ConstMemberIterator& rIt );
+	void Serialize( GCL::Serializer& rSerializer );
+	void Deserialize( GCL::Member& rGroupMember );
 
 	bool m_WorkspaceGroup = false;
 

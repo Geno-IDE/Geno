@@ -23,7 +23,6 @@
 
 #include <Common/Event.h>
 #include <Common/Process.h>
-#include <GCL/Deserializer.h>
 
 #include <filesystem>
 #include <memory>
@@ -67,6 +66,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	BuildMatrix m_BuildMatrix;
+	BuildMatrix                m_BuildMatrix;
 	std::unique_ptr< Process > m_AppProcess;
+
 }; // Workspace

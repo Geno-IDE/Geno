@@ -40,8 +40,8 @@ public:
 
 private:
 
-	void WriteSettings( JSONSerializer& rSerializer ) override;
-	void ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt ) override;
+	void WriteSettings( GCL::Serializer& rSerializer ) override;
+	void ReadSettings ( GCL::Member& rMember ) override;
 
 	void DrawNodes( INode* pNode );
 	void CreateNewGroup( void );

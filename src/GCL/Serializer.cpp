@@ -17,8 +17,6 @@
 
 #include "GCL/Serializer.h"
 
-#include "GCL/Object.h"
-
 #include "Common/Platform/POSIX/POSIXError.h"
 
 #include <iostream>
@@ -28,7 +26,7 @@
 
 #if defined( _WIN32 )
 #include <corecrt_io.h>
-#define open  _wopen
+#define open _wopen
 #elif defined( __unix__ ) || defined( __APPLE__ ) // _WIN32
 #include <unistd.h>
 #define O_BINARY 0
@@ -47,45 +45,44 @@ GCL::Serializer::Serializer( const std::filesystem::path& rPath )
 GCL::Serializer::~Serializer( void )
 {
 	if( m_FileDescriptor >= 0 )
+	{
+		if( m_ObjectsCount > 0 )
+			std::cerr << "[Serializer] -> Missing EndObject()\nObjectCount " << m_ObjectsCount << std::endl;
+		else if( m_ObjectsCount < 0 )
+			std::cerr << "[Serializer] -> Missing StartObject()\nObjectCount " << m_ObjectsCount << std::endl;
+		else
+			write( m_FileDescriptor, m_Buffer.str().data(), ( uint32_t )m_Buffer.str().size() );
 		close( m_FileDescriptor );
+	}
 
 } // ~Serializer
 
 //////////////////////////////////////////////////////////////////////////
 
-void GCL::Serializer::WriteObject( const Object& rObject, int IndentLevel )
+void GCL::Serializer::StartObject( const std::string& rKey )
 {
-	const std::string_view Name = rObject.Name();
+	m_ObjectsCount++;
+	Write( rKey, "" );
+	m_IndentLevel++;
 
-	for( int i = 0; i < IndentLevel; ++i )
-		write( m_FileDescriptor, "\t", 1 );
+} // StartObject
 
-	write( m_FileDescriptor, Name.data(), static_cast< uint32_t >( Name.size() ) );
+//////////////////////////////////////////////////////////////////////////
 
-	if( rObject.IsNull() )
-	{
-		write( m_FileDescriptor, "\n", 1 );
-	}
-	else if( rObject.IsString() )
-	{
-		const Object::StringType& string = rObject.String();
+void GCL::Serializer::EndObject()
+{
+	m_ObjectsCount--;
+	m_IndentLevel--;
 
-		write( m_FileDescriptor, ":", 1 );
-		write( m_FileDescriptor, string.data(), static_cast< uint32_t >( string.size() ) );
-		write( m_FileDescriptor, "\n", 1 );
-	}
-	else if( rObject.IsTable() )
-	{
-		const Object::TableType& table = rObject.Table();
+} // EndObject
 
-		write( m_FileDescriptor, ":", 1 );
-		write( m_FileDescriptor, "\n", 1 );
+//////////////////////////////////////////////////////////////////////////
 
-		for( const Object& child : table )
-			WriteObject( child, IndentLevel + 1 );
-	}
+void GCL::Serializer::Null( const std::string& rKey )
+{
+	Write( rKey, "Null" );
 
-} // WriteObject
+} // Null
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -94,3 +91,14 @@ bool GCL::Serializer::IsOpen( void ) const
 	return ( m_FileDescriptor >= 0 );
 
 } // IsOpen
+
+//////////////////////////////////////////////////////////////////////////
+
+std::string GCL::Serializer::GetIndent( void ) const
+{
+	std::string Indent = "";
+	for( int i = 0; i < m_IndentLevel; ++i )
+		Indent += "\t";
+	return Indent;
+
+} // GetIndent

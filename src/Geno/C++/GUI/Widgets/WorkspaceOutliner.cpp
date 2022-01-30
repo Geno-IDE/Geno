@@ -44,25 +44,21 @@
 //////////////////////////////////////////////////////////////////////////
 
 WorkspaceOutliner::WorkspaceOutliner( void )
-	: IWidget                ( std::filesystem::current_path() / "WorkspaceOutliner.json" )
+	: IWidget                ( std::filesystem::current_path() / "WorkspaceOutliner.gwidget" )
 	, m_IconTextureWorkspace ( STBAux::LoadImageTexture( "Icons/Workspace.png" ) )
 	, m_IconTextureProject   ( STBAux::LoadImageTexture( "Icons/Project.png" ) )
 	, m_IconTextureGroup     ( STBAux::LoadImageTexture( "Icons/FileFilterColored.png" ) )
 	, m_IconTextureSourceFile( STBAux::LoadImageTexture( "Icons/SourceFile.png" ) )
 {
-	if( std::filesystem::exists( m_JsonFile ) )
+	if( std::filesystem::exists( m_WidgetFile ) )
 	{
-		rapidjson::Document Doc;
+		GCL::Deserializer Deserializer( m_WidgetFile );
 
-		std::ifstream     jsonFile( m_JsonFile, std::ios::in );
-		std::stringstream Content;
-		Content << jsonFile.rdbuf();
-		jsonFile.close();
-		Doc.Parse( Content.str().c_str() );
-
-		for( auto It = Doc.MemberBegin(); It < Doc.MemberEnd(); ++It )
+		if( Deserializer.IsOpen() )
 		{
-			ReadSettings( It );
+			auto& Members = Deserializer.GetMembers();
+			for( GCL::Member& rMember : Members )
+				ReadSettings( rMember );
 		}
 	}
 
@@ -72,8 +68,11 @@ WorkspaceOutliner::WorkspaceOutliner( void )
 
 WorkspaceOutliner::~WorkspaceOutliner( void )
 {
-	JSONSerializer Serializer( m_JsonFile );
-	WriteSettings( Serializer );
+	GCL::Serializer Serializer( m_WidgetFile );
+	if( Serializer.IsOpen() )
+	{
+		WriteSettings( Serializer );
+	}
 
 } // ~WorkspaceOutliner
 
@@ -401,7 +400,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 //////////////////////////////////////////////////////////////////////////
 
-void WorkspaceOutliner::WriteSettings( JSONSerializer& rSerializer )
+void WorkspaceOutliner::WriteSettings( GCL::Serializer& rSerializer )
 {
 	WriteKeyBindings( rSerializer );
 
@@ -409,11 +408,10 @@ void WorkspaceOutliner::WriteSettings( JSONSerializer& rSerializer )
 
 //////////////////////////////////////////////////////////////////////////
 
-void WorkspaceOutliner::ReadSettings( const rapidjson::Value::ConstMemberIterator& rIt )
+void WorkspaceOutliner::ReadSettings( GCL::Member& rMember )
 {
-	const std::string MemberName = rIt->name.GetString();
-	if( MemberName == "KeyBindings" )
-		ReadKeyBindings( rIt );
+	if( rMember.Key == "KeyBindings" )
+		ReadKeyBindings( rMember );
 
 } // ReadSettings
 
