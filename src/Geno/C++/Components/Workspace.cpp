@@ -17,7 +17,6 @@
 
 #include "Workspace.h"
 
-#include "Auxiliary/JSONSerializer.h"
 #include "Compilers/CompilerGCC.h"
 #include "Compilers/CompilerMSVC.h"
 #include "GUI/MainWindow.h"
@@ -29,6 +28,8 @@
 #include <sstream>
 
 #include <Common/Async/JobSystem.h>
+#include <GCL/Deserializer.h>
+#include <GCL/Serializer.h>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -48,7 +49,7 @@ void Workspace::Build( INode* pNodeToBuild )
 	UTF8Converter                                           UTF8Converter;
 	std::vector< JobSystem::JobPtr >                        LinkerJobs;
 	std::vector< std::string >                              LinkerJobProjectNames;
-	std::shared_ptr< std::filesystem::path >                LinkerOutput  = std::make_shared< std::filesystem::path >();
+	std::shared_ptr< std::filesystem::path >                LinkerOutput = std::make_shared< std::filesystem::path >();
 	Configuration                                           Configuration;
 	std::vector< JobSystem::JobPtr >                        LinkerDependencies;
 	std::vector< std::shared_ptr< std::filesystem::path > > CompilerOutputs;
@@ -71,7 +72,7 @@ void Workspace::Build( INode* pNodeToBuild )
 			// We Need The Project Node For Building A Specific Node In That Project
 			INode* pTempNode = pNode;
 
-			if(NodeToBuild && pNode->m_Kind != NodeKind::Project)
+			if( NodeToBuild && pNode->m_Kind != NodeKind::Project )
 			{
 				while( pTempNode->m_pParent->m_Kind != NodeKind::Project )
 					pTempNode = pTempNode->m_pParent;
@@ -162,7 +163,7 @@ void Workspace::Build( INode* pNodeToBuild )
 
 	if( pNodeToBuild )
 	{
-		if(pNodeToBuild->m_Kind == NodeKind::Group)
+		if( pNodeToBuild->m_Kind == NodeKind::Group )
 		{
 			Group* pGroup = ( Group* )pNodeToBuild;
 			pGroup->m_WorkspaceGroup ? Func( pNodeToBuild, false ) : Func( pNodeToBuild, true );
@@ -206,50 +207,25 @@ bool Workspace::Serialize( void )
 	if( m_Location.empty() )
 		return false;
 
-	JSONSerializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
+	GCL::Serializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
 
-	// Matrix table
+	if( Serializer.IsOpen() )
 	{
-		// TODO Serialize Build Matrix
-		/*
-		* Serializer.Object( "Matrix", [ this, &Serializer ]( void )
+		// Matrix table
+		{
+			// TODO Serialize Build Matrix
+		}
+
+		//Groups
+		{
+			Serializer.StartObject( "Groups" );
+			for( INode* pNode : m_pChildren )
 			{
-				for( const BuildMatrix::Column& rColumn : m_BuildMatrix.m_Columns )
-				{
-					Serializer.Object( rColumn.Name, [ & ]( void ) {
-
-						for( const auto& rConfiguration : rColumn.Configurations )
-							{
-								Serializer.Object( rConfiguration.first, [ & ]( void )
-									{
-										if(rConfiguration.second.m_Compiler || rConfiguration.second.m_Optimization)
-										{
-											if( rConfiguration.second.m_Compiler)
-											{
-												Serializer.Add( "Compiler", std::string( rConfiguration.second.m_Compiler->GetName() ) );
-											}
-										}
-
-									} );
-							}
-
-					} );
-				}
-			} );
-		*/
-	}
-
-	// Groups
-	{
-		Serializer.Object( "Groups", [ & ]()
-			{
-				for( INode* pNode : m_pChildren )
-				{
-					Group* pGroup = ( Group* )pNode;
-					pGroup->Serialize( Serializer );
-				}
-
-			} );
+				Group* pGroup = ( Group* )pNode;
+				pGroup->Serialize( Serializer );
+			}
+			Serializer.EndObject();
+		}
 	}
 
 	return true;
@@ -263,37 +239,38 @@ bool Workspace::Deserialize( void )
 	if( m_Location.empty() )
 		return false;
 
-	rapidjson::Document Doc;
+	GCL::Deserializer Deserializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
 
-	std::ifstream     gwks( ( m_Location / m_Name ).replace_extension( EXTENSION ), std::ios::in );
-	std::stringstream Content;
-	Content << gwks.rdbuf();
-	gwks.close();
-	Doc.Parse( Content.str().c_str() );
+	if( !Deserializer.IsOpen() ) return false;
 
-	for( auto It = Doc.MemberBegin(); It < Doc.MemberEnd(); ++It )
+	auto& Members = Deserializer.GetMembers();
+	for( GCL::Member& rMember : Members )
 	{
-		const std::string MemberName = It->name.GetString();
-
-		if( MemberName == "Matrix" )
+		if( rMember.Key == "Matrix" )
 		{
-			//TODO Deserialize Build Matrix Column
+			// TODO Deserialize Build Matrix Column
 		}
-		else if( MemberName == "Groups" )
+		else if( rMember.Key == "Groups" )
 		{
-			for( auto GroupsIt = It->value.MemberBegin(); GroupsIt < It->value.MemberEnd(); ++GroupsIt )
+			auto GroupMembers = rMember.GetValue< std::vector< GCL::Member > >();
+			for( GCL::Member& rGroupMember : GroupMembers )
 			{
-				const std::string GroupName = GroupsIt->name.GetString();
+				if( rGroupMember.Value == "Null" )
+				{
+					if( rGroupMember.Key != "Default Group" )
+						AddChild( new Group( m_Location, rGroupMember.Key, true ) );
+					continue;
+				}
 
-				if( GroupName == "DefaultGroup" )
+				if( rGroupMember.Key == "Default Group" )
 				{
 					Group* pGroup = ( Group* )m_pChildren[ 0 ];
-					pGroup->Deserialize( GroupsIt );
+					pGroup->Deserialize( rGroupMember );
 				}
 				else
 				{
-					Group* pGroup = new Group( m_Location, GroupName, true );
-					pGroup->Deserialize( GroupsIt );
+					Group* pGroup = new Group( m_Location, rGroupMember.Key, true );
+					pGroup->Deserialize( rGroupMember );
 					AddChild( std::move( pGroup ) );
 				}
 			}

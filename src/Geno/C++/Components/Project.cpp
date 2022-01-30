@@ -67,66 +67,75 @@ void Group::Rename( std::string Name )
 
 //////////////////////////////////////////////////////////////////////////
 
-void Group::Serialize( JSONSerializer& rSerializer )
+void Group::Serialize( GCL::Serializer& rSerializer )
 {
-	rSerializer.Object( m_Name == "" ? "DefaultGroup" : m_Name, [ & ]()
+	if( !m_pChildren.empty() )
+	{
+		rSerializer.StartObject( m_Name == "" ? "Default Group" : m_Name );
+
+		std::vector< std::string > Array;
+		std::string                ArrayName;
+
+		for( INode*& rNode : m_pChildren )
 		{
-			std::vector< std::string > Array;
-			std::string                ArrayName;
-
-			for( INode*& rNode : m_pChildren )
+			if( rNode->m_Kind == NodeKind::Group )
 			{
-				if( rNode->m_Kind == NodeKind::Group )
-				{
-					Group* pGroup = ( Group* )( rNode );
-					pGroup->Serialize( rSerializer );
-				}
-				else if( rNode->m_Kind == NodeKind::Project )
-				{
-					if( ArrayName.empty() ) { ArrayName = "Projects"; }
-
-					Project* pProject = ( Project* )( rNode );
-
-					if( pProject->Serialize() )
-						Array.push_back( ( rNode->m_Location.lexically_relative( m_Location ) / rNode->m_Name ).string() );
-				}
-				else if( rNode->m_Kind == NodeKind::File )
-				{
-					if( ArrayName.empty() ) { ArrayName = "Files"; }
-					Array.push_back( ( rNode->m_Location.lexically_relative( m_Location ) / rNode->m_Name ).string() );
-				}
+				Group* pGroup = ( Group* )( rNode );
+				pGroup->Serialize( rSerializer );
 			}
+			else if( rNode->m_Kind == NodeKind::Project )
+			{
+				if( ArrayName.empty() ) { ArrayName = "Projects"; }
 
-			if( !Array.empty() )
-				rSerializer.Add( std::move( ArrayName ), std::move( Array ) );
-		} );
+				Project* pProject = ( Project* )( rNode );
+
+				if( pProject->Serialize() )
+					Array.push_back( ( rNode->m_Location.lexically_relative( m_Location ) / rNode->m_Name ).string() );
+			}
+			else if( rNode->m_Kind == NodeKind::File )
+			{
+				if( ArrayName.empty() ) { ArrayName = "Files"; }
+				Array.push_back( ( rNode->m_Location.lexically_relative( m_Location ) / rNode->m_Name ).string() );
+			}
+		}
+
+		if( !Array.empty() )
+			rSerializer.Write( ArrayName, Array );
+
+		rSerializer.EndObject();
+	}
+	else
+	{
+		rSerializer.Null( m_Name == "" ? "Default Group" : m_Name );
+	}
 
 } // Serialize
 
 //////////////////////////////////////////////////////////////////////////
 
-void Group::Deserialize( const rapidjson::Value::ConstMemberIterator& rIt )
+void Group::Deserialize( GCL::Member& rGroupMember )
 {
-	for( auto GroupIt = rIt->value.MemberBegin(); GroupIt < rIt->value.MemberEnd(); ++GroupIt )
-	{
-		const std::string MemberName = GroupIt->name.GetString();
+	auto Members = rGroupMember.GetValue< std::vector< GCL::Member > >();
 
-		if( MemberName == "Files" || MemberName == "Projects" )
+	for( GCL::Member& rMember : Members )
+	{
+		if( rMember.Key == "Files" || rMember.Key == "Projects" )
 		{
-			for( auto ArrayIt = GroupIt->value.GetArray().Begin(); ArrayIt < GroupIt->value.GetArray().End(); ++ArrayIt )
+			std::vector< std::string > Array = rMember.GetValue< std::vector< std::string > >();
+			for( std::string& rStr : Array )
 			{
-				std::filesystem::path Path = ArrayIt->GetString();
+				std::filesystem::path Path = rStr;
 
 				if( !Path.is_absolute() )
 					Path = m_Location / Path;
 				Path = Path.lexically_normal();
 
-				if( MemberName == "Files" )
+				if( rMember.Key == "Files" )
 				{
 					if( std::filesystem::exists( Path ) )
 						AddChild( new File( Path.parent_path(), Path.filename().string() ) );
 				}
-				else if( MemberName == "Projects" )
+				else if( rMember.Key == "Projects" )
 				{
 					Project* pProject = new Project( Path.parent_path(), Path.stem().string() );
 					if( pProject->Deserialize() )
@@ -138,8 +147,14 @@ void Group::Deserialize( const rapidjson::Value::ConstMemberIterator& rIt )
 		}
 		else
 		{
-			Group* pGroup = new Group( m_Location, GroupIt->name.GetString(), m_WorkspaceGroup );
-			pGroup->Deserialize( GroupIt );
+			if( rMember.Value == "Null" )
+			{
+				AddChild( new Group( m_Location, rMember.Key, m_WorkspaceGroup ) );
+				continue;
+			}
+
+			Group* pGroup = new Group( m_Location, rMember.Key, m_WorkspaceGroup );
+			pGroup->Deserialize( rMember );
 			AddChild( std::move( pGroup ) );
 		}
 	}
@@ -173,7 +188,9 @@ bool Project::Serialize( void )
 		return false;
 	}
 
-	JSONSerializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
+	GCL::Serializer Serializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
+
+	if( !Serializer.IsOpen() ) return false;
 
 	// Kind
 	{
@@ -187,19 +204,18 @@ bool Project::Serialize( void )
 			default:                   KindString = "Unspecified";    break;
 		}
 
-		Serializer.Add( "Kind", std::move( KindString ) );
+		Serializer.Write( "Kind", std::move( KindString ) );
 	}
 
-	// Groups
+	//Groups
 	{
-		Serializer.Object( "Groups", [ & ]( void )
-			{
-				for( INode*& rNode : m_pChildren )
-				{
-					Group* pGroup = ( Group* )rNode;
-					pGroup->Serialize( Serializer );
-				}
-			} );
+		Serializer.StartObject( "Groups" );
+		for( INode* pNode : m_pChildren )
+		{
+			Group* pGroup = ( Group* )pNode;
+			pGroup->Serialize( Serializer );
+		}
+		Serializer.EndObject();
 	}
 
 	// Include Directories
@@ -212,7 +228,7 @@ bool Project::Serialize( void )
 			Dirs.push_back( RelativePath.string() );
 		}
 
-		Serializer.Add( "IncludeDirs", std::move( Dirs ) );
+		Serializer.Write( "IncludeDirs", std::move( Dirs ) );
 	}
 
 	// Library Directories
@@ -225,19 +241,19 @@ bool Project::Serialize( void )
 			Dirs.push_back( RelativePath.string() );
 		}
 
-		Serializer.Add( "LibraryDirs", std::move( Dirs ) );
+		Serializer.Write( "LibraryDirs", std::move( Dirs ) );
 	}
 
 	// Preprocessor defines
 	if( !m_LocalConfiguration.m_Defines.empty() )
 	{
-		Serializer.Add( "Defines", m_LocalConfiguration.m_Defines );
+		Serializer.Write( "Defines", m_LocalConfiguration.m_Defines );
 	}
 
 	// Libraries
 	if( !m_LocalConfiguration.m_Libraries.empty() )
 	{
-		Serializer.Add( "Libraries", m_LocalConfiguration.m_Libraries );
+		Serializer.Write( "Libraries", m_LocalConfiguration.m_Libraries );
 	}
 
 	return true;
@@ -261,55 +277,53 @@ bool Project::Deserialize( void )
 		return false;
 	}
 
-	if( !std::filesystem::exists( ( m_Location / m_Name ).replace_extension( EXTENSION ) ) )
-		return false;
+	GCL::Deserializer Deserializer( ( m_Location / m_Name ).replace_extension( EXTENSION ) );
 
-	rapidjson::Document Doc;
+	if( !Deserializer.IsOpen() ) return false;
 
-	std::ifstream     gprj( ( m_Location / m_Name ).replace_extension( EXTENSION ), std::ios::in );
-	std::stringstream Content;
-	Content << gprj.rdbuf();
-	gprj.close();
-	Doc.Parse( Content.str().c_str() );
-
-	for( auto It = Doc.MemberBegin(); It < Doc.MemberEnd(); ++It )
+	auto& Members = Deserializer.GetMembers();
+	for( GCL::Member& rMember : Members )
 	{
-		const std::string MemberName = It->name.GetString();
-
-		if( MemberName == "Kind" )
+		if( rMember.Key == "Kind" )
 		{
-			const std::string ProjectKind = It->value.GetString();
+			const std::string ProjectKind = rMember.Value;
 
 			if     ( ProjectKind == "Application" )   { m_ProjectKind = Kind::Application;    }
 			else if( ProjectKind == "StaticLibrary" ) { m_ProjectKind = Kind::StaticLibrary;  }
 			else if( ProjectKind == "DynamicLibrary" ){ m_ProjectKind = Kind::DynamicLibrary; }
 			else                                      { m_ProjectKind = Kind::Unspecified;    }
 		}
-		else if( MemberName == "Groups" )
+		else if( rMember.Key == "Groups" )
 		{
-			for( auto GroupsIt = It->value.MemberBegin(); GroupsIt < It->value.MemberEnd(); ++GroupsIt )
+			auto GroupMembers = rMember.GetValue< std::vector< GCL::Member > >();
+			for( GCL::Member& rGroupMember : GroupMembers )
 			{
-				const std::string GroupName = GroupsIt->name.GetString();
+				if( rGroupMember.Value == "Null" )
+				{
+					if( rGroupMember.Key != "Default Group" )
+						AddChild( new Group( m_Location, rGroupMember.Key, false ) );
+					continue;
+				}
 
-				if( GroupName == "DefaultGroup" )
+				if( rGroupMember.Key == "Default Group" )
 				{
 					Group* pGroup = ( Group* )m_pChildren[ 0 ];
-					pGroup->Deserialize( GroupsIt );
+					pGroup->Deserialize( rGroupMember );
 				}
 				else
 				{
-					Group* pGroup = new Group( m_Location, GroupName );
-					pGroup->Deserialize( GroupsIt );
+					Group* pGroup = new Group( m_Location, rGroupMember.Key, false );
+					pGroup->Deserialize( rGroupMember );
 					AddChild( std::move( pGroup ) );
 				}
 			}
 		}
-		else if( MemberName == "IncludeDirs" )
+		else if( rMember.Key == "IncludeDirs" )
 		{
-			const auto Array = It->value.GetArray();
-			for( auto i = Array.Begin(); i < Array.End(); ++i )
+			std::vector< std::string > Array = rMember.GetValue< std::vector< std::string > >();
+			for( const std::string& rDir : Array )
 			{
-				std::filesystem::path Path = i->GetString();
+				std::filesystem::path Path = rDir;
 
 				if( !Path.is_absolute() )
 					Path = m_Location / Path;
@@ -318,12 +332,12 @@ bool Project::Deserialize( void )
 				m_LocalConfiguration.m_IncludeDirs.push_back( Path );
 			}
 		}
-		else if( MemberName == "LibraryDirs" )
+		else if( rMember.Key == "LibraryDirs" )
 		{
-			const auto Array = It->value.GetArray();
-			for( auto i = Array.Begin(); i < Array.End(); ++i )
+			std::vector< std::string > Array = rMember.GetValue< std::vector< std::string > >();
+			for( const std::string& rDir : Array )
 			{
-				std::filesystem::path Path = i->GetString();
+				std::filesystem::path Path = rDir;
 
 				if( !Path.is_absolute() )
 					Path = m_Location / Path;
@@ -332,21 +346,13 @@ bool Project::Deserialize( void )
 				m_LocalConfiguration.m_LibraryDirs.push_back( Path );
 			}
 		}
-		else if( MemberName == "Defines" )
+		else if( rMember.Key == "Defines" )
 		{
-			const auto Array = It->value.GetArray();
-			for( auto i = Array.Begin(); i < Array.End(); ++i )
-			{
-				m_LocalConfiguration.m_Defines.push_back( i->GetString() );
-			}
+			m_LocalConfiguration.m_Defines = rMember.GetValue< std::vector< std::string > >();
 		}
-		else if( MemberName == "Libraries" )
+		else if( rMember.Key == "Libraries" )
 		{
-			const auto Array = It->value.GetArray();
-			for( auto i = Array.Begin(); i < Array.End(); ++i )
-			{
-				m_LocalConfiguration.m_Libraries.push_back( i->GetString() );
-			}
+			m_LocalConfiguration.m_Libraries = rMember.GetValue< std::vector< std::string > >();
 		}
 	}
 
@@ -378,13 +384,13 @@ static void FindSourceFoldersInChildren( INode*& rNode, std::vector< std::filesy
 {
 	if( !rNode ) { return; }
 
-	for (INode*& rChildNode : rNode->m_pChildren)
+	for( INode*& rChildNode : rNode->m_pChildren )
 	{
-		if (rChildNode->m_Kind == NodeKind::Group)
+		if( rChildNode->m_Kind == NodeKind::Group )
 		{
 			FindSourceFoldersInChildren( rChildNode, rSourcePaths );
 		}
-		else if(rChildNode->m_Kind == NodeKind::File)
+		else if( rChildNode->m_Kind == NodeKind::File )
 		{
 			// Path already found.
 			if( std::find( rSourcePaths.begin(), rSourcePaths.end(), rChildNode->m_Location ) != rSourcePaths.end() )
@@ -395,14 +401,14 @@ static void FindSourceFoldersInChildren( INode*& rNode, std::vector< std::filesy
 			// #TODO: We really need a function that does this.
 			if(
 				Extension == ".cc"
-				|| Extension == ".cpp"
-				|| Extension == ".cxx"
-				|| Extension == ".c++"
-				|| Extension == ".h"
-				|| Extension == ".hh"
-				|| Extension == ".hpp"
-				|| Extension == ".hxx"
-				|| Extension == ".h++" )
+			 || Extension == ".cpp"
+			 || Extension == ".cxx"
+			 || Extension == ".c++"
+			 || Extension == ".h"
+			 || Extension == ".hh"
+			 || Extension == ".hpp"
+			 || Extension == ".hxx"
+			 || Extension == ".h++" )
 			{
 				rSourcePaths.push_back( rChildNode->m_Location );
 			}
@@ -415,9 +421,9 @@ static void FindSourceFoldersInChildren( INode*& rNode, std::vector< std::filesy
 std::vector< std::filesystem::path > Project::FindSourceFolders( void )
 {
 	// Walk through all files and get the parent path. And check if that path does not exist already.
-	std::vector<std::filesystem::path> SourcePaths;
+	std::vector< std::filesystem::path > SourcePaths;
 
-	for(INode*& rNode : m_pChildren)
+	for( INode*& rNode : m_pChildren )
 	{
 		FindSourceFoldersInChildren( rNode, SourcePaths );
 	}

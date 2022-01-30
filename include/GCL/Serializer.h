@@ -16,23 +16,29 @@
  */
 
 #pragma once
+
 #include <filesystem>
+#include <sstream>
+#include <string>
+#include <vector>
 
 namespace GCL
 {
-
-class Object;
-
 class Serializer
 {
 public:
-	
-	explicit Serializer( const std::filesystem::path& rPath );
-		    ~Serializer( void );
+
+	 Serializer( const std::filesystem::path& rPath );
+	~Serializer( void );
 
 //////////////////////////////////////////////////////////////////////////
 
-	void WriteObject( const Object& rObject, int IndentLevel = 0 );
+	template< typename T >
+	void Write( const std::string& rKey, const T& rValue );
+
+	void StartObject( const std::string& rKey );
+	void EndObject();
+	void Null( const std::string& rKey );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -42,8 +48,91 @@ public:
 
 private:
 
+//////////////////////////////////////////////////////////////////////////
+
+	std::string GetIndent( void ) const;
+
+//////////////////////////////////////////////////////////////////////////
+
+	template< typename ArrayT >
+	void WriteArray( const std::string& rKey, const std::vector< ArrayT >& rArray );
+
+//////////////////////////////////////////////////////////////////////////
+
+private:
+
+	int m_IndentLevel    = 0;
 	int m_FileDescriptor = -1;
+	int m_ObjectsCount   = 0;
+
+	std::stringstream m_Buffer;
 
 }; // Serializer
 
-}
+//////////////////////////////////////////////////////////////////////////
+
+template< typename ArrayT >
+inline void Serializer::WriteArray( const std::string& rKey, const std::vector< ArrayT >& rArray )
+{
+	m_Buffer << GetIndent() + rKey + ": [";
+	for( int i = 0; ( int )i < rArray.size(); ++i )
+	{
+		m_Buffer << rArray[ i ];
+		if( i != rArray.size() - 1 )
+			m_Buffer << ", ";
+	}
+	m_Buffer << "]\n";
+
+} // WriteArray
+
+//////////////////////////////////////////////////////////////////////////
+
+template< typename T >
+inline void Serializer::Write( const std::string& rKey, const T& rValue )
+{
+	m_Buffer << GetIndent() + rKey + ": " << rValue << std::endl;
+
+} // Write
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void Serializer::Write< bool >( const std::string& rKey, const bool& rValue )
+{
+	if( rValue )
+		m_Buffer << GetIndent() + rKey + ": true" << std::endl;
+	else
+		m_Buffer << GetIndent() + rKey + ": false" << std::endl;
+
+} // Write< bool >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void Serializer::Write< std::vector< int > >( const std::string& rKey, const std::vector< int >& rValue )
+{
+	WriteArray< int >( rKey, rValue );
+
+} // Write< std::vector< int > >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void Serializer::Write< std::vector< float > >( const std::string& rKey, const std::vector< float >& rValue )
+{
+	WriteArray< float >( rKey, rValue );
+
+} // Write< std::vector< float > >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline void Serializer::Write< std::vector< std::string > >( const std::string& rKey, const std::vector< std::string >& rValue )
+{
+	WriteArray< std::string >( rKey, rValue );
+
+} // Write< std::vector< std::string > >
+
+//////////////////////////////////////////////////////////////////////////
+
+} // namespace GCL

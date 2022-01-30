@@ -35,35 +35,42 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-constexpr bool LineStartsWithIndent( std::string_view Line, int IndentLevel )
+void GCL::GetMembersFromObject( std::stringstream& rBuffer, std::vector< GCL::Member >& rMembers )
 {
-	for( int i = 0; i < IndentLevel; ++i )
+	std::string Line;
+	int         ObjectIndex = -1;
+
+	while( getline( rBuffer, Line, '\n' ) )
 	{
-		if( Line[ i ] != '\t' )
-			return false;
+		Line += "\n"; // Add \n for checking if the Line Has Object Or Member
+
+		// If Line Have \t Than We Add That Line To Object Member Value
+		if( Line.find( "\t" ) == std::string::npos )
+		{
+			GCL::Member Member;
+
+			Member.Key = Line.substr( 0, Line.find( ":" ) );
+			if( Line.find( ": \n" ) == std::string::npos ) // Member
+			{
+				Line.resize( Line.size() - 1 ); // Removes \n From Line
+				Member.Value = Line.substr( Line.find( ":" ) + 2, Line.size() );
+			}
+			else // Object Member
+			{
+				// Set ObjectIndex To Get The ObjectValue In It
+				ObjectIndex = ( int )rMembers.size();
+			}
+
+			rMembers.push_back( Member );
+		}
+		else // Lines Containing \t (Are Members Of Object)
+		{
+			// Remove \t From Beginning And Add That Line To Object Value
+			rMembers[ ObjectIndex ].Value += std::string( Line.begin() + 1, Line.end() );
+		}
 	}
 
-	return true;
-
-} // LineStartsWithIndent
-
-//////////////////////////////////////////////////////////////////////////
-
-constexpr size_t IncrementUnlessNPos( size_t Index )
-{
-	return Index + ( Index == std::string_view::npos ? 0 : 1 );
-
-} // IncrementUnlessNPos
-
-//////////////////////////////////////////////////////////////////////////
-
-static void AddChildCB( GCL::Object Child, void* pUser )
-{
-	GCL::Object* pParent = static_cast< GCL::Object* >( pUser );
-
-	pParent->AddChild( std::move( Child ) );
-
-} // AddChildCB
+} // GetMembersFromObject
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -99,22 +106,6 @@ GCL::Deserializer::~Deserializer( void )
 
 //////////////////////////////////////////////////////////////////////////
 
-void GCL::Deserializer::Objects( void* pUser, ObjectCallback Callback )
-{
-	std::string_view Unparsed( m_pFileBuffer, m_FileSize );
-
-	while( !Unparsed.empty() )
-	{
-		size_t           LineEnd = Unparsed.find( '\n' );
-		std::string_view Line    = Unparsed.substr( 0, LineEnd );
-
-		Unparsed = ParseLine( Line, 0, Unparsed, Callback, pUser );
-	}
-
-} // Objects
-
-//////////////////////////////////////////////////////////////////////////
-
 bool GCL::Deserializer::IsOpen( void ) const
 {
 	return ( ( m_pFileBuffer != nullptr ) && ( m_FileSize > 0 ) );
@@ -123,46 +114,14 @@ bool GCL::Deserializer::IsOpen( void ) const
 
 //////////////////////////////////////////////////////////////////////////
 
-std::string_view GCL::Deserializer::ParseLine( std::string_view Line, int IndentLevel, std::string_view Unparsed, ObjectCallback Callback, void* pUser )
+std::vector< GCL::Member >& GCL::Deserializer::GetMembers()
 {
-	Unparsed = Unparsed.substr( Line.size() + ( Line.size() < Unparsed.size() ) );
-
-	std::string_view TrimmedLine = Line.substr( IndentLevel );
-	TrimmedLine                  = TrimmedLine.substr( 0, IncrementUnlessNPos( TrimmedLine.find_last_not_of( "\r\t " ) ) );
-	size_t           ColonIndex  = TrimmedLine.find_first_of( ':' );
-
-	if( ColonIndex == std::string_view::npos ) // No colon found
+	if( m_Members.empty() )
 	{
-		Object* pParentObject = static_cast< Object* >( pUser );
-		Object  Child( ( std::string )TrimmedLine );
-
-		pParentObject->AddChild( std::move( Child ) );
-	}
-	else if( ( ColonIndex + 1 ) < TrimmedLine.size() ) // Something comes after the colon
-	{
-		Object Object( ( std::string )TrimmedLine.substr( 0, ColonIndex ) );
-		Object.SetString( ( std::string )TrimmedLine.substr( ColonIndex + 1 ) );
-
-		Callback( std::move( Object ), pUser );
-	}
-	else // Colon is at the end of the line, signifying the start of a table
-	{
-		std::string_view Name             = TrimmedLine.substr( 0, ColonIndex );
-		Object           Object( std::string( Name ), std::in_place_type< Object::TableType > );
-
-		++IndentLevel;
-
-		// Parse remaining lines recursively until the indent level changes
-		while( !Unparsed.empty() && LineStartsWithIndent( Unparsed, IndentLevel ) )
-		{
-			Unparsed = ParseLine( Unparsed.substr( 0, Unparsed.find( '\n' ) ), IndentLevel, Unparsed, AddChildCB, &Object );
-		}
-
-		--IndentLevel;
-
-		Callback( std::move( Object ), pUser );
+		std::stringstream Buffer( m_pFileBuffer );
+		GetMembersFromObject( Buffer, m_Members );
 	}
 
-	return Unparsed;
+	return m_Members;
 
-} // ParseLine
+} // GetMembers
