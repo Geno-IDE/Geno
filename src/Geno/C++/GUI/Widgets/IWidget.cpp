@@ -19,8 +19,8 @@
 
 #include <imgui.h>
 
-IWidget::IWidget( const std::filesystem::path& rJsonFile )
-	: m_JsonFile( rJsonFile )
+IWidget::IWidget( const std::filesystem::path& rWidgetFile )
+	: m_WidgetFile( rWidgetFile )
 {
 } // IWidget
 
@@ -49,32 +49,27 @@ void IWidget::Observe()
 
 //////////////////////////////////////////////////////////////////////////
 
-void IWidget::WriteKeyBindings( JSONSerializer& rSerializer )
+void IWidget::WriteKeyBindings( GCL::Serializer& rSerializer )
 {
-	rSerializer.Object( "KeyBindings", [ this, &rSerializer ]( void )
-		{
-			for( auto&& [ rCombination, rActionName ] : m_KeyBindings )
-			{
-				rSerializer.Add( rActionName, rCombination );
-			}
-		} );
+	rSerializer.StartObject( "KeyBindings" );
+
+	for( auto&& [ rCombination, rActionName ] : m_KeyBindings )
+	{
+		rSerializer.Write( rActionName, rCombination );
+	}
+
+	rSerializer.EndObject();
 
 } // WriteKeyBindings
 
 //////////////////////////////////////////////////////////////////////////
 
-void IWidget::ReadKeyBindings( const rapidjson::Value::ConstMemberIterator& rIt )
+void IWidget::ReadKeyBindings( GCL::Member& rMember )
 {
-	for( auto It = rIt->value.MemberBegin(); It < rIt->value.MemberEnd(); ++It )
+	auto Members = rMember.GetValue< std::vector< GCL::Member > >();
+	for( GCL::Member& rObjectMember : Members )
 	{
-		std::vector< int > Combinations;
-		auto               Array = It->value.GetArray();
-
-		for( auto i = Array.Begin(); i < Array.End(); ++i )
-		{
-			Combinations.push_back( i->GetInt() );
-		}
-		m_KeyBindings.insert( { Combinations, It->name.GetString() } );
+		m_KeyBindings.insert( { rObjectMember.GetValue< std::vector< int > >(), rObjectMember.Key } );
 	}
 
 } // ReadKeyBindings

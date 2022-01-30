@@ -16,40 +16,51 @@
  */
 
 #pragma once
-#include "GCL/Object.h"
 
 #include <filesystem>
-#include <initializer_list>
-#include <string_view>
-#include <variant>
+#include <sstream>
+#include <string>
+#include <vector>
 
 namespace GCL
 {
+
+struct Member
+{
+	std::string Key;
+	std::string Value;
+
+	template< typename T >
+	T GetValue();
+
+}; // Member
+
+//////////////////////////////////////////////////////////////////////////
+
+void GetMembersFromObject( std::stringstream& rBuffer, std::vector< Member >& rMembers );
+
+//////////////////////////////////////////////////////////////////////////
 
 class Deserializer
 {
 public:
 
-	using ObjectCallback = void( * )( Object Object, void* pUser );
-
-//////////////////////////////////////////////////////////////////////////
-
-	explicit Deserializer( const std::filesystem::path& rPath );
-	        ~Deserializer( void );
-
-//////////////////////////////////////////////////////////////////////////
-
-	void Objects( void* pUser, ObjectCallback Callback );
+	 Deserializer( const std::filesystem::path& rPath );
+	~Deserializer();
 
 //////////////////////////////////////////////////////////////////////////
 
 	bool IsOpen( void ) const;
 
+	std::vector< Member >& GetMembers();
+
 //////////////////////////////////////////////////////////////////////////
 
 private:
 
-	std::string_view ParseLine( std::string_view Line, int IndentLevel, std::string_view Unparsed, ObjectCallback Callback, void* pUser );
+//////////////////////////////////////////////////////////////////////////
+
+	std::vector< Member > m_Members;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -58,4 +69,76 @@ private:
 
 }; // Deserializer
 
-}
+//////////////////////////////////////////////////////////////////////////
+
+template< typename T >
+inline T Member::GetValue()
+{
+	return T();
+
+} // GetValue
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline int Member::GetValue()
+{
+	return stoi( Value );
+
+} // GetValue< int >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline bool Member::GetValue()
+{
+	return Value == "true" ? true : false;
+
+} // GetValue< bool >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline std::vector< std::string > Member::GetValue()
+{
+	std::stringstream          ValueStr( std::string( Value.begin() + 1, Value.end() - 1 ) ); // Remove [] from ArrayString
+	std::vector< std::string > Array;
+	while( ValueStr.good() )
+	{
+		getline( ValueStr, Array.emplace_back( "" ), ',' );
+	}
+	return Array;
+
+} // GetValue< std::vector< std::string > >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline std::vector< int > Member::GetValue()
+{
+	std::stringstream  ValueStr( std::string( Value.begin() + 1, Value.end() - 1 ) ); // Remove [] from ArrayString
+	std::vector< int > Array;
+	while( ValueStr.good() )
+	{
+		std::string T;
+		getline( ValueStr, T, ',' );
+		Array.push_back( stoi( T ) );
+	}
+	return Array;
+
+} // GetValue< std::vector< int > >
+
+//////////////////////////////////////////////////////////////////////////
+
+template<>
+inline std::vector< Member > Member::GetValue() // Returns Members In An Object
+{
+	std::stringstream     ValueStr( Value );
+	std::vector< Member > Members;
+	GetMembersFromObject( ValueStr, Members );
+
+	return Members;
+
+} // GetValue< std::vector< Member > >
+
+} // namespace GCL
