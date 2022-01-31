@@ -75,10 +75,10 @@ template< typename ArrayT >
 inline void Serializer::WriteArray( const std::string& rKey, const std::vector< ArrayT >& rArray )
 {
 	m_Buffer << GetIndent() + rKey + ": [";
-	for( int i = 0; ( int )i < rArray.size(); ++i )
+	for( int i = 0; i < ( int )rArray.size(); ++i )
 	{
 		m_Buffer << rArray[ i ];
-		if( i != rArray.size() - 1 )
+		if( i != ( int )rArray.size() - 1 )
 			m_Buffer << ", ";
 	}
 	m_Buffer << "]\n";
