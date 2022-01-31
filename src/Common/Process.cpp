@@ -137,8 +137,6 @@ int Process::Wait( void )
 
 	waitpid( m_Pid, &m_ExitCode, 0 );
 
-	Kill();
-
 	return m_ExitCode;
 
 #endif // __linux__ || __APPLE__
@@ -160,10 +158,6 @@ void Process::Kill( void )
 #elif defined( __linux__ ) || defined( __APPLE__ ) // _WIN32
 
 	m_ExitCode = kill( m_Pid, SIGUSR1 );
-
-	// #TODO: Report/show a dialog that the "kill" command has failed.
-	if( m_ExitCode == -1 )
-		std::cerr << "Kill command failed, tried to kill PID: " << m_Pid << "\n";
 
 	m_Pid = 0;
 
