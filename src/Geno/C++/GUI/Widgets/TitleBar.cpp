@@ -187,8 +187,11 @@ void TitleBar::Draw( void )
 
 				if( Pressed )
 				{
-					if( Application::Instance().CurrentWorkspace()->m_AppProcess )
-						Application::Instance().CurrentWorkspace()->m_AppProcess->Kill();
+					if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
+					{
+						if( pWorkspace->m_AppProcess )
+							pWorkspace->m_AppProcess->Kill();
+					}
 
 					exit( 0 );
 				}
