@@ -636,7 +636,7 @@ void TextEdit::HandleKeyboardInputs( File& rFile )
 		rIO.WantCaptureKeyboard = true;
 		rIO.WantTextInput       = true;
 
-		if( !Shift && !Ctrl & !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Enter ) ) )
+		if( !Shift && !Ctrl && !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Enter ) ) )
 			Enter( rFile );
 		else if( !Shift && !Ctrl && !Alt && ImGui::IsKeyPressed( ImGui::GetKeyIndex( ImGuiKey_Backspace ) ) )
 			Backspace( rFile );
