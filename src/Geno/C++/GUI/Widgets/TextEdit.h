@@ -276,7 +276,7 @@ private:
 	void                             YeetDuplicateCursors( File& rFile );
 	void                             DisableIntersectionsInSelection( File& rFile, Cursor& rCursor );
 	void                             DeleteDisabledCursor( File& rFile );
-	void                             DeleteSelection( File& rFile, int Cursor );
+	void                             DeleteSelection( File& rFile, int CursorIndex );
 	void                             Enter( File& rFile );
 	void                             Backspace( File& rFile );
 	void                             Backspace( File& rFile, int CursorIndex, bool DeleteLine );
