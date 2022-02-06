@@ -1,10 +1,9 @@
-
 require 'customizations'
 
 cdialect 'C11'
 cppdialect 'C++20'
 exceptionhandling 'Off'
-flags { 'FatalWarnings', 'MultiProcessorCompile' }
+flags { 'MultiProcessorCompile' }
 includedirs { '../include/' }
 objdir '../obj'
 rtti 'Off'
@@ -24,6 +23,7 @@ filter 'configurations:Debug'
 	defines { 'DEBUG' }
 
 filter 'configurations:Release'
+	flags 'FatalWarnings'
 	optimize 'Full'
 	symbols 'Off'
 	defines { 'RELEASE', 'NDEBUG' }
