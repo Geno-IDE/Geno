@@ -50,6 +50,9 @@ function app( name )
 	filter { 'system:macosx or ios', 'files:**.cpp' }
 		compileas 'Objective-C++'
 
+    filter { 'action:xcode' }
+        defines { 'BUILD_XCODE' }
+
 	filter { }
 
 	table.insert( apps, name )
