@@ -19,7 +19,7 @@
 
 #include "GUI/MainWindow.h"
 
-#include <AppKit/AppKit.h>
+#import <Cocoa/Cocoa.h>
 
 struct _GLFWwindow;
 

@@ -21,6 +21,7 @@
 /gradlew.bat
 /local.properties
 /Makefile
+/CMakeLists.txt
 
 premake5.exe
 premake5
