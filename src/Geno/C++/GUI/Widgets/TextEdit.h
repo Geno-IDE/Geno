@@ -185,7 +185,10 @@ public:
 		DeleteLines,
 		InsertLines,
 		Enter,
-		Tab
+		Tab,
+		TabAllCursors,
+		RestoreCursor,
+		Delete
 	};
 
 	class SubCommand
@@ -227,9 +230,24 @@ public:
 		{
 		}
 
+		~Command()
+		{
+			ClearSubCommands();
+		}
+
 		void AddSubCommand( SubCommand* pSubCommand )
 		{
 			SubCommands.push_back( pSubCommand );
+		}
+
+		void ClearSubCommands()
+		{
+			for( SubCommand* pSub : SubCommands )
+			{
+				delete pSub;
+			}
+
+			SubCommands.clear();
 		}
 
 		std::vector< Cursor >      Cursors;
@@ -281,7 +299,7 @@ public:
 			}
 			else if( Location < ( int )Count )
 			{
-				for( int i = Location + 1; i < (int)Commands.size(); i++ )
+				for( int i = Location + 1; i < ( int )Commands.size(); i++ )
 					delete Commands[ i ];
 
 				Commands.erase( Commands.begin() + ( Location + 1 ), Commands.end() );
@@ -423,6 +441,7 @@ private:
 	void                             Tab( File& rFile, bool Shift );
 	void                             Tab( File& rFile, bool Shift, int CursorIndex, bool IgnoreSelection = false );
 	void                             PrepareBoxModeForInput( File& rFile );
+	void                             PrepareBoxModeForInput( File& rFile, int CursorIndex );
 	void                             EnterTextStuff( File& rFile, char C, bool NoMove = false );
 	void                             EnterTextStuff( File& rFile, char C, int CursorIndex, bool NoMove = false );
 	void                             MoveUp( File& rFile, bool Shift, bool Alt );
@@ -439,6 +458,7 @@ private:
 	void                             SwapLines( File& rFile, bool Up );
 	std::vector< int >               CursorsInText( File& rFile );
 	std::vector< int >               CursorsNotInText( File& rFile );
+	bool                             CursorInText( File& rFile, int CursorIndex );
 	void                             ClearSearch( File& rFile );
 	Coordinate                       SearchInLine( File& rFile, bool CaseSensitive, const std::string& rSearchString, Coordinate LineStart, int SearchStringOffset, std::vector< Glyph* >& rMatches );
 	void                             SearchWorker( File* pFile, bool CaseSensitive, bool WholeWord, const std::string* pSearchString, int StartLine, int EndLine, std::vector< LineSelectionItem >* pResult, int* pState );
