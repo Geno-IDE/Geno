@@ -50,7 +50,7 @@ function app( name )
 	filter { 'system:macosx or ios', 'files:**.cpp' }
 		compileas 'Objective-C++'
 
-    filter { 'action:xcode' }
+    filter { 'action:xcode4' }
         defines { 'BUILD_XCODE' }
 
 	filter { }

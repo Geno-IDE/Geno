@@ -141,13 +141,13 @@ void Application::HandleCommandLineArgs( int NumArgs, char** ppArgs )
 		case 1:
 		{
 			m_ExePath = std::filesystem::absolute( ppArgs[ 0 ] ).lexically_normal();
-#if defined( _WIN32 ) || defined( __linux__ ) || defined( __APPLE__ )
-			m_AppDir  = m_ExePath.parent_path();
-			m_DataDir = m_AppDir.parent_path().parent_path() / L"data";
-#elif defined( BUILD_XCODE ) // _WIN32 || __linux__ || __APPLE__
+#if defined( BUILD_XCODE )
 			m_AppDir  = m_ExePath.parent_path().parent_path().parent_path();
 			m_DataDir = m_AppDir / L"Contents" / L"Resources" / L"data";
-#endif // BUILD_XCODE
+#elif defined( _WIN32 ) || defined( __linux__ ) || defined( __APPLE__ ) // BUILD_XCODE
+			m_AppDir  = m_ExePath.parent_path();
+			m_DataDir = m_AppDir.parent_path().parent_path() / L"data";
+#endif // _WIN32 || __linux__ || __APPLE__
 			
 			std::error_code Error;
 			std::filesystem::current_path( m_AppDir, Error );
