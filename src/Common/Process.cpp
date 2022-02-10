@@ -63,7 +63,7 @@ Process::Process( const Process& rOther )
 
 Process::Process( Process&& rrOther ) noexcept
 {
-	m_CommandLine = std::exchange( rrOther.m_CommandLine, nullptr );
+	m_CommandLine = std::exchange( rrOther.m_CommandLine, L"" );
 	m_ExitCode    = std::exchange( rrOther.m_ExitCode, 0 );
 #if defined( _WIN32 )
 	m_Pid         = std::exchange( rrOther.m_Pid, nullptr );
