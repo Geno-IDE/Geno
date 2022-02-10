@@ -62,7 +62,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-	 void         SetCommandLine( const std::wstring_view& rCommandLine ) { m_CommandLine = rCommandLine; }
+	 void         SetCommandLine( const std::wstring& rCommandLine ) { m_CommandLine = rCommandLine; }
 	 void         Kill          ( void );
 	 void         Start         ( FILE* pOutputStream );
 	 int          Wait          ( void );
@@ -72,7 +72,7 @@ public:
 
 private:
 
-	std::wstring_view m_CommandLine;
+	std::wstring m_CommandLine;
 
 	int m_ExitCode  = 0;
 
