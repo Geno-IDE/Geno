@@ -188,7 +188,8 @@ public:
 		Tab,
 		TabAllCursors,
 		RestoreCursor,
-		Delete
+		Delete,
+		SwapLines
 	};
 
 	class SubCommand
@@ -199,8 +200,6 @@ public:
 			, CursorIndex( -1 )
 			, Character( 0, 0 )
 			, NoMove( false )
-			, Shift( false )
-			, IgnoreSelection( false )
 		{
 		}
 
@@ -215,9 +214,13 @@ public:
 		std::vector< Line > Lines;
 		Glyph               Character;
 
-		bool NoMove;
-		bool Shift;
-		bool IgnoreSelection;
+		union
+		{
+			bool NoMove;
+			bool Shift;
+			bool IgnoreSelection;
+			bool Up;
+		};
 	};
 
 	class Command
