@@ -3859,6 +3859,8 @@ void TextEdit::InsertLines( File& rFile, Cursor& rCursor, std::vector< Line >& r
 
 void TextEdit::SwapLines( File& rFile, bool Up )
 {
+	Command* pCommand = rFile.CmdStack.GetCommand( &rFile, CommandType::SwapLines );
+
 	if( rFile.Cursors.size() > 1 && rFile.CursorMultiMode == MultiCursorMode::Normal ) EraseAllCursors( rFile, true );
 
 	int     LineToMove  = -1;
@@ -3968,6 +3970,14 @@ void TextEdit::SwapLines( File& rFile, bool Up )
 
 	rLines.insert( rLines.begin() + Destination, rLines[ LineToMove ] );
 	rLines.erase( rLines.begin() + LineToMove + ( ( !Up && Selection ) ? 1 : 0 ) );
+
+	SubCommand* pSub = new SubCommand( CommandType::SwapLines );
+
+	pSub->Up = !Up;
+
+	pCommand->AddSubCommand( pSub );
+
+	rFile.CmdStack.FinishCommand( rFile.Cursors );
 
 	ScrollToCursor( rFile );
 
@@ -4616,6 +4626,10 @@ void TextEdit::ExecuteCommand( File& rFile, Command* pCommand )
 		else if( pSub->Type == CommandType::Delete )
 		{
 			DeleteLines( rFile, -1, pSub->Start, pSub->End );
+		}
+		else if( pSub->Type == CommandType::SwapLines )
+		{
+			SwapLines( rFile, pSub->Up );
 		}
 	}
 
