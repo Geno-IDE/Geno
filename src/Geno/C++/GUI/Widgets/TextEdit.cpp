@@ -2864,7 +2864,7 @@ void TextEdit::EnterTextStuff( File& rFile, char C, int CursorIndex, bool NoMove
 	if( Insert )
 	{
 		pSub->Type = CommandType::EnterText;
-		pSub->CursorCopy.Position.x--;
+		if( !NoMove ) pSub->CursorCopy.Position.x--;
 		pSub->Character = TmpGlyph;
 		pSub->NoMove    = true;
 	}
@@ -4558,9 +4558,9 @@ void TextEdit::ExecuteCommand( File& rFile, Command* pCommand )
 		else if( pSub->Type == CommandType::EnterText )
 		{
 			CursorInputMode Prev = rFile.CursorMode;
-			rFile.CursorMode     = pCommand->CursorMode;
+			rFile.CursorMode     = pCommand->Type == CommandType::Backspace ? CursorInputMode::Normal : pCommand->CursorMode;
 
-			if( Prev == CursorInputMode::Insert )
+			if( pCommand->CursorMode == CursorInputMode::Insert )
 				rFile.Cursors[ pSub->CursorIndex ] = pSub->CursorCopy;
 
 			EnterTextStuff( rFile, pSub->Character.C, pSub->CursorIndex, pSub->NoMove );
