@@ -2076,7 +2076,7 @@ void TextEdit::Backspace( File& rFile, int CursorIndex, bool DeleteLine )
 		{
 			DeleteSelection( rFile, CursorIndex );
 		}
-		else //if (rFile.CursorMultiMode == MultiCursorMode::Box)
+		else
 		{
 			SubCommand* pSub = new SubCommand( CommandType::RestoreCursor );
 
@@ -2159,7 +2159,7 @@ void TextEdit::Backspace( File& rFile, int CursorIndex, bool DeleteLine )
 				return;
 			}
 		}
-		else //if (rFile.CursorMultiMode == MultiCursorMode::Box)
+		else
 		{
 			SubCommand* pSub = new SubCommand( CommandType::RestoreCursor );
 
