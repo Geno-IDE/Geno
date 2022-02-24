@@ -1079,7 +1079,7 @@ void TextEdit::EraseAllCursors( File& rFile, bool ExcludeMainCursor )
 		}
 	}
 
-	rFile.Cursors.erase( rFile.Cursors.begin(), rFile.Cursors.end() );
+	rFile.Cursors.clear();
 
 	if( ExcludeMainCursor )
 		rFile.Cursors.push_back( Tmp );
