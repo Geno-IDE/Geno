@@ -48,6 +48,7 @@ Process::Process( const std::wstring_view& rCommandLine )
 	m_ExitCode = 0;
 
 	m_Pid = 0;
+
 } // Process
 
 //////////////////////////////////////////////////////////////////////////
@@ -57,19 +58,23 @@ Process::Process( const Process& rOther )
 	m_CommandLine = rOther.m_CommandLine;
 	m_ExitCode    = rOther.m_ExitCode;
 	m_Pid         = rOther.m_Pid;
+
 } // Process
 
 //////////////////////////////////////////////////////////////////////////
 
 Process::Process( Process&& rrOther ) noexcept
 {
-	m_CommandLine = std::exchange( rrOther.m_CommandLine, L"" );
+	m_CommandLine = std::move( rrOther.m_CommandLine );
+
 	m_ExitCode    = std::exchange( rrOther.m_ExitCode, 0 );
+
 #if defined( _WIN32 )
 	m_Pid         = std::exchange( rrOther.m_Pid, nullptr );
 #elif defined( __linux__ ) || defined( __APPLE__ ) // WIN32
 	m_Pid         = std::exchange( rrOther.m_Pid, 0 );
 #endif // __linux__ || __APPLE__
+
 } // Process
 
 //////////////////////////////////////////////////////////////////////////
