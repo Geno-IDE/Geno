@@ -64,7 +64,8 @@ void TitleBar::Draw( void )
 {
 	const bool WorkspaceActive = Application::Instance().CurrentWorkspace() != nullptr;
 
-	ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10.0f, 10.0f ) );
+	ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 10, 10 ) );
+	ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 5, 5 ) );
 
 	if( ImGui::BeginMainMenuBar() )
 	{
@@ -312,7 +313,7 @@ void TitleBar::Draw( void )
 		ImGui::EndMainMenuBar();
 	}
 
-	ImGui::PopStyleVar();
+	ImGui::PopStyleVar( 2 );
 
 	// Keybinds
 
