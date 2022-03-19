@@ -69,6 +69,7 @@ MainWindow::MainWindow( void )
 	m_Height                 = 3 * rMonitor.Height() / 4;
 
 	glfwWindowHint( GLFW_DECORATED, GLFW_FALSE );
+	glfwWindowHint( GLFW_VISIBLE, GLFW_FALSE );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 );
 	
@@ -206,6 +207,14 @@ MainWindow::~MainWindow( void )
 	glfwTerminate();
 
 } // ~MainWindow
+
+//////////////////////////////////////////////////////////////////////////
+
+void MainWindow::Show( void )
+{
+	glfwShowWindow( m_pWindow );
+
+} // Show
 
 //////////////////////////////////////////////////////////////////////////
 

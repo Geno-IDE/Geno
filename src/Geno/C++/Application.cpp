@@ -42,7 +42,12 @@ int Application::Run( int NumArgs, char** ppArgs )
 
 	JobSystem::Instance().StartThreads( std::thread::hardware_concurrency() );
 	DiscordRPC::Instance().InitDiscord();
-	MainWindow::Instance();
+	auto& rWindow = MainWindow::Instance();
+
+	// Update & render once before showing to avoid presenting an empty window on the first frame
+	rWindow.Update();
+	rWindow.Render();
+	rWindow.Show();
 
 	while( MainWindow::Instance().Update() )
 	{
