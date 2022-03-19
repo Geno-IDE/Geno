@@ -57,6 +57,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
+	void    Show                ( void );
 	void    MakeCurrent         ( void );
 	bool    Update              ( void );
 	void    Render              ( void );
