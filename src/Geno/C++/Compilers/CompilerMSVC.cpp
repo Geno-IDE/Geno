@@ -81,7 +81,7 @@ static std::filesystem::path FindMSVCDir( const std::filesystem::path& rProgramF
 	{
 		// Run vswhere.exe to get the installation path of Visual Studio
 		int                Result;
-		std::wstring       VSWhereLocationFull = VSWhereLocation.wstring() + L" -latest -property installationPath";
+		std::wstring       VSWhereLocationFull = VSWhereLocation.wstring() + L" -legacy -prerelease -latest -property installationPath";
 		Process            VSWhereProcess = Process( VSWhereLocationFull );
 		const std::wstring VSWhereOutput = VSWhereProcess.OutputOf( Result );
 		if( Result == 0 )
