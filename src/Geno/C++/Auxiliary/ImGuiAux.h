@@ -36,7 +36,7 @@ struct ButtonData
 };
 
 extern void RenameTree          ( std::string& rNameToRename, bool& rRename, const std::function< bool( void ) >& rCallback );
-extern bool PushTreeWithIcon    ( const char* pLabel, const Texture2D& rTexture, bool Rename, const bool DrawArrow = true );
+extern bool PushTreeWithIcon    ( const char* pLabel, const Texture2D& rTexture, bool Rename, bool DrawArrow = true, bool ForceHovered = false );
 extern bool BeginChildHorizontal( const ImGuiID ID, const ImVec2& rSize, const bool Border = false, const ImGuiWindowFlags Flags = 0 );
 extern void TextCentered        ( const char* pText );
 extern bool Button              ( const char* pLabel, const ButtonData& ButtonData );

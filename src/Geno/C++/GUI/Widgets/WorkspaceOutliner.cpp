@@ -60,16 +60,20 @@ void WorkspaceOutliner::Show( bool* pOpen )
 	{
 		if( Workspace* pWorkspace = Application::Instance().CurrentWorkspace() )
 		{
-			const std::string WorkspaceIDString         = pWorkspace->m_Name + "##WKS_" + pWorkspace->m_Name;
-			bool              ShowWorkspaceContextMenu  = false;
-			bool              ShowProjectContextMenu    = false;
-			bool              ShowFileFilterContextMenu = false;
-			bool              ShowFileContextMenu       = false;
-			static bool       RenameWorkspace           = false;
-			static bool       RenameProject             = false;
-			static bool       RenameFileFilter          = false;
-			static bool       RenameFile                = false;
-			static bool       ForceFocusRename          = false;
+			const std::string WorkspaceIDString                 = pWorkspace->m_Name + "##WKS_" + pWorkspace->m_Name;
+			bool              IsContextMenuOpenForThisWorkspace = ImGui::IsPopupOpen( "WorkspaceContextMenu" );
+			bool              IsProjectContextMenuOpen          = ImGui::IsPopupOpen( "ProjectContextMenu" );
+			bool              IsFilterContextMenuOpen           = ImGui::IsPopupOpen( "FileFilterContextMenu" );
+			bool              IsFileContextMenuOpen             = ImGui::IsPopupOpen( "FileContextMenu" );
+			bool              ShowWorkspaceContextMenu          = false;
+			bool              ShowProjectContextMenu            = false;
+			bool              ShowFileFilterContextMenu         = false;
+			bool              ShowFileContextMenu               = false;
+			static bool       RenameWorkspace                   = false;
+			static bool       RenameProject                     = false;
+			static bool       RenameFileFilter                  = false;
+			static bool       RenameFile                        = false;
+			static bool       ForceFocusRename                  = false;
 
 			ImGui::SetNextItemOpen( true, m_ExpandWorkspaceNode ? ImGuiCond_Always : ImGuiCond_Appearing );
 			m_ExpandWorkspaceNode = false;
@@ -157,12 +161,12 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					} );
 			};
 
-			auto PushFilterFunc = [ & ]( Project& rProject, FileFilter& rFileFilter, std::string_view Name ) -> bool
+			auto PushFilterFunc = [ & ]( Project& rProject, FileFilter& rFileFilter, std::string_view Name, bool IsContextMenuOpen ) -> bool
 			{
 				const std::string FilterIDString = std::string( Name ) + "##FILTER_" + std::string( Name );
 				bool              ToRenameFilter = RenameFileFilter && rFileFilter.Name == m_SelectedFileFilterName;
 
-				if( ImGuiAux::PushTreeWithIcon( FilterIDString.c_str(), m_IconTextureFileFilter, ToRenameFilter ) )
+				if( ImGuiAux::PushTreeWithIcon( FilterIDString.c_str(), m_IconTextureFileFilter, ToRenameFilter, true, IsContextMenuOpen ) )
 				{
 					if( ToRenameFilter )
 						RenameFilterFunc();
@@ -196,14 +200,15 @@ void WorkspaceOutliner::Show( bool* pOpen )
 			{
 				for( std::filesystem::path& rFile : rFileFilter.Files )
 				{
-					const std::string FileString    = rFile.filename().string();
-					bool              ToRenameFile  = RenameFile && rFile == m_SelectedFile;
-					bool              ColorFileText = MainWindow::Instance().pTextEdit->GetActiveFilePath() == rFile;
+					const std::string FileString        = rFile.filename().string();
+					bool              ToRenameFile      = RenameFile && rFile == m_SelectedFile;
+					bool              ColorFileText     = MainWindow::Instance().pTextEdit->GetActiveFilePath() == rFile;
+					bool              IsContextMenuOpen = IsFileContextMenuOpen && ( m_SelectedFile == rFile );
 
 					if( ColorFileText )
 						ImGui::PushStyleColor( ImGuiCol_Text, { 0.2f, 0.6f, 0.8f, 1.0f } );
 
-					const bool FileTreeOpened = ImGuiAux::PushTreeWithIcon( FileString.c_str(), m_IconTextureSourceFile, ToRenameFile, false );
+					const bool FileTreeOpened = ImGuiAux::PushTreeWithIcon( FileString.c_str(), m_IconTextureSourceFile, ToRenameFile, false, IsContextMenuOpen );
 
 					if( ColorFileText )
 						ImGui::PopStyleColor();
@@ -267,7 +272,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 				}
 			};
 
-			if( ImGuiAux::PushTreeWithIcon( WorkspaceIDString.c_str(), m_IconTextureWorkspace, RenameWorkspace ) )
+			if( ImGuiAux::PushTreeWithIcon( WorkspaceIDString.c_str(), m_IconTextureWorkspace, RenameWorkspace, true, IsContextMenuOpenForThisWorkspace ) )
 			{
 				if( RenameWorkspace )
 					RenameWorkspaceFunc();
@@ -281,9 +286,9 @@ void WorkspaceOutliner::Show( bool* pOpen )
 					ImGui::SetNextItemOpen( true, m_ProjectNodeToBeExpanded == rProject.m_Name ? ImGuiCond_Always : ImGuiCond_Appearing );
 					m_ProjectNodeToBeExpanded.clear();
 
-					bool ToRenameProject = RenameProject && rProject.m_Name == m_SelectedProjectName;
-
-					if( ImGuiAux::PushTreeWithIcon( ProjectIDString.c_str(), m_IconTextureProject, ToRenameProject ) )
+					bool ToRenameProject                 = RenameProject && rProject.m_Name == m_SelectedProjectName;
+					bool IsContextMenuOpenForThisProject = IsProjectContextMenuOpen && ( m_SelectedProjectName == rProject.m_Name );
+					if( ImGuiAux::PushTreeWithIcon( ProjectIDString.c_str(), m_IconTextureProject, ToRenameProject, true, IsContextMenuOpenForThisProject ) )
 					{
 						if( ToRenameProject )
 							RenameProjectFunc();
@@ -298,12 +303,13 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 						for( FileFilter& rFileFilter : rProject.m_FileFilters )
 						{
+							bool IsContextMenuOpenForThisFilter = IsFilterContextMenuOpen && ( m_SelectedFileFilterName == rFileFilter.Name );
 							if( !rFileFilter.Name.empty() )
 							{
 								if( PreviousFileFilters.empty() )
 								{
 									const std::string FilterName = rFileFilter.Name.string();
-									PreviousFileFilters.push_back( { &rFileFilter, PushFilterFunc( rProject, rFileFilter, FilterName ) } );
+									PreviousFileFilters.push_back( { &rFileFilter, PushFilterFunc( rProject, rFileFilter, FilterName, IsContextMenuOpenForThisFilter ) } );
 								}
 								else
 								{
@@ -333,7 +339,7 @@ void WorkspaceOutliner::Show( bool* pOpen )
 
 									if( PreviousFileFilters.empty() || PreviousFileFilters.back().second )
 									{
-										PreviousFileFilters.push_back( { &rFileFilter, PushFilterFunc( rProject, rFileFilter, RelativeNameString ) } );
+										PreviousFileFilters.push_back( { &rFileFilter, PushFilterFunc( rProject, rFileFilter, RelativeNameString, IsContextMenuOpenForThisFilter ) } );
 									}
 								}
 							}
