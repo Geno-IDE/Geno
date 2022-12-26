@@ -37,6 +37,7 @@ BuildMatrixModal::BuildMatrixModal( void )
 	: m_TextureColumnMenuIcon( STBAux::LoadImageTexture( "Icons/ColumnMenu.png" ) )
 	, m_TextureNewColumn     ( STBAux::LoadImageTexture( "Icons/NewColumn.png" ) )
 {
+	m_MaxSize = ImVec2( FLT_MAX, FLT_MAX );
 
 } // BuildMatrixModal
 
