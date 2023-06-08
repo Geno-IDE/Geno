@@ -1,7 +1,6 @@
 <p align="center">
 	<a href="https://github.com/Geno-IDE/Geno/graphs/contributors"><img alt="Contributors" src="https://img.shields.io/github/contributors/Geno-IDE/Geno?style=for-the-badge"></a>
 	<a href="/LICENSE"><img alt="License" src="https://img.shields.io/github/license/Geno-IDE/Geno?style=for-the-badge"></a>
-	<a href="https://discord.gg/dUd5aDSBAN"><img alt="Discord" src="https://img.shields.io/discord/854043545240338442?color=%238A9CFC&label=%20Discord&logo=Discord&logoColor=%238A9CFC&style=for-the-badge"></a>
 </p>
 
 <p align="center">
